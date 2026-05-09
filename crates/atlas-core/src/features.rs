@@ -1,0 +1,68 @@
+use std::collections::HashMap;
+
+/// Represents the state of a feature module.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FeatureStatus {
+    /// Feature is active and running.
+    Enabled,
+    /// Feature is loaded but inactive.
+    Disabled,
+}
+
+/// Manages the registration and state of Atlas feature modules.
+pub struct FeatureManager {
+    features: HashMap<String, FeatureStatus>,
+}
+
+impl Default for FeatureManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl FeatureManager {
+    /// Creates a new FeatureManager with default features.
+    pub fn new() -> Self {
+        let mut features = HashMap::new();
+        // Default feature placeholders
+        features.insert("monitoring".to_string(), FeatureStatus::Disabled);
+        features.insert("screenshot".to_string(), FeatureStatus::Disabled);
+        features.insert("window-manager".to_string(), FeatureStatus::Disabled);
+        Self { features }
+    }
+
+    /// Toggles a feature state.
+    pub fn toggle_feature(&mut self, name: &str, enabled: bool) {
+        if self.features.contains_key(name) {
+            let status = if enabled { FeatureStatus::Enabled } else { FeatureStatus::Disabled };
+            self.features.insert(name.to_string(), status);
+        }
+    }
+
+    /// Gets the status of a specific feature.
+    pub fn get_feature_status(&self, name: &str) -> Option<FeatureStatus> {
+        self.features.get(name).copied()
+    }
+
+    /// Returns a list of all available features and their status.
+    pub fn list_features(&self) -> Vec<(String, FeatureStatus)> {
+        self.features.iter().map(|(k, v)| (k.clone(), *v)).collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_feature_toggle() {
+        let mut fm = FeatureManager::new();
+        assert_eq!(fm.get_feature_status("monitoring"), Some(FeatureStatus::Disabled));
+        
+        fm.toggle_feature("monitoring", true);
+        assert_eq!(fm.get_feature_status("monitoring"), Some(FeatureStatus::Enabled));
+        
+        fm.toggle_feature("monitoring", false);
+        assert_eq!(fm.get_feature_status("monitoring"), Some(FeatureStatus::Disabled));
+    }
+}

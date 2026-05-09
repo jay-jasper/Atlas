@@ -1,26 +1,32 @@
-/// The core component of the Atlas system.
+pub mod features;
+use features::FeatureManager;
+
+/// Core structure for the Atlas system.
 pub struct AtlasCore {
-    /// The current version of the Atlas Core.
+    /// Current version of the Atlas Core.
     pub version: String,
-}
-
-impl AtlasCore {
-    /// Creates a new instance of `AtlasCore` with the version from `Cargo.toml`.
-    pub fn new() -> Self {
-        Self {
-            version: env!("CARGO_PKG_VERSION").to_string(),
-        }
-    }
-
-    /// Returns a status message indicating that the Atlas Core is running.
-    pub fn get_status(&self) -> String {
-        format!("Atlas Core v{} is running", self.version)
-    }
+    /// Manager for dynamic features.
+    pub feature_manager: FeatureManager,
 }
 
 impl Default for AtlasCore {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl AtlasCore {
+    /// Creates a new instance of AtlasCore.
+    pub fn new() -> Self {
+        Self {
+            version: env!("CARGO_PKG_VERSION").to_string(),
+            feature_manager: FeatureManager::new(),
+        }
+    }
+
+    /// Returns a status string indicating the core is running.
+    pub fn get_status(&self) -> String {
+        format!("Atlas Core v{} is running", self.version)
     }
 }
 
