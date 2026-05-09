@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "crates/atlas-core",
+    "crates/atlas-ffi",
+]
+resolver = "2"
