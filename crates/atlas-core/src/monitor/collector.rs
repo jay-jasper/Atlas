@@ -1,19 +1,40 @@
 use sysinfo::{System, Networks};
 use crate::monitor::models::SystemSnapshot;
 
+/// Collects system performance metrics.
 pub struct Collector {
     sys: System,
     networks: Networks,
+    last_upload: u64,
+    last_download: u64,
 }
 
 impl Collector {
+    /// Creates a new `Collector` instance.
     pub fn new() -> Self {
+        let mut sys = System::new();
+        // Initial refresh to allow CPU usage calculation on first snapshot
+        sys.refresh_cpu();
+
+        let mut networks = Networks::new_with_refreshed_list();
+        networks.refresh();
+
+        let mut last_upload = 0;
+        let mut last_download = 0;
+        for (_, data) in &networks {
+            last_upload += data.transmitted();
+            last_download += data.received();
+        }
+
         Self {
-            sys: System::new_all(),
-            networks: Networks::new_with_refreshed_list(),
+            sys,
+            networks,
+            last_upload,
+            last_download,
         }
     }
 
+    /// Takes a snapshot of current system metrics.
     pub fn take_snapshot(&mut self) -> SystemSnapshot {
         self.sys.refresh_cpu();
         self.sys.refresh_memory();
@@ -23,20 +44,32 @@ impl Collector {
         let mem_used_bytes = self.sys.used_memory();
         let mem_total_bytes = self.sys.total_memory();
 
-        let mut upload = 0;
-        let mut download = 0;
+        let mut current_upload = 0;
+        let mut current_download = 0;
         for (_, data) in &self.networks {
-            upload += data.transmitted();
-            download += data.received();
+            current_upload += data.transmitted();
+            current_download += data.received();
         }
+
+        let net_upload_bps = current_upload.saturating_sub(self.last_upload);
+        let net_download_bps = current_download.saturating_sub(self.last_download);
+
+        self.last_upload = current_upload;
+        self.last_download = current_download;
 
         SystemSnapshot {
             cpu_usage,
             mem_used_bytes,
             mem_total_bytes,
-            net_upload_bps: upload,
-            net_download_bps: download,
+            net_upload_bps,
+            net_download_bps,
         }
+    }
+}
+
+impl Default for Collector {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -56,5 +89,12 @@ mod tests {
         
         assert!(snapshot.mem_total_bytes > 0);
         println!("Snapshot: {:?}", snapshot);
+    }
+
+    #[test]
+    fn test_default() {
+        let mut collector = Collector::default();
+        let snapshot = collector.take_snapshot();
+        assert!(snapshot.mem_total_bytes > 0);
     }
 }
