@@ -1,5 +1,23 @@
+/// Represents the state of a feature module.
+enum FeatureStatus {
+    "Enabled",
+    "Disabled",
+};
+
+/// A record representing a feature and its current status.
+dictionary FeatureEntry {
+    string name;
+    FeatureStatus status;
+};
+
 /// The `atlas` namespace contains the core functions exposed to other languages.
 namespace atlas {
     /// Returns the current status of the Atlas core as a string.
     string get_core_status();
+
+    /// Toggles a feature state. Returns true if the feature existed and was toggled.
+    boolean toggle_feature(string name, boolean enabled);
+
+    /// Returns a list of all available feature names.
+    sequence<string> list_features();
 };
