@@ -1,3 +1,5 @@
+/// The `atlas` namespace contains the core functions exposed to other languages.
 namespace atlas {
+    /// Returns the current status of the Atlas core as a string.
     string get_core_status();
 };
