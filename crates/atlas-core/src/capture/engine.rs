@@ -5,27 +5,34 @@ use std::io::Cursor;
 pub struct CaptureEngine;
 
 impl CaptureEngine {
-    /// 捕获全屏并返回原始像素数据 (PNG 字节)
+    /// Captures the full screen and returns raw pixel data (PNG bytes).
+    ///
+    /// # Note
+    /// Currently, this only supports the primary monitor (the first screen found).
     pub fn capture_full_screen() -> Result<Vec<u8>> {
-        let screens = Screen::all().map_err(|e| anyhow::anyhow!(e.to_string()))?;
-        let screen = screens.first().context("No screen found")?;
-        let img = screen.capture().map_err(|e| anyhow::anyhow!(e.to_string()))?;
+        let screens = Screen::all().map_err(|e| anyhow::anyhow!("Failed to retrieve screens: {}", e))?;
+        let screen = screens.first().context("No monitor found to capture")?;
+        let img = screen.capture().map_err(|e| anyhow::anyhow!("Failed to capture screen: {}", e))?;
         
         let mut buffer = Cursor::new(Vec::new());
         img.write_to(&mut buffer, image::ImageOutputFormat::Png)
-            .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+            .context("Failed to encode screen capture to PNG")?;
         Ok(buffer.into_inner())
     }
 
-    /// 根据选区坐标裁剪图片
-    pub fn capture_region(x: i32, y: u32, width: u32, height: u32) -> Result<Vec<u8>> {
-        let screens = Screen::all().map_err(|e| anyhow::anyhow!(e.to_string()))?;
-        let screen = screens.first().context("No screen found")?;
-        let img = screen.capture_area(x, y as i32, width, height).map_err(|e| anyhow::anyhow!(e.to_string()))?;
+    /// Captures a specific region of the screen and returns raw pixel data (PNG bytes).
+    ///
+    /// # Note
+    /// Currently, this only supports the primary monitor (the first screen found).
+    pub fn capture_region(x: i32, y: i32, width: u32, height: u32) -> Result<Vec<u8>> {
+        let screens = Screen::all().map_err(|e| anyhow::anyhow!("Failed to retrieve screens: {}", e))?;
+        let screen = screens.first().context("No monitor found to capture")?;
+        let img = screen.capture_area(x, y, width, height)
+            .map_err(|e| anyhow::anyhow!("Failed to capture region ({}, {}, {}, {}): {}", x, y, width, height, e))?;
         
         let mut buffer = Cursor::new(Vec::new());
         img.write_to(&mut buffer, image::ImageOutputFormat::Png)
-            .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+            .context("Failed to encode region capture to PNG")?;
         Ok(buffer.into_inner())
     }
 }
