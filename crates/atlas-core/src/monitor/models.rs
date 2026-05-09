@@ -42,8 +42,11 @@ pub struct DiskSnapshot {
     pub name: String,
     /// 挂载点（如 "/"）。
     pub mount_point: String,
+    /// 总容量（字节）。
     pub total_bytes: u64,
+    /// 已用空间（字节）。
     pub used_bytes: u64,
+    /// 可用空间（字节）。
     pub available_bytes: u64,
 }
 
@@ -52,6 +55,7 @@ pub struct DiskSnapshot {
 pub struct BatterySnapshot {
     /// 当前电量百分比，0.0 ~ 100.0。
     pub charge_percent: f32,
+    /// 是否正在充电。
     pub is_charging: bool,
     /// 距离耗尽的秒数（放电时有值）。
     pub time_to_empty_secs: Option<i64>,
