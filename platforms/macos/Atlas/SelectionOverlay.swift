@@ -10,7 +10,8 @@ struct SelectionOverlay: View {
             Color.black.opacity(0.3)
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture {
-                    // Tap background to cancel? Or handled elsewhere.
+                    startPoint = nil
+                    endPoint = nil
                 }
             
             if let start = startPoint, let end = endPoint {
@@ -31,12 +32,7 @@ struct SelectionOverlay: View {
                 }
                 .onEnded { value in
                     if let start = startPoint {
-                        let rect = CGRect(
-                            x: min(start.x, value.location.x),
-                            y: min(start.y, value.location.y),
-                            width: abs(start.x - value.location.x),
-                            height: abs(start.y - value.location.y)
-                        )
+                        let rect = selectionRect(start: start, end: value.location)
                         if rect.width > 5 && rect.height > 5 {
                             onCapture(rect)
                         }
