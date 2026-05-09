@@ -11,17 +11,20 @@ struct SystemSnapshot {
 
 // Updated Mock Bridge for Task 5
 class AtlasBridge {
+    static var monitoringTimer: Timer?
+
     static func listFeatures() -> [String] {
         return ["Logging", "Auto-Updates", "Experimental Mode"]
     }
-    
+
     static func toggleFeature(name: String, enabled: Bool) {
         print("Feature \(name) toggled to \(enabled)")
     }
 
     static func startMonitoring(callback: @escaping (SystemSnapshot) -> Void) {
+        monitoringTimer?.invalidate()  // cancel any existing timer before starting a new one
         // Mock periodic updates
-        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+        monitoringTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             callback(SystemSnapshot(
                 cpuUsage: Float.random(in: 0...100),
                 memUsedBytes: 8_000_000_000,
@@ -31,7 +34,12 @@ class AtlasBridge {
             ))
         }
     }
-    
+
+    static func stopMonitoring() {
+        monitoringTimer?.invalidate()
+        monitoringTimer = nil
+    }
+
     static func killPortProcess(pid: UInt32) -> Bool {
         print("Killing process \(pid)")
         return true
@@ -52,6 +60,7 @@ struct ContentView: View {
     
     // Port Master State
     @State private var portInput: String = ""
+    @State private var portError: String = ""
 
     // Screenshot State
     @State private var isShowingSelectionOverlay: Bool = false
@@ -141,15 +150,23 @@ struct ContentView: View {
                     HStack {
                         TextField("Enter PID or Port", text: $portInput)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
-                        
+
                         Button("Kill") {
-                            if let pid = UInt32(portInput) {
-                                if AtlasBridge.killPortProcess(pid: pid) {
-                                    portInput = ""
-                                }
+                            guard let pid = UInt32(portInput) else {
+                                portError = "Invalid number: \"\(portInput)\""
+                                return
+                            }
+                            portError = ""
+                            if AtlasBridge.killPortProcess(pid: pid) {
+                                portInput = ""
                             }
                         }
                         .disabled(portInput.isEmpty)
+                    }
+                    if !portError.isEmpty {
+                        Text(portError)
+                            .font(.caption)
+                            .foregroundColor(.red)
                     }
                 }
                 
