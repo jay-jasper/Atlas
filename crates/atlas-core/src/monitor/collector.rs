@@ -63,6 +63,17 @@ impl Collector {
             mem_total_bytes,
             net_upload_bps,
             net_download_bps,
+            cpu_cores: vec![],
+            mem_free_bytes: 0,
+            mem_available_bytes: 0,
+            swap_used_bytes: 0,
+            swap_total_bytes: 0,
+            top_cpu_processes: vec![],
+            top_mem_processes: vec![],
+            network_interfaces: vec![],
+            disks: vec![],
+            battery: None,
+            temperatures: vec![],
         }
     }
 }
