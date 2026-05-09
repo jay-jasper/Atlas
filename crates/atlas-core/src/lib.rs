@@ -1,5 +1,6 @@
 pub mod features;
 pub mod monitor;
+pub mod capture;
 use features::FeatureManager;
 
 /// Core structure for the Atlas system.
