@@ -2,14 +2,22 @@ use sysinfo::Components;
 
 use crate::monitor::models::TemperatureSnapshot;
 
-/// 返回所有可用温度传感器的读数。
+/// 返回所有可用温度传感器的读数（已过滤无效值）。
 /// macOS 受 SIP 权限限制，可能返回空列表或仅部分传感器。
+/// 超出 0–150°C 范围的读数视为无效并丢弃。
 pub fn get_temperatures() -> Vec<TemperatureSnapshot> {
     Components::new_with_refreshed_list()
         .iter()
-        .map(|c| TemperatureSnapshot {
-            label: c.label().to_string(),
-            celsius: c.temperature(),
+        .filter_map(|c| {
+            let celsius = c.temperature();
+            if celsius >= 0.0 && celsius < 150.0 {
+                Some(TemperatureSnapshot {
+                    label: c.label().to_string(),
+                    celsius,
+                })
+            } else {
+                None
+            }
         })
         .collect()
 }
@@ -23,9 +31,12 @@ mod tests {
         let temps = get_temperatures();
         for t in &temps {
             assert!(!t.label.is_empty());
-            // macOS with SIP may return unrealistic values; just ensure we can read them
-            // without panicking. Realistic range is roughly 0–150°C, but we don't assert it.
-            let _ = t.celsius; // suppress unused warning if we have no assertions
+            assert!(
+                t.celsius >= 0.0 && t.celsius < 150.0,
+                "Suspicious temperature for {}: {}°C",
+                t.label,
+                t.celsius
+            );
         }
     }
 }
