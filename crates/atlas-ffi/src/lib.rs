@@ -3,7 +3,7 @@
 //! This crate provides a Foreign Function Interface (FFI) for the Atlas core functionality,
 //! allowing it to be used from other languages via UniFFI.
 
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use once_cell::sync::Lazy;
 use tokio::runtime::Runtime;
 use tokio::task::JoinHandle;
@@ -95,10 +95,9 @@ pub fn toggle_feature(name: String, enabled: bool) -> Result<bool, AtlasError> {
 
 /// Returns a list of all available features and their status.
 pub fn list_features() -> Result<Vec<FeatureEntry>, AtlasError> {
-    let core = CORE.lock().map_err(|_| AtlasError::LockPoisoned)?;
-    Ok(core.feature_manager()
-        .list_features()
-        .into_iter()
+    // Important Issue 3: release the lock before allocation by binding raw first.
+    let raw = CORE.lock().map_err(|_| AtlasError::LockPoisoned)?.feature_manager().list_features();
+    Ok(raw.into_iter()
         .map(|(name, status)| FeatureEntry {
             name,
             status: status.into(),
@@ -112,29 +111,42 @@ pub fn list_features() -> Result<Vec<FeatureEntry>, AtlasError> {
 /// and pushes them to the provided callback. If monitoring is already active,
 /// the existing task is stopped before starting a new one.
 pub fn start_monitoring(callback: Box<dyn SystemMonitorCallback>) -> Result<(), AtlasError> {
-    let mut handle_lock = MONITOR_HANDLE.lock().map_err(|_| AtlasError::LockPoisoned)?;
-    
-    // Stop existing task if any
-    if let Some(handle) = handle_lock.take() {
-        handle.abort();
-    }
+    // Stop existing task if any, then release the lock before spawning (Important
+    // Issue 4): holding the MutexGuard across RUNTIME.spawn() is unnecessary and
+    // could deadlock if anything on the runtime thread also tries to acquire this
+    // lock.
+    {
+        let mut handle_lock = MONITOR_HANDLE.lock().map_err(|_| AtlasError::LockPoisoned)?;
+        if let Some(handle) = handle_lock.take() {
+            handle.abort();
+        }
+    } // lock guard is dropped here
 
+    let callback = Arc::new(callback);
+
+    // Critical Issue 2: the callback is a blocking synchronous FFI call; running
+    // it inside spawn_blocking prevents it from starving the Tokio async worker
+    // threads.
     let handle = RUNTIME.spawn(async move {
         let mut collector = atlas_core::monitor::collector::Collector::new();
         loop {
             let snapshot = collector.take_snapshot();
-            callback.on_snapshot(SystemSnapshot {
+            let ffi_snapshot = SystemSnapshot {
                 cpu_usage: snapshot.cpu_usage,
                 mem_used_bytes: snapshot.mem_used_bytes,
                 mem_total_bytes: snapshot.mem_total_bytes,
                 net_upload_bps: snapshot.net_upload_bps,
                 net_download_bps: snapshot.net_download_bps,
-            });
+            };
+            let cb = Arc::clone(&callback);
+            tokio::task::spawn_blocking(move || {
+                cb.on_snapshot(ffi_snapshot);
+            }).await.ok();
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         }
     });
 
-    *handle_lock = Some(handle);
+    MONITOR_HANDLE.lock().map_err(|_| AtlasError::LockPoisoned)?.replace(handle);
     Ok(())
 }
 
@@ -152,14 +164,17 @@ pub fn stop_monitoring() -> Result<(), AtlasError> {
 /// Returns `Ok(Some(info))` if a process is found, `Ok(None)` if no process is listening,
 /// or an error if the lookup command fails.
 pub fn lookup_port(port: u16) -> Result<Option<PortProcessInfo>, AtlasError> {
+    // Critical Issue 1: previously the code unwrapped the outer Result with `?`,
+    // then called `.map(|info| Ok(...)).transpose()` — redundantly wrapping an
+    // already-unwrapped Option value back into Ok before transposing. The correct
+    // approach maps over the outer Result and the inner Option directly.
     atlas_core::monitor::port_master::find_process_by_port(port)
-        .map_err(|e| AtlasError::ProcessError(e.to_string()))?
-        .map(|info| Ok(PortProcessInfo {
+        .map_err(|e| AtlasError::ProcessError(e.to_string()))
+        .map(|opt| opt.map(|info| PortProcessInfo {
             port: info.port,
             pid: info.pid,
             process_name: info.process_name,
         }))
-        .transpose()
 }
 
 /// Kills a process by its PID.
