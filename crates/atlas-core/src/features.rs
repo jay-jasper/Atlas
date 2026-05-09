@@ -63,13 +63,22 @@ mod tests {
     #[test]
     fn test_feature_toggle() {
         let mut fm = FeatureManager::new();
-        assert_eq!(fm.get_feature_status("monitoring"), Some(FeatureStatus::Disabled));
-        
+        assert_eq!(
+            fm.get_feature_status("monitoring"),
+            Some(FeatureStatus::Disabled)
+        );
+
         fm.toggle_feature("monitoring", true);
-        assert_eq!(fm.get_feature_status("monitoring"), Some(FeatureStatus::Enabled));
-        
+        assert_eq!(
+            fm.get_feature_status("monitoring"),
+            Some(FeatureStatus::Enabled)
+        );
+
         fm.toggle_feature("monitoring", false);
-        assert_eq!(fm.get_feature_status("monitoring"), Some(FeatureStatus::Disabled));
+        assert_eq!(
+            fm.get_feature_status("monitoring"),
+            Some(FeatureStatus::Disabled)
+        );
     }
 
     #[test]

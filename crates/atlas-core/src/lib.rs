@@ -53,7 +53,10 @@ mod tests {
     #[test]
     fn test_core_status() {
         let core = AtlasCore::new();
-        assert_eq!(core.get_status(), format!("Atlas Core v{} is running", env!("CARGO_PKG_VERSION")));
+        assert_eq!(
+            core.get_status(),
+            format!("Atlas Core v{} is running", env!("CARGO_PKG_VERSION"))
+        );
     }
 
     #[test]

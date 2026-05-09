@@ -1,5 +1,5 @@
-use sysinfo::{System, Networks};
 use crate::monitor::models::SystemSnapshot;
+use sysinfo::{Networks, System};
 
 /// Collects system performance metrics.
 pub struct Collector {
@@ -82,11 +82,11 @@ mod tests {
         let mut collector = Collector::new();
         // First snapshot might have 0 CPU usage because it needs two refreshes with delay
         let _ = collector.take_snapshot();
-        
+
         // Wait a bit or just take another one (sysinfo 0.30 usually works better with a small delay)
         // But for unit test we just want to see if it doesn't panic and returns memory.
         let snapshot = collector.take_snapshot();
-        
+
         assert!(snapshot.mem_total_bytes > 0);
         println!("Snapshot: {:?}", snapshot);
     }

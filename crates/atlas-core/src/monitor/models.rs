@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// A snapshot of system performance metrics at a specific point in time.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
