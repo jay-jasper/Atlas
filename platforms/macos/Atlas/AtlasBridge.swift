@@ -2,31 +2,53 @@ import AppKit
 import Foundation
 
 private extension NSImage {
-    static func atlasMockScreenshot(width: Int, height: Int) -> Data {
-        let size = NSSize(width: max(1, width), height: max(1, height))
-        let image = NSImage(size: size)
-        image.lockFocus()
-        NSColor.windowBackgroundColor.setFill()
-        NSRect(origin: .zero, size: size).fill()
-        NSColor.systemBlue.setStroke()
-        let border = NSBezierPath(rect: NSRect(x: 4, y: 4, width: size.width - 8, height: size.height - 8))
-        border.lineWidth = 4
-        border.stroke()
-        NSString(string: "\(Int(size.width)) x \(Int(size.height))").draw(
-            at: NSPoint(x: 12, y: max(12, size.height / 2 - 8)),
-            withAttributes: [
-                .foregroundColor: NSColor.labelColor,
-                .font: NSFont.monospacedSystemFont(ofSize: 14, weight: .medium)
-            ]
-        )
-        image.unlockFocus()
+    static func atlasMockScreenshot(width: Int, height: Int) -> Data? {
+        let pixelWidth = max(1, width)
+        let pixelHeight = max(1, height)
 
         guard
-            let tiff = image.tiffRepresentation,
-            let bitmap = NSBitmapImageRep(data: tiff),
+            let bitmap = NSBitmapImageRep(
+                bitmapDataPlanes: nil,
+                pixelsWide: pixelWidth,
+                pixelsHigh: pixelHeight,
+                bitsPerSample: 8,
+                samplesPerPixel: 4,
+                hasAlpha: true,
+                isPlanar: false,
+                colorSpaceName: .deviceRGB,
+                bitmapFormat: .alphaNonpremultiplied,
+                bytesPerRow: pixelWidth * 4,
+                bitsPerPixel: 32
+            ),
+            let pixels = bitmap.bitmapData
+        else {
+            return nil
+        }
+
+        let borderWidth = min(4, max(1, min(pixelWidth, pixelHeight) / 4))
+
+        for y in 0..<pixelHeight {
+            for x in 0..<pixelWidth {
+                let offset = (y * bitmap.bytesPerRow) + (x * 4)
+                let isBorder = x < borderWidth
+                    || y < borderWidth
+                    || x >= pixelWidth - borderWidth
+                    || y >= pixelHeight - borderWidth
+                let red = UInt8((x * 13 + y * 3 + pixelWidth) % 256)
+                let green = UInt8((x * 5 + y * 17 + pixelHeight) % 256)
+                let blue = UInt8((x * 7 + y * 11 + pixelWidth + pixelHeight) % 256)
+
+                pixels[offset] = isBorder ? 32 : red
+                pixels[offset + 1] = isBorder ? 96 : green
+                pixels[offset + 2] = isBorder ? 192 : blue
+                pixels[offset + 3] = 255
+            }
+        }
+
+        guard
             let png = bitmap.representation(using: .png, properties: [:])
         else {
-            return Data([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
+            return nil
         }
 
         return png
