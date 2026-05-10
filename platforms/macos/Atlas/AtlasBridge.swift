@@ -1,4 +1,37 @@
+import AppKit
 import Foundation
+
+private extension NSImage {
+    static func atlasMockScreenshot(width: Int, height: Int) -> Data {
+        let size = NSSize(width: max(1, width), height: max(1, height))
+        let image = NSImage(size: size)
+        image.lockFocus()
+        NSColor.windowBackgroundColor.setFill()
+        NSRect(origin: .zero, size: size).fill()
+        NSColor.systemBlue.setStroke()
+        let border = NSBezierPath(rect: NSRect(x: 4, y: 4, width: size.width - 8, height: size.height - 8))
+        border.lineWidth = 4
+        border.stroke()
+        NSString(string: "\(Int(size.width)) x \(Int(size.height))").draw(
+            at: NSPoint(x: 12, y: max(12, size.height / 2 - 8)),
+            withAttributes: [
+                .foregroundColor: NSColor.labelColor,
+                .font: NSFont.monospacedSystemFont(ofSize: 14, weight: .medium)
+            ]
+        )
+        image.unlockFocus()
+
+        guard
+            let tiff = image.tiffRepresentation,
+            let bitmap = NSBitmapImageRep(data: tiff),
+            let png = bitmap.representation(using: .png, properties: [:])
+        else {
+            return Data([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
+        }
+
+        return png
+    }
+}
 
 class AtlasBridge {
     static var monitoringTimer: Timer?
@@ -72,10 +105,10 @@ class AtlasBridge {
 
     static func captureRegion(x: Int32, y: Int32, width: UInt32, height: UInt32) -> Data? {
         print("Capturing region: x=\(x), y=\(y), width=\(width), height=\(height)")
-        return Data()
+        return NSImage.atlasMockScreenshot(width: Int(width), height: Int(height))
     }
 
     static func captureFullScreen() -> Data? {
-        return Data()
+        return NSImage.atlasMockScreenshot(width: 1440, height: 900)
     }
 }
