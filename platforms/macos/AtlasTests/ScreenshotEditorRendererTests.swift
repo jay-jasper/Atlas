@@ -4,7 +4,7 @@ import XCTest
 
 final class ScreenshotEditorRendererTests: XCTestCase {
     func testRenderedPNGIncludesAnnotations() throws {
-        let data = try XCTUnwrap(AtlasBridge.captureRegion(x: 0, y: 0, width: 120, height: 80))
+        let data = try Self.deterministicPNGData(width: 120, height: 80)
         let screenshot = CapturedScreenshot(
             pngData: data,
             rect: CGRect(x: 0, y: 0, width: 120, height: 80)
@@ -30,7 +30,7 @@ final class ScreenshotEditorRendererTests: XCTestCase {
     }
 
     func testRenderedPNGReturnsOriginalWithoutAnnotations() throws {
-        let data = try XCTUnwrap(AtlasBridge.captureRegion(x: 0, y: 0, width: 64, height: 48))
+        let data = try Self.deterministicPNGData(width: 64, height: 48)
         let screenshot = CapturedScreenshot(
             pngData: data,
             rect: CGRect(x: 0, y: 0, width: 64, height: 48)
@@ -46,7 +46,7 @@ final class ScreenshotEditorRendererTests: XCTestCase {
     }
 
     func testPixelateChangesPixelsInsideRegion() throws {
-        let data = try XCTUnwrap(AtlasBridge.captureRegion(x: 0, y: 0, width: 80, height: 60))
+        let data = try Self.deterministicPNGData(width: 80, height: 60)
         let screenshot = CapturedScreenshot(
             pngData: data,
             rect: CGRect(x: 0, y: 0, width: 80, height: 60)
@@ -64,5 +64,37 @@ final class ScreenshotEditorRendererTests: XCTestCase {
 
         XCTAssertNotEqual(rendered, data)
         XCTAssertNotEqual(originalColor.redComponent, renderedColor.redComponent, accuracy: 0.001)
+    }
+
+    private static func deterministicPNGData(width: Int, height: Int) throws -> Data {
+        let bitmap = try XCTUnwrap(NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: width,
+            pixelsHigh: height,
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: width * 4,
+            bitsPerPixel: 32
+        ))
+
+        for y in 0..<height {
+            for x in 0..<width {
+                bitmap.setColor(
+                    NSColor(
+                        deviceRed: CGFloat((x * 3 + y * 5) % 256) / 255,
+                        green: CGFloat((x * 7 + y * 11) % 256) / 255,
+                        blue: CGFloat((x * 13 + y * 17) % 256) / 255,
+                        alpha: 1
+                    ),
+                    atX: x,
+                    y: y
+                )
+            }
+        }
+
+        return try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
     }
 }
