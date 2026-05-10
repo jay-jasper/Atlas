@@ -1,9 +1,11 @@
 import AppKit
+import CoreGraphics
 import Foundation
 
 class AtlasBridge {
     static var monitoringTimer: Timer?
     static var captureService: AtlasCaptureService = .live
+    static var windowCaptureProvider: WindowCaptureProviding = CoreGraphicsWindowCaptureProvider()
 
     static func listFeatures() -> [String] {
         return AtlasModule.allCases.map(\.featureName)
@@ -78,5 +80,13 @@ class AtlasBridge {
 
     static func captureFullScreen() throws -> Data {
         try captureService.captureFullScreen()
+    }
+
+    static func listCapturableWindows() throws -> [CapturableWindow] {
+        try windowCaptureProvider.listWindows()
+    }
+
+    static func captureWindow(id: CGWindowID) throws -> Data {
+        try windowCaptureProvider.captureWindow(id: id)
     }
 }

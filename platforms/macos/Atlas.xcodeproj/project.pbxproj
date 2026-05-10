@@ -10,6 +10,8 @@
 		83CBBA201A601CBA00E9B192 /* AppFooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA311A601CBA00E9B192 /* AppFooter.swift */; };
 		83CBBA9A1A601CBA00E9B192 /* AtlasCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA9C1A601CBA00E9B192 /* AtlasCaptureService.swift */; };
 		83CBBA9B1A601CBA00E9B192 /* AtlasCaptureServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA9D1A601CBA00E9B192 /* AtlasCaptureServiceTests.swift */; };
+		83CBBAA21A601CBA00E9B192 /* WindowCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBAA41A601CBA00E9B192 /* WindowCaptureService.swift */; };
+		83CBBAA31A601CBA00E9B192 /* WindowCaptureServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBAA51A601CBA00E9B192 /* WindowCaptureServiceTests.swift */; };
 		83CBBAA01A601CBA00E9B192 /* ScreenshotCaptureMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA9E1A601CBA00E9B192 /* ScreenshotCaptureMode.swift */; };
 		83CBBAA11A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA9F1A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift */; };
 		83CBBA211A601CBA00E9B192 /* AtlasApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA321A601CBA00E9B192 /* AtlasApp.swift */; };
@@ -53,6 +55,8 @@
 		83CBBA311A601CBA00E9B192 /* AppFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFooter.swift; sourceTree = "<group>"; };
 		83CBBA9C1A601CBA00E9B192 /* AtlasCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasCaptureService.swift; sourceTree = "<group>"; };
 		83CBBA9D1A601CBA00E9B192 /* AtlasCaptureServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasCaptureServiceTests.swift; sourceTree = "<group>"; };
+		83CBBAA41A601CBA00E9B192 /* WindowCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowCaptureService.swift; sourceTree = "<group>"; };
+		83CBBAA51A601CBA00E9B192 /* WindowCaptureServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowCaptureServiceTests.swift; sourceTree = "<group>"; };
 		83CBBA9E1A601CBA00E9B192 /* ScreenshotCaptureMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotCaptureMode.swift; sourceTree = "<group>"; };
 		83CBBA9F1A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotCaptureModeTests.swift; sourceTree = "<group>"; };
 		83CBBA321A601CBA00E9B192 /* AtlasApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasApp.swift; sourceTree = "<group>"; };
@@ -131,6 +135,7 @@
 				83CBBA351A601CBA00E9B192 /* ContentView.swift */,
 				83CBBA331A601CBA00E9B192 /* AtlasBridge.swift */,
 				83CBBA9C1A601CBA00E9B192 /* AtlasCaptureService.swift */,
+				83CBBAA41A601CBA00E9B192 /* WindowCaptureService.swift */,
 				83CBBA341A601CBA00E9B192 /* AtlasModule.swift */,
 				83CBBA311A601CBA00E9B192 /* AppFooter.swift */,
 				83CBBA361A601CBA00E9B192 /* FeatureTogglePanel.swift */,
@@ -156,6 +161,7 @@
 			isa = PBXGroup;
 			children = (
 				83CBBA9D1A601CBA00E9B192 /* AtlasCaptureServiceTests.swift */,
+				83CBBAA51A601CBA00E9B192 /* WindowCaptureServiceTests.swift */,
 				83CBBA691A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift */,
 				83CBBA991A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift */,
 				83CBBA9F1A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift */,
@@ -287,6 +293,7 @@
 			files = (
 				83CBBA201A601CBA00E9B192 /* AppFooter.swift in Sources */,
 				83CBBA9A1A601CBA00E9B192 /* AtlasCaptureService.swift in Sources */,
+				83CBBAA21A601CBA00E9B192 /* WindowCaptureService.swift in Sources */,
 				83CBBA211A601CBA00E9B192 /* AtlasApp.swift in Sources */,
 				83CBBA221A601CBA00E9B192 /* AtlasBridge.swift in Sources */,
 				83CBBA231A601CBA00E9B192 /* AtlasModule.swift in Sources */,
@@ -313,6 +320,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				83CBBA9B1A601CBA00E9B192 /* AtlasCaptureServiceTests.swift in Sources */,
+				83CBBAA31A601CBA00E9B192 /* WindowCaptureServiceTests.swift in Sources */,
 				83CBBA681A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift in Sources */,
 				83CBBA971A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift in Sources */,
 				83CBBAA11A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift in Sources */,
