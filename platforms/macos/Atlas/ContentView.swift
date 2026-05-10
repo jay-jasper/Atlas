@@ -138,8 +138,9 @@ struct ContentView: View {
         }
     }
 
-    private func pinScreenshot(_: Data) {
-        showStatus("Pin screenshot is not available yet")
+    private func pinScreenshot(_ data: Data) {
+        PinnedScreenshotWindow.show(data: data)
+        showStatus("Pinned screenshot")
     }
 
     private func showStatus(_ message: String, autoHide: Bool = true) {

@@ -25,6 +25,7 @@
 		83CBBA681A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA691A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift */; };
 		83CBBA661A601CBA00E9B192 /* ScreenshotOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA671A601CBA00E9B192 /* ScreenshotOutput.swift */; };
 		83CBBA641A601CBA00E9B192 /* ScreenshotOutputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA651A601CBA00E9B192 /* ScreenshotOutputTests.swift */; };
+		83CBBA6C1A601CBA00E9B192 /* PinnedScreenshotWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA6D1A601CBA00E9B192 /* PinnedScreenshotWindow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,6 +60,7 @@
 		83CBBA651A601CBA00E9B192 /* ScreenshotOutputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotOutputTests.swift; sourceTree = "<group>"; };
 		83CBBA671A601CBA00E9B192 /* ScreenshotOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotOutput.swift; sourceTree = "<group>"; };
 		83CBBA691A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasBridgeCaptureTests.swift; sourceTree = "<group>"; };
+		83CBBA6D1A601CBA00E9B192 /* PinnedScreenshotWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinnedScreenshotWindow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,6 +114,7 @@
 				83CBBA3E1A601CBA00E9B192 /* ScreenshotModels.swift */,
 				83CBBA6A1A601CBA00E9B192 /* ScreenshotEditorView.swift */,
 				83CBBA671A601CBA00E9B192 /* ScreenshotOutput.swift */,
+				83CBBA6D1A601CBA00E9B192 /* PinnedScreenshotWindow.swift */,
 				83CBBA3A1A601CBA00E9B192 /* SelectionOverlay.swift */,
 				83CBBA3B1A601CBA00E9B192 /* SystemModels.swift */,
 				83CBBA3C1A601CBA00E9B192 /* Assets.xcassets */,
@@ -241,6 +244,7 @@
 				83CBBA2C1A601CBA00E9B192 /* ScreenshotModels.swift in Sources */,
 				83CBBA6B1A601CBA00E9B192 /* ScreenshotEditorView.swift in Sources */,
 				83CBBA661A601CBA00E9B192 /* ScreenshotOutput.swift in Sources */,
+				83CBBA6C1A601CBA00E9B192 /* PinnedScreenshotWindow.swift in Sources */,
 				83CBBA291A601CBA00E9B192 /* SelectionOverlay.swift in Sources */,
 				83CBBA2A1A601CBA00E9B192 /* SystemModels.swift in Sources */,
 			);
