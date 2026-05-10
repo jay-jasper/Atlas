@@ -1,0 +1,4 @@
+module atlasFFI {
+    header "atlasFFI.h"
+    export *
+}
