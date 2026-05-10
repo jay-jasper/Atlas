@@ -24,16 +24,16 @@ final class WindowSelectionWindow {
         onCancel: @escaping () -> Void,
         onSelect: @escaping (CapturableWindow) -> Void
     ) {
-        close()
+        close(suppressUserClose: true)
 
         let view = WindowSelectionView(
             windows: windows,
             onCancel: {
-                close()
+                close(suppressUserClose: true)
                 onCancel()
             },
             onSelect: { selected in
-                close()
+                close(suppressUserClose: true)
                 onSelect(selected)
             }
         )
@@ -45,10 +45,13 @@ final class WindowSelectionWindow {
             backing: .buffered,
             defer: false
         )
-        let windowDelegate = WindowDelegate {
-            window = nil
-            delegate = nil
-        }
+        let windowDelegate = WindowDelegate(
+            onUserClose: onCancel,
+            onClose: {
+                window = nil
+                delegate = nil
+            }
+        )
 
         selectionWindow.title = "Capture Window"
         selectionWindow.contentViewController = controller
@@ -63,7 +66,10 @@ final class WindowSelectionWindow {
         delegate = windowDelegate
     }
 
-    private static func close() {
+    private static func close(suppressUserClose: Bool) {
+        if suppressUserClose {
+            delegate?.invalidate()
+        }
         window?.close()
         window = nil
         delegate = nil
@@ -75,14 +81,27 @@ final class WindowSelectionWindow {
     }
 
     private final class WindowDelegate: NSObject, NSWindowDelegate {
+        private let onUserClose: () -> Void
         private let onClose: () -> Void
+        private var isInvalidated = false
+        private var didNotifyUserClose = false
 
-        init(onClose: @escaping () -> Void) {
+        init(onUserClose: @escaping () -> Void, onClose: @escaping () -> Void) {
+            self.onUserClose = onUserClose
             self.onClose = onClose
         }
 
+        func invalidate() {
+            isInvalidated = true
+        }
+
         func windowWillClose(_: Notification) {
+            let shouldNotifyUserClose = !isInvalidated && !didNotifyUserClose
+            didNotifyUserClose = true
             onClose()
+            if shouldNotifyUserClose {
+                onUserClose()
+            }
         }
     }
 }
