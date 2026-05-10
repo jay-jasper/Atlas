@@ -28,6 +28,8 @@
 		83CBBA6C1A601CBA00E9B192 /* PinnedScreenshotWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA6D1A601CBA00E9B192 /* PinnedScreenshotWindow.swift */; };
 		83CBBA731A601CBA00E9B192 /* ScreenshotSelectionWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA721A601CBA00E9B192 /* ScreenshotSelectionWindow.swift */; };
 		83CBBA751A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA741A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift */; };
+		83CBBA761A601CBA00E9B192 /* atlas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA781A601CBA00E9B192 /* atlas.swift */; };
+		83CBBA771A601CBA00E9B192 /* libatlas_ffi.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 83CBBA791A601CBA00E9B192 /* libatlas_ffi.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -65,6 +67,11 @@
 		83CBBA6D1A601CBA00E9B192 /* PinnedScreenshotWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinnedScreenshotWindow.swift; sourceTree = "<group>"; };
 		83CBBA721A601CBA00E9B192 /* ScreenshotSelectionWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotSelectionWindow.swift; sourceTree = "<group>"; };
 		83CBBA741A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotEditorRendererTests.swift; sourceTree = "<group>"; };
+		83CBBA781A601CBA00E9B192 /* atlas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = atlas.swift; sourceTree = "<group>"; };
+		83CBBA791A601CBA00E9B192 /* libatlas_ffi.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libatlas_ffi.a; sourceTree = "<group>"; };
+		83CBBA7A1A601CBA00E9B192 /* atlasFFI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = atlasFFI.h; sourceTree = "<group>"; };
+		83CBBA7B1A601CBA00E9B192 /* atlas_ffi.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = atlas_ffi.modulemap; sourceTree = "<group>"; };
+		83CBBA7C1A601CBA00E9B192 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,6 +79,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				83CBBA771A601CBA00E9B192 /* libatlas_ffi.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,6 +98,7 @@
 			children = (
 				83CBBA521A601CBA00E9B192 /* Atlas */,
 				83CBBA531A601CBA00E9B192 /* AtlasTests */,
+				83CBBA7D1A601CBA00E9B192 /* Generated */,
 				83CBBA511A601CBA00E9B192 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -137,6 +146,26 @@
 				83CBBA651A601CBA00E9B192 /* ScreenshotOutputTests.swift */,
 			);
 			path = AtlasTests;
+			sourceTree = "<group>";
+		};
+		83CBBA7D1A601CBA00E9B192 /* Generated */ = {
+			isa = PBXGroup;
+			children = (
+				83CBBA7E1A601CBA00E9B192 /* AtlasFFI */,
+			);
+			path = Generated;
+			sourceTree = "<group>";
+		};
+		83CBBA7E1A601CBA00E9B192 /* AtlasFFI */ = {
+			isa = PBXGroup;
+			children = (
+				83CBBA781A601CBA00E9B192 /* atlas.swift */,
+				83CBBA7A1A601CBA00E9B192 /* atlasFFI.h */,
+				83CBBA7B1A601CBA00E9B192 /* atlas_ffi.modulemap */,
+				83CBBA7C1A601CBA00E9B192 /* module.modulemap */,
+				83CBBA791A601CBA00E9B192 /* libatlas_ffi.a */,
+			);
+			path = AtlasFFI;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -254,6 +283,7 @@
 				83CBBA731A601CBA00E9B192 /* ScreenshotSelectionWindow.swift in Sources */,
 				83CBBA291A601CBA00E9B192 /* SelectionOverlay.swift in Sources */,
 				83CBBA2A1A601CBA00E9B192 /* SystemModels.swift in Sources */,
+				83CBBA761A601CBA00E9B192 /* atlas.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -407,11 +437,17 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lresolv",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "ai.atlas.app";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -433,11 +469,17 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lresolv",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "ai.atlas.app";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
