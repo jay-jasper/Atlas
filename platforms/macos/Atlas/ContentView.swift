@@ -118,25 +118,39 @@ struct ContentView: View {
     }
 
     private func captureSelection(_ rect: CGRect) {
-        if let data = AtlasBridge.captureRegion(
-            x: Int32(rect.minX),
-            y: Int32(rect.minY),
-            width: UInt32(rect.width),
-            height: UInt32(rect.height)
-        ) {
-            capturedScreenshot = CapturedScreenshot(pngData: data, rect: rect)
-            showStatus("Captured \(Int(rect.width))×\(Int(rect.height)) px")
+        let scale = NSScreen.main?.backingScaleFactor ?? 1
+        let region = ScreenCaptureCoordinateMapper.pixelRegion(
+            fromSelectionRect: rect,
+            backingScaleFactor: scale
+        )
+
+        do {
+            let data = try AtlasBridge.captureRegion(
+                x: region.x,
+                y: region.y,
+                width: region.width,
+                height: region.height
+            )
+            let pixelRect = CGRect(x: 0, y: 0, width: Int(region.width), height: Int(region.height))
+            capturedScreenshot = CapturedScreenshot(pngData: data, rect: pixelRect)
+            showStatus("Captured \(region.width)×\(region.height) px")
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
         }
     }
 
     private func captureFullScreen() {
-        guard let data = AtlasBridge.captureFullScreen() else {
-            showStatus("Failed to capture full screen", kind: .error)
+        let data: Data
+
+        do {
+            data = try AtlasBridge.captureFullScreen()
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
             return
         }
 
         guard let bitmap = NSBitmapImageRep(data: data) else {
-            showStatus("Failed to capture full screen", kind: .error)
+            showStatus("Captured full-screen image could not be decoded", kind: .error)
             return
         }
 

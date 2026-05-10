@@ -20,7 +20,6 @@ final class ScreenshotSelectionWindow {
 
         guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
         let frame = screen.frame
-        let scale = screen.backingScaleFactor
 
         let overlay = SelectionOverlay(
             onCancel: {
@@ -29,14 +28,7 @@ final class ScreenshotSelectionWindow {
             },
             onCapture: { rect in
                 close()
-                onCapture(
-                    CGRect(
-                        x: rect.minX * scale,
-                        y: rect.minY * scale,
-                        width: rect.width * scale,
-                        height: rect.height * scale
-                    ).integral
-                )
+                onCapture(rect)
             }
         )
 
