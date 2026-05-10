@@ -2,5 +2,6 @@
 members = [
     "crates/atlas-core",
     "crates/atlas-ffi",
+    "tools/uniffi-swift-bindgen",
 ]
 resolver = "2"

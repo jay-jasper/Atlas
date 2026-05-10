@@ -1,0 +1,9 @@
+[package]
+name = "uniffi-swift-bindgen"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+camino = "1.1"
+uniffi_bindgen = { version = "0.28.3", features = ["cargo-metadata"] }
