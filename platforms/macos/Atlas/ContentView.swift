@@ -131,9 +131,15 @@ struct ContentView: View {
                 width: region.width,
                 height: region.height
             )
-            let pixelRect = CGRect(x: 0, y: 0, width: Int(region.width), height: Int(region.height))
+
+            guard let bitmap = NSBitmapImageRep(data: data) else {
+                showStatus("Captured region image could not be decoded", kind: .error)
+                return
+            }
+
+            let pixelRect = CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
             capturedScreenshot = CapturedScreenshot(pngData: data, rect: pixelRect)
-            showStatus("Captured \(region.width)×\(region.height) px")
+            showStatus("Captured \(bitmap.pixelsWide)×\(bitmap.pixelsHigh) px")
         } catch {
             showStatus(error.localizedDescription, kind: .error)
         }
