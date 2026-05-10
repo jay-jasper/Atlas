@@ -30,8 +30,9 @@ struct ContentView: View {
 
                     if isFeatureEnabled(.screenshot) {
                         ScreenshotPanel(
-                            onSelectArea: showSelectionWindow,
-                            onFullScreen: captureFullScreen
+                            onCaptureDesktop: captureDesktop,
+                            onCaptureWindow: showWindowSelection,
+                            onCaptureArea: showSelectionWindow
                         )
 
                         Divider()
@@ -117,6 +118,10 @@ struct ContentView: View {
         ScreenshotSelectionWindow.show(onCapture: captureSelection)
     }
 
+    private func showWindowSelection() {
+        showStatus("Window capture is not available yet", kind: .error)
+    }
+
     private func captureSelection(_ rect: CGRect) {
         let scale = NSScreen.main?.backingScaleFactor ?? 1
         let region = ScreenCaptureCoordinateMapper.pixelRegion(
@@ -145,7 +150,7 @@ struct ContentView: View {
         }
     }
 
-    private func captureFullScreen() {
+    private func captureDesktop() {
         let data: Data
 
         do {
