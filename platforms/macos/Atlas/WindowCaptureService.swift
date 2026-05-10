@@ -38,26 +38,29 @@ struct CoreGraphicsWindowCaptureProvider: WindowCaptureProviding {
             throw WindowCaptureError.listFailed("Window list could not be read")
         }
 
-        return rawWindows.compactMap { info in
-            guard
-                let number = info[kCGWindowNumber as String] as? UInt32,
-                let ownerName = info[kCGWindowOwnerName as String] as? String,
-                let boundsDictionary = info[kCGWindowBounds as String] as? [String: Any],
-                let bounds = CGRect(dictionaryRepresentation: boundsDictionary as CFDictionary)
-            else {
-                return nil
-            }
+        return rawWindows.compactMap(Self.capturableWindow)
+    }
 
-            let title = (info[kCGWindowName as String] as? String) ?? ownerName
-            guard bounds.width >= 32, bounds.height >= 32 else { return nil }
-
-            return CapturableWindow(
-                id: CGWindowID(number),
-                title: title.isEmpty ? ownerName : title,
-                ownerName: ownerName,
-                bounds: bounds
-            )
+    static func capturableWindow(from info: [String: Any]) -> CapturableWindow? {
+        guard
+            let number = info[kCGWindowNumber as String] as? UInt32,
+            let layer = info[kCGWindowLayer as String] as? Int,
+            let ownerName = info[kCGWindowOwnerName as String] as? String,
+            let boundsDictionary = info[kCGWindowBounds as String] as? [String: Any],
+            let bounds = CGRect(dictionaryRepresentation: boundsDictionary as CFDictionary)
+        else {
+            return nil
         }
+
+        let title = (info[kCGWindowName as String] as? String) ?? ownerName
+        guard layer == 0, bounds.width >= 32, bounds.height >= 32 else { return nil }
+
+        return CapturableWindow(
+            id: CGWindowID(number),
+            title: title.isEmpty ? ownerName : title,
+            ownerName: ownerName,
+            bounds: bounds
+        )
     }
 
     func captureWindow(id: CGWindowID) throws -> Data {

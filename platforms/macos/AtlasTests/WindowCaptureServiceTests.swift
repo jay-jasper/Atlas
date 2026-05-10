@@ -54,4 +54,34 @@ final class WindowCaptureServiceTests: XCTestCase {
 
         XCTAssertEqual(error.localizedDescription, "denied")
     }
+
+    func testCapturableWindowIncludesLayerZeroWindow() {
+        let window = CoreGraphicsWindowCaptureProvider.capturableWindow(from: windowInfo(layer: 0))
+
+        XCTAssertEqual(
+            window,
+            CapturableWindow(id: 42, title: "Spec", ownerName: "Atlas", bounds: CGRect(x: 1, y: 2, width: 300, height: 200))
+        )
+    }
+
+    func testCapturableWindowExcludesNonApplicationLayers() {
+        XCTAssertNil(CoreGraphicsWindowCaptureProvider.capturableWindow(from: windowInfo(layer: 20)))
+        XCTAssertNil(CoreGraphicsWindowCaptureProvider.capturableWindow(from: windowInfo(layer: 24)))
+        XCTAssertNil(CoreGraphicsWindowCaptureProvider.capturableWindow(from: windowInfo(layer: 25)))
+    }
+
+    private func windowInfo(layer: Int) -> [String: Any] {
+        [
+            kCGWindowNumber as String: UInt32(42),
+            kCGWindowLayer as String: layer,
+            kCGWindowName as String: "Spec",
+            kCGWindowOwnerName as String: "Atlas",
+            kCGWindowBounds as String: [
+                "X": 1,
+                "Y": 2,
+                "Width": 300,
+                "Height": 200,
+            ],
+        ]
+    }
 }
