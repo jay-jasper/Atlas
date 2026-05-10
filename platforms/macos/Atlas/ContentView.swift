@@ -119,7 +119,38 @@ struct ContentView: View {
     }
 
     private func showWindowSelection() {
-        showStatus("Window capture is not available yet", kind: .error)
+        do {
+            let windows = try AtlasBridge.listCapturableWindows()
+            guard !windows.isEmpty else {
+                showStatus("No capturable windows found", kind: .error)
+                return
+            }
+
+            WindowSelectionWindow.show(
+                windows: windows,
+                onCancel: {},
+                onSelect: captureWindow
+            )
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
+        }
+    }
+
+    private func captureWindow(_ window: CapturableWindow) {
+        do {
+            let data = try AtlasBridge.captureWindow(id: window.id)
+
+            guard let bitmap = NSBitmapImageRep(data: data) else {
+                showStatus("Captured window image could not be decoded", kind: .error)
+                return
+            }
+
+            let rect = CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
+            capturedScreenshot = CapturedScreenshot(pngData: data, rect: rect)
+            showStatus("Captured \(window.title)")
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
+        }
     }
 
     private func captureSelection(_ rect: CGRect) {
