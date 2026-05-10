@@ -1,5 +1,10 @@
 import SwiftUI
 
+private enum CaptureStatusKind {
+    case success
+    case error
+}
+
 struct ContentView: View {
     @State private var statusText: String = "Initializing..."
     @State private var features: [String] = []
@@ -8,6 +13,7 @@ struct ContentView: View {
     @State private var isShowingSelectionOverlay: Bool = false
     @State private var capturedScreenshot: CapturedScreenshot?
     @State private var captureStatus: String = ""
+    @State private var captureStatusKind: CaptureStatusKind = .success
     @State private var showCaptureStatus: Bool = false
     @State private var statusHideToken: Int = 0
 
@@ -18,7 +24,7 @@ struct ContentView: View {
                     Text(statusText).font(.headline)
 
                     if showCaptureStatus {
-                        CaptureStatusBanner(message: captureStatus)
+                        CaptureStatusBanner(message: captureStatus, kind: captureStatusKind)
                     }
 
                     Divider()
@@ -130,16 +136,16 @@ struct ContentView: View {
 
     private func captureFullScreen() {
         guard let data = AtlasBridge.captureFullScreen() else {
-            showStatus("Failed to capture full screen")
+            showStatus("Failed to capture full screen", kind: .error)
             return
         }
 
-        guard let image = NSImage(data: data) else {
-            showStatus("Failed to capture full screen")
+        guard let bitmap = NSBitmapImageRep(data: data) else {
+            showStatus("Failed to capture full screen", kind: .error)
             return
         }
 
-        let rect = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
+        let rect = CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
         capturedScreenshot = CapturedScreenshot(pngData: data, rect: rect)
         showStatus("Captured full screen")
     }
@@ -160,10 +166,15 @@ struct ContentView: View {
         showStatus("Pinned screenshot")
     }
 
-    private func showStatus(_ message: String, autoHide: Bool = true) {
+    private func showStatus(
+        _ message: String,
+        kind: CaptureStatusKind = .success,
+        autoHide: Bool = true
+    ) {
         statusHideToken += 1
         let token = statusHideToken
         captureStatus = message
+        captureStatusKind = kind
         showCaptureStatus = true
 
         guard autoHide else { return }
@@ -177,15 +188,34 @@ struct ContentView: View {
 
 private struct CaptureStatusBanner: View {
     let message: String
+    let kind: CaptureStatusKind
 
     var body: some View {
         HStack {
-            Image(systemName: "checkmark.circle.fill").foregroundColor(.green)
+            Image(systemName: iconName).foregroundColor(color)
             Text(message).font(.caption)
         }
         .padding(8)
-        .background(Color.green.opacity(0.1))
+        .background(color.opacity(0.1))
         .cornerRadius(6)
+    }
+
+    private var iconName: String {
+        switch kind {
+        case .success:
+            return "checkmark.circle.fill"
+        case .error:
+            return "exclamationmark.triangle.fill"
+        }
+    }
+
+    private var color: Color {
+        switch kind {
+        case .success:
+            return .green
+        case .error:
+            return .red
+        }
     }
 }
 
