@@ -17,4 +17,22 @@ final class ScreenCaptureCoordinateMapperTests: XCTestCase {
         XCTAssertEqual(region.width, 1)
         XCTAssertEqual(region.height, 1)
     }
+
+    func testCoversFractionalOriginPixelBounds() {
+        let rect = CGRect(x: 10.25, y: 20.25, width: 10, height: 10)
+        let region = ScreenCaptureCoordinateMapper.pixelRegion(fromSelectionRect: rect, backingScaleFactor: 2)
+        XCTAssertEqual(region.x, 20)
+        XCTAssertEqual(region.y, 40)
+        XCTAssertEqual(region.width, 21)
+        XCTAssertEqual(region.height, 21)
+    }
+
+    func testStandardizesNegativeSizeRectBeforeMapping() {
+        let rect = CGRect(x: 20.25, y: 30.25, width: -10, height: -10)
+        let region = ScreenCaptureCoordinateMapper.pixelRegion(fromSelectionRect: rect, backingScaleFactor: 2)
+        XCTAssertEqual(region.x, 20)
+        XCTAssertEqual(region.y, 40)
+        XCTAssertEqual(region.width, 21)
+        XCTAssertEqual(region.height, 21)
+    }
 }

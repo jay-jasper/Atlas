@@ -17,8 +17,10 @@ enum ScreenCaptureCoordinateMapper {
 
         let x = Int32((standardized.minX * safeScale).rounded(.down))
         let y = Int32((standardized.minY * safeScale).rounded(.down))
-        let width = UInt32(max(1, (standardized.width * safeScale).rounded(.up)))
-        let height = UInt32(max(1, (standardized.height * safeScale).rounded(.up)))
+        let endX = Int32((standardized.maxX * safeScale).rounded(.up))
+        let endY = Int32((standardized.maxY * safeScale).rounded(.up))
+        let width = UInt32(max(1, endX - x))
+        let height = UInt32(max(1, endY - y))
 
         return ScreenCapturePixelRegion(x: x, y: y, width: width, height: height)
     }
