@@ -37,6 +37,8 @@ struct ScreenshotEditorView: View {
                 .help(tool.title)
                 .buttonStyle(.bordered)
                 .controlSize(.small)
+                .background(selectedTool == tool ? Color.accentColor.opacity(0.18) : Color.clear)
+                .cornerRadius(6)
             }
 
             Spacer()
@@ -58,7 +60,7 @@ struct ScreenshotEditorView: View {
     }
 
     private var canvas: some View {
-        GeometryReader { geometry in
+        GeometryReader { _ in
             ZStack {
                 screenshotImage
                     .resizable()
@@ -70,7 +72,7 @@ struct ScreenshotEditorView: View {
                 }
             }
             .contentShape(Rectangle())
-            .gesture(annotationDrag(in: geometry.size))
+            .gesture(annotationDrag)
         }
     }
 
@@ -94,7 +96,7 @@ struct ScreenshotEditorView: View {
         .padding(10)
     }
 
-    private func annotationDrag(in size: CGSize) -> some Gesture {
+    private var annotationDrag: some Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
                 if dragStart == nil {

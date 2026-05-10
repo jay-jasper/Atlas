@@ -9,6 +9,7 @@ struct ContentView: View {
     @State private var capturedScreenshot: CapturedScreenshot?
     @State private var captureStatus: String = ""
     @State private var showCaptureStatus: Bool = false
+    @State private var statusHideToken: Int = 0
 
     var body: some View {
         ZStack {
@@ -121,31 +122,38 @@ struct ContentView: View {
             height: UInt32(rect.height)
         ) {
             capturedScreenshot = CapturedScreenshot(pngData: data, rect: rect)
-            captureStatus = "Captured \(Int(rect.width))×\(Int(rect.height)) px"
-            showCaptureStatus = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                showCaptureStatus = false
-            }
+            showStatus("Captured \(Int(rect.width))×\(Int(rect.height)) px")
         }
         isShowingSelectionOverlay = false
     }
 
     private func copyScreenshot(_ data: Data) {
         ScreenshotOutput.copyPNGToClipboard(data)
-        captureStatus = "Copied screenshot"
-        showCaptureStatus = true
+        showStatus("Copied screenshot")
     }
 
     private func saveScreenshot(_ data: Data) {
         if let url = ScreenshotOutput.savePNGWithPanel(data) {
-            captureStatus = "Saved \(url.lastPathComponent)"
-            showCaptureStatus = true
+            showStatus("Saved \(url.lastPathComponent)")
         }
     }
 
-    private func pinScreenshot(_ data: Data) {
-        captureStatus = "Pin screenshot is not available yet"
+    private func pinScreenshot(_: Data) {
+        showStatus("Pin screenshot is not available yet")
+    }
+
+    private func showStatus(_ message: String, autoHide: Bool = true) {
+        statusHideToken += 1
+        let token = statusHideToken
+        captureStatus = message
         showCaptureStatus = true
+
+        guard autoHide else { return }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            guard statusHideToken == token else { return }
+            showCaptureStatus = false
+        }
     }
 }
 
