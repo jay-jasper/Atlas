@@ -30,6 +30,8 @@
 		83CBBA751A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA741A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift */; };
 		83CBBA761A601CBA00E9B192 /* atlas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA781A601CBA00E9B192 /* atlas.swift */; };
 		83CBBA771A601CBA00E9B192 /* libatlas_ffi.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 83CBBA791A601CBA00E9B192 /* libatlas_ffi.a */; };
+		83CBBA961A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA981A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift */; };
+		83CBBA971A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA991A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,6 +74,8 @@
 		83CBBA7A1A601CBA00E9B192 /* atlasFFI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = atlasFFI.h; sourceTree = "<group>"; };
 		83CBBA7B1A601CBA00E9B192 /* atlas_ffi.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = atlas_ffi.modulemap; sourceTree = "<group>"; };
 		83CBBA7C1A601CBA00E9B192 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
+		83CBBA981A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureCoordinateMapper.swift; sourceTree = "<group>"; };
+		83CBBA991A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureCoordinateMapperTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -124,6 +128,7 @@
 				83CBBA371A601CBA00E9B192 /* MonitoringPanel.swift */,
 				83CBBA381A601CBA00E9B192 /* PortMasterPanel.swift */,
 				83CBBA391A601CBA00E9B192 /* ScreenshotPanel.swift */,
+				83CBBA981A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift */,
 				83CBBA3E1A601CBA00E9B192 /* ScreenshotModels.swift */,
 				83CBBA6A1A601CBA00E9B192 /* ScreenshotEditorView.swift */,
 				83CBBA671A601CBA00E9B192 /* ScreenshotOutput.swift */,
@@ -141,6 +146,7 @@
 			isa = PBXGroup;
 			children = (
 				83CBBA691A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift */,
+				83CBBA991A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift */,
 				83CBBA741A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift */,
 				83CBBA3F1A601CBA00E9B192 /* ScreenshotModelsTests.swift */,
 				83CBBA651A601CBA00E9B192 /* ScreenshotOutputTests.swift */,
@@ -276,6 +282,7 @@
 				83CBBA261A601CBA00E9B192 /* MonitoringPanel.swift in Sources */,
 				83CBBA271A601CBA00E9B192 /* PortMasterPanel.swift in Sources */,
 				83CBBA281A601CBA00E9B192 /* ScreenshotPanel.swift in Sources */,
+				83CBBA961A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift in Sources */,
 				83CBBA2C1A601CBA00E9B192 /* ScreenshotModels.swift in Sources */,
 				83CBBA6B1A601CBA00E9B192 /* ScreenshotEditorView.swift in Sources */,
 				83CBBA661A601CBA00E9B192 /* ScreenshotOutput.swift in Sources */,
@@ -292,6 +299,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				83CBBA681A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift in Sources */,
+				83CBBA971A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift in Sources */,
 				83CBBA751A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift in Sources */,
 				83CBBA2D1A601CBA00E9B192 /* ScreenshotModelsTests.swift in Sources */,
 				83CBBA641A601CBA00E9B192 /* ScreenshotOutputTests.swift in Sources */,
