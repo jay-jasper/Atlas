@@ -2,18 +2,22 @@ import SwiftUI
 
 struct ScreenshotPanel: View {
     let onSelectArea: () -> Void
+    let onFullScreen: () -> Void
 
     var body: some View {
         Group {
             Text("Screenshot").font(.subheadline).foregroundColor(.secondary)
-            Button(action: onSelectArea) {
-                HStack {
-                    Image(systemName: "selection.pin.in.out")
-                    Text("Select Area to Capture")
+            HStack {
+                Button(action: onSelectArea) {
+                    Label("Area", systemImage: "selection.pin.in.out")
                 }
-                .frame(maxWidth: .infinity).padding(.vertical, 6)
+                .buttonStyle(.borderedProminent)
+
+                Button(action: onFullScreen) {
+                    Label("Full", systemImage: "macwindow")
+                }
+                .buttonStyle(.bordered)
             }
-            .buttonStyle(.borderedProminent)
         }
     }
 }

@@ -24,9 +24,10 @@ struct ContentView: View {
                     Divider()
 
                     if isFeatureEnabled(.screenshot) {
-                        ScreenshotPanel {
-                            isShowingSelectionOverlay = true
-                        }
+                        ScreenshotPanel(
+                            onSelectArea: { isShowingSelectionOverlay = true },
+                            onFullScreen: captureFullScreen
+                        )
 
                         Divider()
                     }
@@ -125,6 +126,14 @@ struct ContentView: View {
             showStatus("Captured \(Int(rect.width))×\(Int(rect.height)) px")
         }
         isShowingSelectionOverlay = false
+    }
+
+    private func captureFullScreen() {
+        if let data = AtlasBridge.captureFullScreen() {
+            let rect = CGRect(x: 0, y: 0, width: 0, height: 0)
+            capturedScreenshot = CapturedScreenshot(pngData: data, rect: rect)
+            showStatus("Captured full screen")
+        }
     }
 
     private func copyScreenshot(_ data: Data) {
