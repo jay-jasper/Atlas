@@ -12,11 +12,18 @@ if command -v rustup >/dev/null 2>&1; then
   export RUSTDOC="$(rustup which rustdoc)"
 else
   CARGO_CMD=(cargo)
+  export RUSTC="${RUSTC:-$(command -v rustc)}"
+  export RUSTDOC="${RUSTDOC:-$(command -v rustdoc)}"
 fi
+
+RUST_SYSROOT="$("$RUSTC" --print sysroot)"
 
 REMAP_RUSTFLAGS=(
   "--remap-path-prefix=$ROOT_DIR=."
   "--remap-path-prefix=$HOME/.cargo=.cargo"
+  "--remap-path-prefix=$HOME/.rustup=.rustup"
+  "--remap-path-prefix=$RUST_SYSROOT=.rustup/toolchain"
+  "--remap-path-prefix=$HOME=.home"
 )
 export RUSTFLAGS="${RUSTFLAGS:-} ${REMAP_RUSTFLAGS[*]}"
 
@@ -52,6 +59,13 @@ done
 
 lipo -create "${static_libs[@]}" -output "$OUT_DIR/libatlas_ffi.a"
 rm "${static_libs[@]}"
+
+for local_path in "$ROOT_DIR" "$HOME/.cargo" "$HOME/.rustup"; do
+  if strings "$OUT_DIR/libatlas_ffi.a" | grep -F "$local_path"; then
+    echo "error: generated libatlas_ffi.a contains local path: $local_path" >&2
+    exit 1
+  fi
+done
 
 cp "$OUT_DIR/atlas_ffi.modulemap" "$OUT_DIR/module.modulemap"
 
