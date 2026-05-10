@@ -13,6 +13,9 @@ final class ScreenshotModelsTests: XCTestCase {
         XCTAssertEqual(annotation.id.uuidString, "00000000-0000-0000-0000-000000000001")
         XCTAssertEqual(annotation.kind, .rectangle)
         XCTAssertEqual(annotation.bounds, CGRect(x: 10, y: 20, width: 30, height: 40))
+        XCTAssertEqual(annotation.color, .red)
+        XCTAssertEqual(annotation.lineWidth, 3)
+        XCTAssertEqual(annotation.points, [])
     }
 
     func testToolMetadata() {
@@ -21,5 +24,19 @@ final class ScreenshotModelsTests: XCTestCase {
         XCTAssertEqual(ScreenshotTool.pen.systemImage, "pencil")
         XCTAssertEqual(ScreenshotTool.text.systemImage, "textformat")
         XCTAssertEqual(ScreenshotTool.pixelate.systemImage, "checkerboard.rectangle")
+
+        XCTAssertEqual(ScreenshotTool.rectangle.title, "Rectangle")
+        XCTAssertEqual(ScreenshotTool.arrow.title, "Arrow")
+        XCTAssertEqual(ScreenshotTool.pen.title, "Pen")
+        XCTAssertEqual(ScreenshotTool.text.title, "Text")
+        XCTAssertEqual(ScreenshotTool.pixelate.title, "Pixelate")
+
+        XCTAssertEqual(ScreenshotTool.rectangle.id, "rectangle")
+        XCTAssertEqual(ScreenshotTool.arrow.id, "arrow")
+        XCTAssertEqual(ScreenshotTool.pen.id, "pen")
+        XCTAssertEqual(ScreenshotTool.text.id, "text")
+        XCTAssertEqual(ScreenshotTool.pixelate.id, "pixelate")
+
+        XCTAssertEqual(ScreenshotTool.allCases, [.rectangle, .arrow, .pen, .text, .pixelate])
     }
 }

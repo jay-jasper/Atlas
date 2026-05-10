@@ -51,7 +51,17 @@ struct ScreenshotAnnotation: Identifiable, Equatable {
     }
 
     static func arrow(id: UUID = UUID(), from start: CGPoint, to end: CGPoint, color: Color, lineWidth: CGFloat) -> Self {
-        ScreenshotAnnotation(id: id, kind: .arrow, bounds: CGRect(origin: start, size: CGSize(width: end.x - start.x, height: end.y - start.y)).standardized, color: color, lineWidth: lineWidth, points: [start, end])
+        ScreenshotAnnotation(
+            id: id,
+            kind: .arrow,
+            bounds: CGRect(
+                origin: start,
+                size: CGSize(width: end.x - start.x, height: end.y - start.y)
+            ).standardized,
+            color: color,
+            lineWidth: lineWidth,
+            points: [start, end]
+        )
     }
 
     static func pen(id: UUID = UUID(), points: [CGPoint], color: Color, lineWidth: CGFloat) -> Self {
