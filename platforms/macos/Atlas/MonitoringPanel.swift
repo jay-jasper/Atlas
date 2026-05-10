@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MonitoringPanel: View {
-    let snapshot: SystemSnapshot?
+    let snapshot: MonitoringSystemSnapshot?
 
     var body: some View {
         if let snapshot {
@@ -28,7 +28,7 @@ struct MonitoringPanel: View {
     }
 
     @ViewBuilder
-    private func cpuSection(_ snapshot: SystemSnapshot) -> some View {
+    private func cpuSection(_ snapshot: MonitoringSystemSnapshot) -> some View {
         Group {
             Text("CPU").font(.subheadline).foregroundColor(.secondary)
             VStack(alignment: .leading, spacing: 6) {
@@ -60,7 +60,7 @@ struct MonitoringPanel: View {
     }
 
     @ViewBuilder
-    private func memorySection(_ snapshot: SystemSnapshot) -> some View {
+    private func memorySection(_ snapshot: MonitoringSystemSnapshot) -> some View {
         Group {
             Text("Memory").font(.subheadline).foregroundColor(.secondary)
             VStack(alignment: .leading, spacing: 6) {
@@ -93,7 +93,7 @@ struct MonitoringPanel: View {
     }
 
     @ViewBuilder
-    private func networkSection(_ snapshot: SystemSnapshot) -> some View {
+    private func networkSection(_ snapshot: MonitoringSystemSnapshot) -> some View {
         Group {
             Text("Network").font(.subheadline).foregroundColor(.secondary)
             VStack(alignment: .leading, spacing: 4) {
@@ -118,7 +118,7 @@ struct MonitoringPanel: View {
     }
 
     @ViewBuilder
-    private func diskSection(_ snapshot: SystemSnapshot) -> some View {
+    private func diskSection(_ snapshot: MonitoringSystemSnapshot) -> some View {
         Group {
             Text("Disk").font(.subheadline).foregroundColor(.secondary)
             VStack(alignment: .leading, spacing: 8) {
@@ -142,7 +142,7 @@ struct MonitoringPanel: View {
     }
 
     @ViewBuilder
-    private func batterySection(_ battery: BatterySnapshot) -> some View {
+    private func batterySection(_ battery: MonitoringBatterySnapshot) -> some View {
         Group {
             Text("Battery").font(.subheadline).foregroundColor(.secondary)
             HStack {
@@ -170,7 +170,7 @@ struct MonitoringPanel: View {
     }
 
     @ViewBuilder
-    private func temperatureSection(_ snapshot: SystemSnapshot) -> some View {
+    private func temperatureSection(_ snapshot: MonitoringSystemSnapshot) -> some View {
         Group {
             Text("Temperatures").font(.subheadline).foregroundColor(.secondary)
             VStack(alignment: .leading, spacing: 4) {
@@ -191,7 +191,7 @@ struct MonitoringPanel: View {
     }
 
     @ViewBuilder
-    private func processSection(_ snapshot: SystemSnapshot) -> some View {
+    private func processSection(_ snapshot: MonitoringSystemSnapshot) -> some View {
         Group {
             Text("Top Processes").font(.subheadline).foregroundColor(.secondary)
             VStack(alignment: .leading, spacing: 8) {

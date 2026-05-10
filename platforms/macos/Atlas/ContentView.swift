@@ -9,7 +9,7 @@ struct ContentView: View {
     @State private var statusText: String = "Initializing..."
     @State private var features: [String] = []
     @State private var enabledFeatures: [String: Bool] = [:]
-    @State private var snapshot: SystemSnapshot? = nil
+    @State private var snapshot: MonitoringSystemSnapshot? = nil
     @State private var capturedScreenshot: CapturedScreenshot?
     @State private var captureStatus: String = ""
     @State private var captureStatusKind: CaptureStatusKind = .success

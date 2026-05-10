@@ -1,25 +1,25 @@
 import Foundation
 
-struct CpuCoreSnapshot {
+struct MonitoringCpuCoreSnapshot {
     let name: String
     let usage: Float
     let frequencyMhz: UInt64
 }
 
-struct ProcessSnapshot {
+struct MonitoringProcessSnapshot {
     let pid: UInt32
     let name: String
     let cpuUsage: Float
     let memBytes: UInt64
 }
 
-struct NetworkInterfaceSnapshot {
+struct MonitoringNetworkInterfaceSnapshot {
     let name: String
     let uploadBps: UInt64
     let downloadBps: UInt64
 }
 
-struct DiskSnapshot {
+struct MonitoringDiskSnapshot {
     let name: String
     let mountPoint: String
     let totalBytes: UInt64
@@ -27,7 +27,7 @@ struct DiskSnapshot {
     let availableBytes: UInt64
 }
 
-struct BatterySnapshot {
+struct MonitoringBatterySnapshot {
     let chargePercent: Float
     let isCharging: Bool
     let timeToEmptySecs: Int64?
@@ -36,28 +36,28 @@ struct BatterySnapshot {
     let cycleCount: UInt32?
 }
 
-struct TemperatureSnapshot {
+struct MonitoringTemperatureSnapshot {
     let label: String
     let celsius: Float
 }
 
-struct SystemSnapshot {
+struct MonitoringSystemSnapshot {
     let cpuUsage: Float
     let memUsedBytes: UInt64
     let memTotalBytes: UInt64
     let netUploadBps: UInt64
     let netDownloadBps: UInt64
-    let cpuCores: [CpuCoreSnapshot]
+    let cpuCores: [MonitoringCpuCoreSnapshot]
     let memFreeBytes: UInt64
     let memAvailableBytes: UInt64
     let swapUsedBytes: UInt64
     let swapTotalBytes: UInt64
-    let topCpuProcesses: [ProcessSnapshot]
-    let topMemProcesses: [ProcessSnapshot]
-    let networkInterfaces: [NetworkInterfaceSnapshot]
-    let disks: [DiskSnapshot]
-    let battery: BatterySnapshot?
-    let temperatures: [TemperatureSnapshot]
+    let topCpuProcesses: [MonitoringProcessSnapshot]
+    let topMemProcesses: [MonitoringProcessSnapshot]
+    let networkInterfaces: [MonitoringNetworkInterfaceSnapshot]
+    let disks: [MonitoringDiskSnapshot]
+    let battery: MonitoringBatterySnapshot?
+    let temperatures: [MonitoringTemperatureSnapshot]
 }
 
 enum Formatters {
