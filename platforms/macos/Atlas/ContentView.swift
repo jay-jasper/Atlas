@@ -6,6 +6,7 @@ struct ContentView: View {
     @State private var enabledFeatures: [String: Bool] = [:]
     @State private var snapshot: SystemSnapshot? = nil
     @State private var isShowingSelectionOverlay: Bool = false
+    @State private var capturedScreenshot: CapturedScreenshot?
     @State private var captureStatus: String = ""
     @State private var showCaptureStatus: Bool = false
 
@@ -58,6 +59,16 @@ struct ContentView: View {
                     onCapture: captureSelection
                 )
             }
+
+            if let capturedScreenshot {
+                ScreenshotEditorView(
+                    screenshot: capturedScreenshot,
+                    onCopy: copyScreenshot,
+                    onSave: saveScreenshot,
+                    onPin: pinScreenshot,
+                    onClose: { self.capturedScreenshot = nil }
+                )
+            }
         }
         .frame(minWidth: 360, minHeight: 500)
         .onAppear(perform: startModules)
@@ -103,12 +114,13 @@ struct ContentView: View {
     }
 
     private func captureSelection(_ rect: CGRect) {
-        if let _ = AtlasBridge.captureRegion(
+        if let data = AtlasBridge.captureRegion(
             x: Int32(rect.minX),
             y: Int32(rect.minY),
             width: UInt32(rect.width),
             height: UInt32(rect.height)
         ) {
+            capturedScreenshot = CapturedScreenshot(pngData: data, rect: rect)
             captureStatus = "Captured \(Int(rect.width))×\(Int(rect.height)) px"
             showCaptureStatus = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
@@ -116,6 +128,24 @@ struct ContentView: View {
             }
         }
         isShowingSelectionOverlay = false
+    }
+
+    private func copyScreenshot(_ data: Data) {
+        ScreenshotOutput.copyPNGToClipboard(data)
+        captureStatus = "Copied screenshot"
+        showCaptureStatus = true
+    }
+
+    private func saveScreenshot(_ data: Data) {
+        if let url = ScreenshotOutput.savePNGWithPanel(data) {
+            captureStatus = "Saved \(url.lastPathComponent)"
+            showCaptureStatus = true
+        }
+    }
+
+    private func pinScreenshot(_ data: Data) {
+        captureStatus = "Pin screenshot is not available yet"
+        showCaptureStatus = true
     }
 }
 
