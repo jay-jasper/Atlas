@@ -769,3 +769,7 @@ Plan complete and saved to `docs/superpowers/plans/2026-05-10-uniffi-real-captur
   - Copy/save/pin: Not performed in this automated run.
 - Remaining limitation:
   - Capture is still primary-display only because `atlas-core::capture::engine::CaptureEngine` currently uses the first `screenshots::Screen`.
+
+## Follow-up: Screenshot Capture Modes v2
+
+The UI now distinguishes desktop, window, and area capture. Desktop capture still uses the existing UniFFI full-screen API and keeps the primary-display limitation until a later multi-display capture plan replaces `CaptureEngine::capture_full_screen()`.
