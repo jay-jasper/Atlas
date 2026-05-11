@@ -39,6 +39,18 @@
 		83CBBA771A601CBA00E9B192 /* libatlas_ffi.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 83CBBA791A601CBA00E9B192 /* libatlas_ffi.a */; };
 		83CBBA961A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA981A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift */; };
 		83CBBA971A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA991A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift */; };
+		83CBBB011A601CBA00E9B192 /* MonitoringFFIMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB031A601CBA00E9B192 /* MonitoringFFIMapper.swift */; };
+		83CBBB021A601CBA00E9B192 /* MonitoringFFIMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB041A601CBA00E9B192 /* MonitoringFFIMapperTests.swift */; };
+		83CBBB051A601CBA00E9B192 /* MonitoringService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB071A601CBA00E9B192 /* MonitoringService.swift */; };
+		83CBBB061A601CBA00E9B192 /* MonitoringServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB081A601CBA00E9B192 /* MonitoringServiceTests.swift */; };
+		83CBBB091A601CBA00E9B192 /* AtlasBridgeMonitoringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB0A1A601CBA00E9B192 /* AtlasBridgeMonitoringTests.swift */; };
+		83CBBB0B1A601CBA00E9B192 /* FeatureModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB0D1A601CBA00E9B192 /* FeatureModels.swift */; };
+		83CBBB0C1A601CBA00E9B192 /* FeatureModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB0E1A601CBA00E9B192 /* FeatureModelsTests.swift */; };
+		83CBBB0F1A601CBA00E9B192 /* FeatureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB111A601CBA00E9B192 /* FeatureService.swift */; };
+		83CBBB101A601CBA00E9B192 /* FeatureServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB121A601CBA00E9B192 /* FeatureServiceTests.swift */; };
+		83CBBB131A601CBA00E9B192 /* AtlasBridgeFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB141A601CBA00E9B192 /* AtlasBridgeFeatureTests.swift */; };
+		83CBBB151A601CBA00E9B192 /* FeatureState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB171A601CBA00E9B192 /* FeatureState.swift */; };
+		83CBBB161A601CBA00E9B192 /* FeatureStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB181A601CBA00E9B192 /* FeatureStateTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -90,6 +102,18 @@
 		83CBBA7C1A601CBA00E9B192 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		83CBBA981A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureCoordinateMapper.swift; sourceTree = "<group>"; };
 		83CBBA991A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureCoordinateMapperTests.swift; sourceTree = "<group>"; };
+		83CBBB031A601CBA00E9B192 /* MonitoringFFIMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringFFIMapper.swift; sourceTree = "<group>"; };
+		83CBBB041A601CBA00E9B192 /* MonitoringFFIMapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringFFIMapperTests.swift; sourceTree = "<group>"; };
+		83CBBB071A601CBA00E9B192 /* MonitoringService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringService.swift; sourceTree = "<group>"; };
+		83CBBB081A601CBA00E9B192 /* MonitoringServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringServiceTests.swift; sourceTree = "<group>"; };
+		83CBBB0A1A601CBA00E9B192 /* AtlasBridgeMonitoringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasBridgeMonitoringTests.swift; sourceTree = "<group>"; };
+		83CBBB0D1A601CBA00E9B192 /* FeatureModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureModels.swift; sourceTree = "<group>"; };
+		83CBBB0E1A601CBA00E9B192 /* FeatureModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureModelsTests.swift; sourceTree = "<group>"; };
+		83CBBB111A601CBA00E9B192 /* FeatureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureService.swift; sourceTree = "<group>"; };
+		83CBBB121A601CBA00E9B192 /* FeatureServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureServiceTests.swift; sourceTree = "<group>"; };
+		83CBBB141A601CBA00E9B192 /* AtlasBridgeFeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasBridgeFeatureTests.swift; sourceTree = "<group>"; };
+		83CBBB171A601CBA00E9B192 /* FeatureState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureState.swift; sourceTree = "<group>"; };
+		83CBBB181A601CBA00E9B192 /* FeatureStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureStateTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,7 +164,12 @@
 				83CBBAA41A601CBA00E9B192 /* WindowCaptureService.swift */,
 				83CBBA341A601CBA00E9B192 /* AtlasModule.swift */,
 				83CBBA311A601CBA00E9B192 /* AppFooter.swift */,
+				83CBBB0D1A601CBA00E9B192 /* FeatureModels.swift */,
+				83CBBB171A601CBA00E9B192 /* FeatureState.swift */,
+				83CBBB111A601CBA00E9B192 /* FeatureService.swift */,
 				83CBBA361A601CBA00E9B192 /* FeatureTogglePanel.swift */,
+				83CBBB031A601CBA00E9B192 /* MonitoringFFIMapper.swift */,
+				83CBBB071A601CBA00E9B192 /* MonitoringService.swift */,
 				83CBBA371A601CBA00E9B192 /* MonitoringPanel.swift */,
 				83CBBA381A601CBA00E9B192 /* PortMasterPanel.swift */,
 				83CBBA391A601CBA00E9B192 /* ScreenshotPanel.swift */,
@@ -166,6 +195,13 @@
 				83CBBA9D1A601CBA00E9B192 /* AtlasCaptureServiceTests.swift */,
 				83CBBAA51A601CBA00E9B192 /* WindowCaptureServiceTests.swift */,
 				83CBBA691A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift */,
+				83CBBB141A601CBA00E9B192 /* AtlasBridgeFeatureTests.swift */,
+				83CBBB0A1A601CBA00E9B192 /* AtlasBridgeMonitoringTests.swift */,
+				83CBBB0E1A601CBA00E9B192 /* FeatureModelsTests.swift */,
+				83CBBB181A601CBA00E9B192 /* FeatureStateTests.swift */,
+				83CBBB121A601CBA00E9B192 /* FeatureServiceTests.swift */,
+				83CBBB041A601CBA00E9B192 /* MonitoringFFIMapperTests.swift */,
+				83CBBB081A601CBA00E9B192 /* MonitoringServiceTests.swift */,
 				83CBBA991A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift */,
 				83CBBA9F1A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift */,
 				83CBBA741A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift */,
@@ -301,7 +337,12 @@
 				83CBBA221A601CBA00E9B192 /* AtlasBridge.swift in Sources */,
 				83CBBA231A601CBA00E9B192 /* AtlasModule.swift in Sources */,
 				83CBBA241A601CBA00E9B192 /* ContentView.swift in Sources */,
+				83CBBB0B1A601CBA00E9B192 /* FeatureModels.swift in Sources */,
+				83CBBB151A601CBA00E9B192 /* FeatureState.swift in Sources */,
+				83CBBB0F1A601CBA00E9B192 /* FeatureService.swift in Sources */,
 				83CBBA251A601CBA00E9B192 /* FeatureTogglePanel.swift in Sources */,
+				83CBBB011A601CBA00E9B192 /* MonitoringFFIMapper.swift in Sources */,
+				83CBBB051A601CBA00E9B192 /* MonitoringService.swift in Sources */,
 				83CBBA261A601CBA00E9B192 /* MonitoringPanel.swift in Sources */,
 				83CBBA271A601CBA00E9B192 /* PortMasterPanel.swift in Sources */,
 				83CBBA281A601CBA00E9B192 /* ScreenshotPanel.swift in Sources */,
@@ -326,6 +367,13 @@
 				83CBBA9B1A601CBA00E9B192 /* AtlasCaptureServiceTests.swift in Sources */,
 				83CBBAA31A601CBA00E9B192 /* WindowCaptureServiceTests.swift in Sources */,
 				83CBBA681A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift in Sources */,
+				83CBBB131A601CBA00E9B192 /* AtlasBridgeFeatureTests.swift in Sources */,
+				83CBBB091A601CBA00E9B192 /* AtlasBridgeMonitoringTests.swift in Sources */,
+				83CBBB0C1A601CBA00E9B192 /* FeatureModelsTests.swift in Sources */,
+				83CBBB161A601CBA00E9B192 /* FeatureStateTests.swift in Sources */,
+				83CBBB101A601CBA00E9B192 /* FeatureServiceTests.swift in Sources */,
+				83CBBB021A601CBA00E9B192 /* MonitoringFFIMapperTests.swift in Sources */,
+				83CBBB061A601CBA00E9B192 /* MonitoringServiceTests.swift in Sources */,
 				83CBBA971A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift in Sources */,
 				83CBBAA11A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift in Sources */,
 				83CBBA751A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift in Sources */,

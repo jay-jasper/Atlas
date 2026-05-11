@@ -320,16 +320,31 @@ mod tests {
 
     #[test]
     fn test_feature_management() {
-        // Verify default features exist
         let features = list_features().unwrap();
+        let names: Vec<_> = features.iter().map(|f| f.name.as_str()).collect();
+        assert_eq!(names, ["monitoring", "screenshot", "window-manager"]);
+
         assert!(features.iter().any(|f| f.name == "monitoring"));
         assert!(features.iter().any(|f| f.name == "screenshot"));
-        
-        // Verify toggle returns true for existing feature
+        assert!(features.iter().any(|f| f.name == "window-manager"));
+
         assert!(toggle_feature("monitoring".to_string(), true).unwrap());
-        
-        // Verify toggle returns false for non-existent feature
+        let features = list_features().unwrap();
+        let monitoring = features
+            .iter()
+            .find(|f| f.name == "monitoring")
+            .expect("monitoring feature should exist");
+        assert!(matches!(monitoring.status, FeatureStatus::Enabled));
+
         assert!(!toggle_feature("non-existent".to_string(), true).unwrap());
+
+        assert!(toggle_feature("monitoring".to_string(), false).unwrap());
+        let features = list_features().unwrap();
+        let monitoring = features
+            .iter()
+            .find(|f| f.name == "monitoring")
+            .expect("monitoring feature should exist");
+        assert!(matches!(monitoring.status, FeatureStatus::Disabled));
     }
 
     #[test]

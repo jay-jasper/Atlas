@@ -7,7 +7,7 @@ private enum CaptureStatusKind {
 
 struct ContentView: View {
     @State private var statusText: String = "Initializing..."
-    @State private var features: [String] = []
+    @State private var features: [AtlasFeature] = []
     @State private var enabledFeatures: [String: Bool] = [:]
     @State private var snapshot: MonitoringSystemSnapshot? = nil
     @State private var capturedScreenshot: CapturedScreenshot?
@@ -42,13 +42,9 @@ struct ContentView: View {
                         MonitoringPanel(snapshot: snapshot)
 
                         Divider()
-
-                        PortMasterPanel()
-
-                        Divider()
                     }
 
-                    FeatureTogglePanel(
+                    FeatureCenterPanel(
                         features: features,
                         enabledFeatures: $enabledFeatures,
                         onFeatureChanged: handleFeatureChange
@@ -77,36 +73,72 @@ struct ContentView: View {
     }
 
     private func startModules() {
-        features = AtlasBridge.listFeatures()
-        enabledFeatures = Dictionary(uniqueKeysWithValues: features.map { ($0, true) })
-        statusText = "Atlas is Ready"
-        if isFeatureEnabled(.monitoring) {
-            startMonitoring()
+        do {
+            let loadedFeatures = try AtlasBridge.listFeatures()
+            features = loadedFeatures
+            enabledFeatures = FeatureStateReducer.enabledMap(from: loadedFeatures)
+            statusText = "Atlas is Ready"
+            if isFeatureEnabled(.monitoring) {
+                startMonitoring()
+            }
+        } catch {
+            statusText = "Atlas feature loading failed"
+            showStatus(error.localizedDescription, kind: .error, autoHide: false)
         }
     }
 
     private func stopModules() {
-        AtlasBridge.stopMonitoring()
+        do {
+            try AtlasBridge.stopMonitoring()
+        } catch {
+            showStatus(error.localizedDescription, kind: .error, autoHide: false)
+        }
     }
 
     private func handleFeatureChange(_ feature: String, enabled: Bool) {
-        AtlasBridge.toggleFeature(name: feature, enabled: enabled)
+        do {
+            let changed = try AtlasBridge.toggleFeature(name: feature, enabled: enabled)
+            guard changed else {
+                enabledFeatures[feature] = FeatureStateReducer.rolledBackValue(forRequestedEnabled: enabled)
+                showStatus("Unknown feature: \(feature)", kind: .error, autoHide: false)
+                return
+            }
+
+            enabledFeatures[feature] = enabled
+            refreshFeature(feature, enabled: enabled)
+        } catch {
+            enabledFeatures[feature] = FeatureStateReducer.rolledBackValue(forRequestedEnabled: enabled)
+            showStatus(error.localizedDescription, kind: .error, autoHide: false)
+        }
+    }
+
+    private func refreshFeature(_ feature: String, enabled: Bool) {
+        features = FeatureStateReducer.refreshedFeatures(features, featureName: feature, enabled: enabled)
 
         guard feature == AtlasModule.monitoring.featureName else { return }
 
         if enabled {
             startMonitoring()
-        } else {
-            AtlasBridge.stopMonitoring()
+            return
+        }
+
+        do {
+            try AtlasBridge.stopMonitoring()
             snapshot = nil
+        } catch {
+            showStatus(error.localizedDescription, kind: .error, autoHide: false)
         }
     }
 
     private func startMonitoring() {
-        AtlasBridge.startMonitoring { snapshot in
-            DispatchQueue.main.async {
-                self.snapshot = snapshot
+        do {
+            try AtlasBridge.startMonitoring { snapshot in
+                DispatchQueue.main.async {
+                    self.snapshot = snapshot
+                }
             }
+        } catch {
+            showStatus(error.localizedDescription, kind: .error, autoHide: false)
         }
     }
 

@@ -52,7 +52,9 @@ impl FeatureManager {
 
     /// Returns a list of all available features and their status.
     pub fn list_features(&self) -> Vec<(String, FeatureStatus)> {
-        self.features.iter().map(|(k, v)| (k.clone(), *v)).collect()
+        let mut features: Vec<_> = self.features.iter().map(|(k, v)| (k.clone(), *v)).collect();
+        features.sort_by(|(left, _), (right, _)| left.cmp(right));
+        features
     }
 }
 
@@ -85,5 +87,13 @@ mod tests {
     fn test_toggle_non_existent_feature() {
         let mut fm = FeatureManager::new();
         assert!(!fm.toggle_feature("non-existent", true));
+    }
+
+    #[test]
+    fn test_list_features_is_sorted_by_name() {
+        let fm = FeatureManager::new();
+        let names: Vec<_> = fm.list_features().into_iter().map(|(name, _)| name).collect();
+
+        assert_eq!(names, ["monitoring", "screenshot", "window-manager"]);
     }
 }

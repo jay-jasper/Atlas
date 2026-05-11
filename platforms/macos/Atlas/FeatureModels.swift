@@ -1,0 +1,39 @@
+import Foundation
+
+struct AtlasFeature: Identifiable, Equatable {
+    let name: String
+    let isEnabled: Bool
+
+    var id: String { name }
+
+    var title: String {
+        AtlasFeatureTitles.title(for: name)
+    }
+}
+
+enum AtlasFeatureMapper {
+    static func map(_ entry: FeatureEntry) -> AtlasFeature {
+        AtlasFeature(
+            name: entry.name,
+            isEnabled: entry.status == .enabled
+        )
+    }
+}
+
+private enum AtlasFeatureTitles {
+    static func title(for name: String) -> String {
+        switch name {
+        case AtlasModule.monitoring.featureName:
+            return AtlasModule.monitoring.title
+        case AtlasModule.screenshot.featureName:
+            return AtlasModule.screenshot.title
+        default:
+            return name
+                .split(separator: "-")
+                .map { word in
+                    word.prefix(1).uppercased() + word.dropFirst()
+                }
+                .joined(separator: " ")
+        }
+    }
+}

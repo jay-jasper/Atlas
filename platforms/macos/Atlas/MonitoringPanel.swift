@@ -22,6 +22,8 @@ struct MonitoringPanel: View {
             }
             Divider()
             processSection(snapshot)
+            Divider()
+            MonitoringPortsPanel()
         } else {
             ProgressView("Loading...").padding()
         }

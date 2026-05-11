@@ -1,25 +1,25 @@
 import Foundation
 
-struct MonitoringCpuCoreSnapshot {
+struct MonitoringCpuCoreSnapshot: Equatable {
     let name: String
     let usage: Float
     let frequencyMhz: UInt64
 }
 
-struct MonitoringProcessSnapshot {
+struct MonitoringProcessSnapshot: Equatable {
     let pid: UInt32
     let name: String
     let cpuUsage: Float
     let memBytes: UInt64
 }
 
-struct MonitoringNetworkInterfaceSnapshot {
+struct MonitoringNetworkInterfaceSnapshot: Equatable {
     let name: String
     let uploadBps: UInt64
     let downloadBps: UInt64
 }
 
-struct MonitoringDiskSnapshot {
+struct MonitoringDiskSnapshot: Equatable {
     let name: String
     let mountPoint: String
     let totalBytes: UInt64
@@ -27,7 +27,7 @@ struct MonitoringDiskSnapshot {
     let availableBytes: UInt64
 }
 
-struct MonitoringBatterySnapshot {
+struct MonitoringBatterySnapshot: Equatable {
     let chargePercent: Float
     let isCharging: Bool
     let timeToEmptySecs: Int64?
@@ -36,12 +36,18 @@ struct MonitoringBatterySnapshot {
     let cycleCount: UInt32?
 }
 
-struct MonitoringTemperatureSnapshot {
+struct MonitoringTemperatureSnapshot: Equatable {
     let label: String
     let celsius: Float
 }
 
-struct MonitoringSystemSnapshot {
+struct MonitoringPortProcess: Equatable {
+    let port: UInt16
+    let pid: UInt32
+    let processName: String
+}
+
+struct MonitoringSystemSnapshot: Equatable {
     let cpuUsage: Float
     let memUsedBytes: UInt64
     let memTotalBytes: UInt64
