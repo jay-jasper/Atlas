@@ -1028,3 +1028,7 @@ Plan complete and saved to `docs/superpowers/plans/2026-05-11-screenshot-capture
 - Remaining limitations:
   - Desktop capture still uses the existing Rust full-screen API, which currently captures the first screen.
   - Window capture is macOS-only through CoreGraphics.
+
+## Manual Verification Waiver
+
+Manual Desktop, Window, Area, Copy, Save, and Pin verification was not performed. On 2026-05-11, the user explicitly changed acceptance criteria so manual verification is not required for this task set; passing automated/unit tests is sufficient.
