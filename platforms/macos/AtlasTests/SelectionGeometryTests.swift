@@ -39,6 +39,17 @@ final class SelectionGeometryTests: XCTestCase {
         XCTAssertEqual(rect, CGRect(x: 70, y: 60, width: 30, height: 20))
     }
 
+    func testMoveWithFractionalDeltaPreservesSelectionSize() {
+        let rect = SelectionGeometry.move(
+            CGRect(x: 10, y: 10, width: 30, height: 20),
+            by: CGSize(width: 0.25, height: 0.25),
+            bounds: CGSize(width: 100, height: 80)
+        )
+
+        XCTAssertEqual(rect.size, CGSize(width: 30, height: 20))
+        XCTAssertEqual(rect.origin, CGPoint(x: 10, y: 10))
+    }
+
     func testNudgeUsesOnePixelOrTenPixels() {
         XCTAssertEqual(SelectionGeometry.nudgeDelta(.left, isLargeStep: false), CGSize(width: -1, height: 0))
         XCTAssertEqual(SelectionGeometry.nudgeDelta(.right, isLargeStep: true), CGSize(width: 10, height: 0))

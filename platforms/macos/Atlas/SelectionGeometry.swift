@@ -28,11 +28,11 @@ enum SelectionGeometry {
 
     static func clamp(_ rect: CGRect, bounds: CGSize) -> CGRect {
         CGRect(
-            x: min(max(0, rect.minX), max(0, bounds.width - rect.width)),
-            y: min(max(0, rect.minY), max(0, bounds.height - rect.height)),
+            x: min(max(0, rect.minX.rounded(.toNearestOrAwayFromZero)), max(0, bounds.width - rect.width)),
+            y: min(max(0, rect.minY.rounded(.toNearestOrAwayFromZero)), max(0, bounds.height - rect.height)),
             width: rect.width,
             height: rect.height
-        ).integral
+        )
     }
 
     static func move(_ rect: CGRect, by delta: CGSize, bounds: CGSize) -> CGRect {
