@@ -47,6 +47,32 @@ final class ScreenshotTranslationConfigurationTests: XCTestCase {
         XCTAssertNil(store.httpConfig())
     }
 
+    func testConfigurationIgnoresEndpointWithInvalidHost() {
+        let invalidEndpoints = [
+            "https://:80",
+            "https://.",
+            "https://_"
+        ]
+
+        for endpoint in invalidEndpoints {
+            defaults.set(endpoint, forKey: ScreenshotTranslationConfigurationKeys.endpoint)
+            let store = ScreenshotTranslationConfigurationStore(defaults: defaults)
+
+            XCTAssertNil(store.httpConfig(), "Expected invalid endpoint to be ignored: \(endpoint)")
+        }
+    }
+
+    func testLiveFactoryFallsBackWithoutEndpoint() {
+        let service = ScreenshotTranslationServiceFactory.live(defaults: defaults)
+
+        XCTAssertThrowsError(try service.translate("Hello", targetLanguage: "fr")) { error in
+            XCTAssertEqual(
+                error.localizedDescription,
+                "Local screenshot translation is not supported yet"
+            )
+        }
+    }
+
     func testConfiguredServiceUsesFallbackWithoutEndpoint() throws {
         let expected = ScreenshotTranslationResult(
             sourceText: "Hello",

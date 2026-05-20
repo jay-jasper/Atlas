@@ -20,7 +20,8 @@ struct ScreenshotTranslationConfigurationStore {
               let endpoint = URL(string: endpointString),
               let scheme = endpoint.scheme,
               ["http", "https"].contains(scheme.lowercased()),
-              endpoint.host != nil else {
+              let host = endpoint.host,
+              isValidHost(host) else {
             return nil
         }
 
@@ -29,6 +30,15 @@ struct ScreenshotTranslationConfigurationStore {
             apiKey: cleanedOptionalString(defaults.string(forKey: ScreenshotTranslationConfigurationKeys.apiKey)),
             model: cleanedOptionalString(defaults.string(forKey: ScreenshotTranslationConfigurationKeys.model))
         )
+    }
+
+    private func isValidHost(_ host: String) -> Bool {
+        let cleaned = host.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !cleaned.isEmpty
+            && cleaned != "."
+            && !cleaned.contains("_")
+            && !cleaned.hasPrefix(".")
+            && !cleaned.hasSuffix(".")
     }
 
     private func cleanedOptionalString(_ value: String?) -> String? {
