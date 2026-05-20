@@ -6,6 +6,10 @@ struct ScreenshotEditorView: View {
     let onCopy: (Data) -> Void
     let onSave: (Data) -> Void
     let onPin: (Data) -> Void
+    let recognizedText: String
+    let isRecognizingText: Bool
+    let onRecognizeText: (Data) -> Void
+    let onCopyRecognizedText: (String) -> Void
     let onClose: () -> Void
 
     @State private var selectedTool: ScreenshotTool = .rectangle
@@ -18,6 +22,7 @@ struct ScreenshotEditorView: View {
             toolbar
             Divider()
             canvas
+            recognizedTextPanel
             Divider()
             outputBar
         }
@@ -92,12 +97,45 @@ struct ScreenshotEditorView: View {
             Button("Copy") { onCopy(renderedData()) }
             Button("Save") { onSave(renderedData()) }
             Button("Pin") { onPin(renderedData()) }
+            Button("OCR") { onRecognizeText(renderedData()) }
+                .disabled(isRecognizingText)
             Spacer()
+            if isRecognizingText {
+                ProgressView()
+                    .controlSize(.small)
+            }
             Text("\(Int(screenshot.rect.width)) x \(Int(screenshot.rect.height))")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
         .padding(10)
+    }
+
+    @ViewBuilder
+    private var recognizedTextPanel: some View {
+        if !recognizedText.isEmpty {
+            Divider()
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("Recognized Text")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Button("Copy Text") { onCopyRecognizedText(recognizedText) }
+                        .controlSize(.small)
+                }
+
+                ScrollView {
+                    Text(recognizedText)
+                        .font(.system(size: 12, design: .monospaced))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .textSelection(.enabled)
+                }
+                .frame(maxHeight: 76)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+        }
     }
 
     private var annotationDrag: some Gesture {
