@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var isRecognizingScreenshotText: Bool = false
     @State private var translatedScreenshotText: String = ""
     @State private var isTranslatingScreenshotText: Bool = false
+    @State private var screenshotFeatureSettings: ScreenshotFeatureSettings = .defaultEnabled
     @State private var translationSettingsDraft: ScreenshotTranslationSettingsDraft = .empty
     @State private var isTranslationConfigured: Bool = false
     @State private var screenshotTextRevision: Int = 0
@@ -24,6 +25,7 @@ struct ContentView: View {
     @State private var captureStatusKind: CaptureStatusKind = .success
     @State private var showCaptureStatus: Bool = false
     @State private var statusHideToken: Int = 0
+    private let screenshotFeatureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigurationStore = ScreenshotTranslationConfigurationStore()
 
     var body: some View {
@@ -40,6 +42,7 @@ struct ContentView: View {
 
                     if isFeatureEnabled(.screenshot) {
                         ScreenshotPanel(
+                            capabilities: screenshotFeatureSettings.captureCapabilities,
                             onCaptureDesktop: captureDesktop,
                             onCaptureWindow: showWindowSelection,
                             onCaptureArea: showSelectionWindow
@@ -62,6 +65,14 @@ struct ContentView: View {
 
                     Divider()
 
+                    ScreenshotFeatureSettingsPanel(
+                        settings: screenshotFeatureSettings,
+                        onSave: saveScreenshotFeatureSettings
+                    )
+                    .id(screenshotFeatureSettingsIdentity)
+
+                    Divider()
+
                     TranslationSettingsPanel(
                         draft: translationSettingsDraft,
                         isConfigured: isTranslationConfigured,
@@ -80,6 +91,7 @@ struct ContentView: View {
             if let capturedScreenshot {
                 ScreenshotEditorView(
                     screenshot: capturedScreenshot,
+                    capabilities: screenshotFeatureSettings.editorCapabilities,
                     onCopy: copyScreenshot,
                     onSave: saveScreenshot,
                     onPin: pinScreenshot,
@@ -101,6 +113,7 @@ struct ContentView: View {
     }
 
     private func startModules() {
+        loadScreenshotFeatureSettings()
         loadTranslationSettings()
 
         do {
@@ -117,12 +130,28 @@ struct ContentView: View {
         }
     }
 
+    private var screenshotFeatureSettingsIdentity: String {
+        ScreenshotSubfeature.allCases
+            .map { screenshotFeatureSettings.isEnabled($0) ? "1" : "0" }
+            .joined(separator: "")
+    }
+
     private var translationSettingsPanelIdentity: String {
         [
             translationSettingsDraft.endpoint,
             translationSettingsDraft.apiKey,
             translationSettingsDraft.model,
         ].joined(separator: "\u{1F}")
+    }
+
+    private func loadScreenshotFeatureSettings() {
+        screenshotFeatureSettings = screenshotFeatureSettingsStore.load()
+    }
+
+    private func saveScreenshotFeatureSettings(_ settings: ScreenshotFeatureSettings) {
+        screenshotFeatureSettingsStore.save(settings)
+        loadScreenshotFeatureSettings()
+        showStatus("Screenshot feature settings saved")
     }
 
     private func loadTranslationSettings() {
@@ -202,6 +231,11 @@ struct ContentView: View {
     }
 
     private func showSelectionWindow() {
+        guard screenshotFeatureSettings.captureCapabilities.area else {
+            showStatus("Area capture is disabled", kind: .error)
+            return
+        }
+
         let previewImageData = selectionPreviewImageData()
         ScreenshotSelectionWindow.show(previewImageData: previewImageData, onCapture: captureSelection)
     }
@@ -225,6 +259,11 @@ struct ContentView: View {
     }
 
     private func showWindowSelection() {
+        guard screenshotFeatureSettings.captureCapabilities.window else {
+            showStatus("Window capture is disabled", kind: .error)
+            return
+        }
+
         do {
             let windows = try AtlasBridge.listCapturableWindows()
             guard !windows.isEmpty else {
@@ -288,6 +327,11 @@ struct ContentView: View {
     }
 
     private func captureDesktop() {
+        guard screenshotFeatureSettings.captureCapabilities.desktop else {
+            showStatus("Desktop capture is disabled", kind: .error)
+            return
+        }
+
         let data: Data
 
         do {
@@ -344,11 +388,21 @@ struct ContentView: View {
     }
 
     private func pinScreenshot(_ data: Data) {
+        guard screenshotFeatureSettings.editorCapabilities.pinning else {
+            showStatus("Pinning is disabled", kind: .error)
+            return
+        }
+
         PinnedScreenshotWindow.show(data: data)
         showStatus("Pinned screenshot")
     }
 
     private func recognizeScreenshotText(_ data: Data) {
+        guard screenshotFeatureSettings.editorCapabilities.ocr else {
+            showStatus("OCR is disabled", kind: .error)
+            return
+        }
+
         screenshotOCRRevision += 1
         screenshotTranslationRevision += 1
         let textRevision = screenshotTextRevision
@@ -388,6 +442,11 @@ struct ContentView: View {
     }
 
     private func translateRecognizedScreenshotText(_ text: String) {
+        guard screenshotFeatureSettings.editorCapabilities.translation else {
+            showStatus("Translation is disabled", kind: .error)
+            return
+        }
+
         screenshotTranslationRevision += 1
         let textRevision = screenshotTextRevision
         let translationRevision = screenshotTranslationRevision
