@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 实现 Atlas 基础截图功能，包含原生选区 Overlay 交互及位图数据捕获流。
+**Goal:** 实现 Atlas 截图工具的第一阶段能力，参考 Shottr 与微信截图工具，包含原生确认式选区 Overlay、选区微调、基础输出流及后续标注/钉图扩展路径。
 
 **Architecture:** Rust Core 负责跨平台截屏底层逻辑与图片处理；macOS UI 使用 SwiftUI 实现 120Hz 选区遮罩。
 
@@ -120,86 +120,147 @@ git commit -m "feat: export capture functions via uniffi"
 - Create: `platforms/macos/Atlas/SelectionOverlay.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: 创建选区交互视图**
+- [ ] **Step 1: 创建确认式选区交互视图**
+
+需求：
+- 拖拽创建选区，松手后不立即截图。
+- 显示选区边框与实时尺寸，例如 `640 x 360`。
+- 支持拖动选区移动。
+- 支持拖拽四角调整选区大小；后续可扩展到四边调整。
+- 支持取消与确认操作，Esc 取消，Enter 或确认按钮截图。
+- 工具栏贴近选区，避免遮挡选区内容；靠近屏幕边缘时自动翻转到可见区域。
 
 ```swift
 // platforms/macos/Atlas/SelectionOverlay.swift
 import SwiftUI
 
 struct SelectionOverlay: View {
-    @State private var startPoint: CGPoint?
-    @State private var endPoint: CGPoint?
+    @State private var selection: CGRect?
     var onCapture: (CGRect) -> Void
+    var onCancel: () -> Void
 
     var body: some View {
         ZStack {
             Color.black.opacity(0.3)
                 .edgesIgnoringSafeArea(.all)
-            
-            if let start = startPoint, let end = endPoint {
-                let rect = CGRect(x: min(start.x, end.x), 
-                                 y: min(start.y, end.y), 
-                                 width: abs(start.x - end.x), 
-                                 height: abs(start.y - end.y))
-                
-                Rectangle()
-                    .fill(Color.clear)
-                    .border(Color.blue, width: 2)
-                    .frame(width: rect.width, height: rect.height)
-                    .position(x: rect.midX, y: rect.midY)
-            }
+
+            // Selection border, size badge, resize handles, and confirm/cancel toolbar.
         }
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { value in
-                    if startPoint == nil { startPoint = value.startLocation }
-                    endPoint = value.location
-                }
-                .onEnded { value in
-                    // 计算并触发捕获
-                    // ... rect calc ...
-                    // onCapture(rect)
-                }
-        )
     }
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [ ] **Step 2: 在 ContentView 中接入取消与确认回调**
+
+```swift
+SelectionOverlay(
+    onCancel: { isShowingSelectionOverlay = false },
+    onCapture: { rect in
+        // 调用 AtlasBridge.captureRegion 后关闭 overlay
+    }
+)
+```
+
+- [ ] **Step 3: Commit**
 
 ```bash
 git add platforms/macos/Atlas/SelectionOverlay.swift
-git commit -m "feat: add basic swiftui selection overlay"
+git commit -m "feat: add adjustable screenshot selection overlay"
 ```
 
 ---
 
-### Task 4: 整合截图保存流
+### Task 4: 整合截图输出流
 
 **Files:**
+- Modify: `platforms/macos/Atlas/ContentView.swift`
 - Modify: `platforms/macos/Atlas/AtlasApp.swift`
 
-- [ ] **Step 1: 实现全局快捷键触发与保存**
+- [ ] **Step 1: 实现复制、保存与状态反馈**
 
 ```swift
 // Logic (Pseudocode):
 // 1. 快捷键触发 -> 显示透明满屏窗口 (SelectionOverlay)
 // 2. 选区结束 -> 调用 AtlasBridge.captureRegion
-// 3. 结果保存到本地路径并存入剪贴板
+// 3. 默认复制 PNG 到剪贴板
+// 4. 支持保存到用户选择路径或 Downloads
+// 5. 显示短暂成功/失败状态
 ```
 
 - [ ] **Step 2: Commit**
 
 ```bash
 git add platforms/macos/Atlas
-git commit -m "feat: integrate capture flow and saving"
+git commit -m "feat: add screenshot copy and save flow"
+```
+
+---
+
+### Task 5: 添加微信式快速标注工具栏
+
+**Files:**
+- Create: `platforms/macos/Atlas/ScreenshotAnnotationView.swift`
+- Modify: `platforms/macos/Atlas/SelectionOverlay.swift`
+- Modify: `platforms/macos/Atlas/ContentView.swift`
+
+- [ ] **Step 1: 定义标注模型**
+
+支持最小标注集合：
+- 矩形
+- 箭头
+- 画笔
+- 文字
+- 马赛克/模糊
+
+- [ ] **Step 2: 在选区工具栏中增加工具入口**
+
+工具栏行为：
+- 默认显示取消、确认。
+- 进入标注模式后显示工具、颜色、线宽、撤销。
+- 标注完成后确认输出合成后的图片。
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add platforms/macos/Atlas
+git commit -m "feat: add screenshot quick annotation tools"
+```
+
+---
+
+### Task 6: 添加 Shottr 式钉图与精确选择辅助
+
+**Files:**
+- Create: `platforms/macos/Atlas/PinnedScreenshotWindow.swift`
+- Modify: `platforms/macos/Atlas/SelectionOverlay.swift`
+- Modify: `platforms/macos/Atlas/ContentView.swift`
+
+- [ ] **Step 1: 实现钉图**
+
+需求：
+- 截图后可点击 Pin，将截图作为置顶悬浮窗显示。
+- 悬浮窗支持拖动、关闭，后续可支持缩放和透明度。
+
+- [ ] **Step 2: 实现精确选择辅助**
+
+需求：
+- 鼠标附近显示像素放大镜。
+- 选区靠近窗口边缘或明显 UI 边界时吸附。
+- 显示简单标尺/辅助线。
+- 后续支持颜色取样。
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add platforms/macos/Atlas
+git commit -m "feat: add screenshot pinning and precision aids"
 ```
 
 ---
 
 ## Self-Review
 
-1. **Spec Coverage**: 涵盖了设计文档中 Phase 1 的选区、捕获与保存。
+1. **Spec Coverage**: 涵盖了设计文档中 Phase 1 的确认式选区、选区微调、捕获与输出，并为标注、钉图和精确选择辅助留出任务。
 2. **Type Consistency**: `capture_region` 参数在 UDL 和 Rust 中匹配。
 3. **Architecture**: 保持了核心在 Rust，UI 在 Swift 的原则。
 

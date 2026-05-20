@@ -8,9 +8,12 @@
 ## 2. 核心功能需求 (PRD)
 
 ### 2.1 专业截图模块 (Pro Capture)
-*   **选区交互**: 120Hz 原生选区 Overlay，支持像素放大镜、智能边界对齐。
-*   **快速标注 (Quick Annotate)**: 选区内即时绘制箭头、矩形、计数序列号。
+*   **选区交互**: 参考 Shottr 与微信截图工具，提供原生选区 Overlay，支持拖拽创建选区、拖动选区移动、拖拽四角/边缘微调、尺寸实时显示、Esc 取消、Enter/确认按钮完成截图。
+*   **精确选择辅助**: 支持像素放大镜、智能边界吸附、标尺/辅助线和取色信息，帮助用户贴边选择 UI 元素。
+*   **快速标注 (Quick Annotate)**: 选区内即时绘制箭头、矩形、画笔、高亮、文字、计数序列号。
 *   **隐私保护**: 智能或手动打码、模糊（Blur/Pixelation）敏感内容。
+*   **快捷输出**: 截图完成后可一键复制到剪贴板、保存到文件、拖拽到其他应用，默认不打断当前工作流。
+*   **钉图 (Pin Screenshot)**: 支持将截图作为置顶悬浮窗固定在屏幕上，便于对照录入、调试和设计比对。
 *   **滚动截屏 (Scrolling Capture)**: 自动滚动并拼接长网页、聊天记录。
 *   **悬浮缩略图 (Floating Thumbnails)**: 截图后边缘显示，支持点击进入编辑器或右键快捷操作。
 *   **独立编辑器**: 全功能窗口，支持裁剪、文字叠加、多图层管理。
@@ -54,7 +57,9 @@
 ---
 
 ## 4. 实施计划 (Implementation Plan)
-1.  **Phase 1 (Basic Capture)**: 实现原生选区 Overlay 和基础截图保存。
-2.  **Phase 2 (Translation Hub)**: 搭建 Rust 翻译引擎架构，优先接入 3-5 个核心引擎。
-3.  **Phase 3 (Annotations & OCR)**: 实现基础标注功能和本地 OCR 链路。
-4.  **Phase 4 (Scrolling & Pro Editor)**: 攻克长图拼接算法，开发独立编辑器窗口。
+1.  **Phase 1 (Wechat/Shottr Selection Core)**: 实现确认式选区 Overlay、尺寸显示、移动选区、四角/边缘调整、取消/确认快捷操作。
+2.  **Phase 2 (Output Workflow)**: 实现复制到剪贴板、保存到文件、拖拽输出和截图后悬浮缩略图。
+3.  **Phase 3 (Annotations & Privacy)**: 实现箭头、矩形、画笔、文字、高亮、序号、马赛克/模糊等基础标注。
+4.  **Phase 4 (Pin & Precision Tools)**: 实现钉图悬浮窗、像素放大镜、边界吸附、标尺/辅助线和颜色取样。
+5.  **Phase 5 (OCR & Translation Hub)**: 实现本地 OCR，搭建 Rust 翻译引擎架构，优先接入 3-5 个核心引擎。
+6.  **Phase 6 (Scrolling & Pro Editor)**: 攻克长图拼接算法，开发独立编辑器窗口。

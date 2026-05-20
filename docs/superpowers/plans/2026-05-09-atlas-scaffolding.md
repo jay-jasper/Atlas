@@ -205,6 +205,7 @@ impl FeatureManager {
         let mut features = HashMap::new();
         features.insert("monitoring".to_string(), FeatureStatus::Disabled);
         features.insert("screenshot".to_string(), FeatureStatus::Disabled);
+        // Port Master belongs to the monitoring feature instead of a separate toggle.
         Self { features }
     }
 
