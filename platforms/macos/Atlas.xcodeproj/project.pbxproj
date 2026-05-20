@@ -27,6 +27,7 @@
 		83CBBB1B1A601CBA00E9B192 /* SelectionGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB1C1A601CBA00E9B192 /* SelectionGeometryTests.swift */; };
 		83CBBB1D1A601CBA00E9B192 /* SelectionPixelProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB1E1A601CBA00E9B192 /* SelectionPixelProbe.swift */; };
 		83CBBB1F1A601CBA00E9B192 /* SelectionPixelProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB201A601CBA00E9B192 /* SelectionPixelProbeTests.swift */; };
+		83CBBB211A601CBA00E9B192 /* SelectionKeyboardBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB221A601CBA00E9B192 /* SelectionKeyboardBridge.swift */; };
 		83CBBA2A1A601CBA00E9B192 /* SystemModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3B1A601CBA00E9B192 /* SystemModels.swift */; };
 		83CBBA2B1A601CBA00E9B192 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 83CBBA3C1A601CBA00E9B192 /* Assets.xcassets */; };
 		83CBBA2C1A601CBA00E9B192 /* ScreenshotModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3E1A601CBA00E9B192 /* ScreenshotModels.swift */; };
@@ -89,6 +90,7 @@
 		83CBBB1C1A601CBA00E9B192 /* SelectionGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionGeometryTests.swift; sourceTree = "<group>"; };
 		83CBBB1E1A601CBA00E9B192 /* SelectionPixelProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionPixelProbe.swift; sourceTree = "<group>"; };
 		83CBBB201A601CBA00E9B192 /* SelectionPixelProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionPixelProbeTests.swift; sourceTree = "<group>"; };
+		83CBBB221A601CBA00E9B192 /* SelectionKeyboardBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionKeyboardBridge.swift; sourceTree = "<group>"; };
 		83CBBA3B1A601CBA00E9B192 /* SystemModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemModels.swift; sourceTree = "<group>"; };
 		83CBBA3C1A601CBA00E9B192 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		83CBBA3D1A601CBA00E9B192 /* Atlas.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Atlas.entitlements; sourceTree = "<group>"; };
@@ -192,6 +194,7 @@
 				83CBBA3A1A601CBA00E9B192 /* SelectionOverlay.swift */,
 				83CBBB1A1A601CBA00E9B192 /* SelectionGeometry.swift */,
 				83CBBB1E1A601CBA00E9B192 /* SelectionPixelProbe.swift */,
+				83CBBB221A601CBA00E9B192 /* SelectionKeyboardBridge.swift */,
 				83CBBA3B1A601CBA00E9B192 /* SystemModels.swift */,
 				83CBBA3C1A601CBA00E9B192 /* Assets.xcassets */,
 				83CBBA3D1A601CBA00E9B192 /* Atlas.entitlements */,
@@ -369,6 +372,7 @@
 				83CBBA291A601CBA00E9B192 /* SelectionOverlay.swift in Sources */,
 				83CBBB191A601CBA00E9B192 /* SelectionGeometry.swift in Sources */,
 				83CBBB1D1A601CBA00E9B192 /* SelectionPixelProbe.swift in Sources */,
+				83CBBB211A601CBA00E9B192 /* SelectionKeyboardBridge.swift in Sources */,
 				83CBBA2A1A601CBA00E9B192 /* SystemModels.swift in Sources */,
 				83CBBA761A601CBA00E9B192 /* atlas.swift in Sources */,
 			);
