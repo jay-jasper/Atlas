@@ -121,6 +121,34 @@ final class FloatingScreenshotThumbnailWindow {
         onSave: @escaping (Data) -> Void,
         onDismiss: @escaping () -> Void
     ) {
+        show(
+            screenshot: screenshot,
+            onOpen: {
+                onOpen()
+                return .openedEditor
+            },
+            onCopy: { data in
+                onCopy(data)
+                return .copied
+            },
+            onSave: { data in
+                onSave(data)
+                return .saved(filename: "screenshot.png")
+            },
+            onDismiss: {
+                onDismiss()
+                return .dismissed
+            }
+        )
+    }
+
+    static func show(
+        screenshot: CapturedScreenshot,
+        onOpen: @escaping () -> FloatingScreenshotThumbnailActionResult,
+        onCopy: @escaping (Data) -> FloatingScreenshotThumbnailActionResult,
+        onSave: @escaping (Data) -> FloatingScreenshotThumbnailActionResult,
+        onDismiss: @escaping () -> FloatingScreenshotThumbnailActionResult
+    ) {
         if Thread.isMainThread {
             showOnMain(
                 screenshot: screenshot,
@@ -154,10 +182,10 @@ final class FloatingScreenshotThumbnailWindow {
 
     private static func showOnMain(
         screenshot: CapturedScreenshot,
-        onOpen: @escaping () -> Void,
-        onCopy: @escaping (Data) -> Void,
-        onSave: @escaping (Data) -> Void,
-        onDismiss: @escaping () -> Void
+        onOpen: @escaping () -> FloatingScreenshotThumbnailActionResult,
+        onCopy: @escaping (Data) -> FloatingScreenshotThumbnailActionResult,
+        onSave: @escaping (Data) -> FloatingScreenshotThumbnailActionResult,
+        onDismiss: @escaping () -> FloatingScreenshotThumbnailActionResult
     ) {
         guard let image = NSImage(data: screenshot.pngData) else { return }
 
@@ -167,8 +195,9 @@ final class FloatingScreenshotThumbnailWindow {
             image: image,
             dimensionsText: "\(Int(screenshot.rect.width)) x \(Int(screenshot.rect.height))",
             onOpen: {
+                let result = onOpen()
                 dismissOnMain()
-                onOpen()
+                return result
             },
             onCopy: {
                 onCopy(screenshot.pngData)
@@ -177,8 +206,9 @@ final class FloatingScreenshotThumbnailWindow {
                 onSave(screenshot.pngData)
             },
             onDismiss: {
+                let result = onDismiss()
                 dismissOnMain()
-                onDismiss()
+                return result
             }
         )
 
@@ -234,10 +264,12 @@ final class FloatingScreenshotThumbnailWindow {
 struct FloatingScreenshotThumbnailView: View {
     let image: NSImage
     let dimensionsText: String
-    let onOpen: () -> Void
-    let onCopy: () -> Void
-    let onSave: () -> Void
-    let onDismiss: () -> Void
+    let onOpen: () -> FloatingScreenshotThumbnailActionResult
+    let onCopy: () -> FloatingScreenshotThumbnailActionResult
+    let onSave: () -> FloatingScreenshotThumbnailActionResult
+    let onDismiss: () -> FloatingScreenshotThumbnailActionResult
+
+    @State private var actionState = FloatingScreenshotThumbnailActionState()
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
@@ -259,11 +291,52 @@ struct FloatingScreenshotThumbnailView: View {
             .background(.black.opacity(0.68))
             .cornerRadius(6)
             .padding(7)
+
+            VStack {
+                HStack(spacing: 6) {
+                    ForEach(FloatingScreenshotThumbnailAction.allCases, id: \.self) { action in
+                        Button {
+                            perform(action)
+                        } label: {
+                            Image(systemName: action.systemImage)
+                                .frame(width: 22, height: 22)
+                        }
+                        .buttonStyle(.plain)
+                        .help(action.title)
+                    }
+                }
+                .padding(6)
+                .background(.black.opacity(0.62))
+                .cornerRadius(7)
+
+                Spacer()
+            }
+            .padding(7)
+
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Text(actionState.statusText)
+                        .font(.caption2)
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 4)
+                        .background(.black.opacity(0.68))
+                        .cornerRadius(6)
+                }
+            }
+            .padding(7)
         }
         .contentShape(Rectangle())
-        .onTapGesture(perform: onOpen)
+        .onTapGesture {
+            perform(.open)
+        }
         .overlay(alignment: .topTrailing) {
-            Button(action: onDismiss) {
+            Button {
+                perform(.dismiss)
+            } label: {
                 Image(systemName: "xmark.circle.fill")
                     .imageScale(.medium)
                     .symbolRenderingMode(.hierarchical)
@@ -275,36 +348,31 @@ struct FloatingScreenshotThumbnailView: View {
             .help("Dismiss thumbnail")
         }
         .contextMenu {
-            ForEach([FloatingScreenshotThumbnailAction.open, .copy, .save], id: \.self) { action in
+            ForEach(FloatingScreenshotThumbnailAction.allCases, id: \.self) { action in
                 Button {
                     perform(action)
                 } label: {
                     Label(action.title, systemImage: action.systemImage)
                 }
             }
-            Divider()
-            Button {
-                perform(.dismiss)
-            } label: {
-                Label(
-                    FloatingScreenshotThumbnailAction.dismiss.title,
-                    systemImage: FloatingScreenshotThumbnailAction.dismiss.systemImage
-                )
-            }
         }
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
     private func perform(_ action: FloatingScreenshotThumbnailAction) {
+        let result: FloatingScreenshotThumbnailActionResult
+
         switch action {
         case .open:
-            onOpen()
+            result = onOpen()
         case .copy:
-            onCopy()
+            result = onCopy()
         case .save:
-            onSave()
+            result = onSave()
         case .dismiss:
-            onDismiss()
+            result = onDismiss()
         }
+
+        actionState.apply(result)
     }
 }

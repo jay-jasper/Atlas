@@ -75,4 +75,26 @@ final class FloatingScreenshotThumbnailWindowTests: XCTestCase {
         state.apply(.saved(filename: "One.png"))
         XCTAssertEqual(state.statusText, "Saved One.png")
     }
+
+    func testActionStateStatusTextChangesAfterEachResult() {
+        var state = FloatingScreenshotThumbnailActionState()
+        let results: [FloatingScreenshotThumbnailActionResult] = [
+            .openedEditor,
+            .copied,
+            .saveCancelled,
+            .dismissed,
+        ]
+
+        let statuses = results.map { result in
+            state.apply(result)
+            return state.statusText
+        }
+
+        XCTAssertEqual(statuses, [
+            "Opened editor",
+            "Copied",
+            "Save cancelled",
+            "Dismissed",
+        ])
+    }
 }
