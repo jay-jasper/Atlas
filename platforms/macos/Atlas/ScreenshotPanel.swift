@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ScreenshotPanel: View {
+    let capabilities: ScreenshotCaptureCapabilities
     let onCaptureDesktop: () -> Void
     let onCaptureWindow: () -> Void
     let onCaptureArea: () -> Void
@@ -9,9 +10,19 @@ struct ScreenshotPanel: View {
         Group {
             Text("Screenshot").font(.subheadline).foregroundColor(.secondary)
             HStack {
-                captureButton(for: .desktop, action: onCaptureDesktop, prominent: true)
-                captureButton(for: .window, action: onCaptureWindow, prominent: false)
-                captureButton(for: .area, action: onCaptureArea, prominent: false)
+                if capabilities.desktop {
+                    captureButton(for: .desktop, action: onCaptureDesktop, prominent: true)
+                }
+                if capabilities.window {
+                    captureButton(for: .window, action: onCaptureWindow, prominent: !capabilities.desktop)
+                }
+                if capabilities.area {
+                    captureButton(
+                        for: .area,
+                        action: onCaptureArea,
+                        prominent: !capabilities.desktop && !capabilities.window
+                    )
+                }
             }
         }
     }

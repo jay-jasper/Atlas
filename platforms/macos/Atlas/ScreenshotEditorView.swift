@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ScreenshotEditorView: View {
     let screenshot: CapturedScreenshot
+    let capabilities: ScreenshotEditorCapabilities
     let onCopy: (Data) -> Void
     let onSave: (Data) -> Void
     let onPin: (Data) -> Void
@@ -39,17 +40,19 @@ struct ScreenshotEditorView: View {
 
     private var toolbar: some View {
         HStack(spacing: 8) {
-            ForEach(ScreenshotTool.allCases) { tool in
-                Button {
-                    selectedTool = tool
-                } label: {
-                    Image(systemName: tool.systemImage)
+            if capabilities.annotations {
+                ForEach(ScreenshotTool.allCases) { tool in
+                    Button {
+                        selectedTool = tool
+                    } label: {
+                        Image(systemName: tool.systemImage)
+                    }
+                    .help(tool.title)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .background(selectedTool == tool ? Color.accentColor.opacity(0.18) : Color.clear)
+                    .cornerRadius(6)
                 }
-                .help(tool.title)
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .background(selectedTool == tool ? Color.accentColor.opacity(0.18) : Color.clear)
-                .cornerRadius(6)
             }
 
             Spacer()
@@ -100,9 +103,13 @@ struct ScreenshotEditorView: View {
         HStack {
             Button("Copy") { onCopy(renderedData()) }
             Button("Save") { onSave(renderedData()) }
-            Button("Pin") { onPin(renderedData()) }
-            Button("OCR") { onRecognizeText(renderedData()) }
-                .disabled(isRecognizingText)
+            if capabilities.pinning {
+                Button("Pin") { onPin(renderedData()) }
+            }
+            if capabilities.ocr {
+                Button("OCR") { onRecognizeText(renderedData()) }
+                    .disabled(isRecognizingText)
+            }
             Spacer()
             if isRecognizingText {
                 ProgressView()
@@ -125,13 +132,15 @@ struct ScreenshotEditorView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Spacer()
-                    if isTranslatingText {
-                        ProgressView()
+                    if capabilities.translation {
+                        if isTranslatingText {
+                            ProgressView()
+                                .controlSize(.small)
+                        }
+                        Button("Translate") { onTranslateRecognizedText(recognizedText) }
                             .controlSize(.small)
+                            .disabled(isTranslatingText)
                     }
-                    Button("Translate") { onTranslateRecognizedText(recognizedText) }
-                        .controlSize(.small)
-                        .disabled(isTranslatingText)
                     Button("Copy Text") { onCopyRecognizedText(recognizedText) }
                         .controlSize(.small)
                 }
@@ -172,11 +181,13 @@ struct ScreenshotEditorView: View {
     private var annotationDrag: some Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
+                guard capabilities.annotations else { return }
                 if dragStart == nil {
                     dragStart = value.startLocation
                 }
             }
             .onEnded { value in
+                guard capabilities.annotations else { return }
                 guard let start = dragStart else { return }
                 let rect = CGRect(
                     x: min(start.x, value.location.x),
