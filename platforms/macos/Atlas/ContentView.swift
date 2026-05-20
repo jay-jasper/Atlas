@@ -15,6 +15,9 @@ struct ContentView: View {
     @State private var isRecognizingScreenshotText: Bool = false
     @State private var translatedScreenshotText: String = ""
     @State private var isTranslatingScreenshotText: Bool = false
+    @State private var screenshotTextRevision: Int = 0
+    @State private var screenshotOCRRevision: Int = 0
+    @State private var screenshotTranslationRevision: Int = 0
     @State private var captureStatus: String = ""
     @State private var captureStatusKind: CaptureStatusKind = .success
     @State private var showCaptureStatus: Bool = false
@@ -75,7 +78,7 @@ struct ContentView: View {
                     onCopyRecognizedText: copyRecognizedText,
                     onTranslateRecognizedText: translateRecognizedScreenshotText,
                     onCopyTranslatedText: copyTranslatedText,
-                    onClose: { self.capturedScreenshot = nil }
+                    onClose: closeScreenshotEditor
                 )
             }
         }
@@ -265,7 +268,24 @@ struct ContentView: View {
     }
 
     private func setCapturedScreenshot(_ screenshot: CapturedScreenshot) {
+        invalidateScreenshotTextTasks()
         capturedScreenshot = screenshot
+        clearScreenshotTextState()
+    }
+
+    private func closeScreenshotEditor() {
+        invalidateScreenshotTextTasks()
+        capturedScreenshot = nil
+        clearScreenshotTextState()
+    }
+
+    private func invalidateScreenshotTextTasks() {
+        screenshotTextRevision += 1
+        screenshotOCRRevision += 1
+        screenshotTranslationRevision += 1
+    }
+
+    private func clearScreenshotTextState() {
         recognizedScreenshotText = ""
         isRecognizingScreenshotText = false
         translatedScreenshotText = ""
@@ -289,6 +309,11 @@ struct ContentView: View {
     }
 
     private func recognizeScreenshotText(_ data: Data) {
+        screenshotOCRRevision += 1
+        screenshotTranslationRevision += 1
+        let textRevision = screenshotTextRevision
+        let ocrRevision = screenshotOCRRevision
+
         isRecognizingScreenshotText = true
         recognizedScreenshotText = ""
         translatedScreenshotText = ""
@@ -298,6 +323,11 @@ struct ContentView: View {
             let result = Result { try AtlasBridge.recognizeText(in: data) }
 
             DispatchQueue.main.async {
+                guard textRevision == screenshotTextRevision,
+                      ocrRevision == screenshotOCRRevision else {
+                    return
+                }
+
                 isRecognizingScreenshotText = false
 
                 switch result {
@@ -318,6 +348,11 @@ struct ContentView: View {
     }
 
     private func translateRecognizedScreenshotText(_ text: String) {
+        screenshotTranslationRevision += 1
+        let textRevision = screenshotTextRevision
+        let translationRevision = screenshotTranslationRevision
+        let sourceText = text
+
         isTranslatingScreenshotText = true
         translatedScreenshotText = ""
 
@@ -327,6 +362,12 @@ struct ContentView: View {
             }
 
             DispatchQueue.main.async {
+                guard textRevision == screenshotTextRevision,
+                      translationRevision == screenshotTranslationRevision,
+                      recognizedScreenshotText == sourceText else {
+                    return
+                }
+
                 isTranslatingScreenshotText = false
 
                 switch result {
