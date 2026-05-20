@@ -275,12 +275,36 @@ struct FloatingScreenshotThumbnailView: View {
             .help("Dismiss thumbnail")
         }
         .contextMenu {
-            Button("Open Editor", action: onOpen)
-            Button("Copy", action: onCopy)
-            Button("Save", action: onSave)
+            ForEach([FloatingScreenshotThumbnailAction.open, .copy, .save], id: \.self) { action in
+                Button {
+                    perform(action)
+                } label: {
+                    Label(action.title, systemImage: action.systemImage)
+                }
+            }
             Divider()
-            Button("Dismiss", action: onDismiss)
+            Button {
+                perform(.dismiss)
+            } label: {
+                Label(
+                    FloatingScreenshotThumbnailAction.dismiss.title,
+                    systemImage: FloatingScreenshotThumbnailAction.dismiss.systemImage
+                )
+            }
         }
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    private func perform(_ action: FloatingScreenshotThumbnailAction) {
+        switch action {
+        case .open:
+            onOpen()
+        case .copy:
+            onCopy()
+        case .save:
+            onSave()
+        case .dismiss:
+            onDismiss()
+        }
     }
 }
