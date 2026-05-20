@@ -8,7 +8,7 @@ class AtlasBridge {
     static var monitoringService: MonitoringProviding = MonitoringService.live
     static var featureService: FeatureProviding = FeatureService.live
     static var ocrService: ScreenshotOCRProviding = VisionScreenshotOCRService()
-    static var translationService: ScreenshotTranslating = LocalPlaceholderScreenshotTranslationService()
+    static var translationService: ScreenshotTranslating = ScreenshotTranslationServiceFactory.live()
 
     static func listFeatures() throws -> [AtlasFeature] {
         try featureService.listFeatures()

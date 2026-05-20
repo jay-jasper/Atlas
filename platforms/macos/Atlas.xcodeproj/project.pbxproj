@@ -40,6 +40,10 @@
 		83CBBB251A601CBA00E9B192 /* ScreenshotOCRServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB261A601CBA00E9B192 /* ScreenshotOCRServiceTests.swift */; };
 		83CBBB271A601CBA00E9B192 /* ScreenshotTranslationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB281A601CBA00E9B192 /* ScreenshotTranslationService.swift */; };
 		83CBBB291A601CBA00E9B192 /* ScreenshotTranslationServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB2A1A601CBA00E9B192 /* ScreenshotTranslationServiceTests.swift */; };
+		83CBBB301A601CBA00E9B192 /* ScreenshotTranslationConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB311A601CBA00E9B192 /* ScreenshotTranslationConfigurationTests.swift */; };
+		83CBBB321A601CBA00E9B192 /* ScreenshotTranslationConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB331A601CBA00E9B192 /* ScreenshotTranslationConfiguration.swift */; };
+		83CBBB2B1A601CBA00E9B192 /* ScreenshotHTTPTranslationProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB2C1A601CBA00E9B192 /* ScreenshotHTTPTranslationProviderTests.swift */; };
+		83CBBB2D1A601CBA00E9B192 /* ScreenshotHTTPTranslationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB2E1A601CBA00E9B192 /* ScreenshotHTTPTranslationProvider.swift */; };
 		83CBBA6C1A601CBA00E9B192 /* PinnedScreenshotWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA6D1A601CBA00E9B192 /* PinnedScreenshotWindow.swift */; };
 		83CBBA731A601CBA00E9B192 /* ScreenshotSelectionWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA721A601CBA00E9B192 /* ScreenshotSelectionWindow.swift */; };
 		83CBBAAA1A601CBA00E9B192 /* WindowSelectionWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBAAB1A601CBA00E9B192 /* WindowSelectionWindow.swift */; };
@@ -108,6 +112,10 @@
 		83CBBB261A601CBA00E9B192 /* ScreenshotOCRServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotOCRServiceTests.swift; sourceTree = "<group>"; };
 		83CBBB281A601CBA00E9B192 /* ScreenshotTranslationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTranslationService.swift; sourceTree = "<group>"; };
 		83CBBB2A1A601CBA00E9B192 /* ScreenshotTranslationServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTranslationServiceTests.swift; sourceTree = "<group>"; };
+		83CBBB311A601CBA00E9B192 /* ScreenshotTranslationConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTranslationConfigurationTests.swift; sourceTree = "<group>"; };
+		83CBBB331A601CBA00E9B192 /* ScreenshotTranslationConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTranslationConfiguration.swift; sourceTree = "<group>"; };
+		83CBBB2C1A601CBA00E9B192 /* ScreenshotHTTPTranslationProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotHTTPTranslationProviderTests.swift; sourceTree = "<group>"; };
+		83CBBB2E1A601CBA00E9B192 /* ScreenshotHTTPTranslationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotHTTPTranslationProvider.swift; sourceTree = "<group>"; };
 		83CBBA691A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasBridgeCaptureTests.swift; sourceTree = "<group>"; };
 		83CBBA6D1A601CBA00E9B192 /* PinnedScreenshotWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinnedScreenshotWindow.swift; sourceTree = "<group>"; };
 		83CBBA721A601CBA00E9B192 /* ScreenshotSelectionWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotSelectionWindow.swift; sourceTree = "<group>"; };
@@ -197,6 +205,8 @@
 				83CBBA6A1A601CBA00E9B192 /* ScreenshotEditorView.swift */,
 				83CBBA671A601CBA00E9B192 /* ScreenshotOutput.swift */,
 				83CBBB241A601CBA00E9B192 /* ScreenshotOCRService.swift */,
+				83CBBB2E1A601CBA00E9B192 /* ScreenshotHTTPTranslationProvider.swift */,
+				83CBBB331A601CBA00E9B192 /* ScreenshotTranslationConfiguration.swift */,
 				83CBBB281A601CBA00E9B192 /* ScreenshotTranslationService.swift */,
 				83CBBA6D1A601CBA00E9B192 /* PinnedScreenshotWindow.swift */,
 				83CBBA721A601CBA00E9B192 /* ScreenshotSelectionWindow.swift */,
@@ -229,6 +239,8 @@
 				83CBBA9F1A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift */,
 				83CBBA741A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift */,
 				83CBBB261A601CBA00E9B192 /* ScreenshotOCRServiceTests.swift */,
+				83CBBB2C1A601CBA00E9B192 /* ScreenshotHTTPTranslationProviderTests.swift */,
+				83CBBB311A601CBA00E9B192 /* ScreenshotTranslationConfigurationTests.swift */,
 				83CBBB2A1A601CBA00E9B192 /* ScreenshotTranslationServiceTests.swift */,
 				83CBBB1C1A601CBA00E9B192 /* SelectionGeometryTests.swift */,
 				83CBBB201A601CBA00E9B192 /* SelectionPixelProbeTests.swift */,
@@ -379,6 +391,8 @@
 				83CBBA6B1A601CBA00E9B192 /* ScreenshotEditorView.swift in Sources */,
 				83CBBA661A601CBA00E9B192 /* ScreenshotOutput.swift in Sources */,
 				83CBBB231A601CBA00E9B192 /* ScreenshotOCRService.swift in Sources */,
+				83CBBB2D1A601CBA00E9B192 /* ScreenshotHTTPTranslationProvider.swift in Sources */,
+				83CBBB321A601CBA00E9B192 /* ScreenshotTranslationConfiguration.swift in Sources */,
 				83CBBB271A601CBA00E9B192 /* ScreenshotTranslationService.swift in Sources */,
 				83CBBA6C1A601CBA00E9B192 /* PinnedScreenshotWindow.swift in Sources */,
 				83CBBA731A601CBA00E9B192 /* ScreenshotSelectionWindow.swift in Sources */,
@@ -410,6 +424,8 @@
 				83CBBAA11A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift in Sources */,
 				83CBBA751A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift in Sources */,
 				83CBBB251A601CBA00E9B192 /* ScreenshotOCRServiceTests.swift in Sources */,
+				83CBBB2B1A601CBA00E9B192 /* ScreenshotHTTPTranslationProviderTests.swift in Sources */,
+				83CBBB301A601CBA00E9B192 /* ScreenshotTranslationConfigurationTests.swift in Sources */,
 				83CBBB291A601CBA00E9B192 /* ScreenshotTranslationServiceTests.swift in Sources */,
 				83CBBB1B1A601CBA00E9B192 /* SelectionGeometryTests.swift in Sources */,
 				83CBBB1F1A601CBA00E9B192 /* SelectionPixelProbeTests.swift in Sources */,

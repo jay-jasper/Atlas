@@ -3,7 +3,7 @@ import XCTest
 
 final class ScreenshotTranslationServiceTests: XCTestCase {
     override func tearDown() {
-        AtlasBridge.translationService = LocalPlaceholderScreenshotTranslationService()
+        AtlasBridge.translationService = ScreenshotTranslationServiceFactory.live()
         super.tearDown()
     }
 
@@ -81,6 +81,41 @@ final class ScreenshotTranslationServiceTests: XCTestCase {
         XCTAssertEqual(result.translatedText, "Hello")
         XCTAssertEqual(result.targetLanguage, "English")
     }
+
+    func testProviderBackedServiceDelegatesTrimmedRequestToProvider() throws {
+        let provider = CapturingScreenshotTranslationProvider(
+            result: ScreenshotTranslationResult(
+                sourceText: "Hola",
+                translatedText: "Hello",
+                targetLanguage: "English"
+            )
+        )
+        let service = ProviderBackedScreenshotTranslationService(provider: provider)
+
+        let result = try service.translate("  Hola\n", targetLanguage: "English")
+
+        XCTAssertEqual(provider.receivedRequest, ScreenshotTranslationRequest(sourceText: "Hola", targetLanguage: "English"))
+        XCTAssertEqual(result.translatedText, "Hello")
+    }
+
+    func testProviderBackedServiceRejectsBlankTextBeforeProviderCall() {
+        let provider = CapturingScreenshotTranslationProvider(
+            result: ScreenshotTranslationResult(sourceText: "", translatedText: "", targetLanguage: "English")
+        )
+        let service = ProviderBackedScreenshotTranslationService(provider: provider)
+
+        XCTAssertThrowsError(try service.translate(" \n ", targetLanguage: "English")) { error in
+            XCTAssertEqual(error.localizedDescription, "Screenshot text is empty and cannot be translated")
+        }
+        XCTAssertNil(provider.receivedRequest)
+    }
+
+    func testProviderErrorMessageIsExposed() {
+        XCTAssertEqual(
+            ScreenshotTranslationError.providerFailed("network unavailable").localizedDescription,
+            "Screenshot translation failed: network unavailable"
+        )
+    }
 }
 
 private struct StubScreenshotTranslationService: ScreenshotTranslating {
@@ -103,6 +138,20 @@ private final class CapturingScreenshotTranslationService: ScreenshotTranslating
     func translate(_ text: String, targetLanguage: String) throws -> ScreenshotTranslationResult {
         receivedText = text
         receivedTargetLanguage = targetLanguage
+        return result
+    }
+}
+
+private final class CapturingScreenshotTranslationProvider: ScreenshotTranslationProviding {
+    let result: ScreenshotTranslationResult
+    private(set) var receivedRequest: ScreenshotTranslationRequest?
+
+    init(result: ScreenshotTranslationResult) {
+        self.result = result
+    }
+
+    func translate(_ request: ScreenshotTranslationRequest) throws -> ScreenshotTranslationResult {
+        receivedRequest = request
         return result
     }
 }
