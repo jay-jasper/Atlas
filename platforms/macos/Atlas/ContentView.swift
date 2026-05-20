@@ -15,6 +15,8 @@ struct ContentView: View {
     @State private var isRecognizingScreenshotText: Bool = false
     @State private var translatedScreenshotText: String = ""
     @State private var isTranslatingScreenshotText: Bool = false
+    @State private var translationSettingsDraft: ScreenshotTranslationSettingsDraft = .empty
+    @State private var isTranslationConfigured: Bool = false
     @State private var screenshotTextRevision: Int = 0
     @State private var screenshotOCRRevision: Int = 0
     @State private var screenshotTranslationRevision: Int = 0
@@ -22,6 +24,7 @@ struct ContentView: View {
     @State private var captureStatusKind: CaptureStatusKind = .success
     @State private var showCaptureStatus: Bool = false
     @State private var statusHideToken: Int = 0
+    private let translationConfigurationStore = ScreenshotTranslationConfigurationStore()
 
     var body: some View {
         ZStack {
@@ -59,6 +62,16 @@ struct ContentView: View {
 
                     Divider()
 
+                    TranslationSettingsPanel(
+                        draft: translationSettingsDraft,
+                        isConfigured: isTranslationConfigured,
+                        onSave: saveTranslationSettings,
+                        onClear: clearTranslationSettings
+                    )
+                    .id(translationSettingsPanelIdentity)
+
+                    Divider()
+
                     AppFooter()
                 }
                 .padding()
@@ -88,6 +101,8 @@ struct ContentView: View {
     }
 
     private func startModules() {
+        loadTranslationSettings()
+
         do {
             let loadedFeatures = try AtlasBridge.listFeatures()
             features = loadedFeatures
@@ -100,6 +115,33 @@ struct ContentView: View {
             statusText = "Atlas feature loading failed"
             showStatus(error.localizedDescription, kind: .error, autoHide: false)
         }
+    }
+
+    private var translationSettingsPanelIdentity: String {
+        [
+            translationSettingsDraft.endpoint,
+            translationSettingsDraft.apiKey,
+            translationSettingsDraft.model,
+        ].joined(separator: "\u{1F}")
+    }
+
+    private func loadTranslationSettings() {
+        translationSettingsDraft = translationConfigurationStore.settingsDraft()
+        isTranslationConfigured = translationConfigurationStore.httpConfig() != nil
+    }
+
+    private func saveTranslationSettings(_ draft: ScreenshotTranslationSettingsDraft) {
+        translationConfigurationStore.save(draft)
+        AtlasBridge.translationService = ScreenshotTranslationServiceFactory.live()
+        loadTranslationSettings()
+        showStatus(isTranslationConfigured ? "Translation settings saved" : "Translation endpoint is invalid", kind: isTranslationConfigured ? .success : .error)
+    }
+
+    private func clearTranslationSettings() {
+        translationConfigurationStore.clear()
+        AtlasBridge.translationService = ScreenshotTranslationServiceFactory.live()
+        loadTranslationSettings()
+        showStatus("Translation settings cleared")
     }
 
     private func stopModules() {
