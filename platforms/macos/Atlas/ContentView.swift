@@ -147,7 +147,8 @@ struct ContentView: View {
     }
 
     private func showSelectionWindow() {
-        ScreenshotSelectionWindow.show(onCapture: captureSelection)
+        let previewImageData = try? AtlasBridge.captureFullScreen()
+        ScreenshotSelectionWindow.show(previewImageData: previewImageData, onCapture: captureSelection)
     }
 
     private func showWindowSelection() {

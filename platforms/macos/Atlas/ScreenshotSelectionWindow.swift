@@ -5,23 +5,32 @@ final class ScreenshotSelectionWindow {
     private static var window: NSWindow?
     private static var delegate: WindowDelegate?
 
-    static func show(onCancel: @escaping () -> Void = {}, onCapture: @escaping (CGRect) -> Void) {
+    static func show(
+        previewImageData: Data? = nil,
+        onCancel: @escaping () -> Void = {},
+        onCapture: @escaping (CGRect) -> Void
+    ) {
         if Thread.isMainThread {
-            showOnMain(onCancel: onCancel, onCapture: onCapture)
+            showOnMain(previewImageData: previewImageData, onCancel: onCancel, onCapture: onCapture)
         } else {
             DispatchQueue.main.async {
-                showOnMain(onCancel: onCancel, onCapture: onCapture)
+                showOnMain(previewImageData: previewImageData, onCancel: onCancel, onCapture: onCapture)
             }
         }
     }
 
-    private static func showOnMain(onCancel: @escaping () -> Void, onCapture: @escaping (CGRect) -> Void) {
+    private static func showOnMain(
+        previewImageData: Data?,
+        onCancel: @escaping () -> Void,
+        onCapture: @escaping (CGRect) -> Void
+    ) {
         close()
 
         guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
         let frame = screen.frame
 
         let overlay = SelectionOverlay(
+            previewImageData: previewImageData,
             onCancel: {
                 close()
                 onCancel()
