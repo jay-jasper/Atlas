@@ -132,14 +132,12 @@ struct ContentView: View {
 
     private func saveTranslationSettings(_ draft: ScreenshotTranslationSettingsDraft) {
         translationConfigurationStore.save(draft)
-        AtlasBridge.translationService = ScreenshotTranslationServiceFactory.live()
         loadTranslationSettings()
         showStatus(isTranslationConfigured ? "Translation settings saved" : "Translation endpoint is invalid", kind: isTranslationConfigured ? .success : .error)
     }
 
     private func clearTranslationSettings() {
         translationConfigurationStore.clear()
-        AtlasBridge.translationService = ScreenshotTranslationServiceFactory.live()
         loadTranslationSettings()
         showStatus("Translation settings cleared")
     }
