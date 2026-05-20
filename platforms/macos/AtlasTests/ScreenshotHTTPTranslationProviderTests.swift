@@ -100,6 +100,35 @@ final class ScreenshotHTTPTranslationProviderTests: XCTestCase {
         }
     }
 
+    func testThrowsInvalidResponseForMalformedOrWrongTypeResponseBody() throws {
+        let endpoint = URL(string: "https://translation.example.test/v1/translate")!
+        let invalidBodies = [
+            Data("{".utf8),
+            Data(#"{"translated_text":42}"#.utf8),
+            Data()
+        ]
+
+        for body in invalidBodies {
+            let transport = StubHTTPTranslationTransport(
+                data: body,
+                response: httpResponse(url: endpoint, statusCode: 200)
+            )
+            let provider = ScreenshotHTTPTranslationProvider(
+                config: HTTPTranslationEndpointConfig(endpoint: endpoint),
+                transport: transport
+            )
+
+            XCTAssertThrowsError(
+                try provider.translate(ScreenshotTranslationRequest(sourceText: "Hello", targetLanguage: "fr"))
+            ) { error in
+                XCTAssertEqual(
+                    error.localizedDescription,
+                    "Screenshot translation response could not be decoded"
+                )
+            }
+        }
+    }
+
     func testWrapsTransportFailure() throws {
         let endpoint = URL(string: "https://translation.example.test/v1/translate")!
         let transport = StubHTTPTranslationTransport(error: StubTransportError())

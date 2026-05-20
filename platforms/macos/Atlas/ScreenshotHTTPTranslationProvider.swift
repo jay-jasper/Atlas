@@ -83,29 +83,38 @@ struct ScreenshotHTTPTranslationProvider: ScreenshotTranslationProviding {
         }
         urlRequest.httpBody = try JSONSerialization.data(withJSONObject: body)
 
+        let data: Data
+        let response: HTTPURLResponse
+
         do {
-            let (data, response) = try transport.send(urlRequest)
-
-            guard (200...299).contains(response.statusCode) else {
-                throw ScreenshotTranslationError.httpStatus(response.statusCode)
-            }
-
-            let decoded = try JSONDecoder().decode(HTTPTranslationResponse.self, from: data)
-            guard let translatedText = decoded.translatedText,
-                  !translatedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                throw ScreenshotTranslationError.invalidResponse
-            }
-
-            return ScreenshotTranslationResult(
-                sourceText: request.sourceText,
-                translatedText: translatedText,
-                targetLanguage: request.targetLanguage
-            )
+            (data, response) = try transport.send(urlRequest)
         } catch let error as ScreenshotTranslationError {
             throw error
         } catch {
             throw ScreenshotTranslationError.providerFailed(error.localizedDescription)
         }
+
+        guard (200...299).contains(response.statusCode) else {
+            throw ScreenshotTranslationError.httpStatus(response.statusCode)
+        }
+
+        let decoded: HTTPTranslationResponse
+        do {
+            decoded = try JSONDecoder().decode(HTTPTranslationResponse.self, from: data)
+        } catch {
+            throw ScreenshotTranslationError.invalidResponse
+        }
+
+        guard let translatedText = decoded.translatedText,
+              !translatedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw ScreenshotTranslationError.invalidResponse
+        }
+
+        return ScreenshotTranslationResult(
+            sourceText: request.sourceText,
+            translatedText: translatedText,
+            targetLanguage: request.targetLanguage
+        )
     }
 }
 
