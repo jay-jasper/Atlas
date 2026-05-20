@@ -250,6 +250,10 @@ struct FloatingScreenshotThumbnailView: View {
                 .scaledToFit()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(nsColor: .windowBackgroundColor))
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    perform(.open)
+                }
 
             VStack(spacing: 0) {
                 HStack {
@@ -294,12 +298,18 @@ struct FloatingScreenshotThumbnailView: View {
         }
         .contentShape(Rectangle())
         .contextMenu {
-            ForEach(FloatingScreenshotThumbnailAction.allCases, id: \.self) { action in
-                Button {
-                    perform(action)
-                } label: {
-                    Label(action.title, systemImage: action.systemImage)
-                }
+            Button(FloatingScreenshotThumbnailAction.open.title) {
+                perform(.open)
+            }
+            Button(FloatingScreenshotThumbnailAction.copy.title) {
+                perform(.copy)
+            }
+            Button(FloatingScreenshotThumbnailAction.save.title) {
+                perform(.save)
+            }
+            Divider()
+            Button(FloatingScreenshotThumbnailAction.dismiss.title) {
+                perform(.dismiss)
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
