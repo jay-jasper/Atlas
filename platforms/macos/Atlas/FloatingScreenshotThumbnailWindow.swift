@@ -1,6 +1,77 @@
 import AppKit
 import SwiftUI
 
+enum FloatingScreenshotThumbnailAction: CaseIterable, Equatable {
+    case open
+    case copy
+    case save
+    case dismiss
+
+    var title: String {
+        switch self {
+        case .open:
+            return "Open Editor"
+        case .copy:
+            return "Copy"
+        case .save:
+            return "Save"
+        case .dismiss:
+            return "Dismiss"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .open:
+            return "square.and.pencil"
+        case .copy:
+            return "doc.on.doc"
+        case .save:
+            return "square.and.arrow.down"
+        case .dismiss:
+            return "xmark"
+        }
+    }
+}
+
+enum FloatingScreenshotThumbnailActionResult: Equatable {
+    case ready
+    case openedEditor
+    case copied
+    case saved(filename: String)
+    case saveCancelled
+    case dismissed
+
+    var statusText: String {
+        switch self {
+        case .ready:
+            return "Ready"
+        case .openedEditor:
+            return "Opened editor"
+        case .copied:
+            return "Copied"
+        case .saved(let filename):
+            return "Saved \(filename)"
+        case .saveCancelled:
+            return "Save cancelled"
+        case .dismissed:
+            return "Dismissed"
+        }
+    }
+}
+
+struct FloatingScreenshotThumbnailActionState: Equatable {
+    private(set) var result: FloatingScreenshotThumbnailActionResult = .ready
+
+    var statusText: String {
+        result.statusText
+    }
+
+    mutating func apply(_ result: FloatingScreenshotThumbnailActionResult) {
+        self.result = result
+    }
+}
+
 struct FloatingScreenshotThumbnailLayout: Equatable {
     let imagePixelSize: CGSize
     let maxSize: CGSize
