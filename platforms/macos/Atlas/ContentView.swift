@@ -367,9 +367,10 @@ struct ContentView: View {
 
     private func setCapturedScreenshot(_ screenshot: CapturedScreenshot, source: String) {
         invalidateScreenshotTextTasks()
-        capturedScreenshot = screenshot
         clearScreenshotTextState()
-        recordScreenshotInLibrary(screenshot, source: source)
+        capturedScreenshot = nil
+        let libraryItemID = recordScreenshotInLibrary(screenshot, source: source)
+        showFloatingThumbnail(for: screenshot, libraryItemID: libraryItemID)
     }
 
     private func closeScreenshotEditor() {
@@ -387,7 +388,7 @@ struct ContentView: View {
         }
     }
 
-    private func recordScreenshotInLibrary(_ screenshot: CapturedScreenshot, source: String) {
+    private func recordScreenshotInLibrary(_ screenshot: CapturedScreenshot, source: String) -> UUID? {
         do {
             let item = try screenshotLibraryStore.addScreenshot(
                 pngData: screenshot.pngData,
@@ -398,10 +399,31 @@ struct ContentView: View {
             )
             activeLibraryItemID = item.id
             loadScreenshotLibrary()
+            return item.id
         } catch {
             activeLibraryItemID = nil
             showStatus(error.localizedDescription, kind: .error, autoHide: false)
+            return nil
         }
+    }
+
+    private func showFloatingThumbnail(for screenshot: CapturedScreenshot, libraryItemID: UUID?) {
+        FloatingScreenshotThumbnailWindow.show(
+            screenshot: screenshot,
+            onOpen: {
+                openFloatingThumbnail(screenshot, libraryItemID: libraryItemID)
+            },
+            onCopy: copyScreenshot,
+            onSave: saveScreenshot,
+            onDismiss: {}
+        )
+    }
+
+    private func openFloatingThumbnail(_ screenshot: CapturedScreenshot, libraryItemID: UUID?) {
+        invalidateScreenshotTextTasks()
+        activeLibraryItemID = libraryItemID
+        capturedScreenshot = screenshot
+        clearScreenshotTextState()
     }
 
     private func updateActiveLibraryItem(
@@ -427,6 +449,7 @@ struct ContentView: View {
             let data = try screenshotLibraryStore.pngData(for: item)
             let rect = CGRect(x: 0, y: 0, width: item.pixelWidth, height: item.pixelHeight)
             invalidateScreenshotTextTasks()
+            FloatingScreenshotThumbnailWindow.dismiss()
             activeLibraryItemID = item.id
             capturedScreenshot = CapturedScreenshot(
                 id: item.id,
