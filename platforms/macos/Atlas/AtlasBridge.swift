@@ -8,6 +8,7 @@ class AtlasBridge {
     static var monitoringService: MonitoringProviding = MonitoringService.live
     static var featureService: FeatureProviding = FeatureService.live
     static var ocrService: ScreenshotOCRProviding = VisionScreenshotOCRService()
+    static var translationService: ScreenshotTranslating = LocalPlaceholderScreenshotTranslationService()
 
     static func listFeatures() throws -> [AtlasFeature] {
         try featureService.listFeatures()
@@ -51,5 +52,9 @@ class AtlasBridge {
 
     static func recognizeText(in imageData: Data) throws -> ScreenshotOCRResult {
         try ocrService.recognizeText(in: imageData)
+    }
+
+    static func translateScreenshotText(_ text: String, targetLanguage: String) throws -> ScreenshotTranslationResult {
+        try translationService.translate(text, targetLanguage: targetLanguage)
     }
 }
