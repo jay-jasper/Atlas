@@ -147,8 +147,26 @@ struct ContentView: View {
     }
 
     private func showSelectionWindow() {
-        let previewImageData = try? AtlasBridge.captureFullScreen()
+        let previewImageData = selectionPreviewImageData()
         ScreenshotSelectionWindow.show(previewImageData: previewImageData, onCapture: captureSelection)
+    }
+
+    private func selectionPreviewImageData() -> Data? {
+        guard let screen = NSScreen.main else {
+            return try? AtlasBridge.captureFullScreen()
+        }
+
+        let region = ScreenCaptureCoordinateMapper.pixelRegion(
+            fromSelectionRect: CGRect(origin: .zero, size: screen.frame.size),
+            backingScaleFactor: screen.backingScaleFactor
+        )
+
+        return try? AtlasBridge.captureRegion(
+            x: region.x,
+            y: region.y,
+            width: region.width,
+            height: region.height
+        )
     }
 
     private func showWindowSelection() {
