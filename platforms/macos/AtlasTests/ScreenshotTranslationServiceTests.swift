@@ -3,7 +3,7 @@ import XCTest
 
 final class ScreenshotTranslationServiceTests: XCTestCase {
     override func tearDown() {
-        AtlasBridge.translationService = LocalPlaceholderScreenshotTranslationService()
+        AtlasBridge.translationService = ScreenshotTranslationServiceFactory.live()
         super.tearDown()
     }
 
