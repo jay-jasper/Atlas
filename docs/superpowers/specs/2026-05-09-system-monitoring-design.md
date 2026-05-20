@@ -3,6 +3,8 @@
 ## 1. 目标 (Goal)
 实现一个高性能、轻量级的系统监控模块，支持实时 CPU、内存、网速展示，并提供“Port Master”一键杀死占用端口进程的功能。
 
+Port Master 归属于 `monitoring` 功能模块，由监控模块统一控制展示和生命周期，不作为独立 feature toggle 暴露。
+
 ## 2. 核心架构 (Architecture)
 采用 **"Rust Background Task -> FFI Callback -> Swift UI"** 的推送模式。
 
