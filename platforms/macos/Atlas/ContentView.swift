@@ -15,6 +15,9 @@ struct ContentView: View {
     @State private var isRecognizingScreenshotText: Bool = false
     @State private var translatedScreenshotText: String = ""
     @State private var isTranslatingScreenshotText: Bool = false
+    @State private var screenshotLibraryItems: [ScreenshotLibraryItem] = []
+    @State private var screenshotLibraryQuery: String = ""
+    @State private var activeLibraryItemID: UUID?
     @State private var screenshotFeatureSettings: ScreenshotFeatureSettings = .defaultEnabled
     @State private var translationSettingsDraft: ScreenshotTranslationSettingsDraft = .empty
     @State private var isTranslationConfigured: Bool = false
@@ -27,6 +30,7 @@ struct ContentView: View {
     @State private var statusHideToken: Int = 0
     private let screenshotFeatureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigurationStore = ScreenshotTranslationConfigurationStore()
+    private let screenshotLibraryStore = ScreenshotLibraryStore()
 
     var body: some View {
         ZStack {
@@ -73,6 +77,15 @@ struct ContentView: View {
 
                     Divider()
 
+                    ScreenshotLibraryPanel(
+                        items: screenshotLibraryItems,
+                        onOpen: openLibraryItem,
+                        onDelete: deleteLibraryItem,
+                        query: $screenshotLibraryQuery
+                    )
+
+                    Divider()
+
                     TranslationSettingsPanel(
                         draft: translationSettingsDraft,
                         isConfigured: isTranslationConfigured,
@@ -115,6 +128,7 @@ struct ContentView: View {
     private func startModules() {
         loadScreenshotFeatureSettings()
         loadTranslationSettings()
+        loadScreenshotLibrary()
 
         do {
             let loadedFeatures = try AtlasBridge.listFeatures()
@@ -291,7 +305,7 @@ struct ContentView: View {
             }
 
             let rect = CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
-            setCapturedScreenshot(CapturedScreenshot(pngData: data, rect: rect))
+            setCapturedScreenshot(CapturedScreenshot(pngData: data, rect: rect), source: "Window")
             showStatus("Captured \(window.title)")
         } catch {
             showStatus(error.localizedDescription, kind: .error)
@@ -319,7 +333,7 @@ struct ContentView: View {
             }
 
             let pixelRect = CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
-            setCapturedScreenshot(CapturedScreenshot(pngData: data, rect: pixelRect))
+            setCapturedScreenshot(CapturedScreenshot(pngData: data, rect: pixelRect), source: "Area")
             showStatus("Captured \(bitmap.pixelsWide)×\(bitmap.pixelsHigh) px")
         } catch {
             showStatus(error.localizedDescription, kind: .error)
@@ -347,20 +361,99 @@ struct ContentView: View {
         }
 
         let rect = CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
-        setCapturedScreenshot(CapturedScreenshot(pngData: data, rect: rect))
+        setCapturedScreenshot(CapturedScreenshot(pngData: data, rect: rect), source: "Desktop")
         showStatus("Captured full screen")
     }
 
-    private func setCapturedScreenshot(_ screenshot: CapturedScreenshot) {
+    private func setCapturedScreenshot(_ screenshot: CapturedScreenshot, source: String) {
         invalidateScreenshotTextTasks()
         capturedScreenshot = screenshot
         clearScreenshotTextState()
+        recordScreenshotInLibrary(screenshot, source: source)
     }
 
     private func closeScreenshotEditor() {
         invalidateScreenshotTextTasks()
         capturedScreenshot = nil
+        activeLibraryItemID = nil
         clearScreenshotTextState()
+    }
+
+    private func loadScreenshotLibrary() {
+        do {
+            screenshotLibraryItems = try screenshotLibraryStore.loadItems()
+        } catch {
+            showStatus(error.localizedDescription, kind: .error, autoHide: false)
+        }
+    }
+
+    private func recordScreenshotInLibrary(_ screenshot: CapturedScreenshot, source: String) {
+        do {
+            let item = try screenshotLibraryStore.addScreenshot(
+                pngData: screenshot.pngData,
+                pixelWidth: Int(screenshot.rect.width),
+                pixelHeight: Int(screenshot.rect.height),
+                source: source,
+                capturedAt: screenshot.capturedAt
+            )
+            activeLibraryItemID = item.id
+            loadScreenshotLibrary()
+        } catch {
+            activeLibraryItemID = nil
+            showStatus(error.localizedDescription, kind: .error, autoHide: false)
+        }
+    }
+
+    private func updateActiveLibraryItem(
+        recognizedText: String? = nil,
+        translatedText: String? = nil
+    ) {
+        guard let activeLibraryItemID else { return }
+
+        do {
+            try screenshotLibraryStore.updateText(
+                id: activeLibraryItemID,
+                recognizedText: recognizedText,
+                translatedText: translatedText
+            )
+            loadScreenshotLibrary()
+        } catch {
+            showStatus(error.localizedDescription, kind: .error, autoHide: false)
+        }
+    }
+
+    private func openLibraryItem(_ item: ScreenshotLibraryItem) {
+        do {
+            let data = try screenshotLibraryStore.pngData(for: item)
+            let rect = CGRect(x: 0, y: 0, width: item.pixelWidth, height: item.pixelHeight)
+            invalidateScreenshotTextTasks()
+            activeLibraryItemID = item.id
+            capturedScreenshot = CapturedScreenshot(
+                id: item.id,
+                pngData: data,
+                rect: rect,
+                capturedAt: item.capturedAt
+            )
+            recognizedScreenshotText = item.recognizedText
+            translatedScreenshotText = item.translatedText
+            isRecognizingScreenshotText = false
+            isTranslatingScreenshotText = false
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
+        }
+    }
+
+    private func deleteLibraryItem(_ item: ScreenshotLibraryItem) {
+        do {
+            try screenshotLibraryStore.delete(id: item.id)
+            if activeLibraryItemID == item.id {
+                closeScreenshotEditor()
+            }
+            loadScreenshotLibrary()
+            showStatus("Deleted screenshot")
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
+        }
     }
 
     private func invalidateScreenshotTextTasks() {
@@ -427,6 +520,7 @@ struct ContentView: View {
                 switch result {
                 case .success(let ocrResult):
                     recognizedScreenshotText = ocrResult.text
+                    updateActiveLibraryItem(recognizedText: ocrResult.text)
                     showStatus(ocrResult.text.isEmpty ? "No text found" : "Recognized text")
                 case .failure(let error):
                     showStatus(error.localizedDescription, kind: .error)
@@ -472,6 +566,7 @@ struct ContentView: View {
                 switch result {
                 case .success(let translationResult):
                     translatedScreenshotText = translationResult.translatedText
+                    updateActiveLibraryItem(translatedText: translationResult.translatedText)
                     showStatus("Translated text")
                 case .failure(let error):
                     showStatus(error.localizedDescription, kind: .error)
