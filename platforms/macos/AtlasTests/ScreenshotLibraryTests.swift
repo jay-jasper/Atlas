@@ -61,8 +61,59 @@ final class ScreenshotLibraryTests: XCTestCase {
 
         let indexURL = rootDirectory.appendingPathComponent("index.json", isDirectory: false)
         let indexJSON = try String(contentsOf: indexURL, encoding: .utf8)
-        XCTAssertTrue(indexJSON.contains(#""capturedAt" : "2024-01-01T00:00:00Z""#))
+        XCTAssertTrue(indexJSON.contains(#""capturedAt" : "2024-01-01T00:00:00.000Z""#))
         XCTAssertFalse(indexJSON.contains(#""capturedAt" : 1704067200"#))
+    }
+
+    func testIndexPersistsCapturedAtFractionalSeconds() throws {
+        let capturedAt = Date(timeIntervalSince1970: 1_704_067_200.123)
+
+        let item = try store.addScreenshot(
+            pngData: Data([1]),
+            pixelWidth: 320,
+            pixelHeight: 200,
+            source: "Window",
+            capturedAt: capturedAt
+        )
+
+        let indexURL = rootDirectory.appendingPathComponent("index.json", isDirectory: false)
+        let indexJSON = try String(contentsOf: indexURL, encoding: .utf8)
+        XCTAssertTrue(indexJSON.contains(#""capturedAt" : "2024-01-01T00:00:00.123Z""#))
+
+        let loaded = try XCTUnwrap(store.loadItems().first)
+        XCTAssertEqual(loaded.id, item.id)
+        XCTAssertEqual(loaded.capturedAt.timeIntervalSince1970, capturedAt.timeIntervalSince1970, accuracy: 0.001)
+    }
+
+    func testLoadItemsDecodesNonFractionalISO8601DatesForCompatibility() throws {
+        try FileManager.default.createDirectory(
+            at: rootDirectory.appendingPathComponent("Images", isDirectory: true),
+            withIntermediateDirectories: true
+        )
+        let id = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+        let indexJSON = """
+        [
+          {
+            "capturedAt" : "2024-01-01T00:00:00Z",
+            "filename" : "\(id.uuidString).png",
+            "id" : "\(id.uuidString)",
+            "pixelHeight" : 200,
+            "pixelWidth" : 320,
+            "recognizedText" : "",
+            "source" : "Window",
+            "translatedText" : ""
+          }
+        ]
+        """
+        try indexJSON.write(
+            to: rootDirectory.appendingPathComponent("index.json", isDirectory: false),
+            atomically: true,
+            encoding: .utf8
+        )
+
+        let loaded = try XCTUnwrap(store.loadItems().first)
+        XCTAssertEqual(loaded.id, id)
+        XCTAssertEqual(loaded.capturedAt, Date(timeIntervalSince1970: 1_704_067_200))
     }
 
     func testLoadItemsSortsNewestFirst() throws {
@@ -105,6 +156,28 @@ final class ScreenshotLibraryTests: XCTestCase {
             try store.loadItems().map(\.id),
             [first.id, second.id].sorted { $0.uuidString < $1.uuidString }
         )
+    }
+
+    func testLoadItemsPreservesNewestFirstForSameSecondFractionalCaptureDates() throws {
+        let newer = try store.addScreenshot(
+            pngData: Data([1]),
+            pixelWidth: 10,
+            pixelHeight: 10,
+            source: "Desktop",
+            capturedAt: Date(timeIntervalSince1970: 10.900)
+        )
+        let older = try store.addScreenshot(
+            pngData: Data([2]),
+            pixelWidth: 20,
+            pixelHeight: 20,
+            source: "Area",
+            capturedAt: Date(timeIntervalSince1970: 10.100)
+        )
+
+        let loaded = try store.loadItems()
+        XCTAssertEqual(loaded.map(\.id), [newer.id, older.id])
+        XCTAssertEqual(loaded[0].capturedAt.timeIntervalSince1970, 10.900, accuracy: 0.001)
+        XCTAssertEqual(loaded[1].capturedAt.timeIntervalSince1970, 10.100, accuracy: 0.001)
     }
 
     func testUpdateRecognizedAndTranslatedText() throws {
