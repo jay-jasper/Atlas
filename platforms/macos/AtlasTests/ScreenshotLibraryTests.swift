@@ -48,6 +48,23 @@ final class ScreenshotLibraryTests: XCTestCase {
         XCTAssertEqual(try store.loadItems(), [item])
     }
 
+    func testIndexPersistsCapturedAtAsISO8601Text() throws {
+        let capturedAt = Date(timeIntervalSince1970: 1_704_067_200)
+
+        _ = try store.addScreenshot(
+            pngData: Data([1]),
+            pixelWidth: 320,
+            pixelHeight: 200,
+            source: "Window",
+            capturedAt: capturedAt
+        )
+
+        let indexURL = rootDirectory.appendingPathComponent("index.json", isDirectory: false)
+        let indexJSON = try String(contentsOf: indexURL, encoding: .utf8)
+        XCTAssertTrue(indexJSON.contains(#""capturedAt" : "2024-01-01T00:00:00Z""#))
+        XCTAssertFalse(indexJSON.contains(#""capturedAt" : 1704067200"#))
+    }
+
     func testLoadItemsSortsNewestFirst() throws {
         let older = try store.addScreenshot(
             pngData: Data([1]),
@@ -192,6 +209,24 @@ final class ScreenshotLibraryTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: pngURL.path))
     }
 
+    func testDeleteSavesIndexBeforeRemovingPngFile() throws {
+        let fileManager = RemoveFailingFileManager()
+        store = ScreenshotLibraryStore(rootDirectory: rootDirectory, fileManager: fileManager)
+        let item = try store.addScreenshot(
+            pngData: Data([1, 2, 3]),
+            pixelWidth: 120,
+            pixelHeight: 80,
+            source: "Area",
+            capturedAt: Date(timeIntervalSince1970: 10)
+        )
+
+        XCTAssertThrowsError(try store.delete(id: item.id)) { error in
+            XCTAssertEqual(error as? RemoveFailingFileManager.RemoveError, .failed)
+        }
+        XCTAssertEqual(try store.loadItems(), [])
+        XCTAssertTrue(FileManager.default.fileExists(atPath: store.pngURL(for: item).path))
+    }
+
     func testPngDataThrowsMissingImageWhenFileIsMissing() throws {
         let item = try store.addScreenshot(
             pngData: Data([1, 2, 3]),
@@ -206,5 +241,15 @@ final class ScreenshotLibraryTests: XCTestCase {
             XCTAssertEqual(error as? ScreenshotLibraryError, .missingImage(item.id))
             XCTAssertEqual(error.localizedDescription, "Screenshot image is missing from the local library")
         }
+    }
+}
+
+private final class RemoveFailingFileManager: FileManager {
+    enum RemoveError: Error, Equatable {
+        case failed
+    }
+
+    override func removeItem(at URL: URL) throws {
+        throw RemoveError.failed
     }
 }

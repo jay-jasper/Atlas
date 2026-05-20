@@ -48,7 +48,7 @@ final class ScreenshotLibraryStore {
         }
 
         let data = try Data(contentsOf: indexURL)
-        let items = try JSONDecoder().decode([ScreenshotLibraryItem].self, from: data)
+        let items = try decoder().decode([ScreenshotLibraryItem].self, from: data)
         return sorted(items)
     }
 
@@ -121,10 +121,11 @@ final class ScreenshotLibraryStore {
 
         let item = items.remove(at: index)
         let imageURL = pngURL(for: item)
+        try save(items)
+
         if fileManager.fileExists(atPath: imageURL.path) {
             try fileManager.removeItem(at: imageURL)
         }
-        try save(items)
     }
 
     func pngURL(for item: ScreenshotLibraryItem) -> URL {
@@ -152,10 +153,21 @@ final class ScreenshotLibraryStore {
 
     private func save(_ items: [ScreenshotLibraryItem]) throws {
         try createDirectories()
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        let data = try encoder.encode(sorted(items))
+        let data = try encoder().encode(sorted(items))
         try data.write(to: indexURL, options: .atomic)
+    }
+
+    private func encoder() -> JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return encoder
+    }
+
+    private func decoder() -> JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
     }
 
     private func sorted(_ items: [ScreenshotLibraryItem]) -> [ScreenshotLibraryItem] {
