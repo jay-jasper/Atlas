@@ -7,6 +7,7 @@ class AtlasBridge {
     static var windowCaptureProvider: WindowCaptureProviding = CoreGraphicsWindowCaptureProvider()
     static var monitoringService: MonitoringProviding = MonitoringService.live
     static var featureService: FeatureProviding = FeatureService.live
+    static var ocrService: ScreenshotOCRProviding = VisionScreenshotOCRService()
 
     static func listFeatures() throws -> [AtlasFeature] {
         try featureService.listFeatures()
@@ -46,5 +47,9 @@ class AtlasBridge {
 
     static func captureWindow(id: CGWindowID) throws -> Data {
         try windowCaptureProvider.captureWindow(id: id)
+    }
+
+    static func recognizeText(in imageData: Data) throws -> ScreenshotOCRResult {
+        try ocrService.recognizeText(in: imageData)
     }
 }

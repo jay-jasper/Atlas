@@ -11,6 +11,8 @@ struct ContentView: View {
     @State private var enabledFeatures: [String: Bool] = [:]
     @State private var snapshot: MonitoringSystemSnapshot? = nil
     @State private var capturedScreenshot: CapturedScreenshot?
+    @State private var recognizedScreenshotText: String = ""
+    @State private var isRecognizingScreenshotText: Bool = false
     @State private var captureStatus: String = ""
     @State private var captureStatusKind: CaptureStatusKind = .success
     @State private var showCaptureStatus: Bool = false
@@ -63,6 +65,10 @@ struct ContentView: View {
                     onCopy: copyScreenshot,
                     onSave: saveScreenshot,
                     onPin: pinScreenshot,
+                    recognizedText: recognizedScreenshotText,
+                    isRecognizingText: isRecognizingScreenshotText,
+                    onRecognizeText: recognizeScreenshotText,
+                    onCopyRecognizedText: copyRecognizedText,
                     onClose: { self.capturedScreenshot = nil }
                 )
             }
@@ -197,7 +203,7 @@ struct ContentView: View {
             }
 
             let rect = CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
-            capturedScreenshot = CapturedScreenshot(pngData: data, rect: rect)
+            setCapturedScreenshot(CapturedScreenshot(pngData: data, rect: rect))
             showStatus("Captured \(window.title)")
         } catch {
             showStatus(error.localizedDescription, kind: .error)
@@ -225,7 +231,7 @@ struct ContentView: View {
             }
 
             let pixelRect = CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
-            capturedScreenshot = CapturedScreenshot(pngData: data, rect: pixelRect)
+            setCapturedScreenshot(CapturedScreenshot(pngData: data, rect: pixelRect))
             showStatus("Captured \(bitmap.pixelsWide)×\(bitmap.pixelsHigh) px")
         } catch {
             showStatus(error.localizedDescription, kind: .error)
@@ -248,8 +254,14 @@ struct ContentView: View {
         }
 
         let rect = CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
-        capturedScreenshot = CapturedScreenshot(pngData: data, rect: rect)
+        setCapturedScreenshot(CapturedScreenshot(pngData: data, rect: rect))
         showStatus("Captured full screen")
+    }
+
+    private func setCapturedScreenshot(_ screenshot: CapturedScreenshot) {
+        capturedScreenshot = screenshot
+        recognizedScreenshotText = ""
+        isRecognizingScreenshotText = false
     }
 
     private func copyScreenshot(_ data: Data) {
@@ -266,6 +278,33 @@ struct ContentView: View {
     private func pinScreenshot(_ data: Data) {
         PinnedScreenshotWindow.show(data: data)
         showStatus("Pinned screenshot")
+    }
+
+    private func recognizeScreenshotText(_ data: Data) {
+        isRecognizingScreenshotText = true
+        recognizedScreenshotText = ""
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            let result = Result { try AtlasBridge.recognizeText(in: data) }
+
+            DispatchQueue.main.async {
+                isRecognizingScreenshotText = false
+
+                switch result {
+                case .success(let ocrResult):
+                    recognizedScreenshotText = ocrResult.text
+                    showStatus(ocrResult.text.isEmpty ? "No text found" : "Recognized text")
+                case .failure(let error):
+                    showStatus(error.localizedDescription, kind: .error)
+                }
+            }
+        }
+    }
+
+    private func copyRecognizedText(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        showStatus("Copied recognized text")
     }
 
     private func showStatus(
