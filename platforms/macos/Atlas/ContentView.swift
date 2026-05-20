@@ -13,6 +13,8 @@ struct ContentView: View {
     @State private var capturedScreenshot: CapturedScreenshot?
     @State private var recognizedScreenshotText: String = ""
     @State private var isRecognizingScreenshotText: Bool = false
+    @State private var translatedScreenshotText: String = ""
+    @State private var isTranslatingScreenshotText: Bool = false
     @State private var captureStatus: String = ""
     @State private var captureStatusKind: CaptureStatusKind = .success
     @State private var showCaptureStatus: Bool = false
@@ -67,8 +69,12 @@ struct ContentView: View {
                     onPin: pinScreenshot,
                     recognizedText: recognizedScreenshotText,
                     isRecognizingText: isRecognizingScreenshotText,
+                    translatedText: translatedScreenshotText,
+                    isTranslatingText: isTranslatingScreenshotText,
                     onRecognizeText: recognizeScreenshotText,
                     onCopyRecognizedText: copyRecognizedText,
+                    onTranslateRecognizedText: translateRecognizedScreenshotText,
+                    onCopyTranslatedText: copyTranslatedText,
                     onClose: { self.capturedScreenshot = nil }
                 )
             }
@@ -262,6 +268,8 @@ struct ContentView: View {
         capturedScreenshot = screenshot
         recognizedScreenshotText = ""
         isRecognizingScreenshotText = false
+        translatedScreenshotText = ""
+        isTranslatingScreenshotText = false
     }
 
     private func copyScreenshot(_ data: Data) {
@@ -283,6 +291,8 @@ struct ContentView: View {
     private func recognizeScreenshotText(_ data: Data) {
         isRecognizingScreenshotText = true
         recognizedScreenshotText = ""
+        translatedScreenshotText = ""
+        isTranslatingScreenshotText = false
 
         DispatchQueue.global(qos: .userInitiated).async {
             let result = Result { try AtlasBridge.recognizeText(in: data) }
@@ -305,6 +315,35 @@ struct ContentView: View {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
         showStatus("Copied recognized text")
+    }
+
+    private func translateRecognizedScreenshotText(_ text: String) {
+        isTranslatingScreenshotText = true
+        translatedScreenshotText = ""
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            let result = Result {
+                try AtlasBridge.translateScreenshotText(text, targetLanguage: "English")
+            }
+
+            DispatchQueue.main.async {
+                isTranslatingScreenshotText = false
+
+                switch result {
+                case .success(let translationResult):
+                    translatedScreenshotText = translationResult.translatedText
+                    showStatus("Translated text")
+                case .failure(let error):
+                    showStatus(error.localizedDescription, kind: .error)
+                }
+            }
+        }
+    }
+
+    private func copyTranslatedText(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        showStatus("Copied translated text")
     }
 
     private func showStatus(

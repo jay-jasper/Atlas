@@ -63,6 +63,24 @@ final class ScreenshotTranslationServiceTests: XCTestCase {
         XCTAssertEqual(result.translatedText, "Bonjour")
         XCTAssertEqual(result.targetLanguage, "fr")
     }
+
+    func testBridgePassesContentViewTranslationTargetToInjectedService() throws {
+        let service = CapturingScreenshotTranslationService(
+            result: ScreenshotTranslationResult(
+                sourceText: "Hola",
+                translatedText: "Hello",
+                targetLanguage: "English"
+            )
+        )
+        AtlasBridge.translationService = service
+
+        let result = try AtlasBridge.translateScreenshotText("Hola", targetLanguage: "English")
+
+        XCTAssertEqual(service.receivedText, "Hola")
+        XCTAssertEqual(service.receivedTargetLanguage, "English")
+        XCTAssertEqual(result.translatedText, "Hello")
+        XCTAssertEqual(result.targetLanguage, "English")
+    }
 }
 
 private struct StubScreenshotTranslationService: ScreenshotTranslating {
@@ -70,5 +88,21 @@ private struct StubScreenshotTranslationService: ScreenshotTranslating {
 
     func translate(_ text: String, targetLanguage: String) throws -> ScreenshotTranslationResult {
         result
+    }
+}
+
+private final class CapturingScreenshotTranslationService: ScreenshotTranslating {
+    let result: ScreenshotTranslationResult
+    private(set) var receivedText: String?
+    private(set) var receivedTargetLanguage: String?
+
+    init(result: ScreenshotTranslationResult) {
+        self.result = result
+    }
+
+    func translate(_ text: String, targetLanguage: String) throws -> ScreenshotTranslationResult {
+        receivedText = text
+        receivedTargetLanguage = targetLanguage
+        return result
     }
 }
