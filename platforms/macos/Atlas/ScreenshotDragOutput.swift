@@ -68,8 +68,11 @@ struct ScreenshotDragOutputStore {
             options: [.skipsHiddenFiles]
         )
 
-        for url in urls where url.pathExtension.lowercased() == "png" {
+        for url in urls where url.pathExtension.lowercased() == "png"
+            && url.lastPathComponent.hasPrefix("Atlas Drag Screenshot ") {
             let attributes = try fileManager.attributesOfItem(atPath: url.path)
+            guard attributes[.type] as? FileAttributeType == .typeRegular else { continue }
+
             let modificationDate = attributes[.modificationDate] as? Date ?? .distantFuture
             if modificationDate < cutoffDate {
                 try fileManager.removeItem(at: url)

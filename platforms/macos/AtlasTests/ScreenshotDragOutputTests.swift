@@ -69,6 +69,10 @@ final class ScreenshotDragOutputTests: XCTestCase {
         )
         let unrelatedURL = rootDirectory.appendingPathComponent("manual.txt")
         try Data([3]).write(to: unrelatedURL)
+        let unrelatedPNGURL = rootDirectory.appendingPathComponent("other.png")
+        try Data([4]).write(to: unrelatedPNGURL)
+        let pngDirectoryURL = rootDirectory.appendingPathComponent("Atlas Drag Screenshot old.png", isDirectory: true)
+        try FileManager.default.createDirectory(at: pngDirectoryURL, withIntermediateDirectories: true)
 
         let oldAttributes: [FileAttributeKey: Any] = [
             .modificationDate: Date(timeIntervalSince1970: 10),
@@ -78,11 +82,15 @@ final class ScreenshotDragOutputTests: XCTestCase {
         ]
         try FileManager.default.setAttributes(oldAttributes, ofItemAtPath: oldItem.url.path)
         try FileManager.default.setAttributes(freshAttributes, ofItemAtPath: freshItem.url.path)
+        try FileManager.default.setAttributes(oldAttributes, ofItemAtPath: unrelatedPNGURL.path)
+        try FileManager.default.setAttributes(oldAttributes, ofItemAtPath: pngDirectoryURL.path)
 
         try store.cleanupFiles(olderThan: Date(timeIntervalSince1970: 15))
 
         XCTAssertFalse(FileManager.default.fileExists(atPath: oldItem.url.path))
         XCTAssertTrue(FileManager.default.fileExists(atPath: freshItem.url.path))
         XCTAssertTrue(FileManager.default.fileExists(atPath: unrelatedURL.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: unrelatedPNGURL.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: pngDirectoryURL.path))
     }
 }
