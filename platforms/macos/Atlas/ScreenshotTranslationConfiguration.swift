@@ -6,11 +6,51 @@ enum ScreenshotTranslationConfigurationKeys {
     static let model = "translation.model"
 }
 
+struct ScreenshotTranslationSettingsDraft: Equatable {
+    var endpoint: String
+    var apiKey: String
+    var model: String
+
+    static let empty = ScreenshotTranslationSettingsDraft(endpoint: "", apiKey: "", model: "")
+
+    var trimmedEndpoint: String {
+        endpoint.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    var trimmedApiKey: String {
+        apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    var trimmedModel: String {
+        model.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
 struct ScreenshotTranslationConfigurationStore {
     let defaults: UserDefaults
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+    }
+
+    func settingsDraft() -> ScreenshotTranslationSettingsDraft {
+        ScreenshotTranslationSettingsDraft(
+            endpoint: defaults.string(forKey: ScreenshotTranslationConfigurationKeys.endpoint) ?? "",
+            apiKey: defaults.string(forKey: ScreenshotTranslationConfigurationKeys.apiKey) ?? "",
+            model: defaults.string(forKey: ScreenshotTranslationConfigurationKeys.model) ?? ""
+        )
+    }
+
+    func save(_ draft: ScreenshotTranslationSettingsDraft) {
+        setStringOrRemove(draft.trimmedEndpoint, forKey: ScreenshotTranslationConfigurationKeys.endpoint)
+        setStringOrRemove(draft.trimmedApiKey, forKey: ScreenshotTranslationConfigurationKeys.apiKey)
+        setStringOrRemove(draft.trimmedModel, forKey: ScreenshotTranslationConfigurationKeys.model)
+    }
+
+    func clear() {
+        defaults.removeObject(forKey: ScreenshotTranslationConfigurationKeys.endpoint)
+        defaults.removeObject(forKey: ScreenshotTranslationConfigurationKeys.apiKey)
+        defaults.removeObject(forKey: ScreenshotTranslationConfigurationKeys.model)
     }
 
     func httpConfig() -> HTTPTranslationEndpointConfig? {
@@ -48,6 +88,15 @@ struct ScreenshotTranslationConfigurationStore {
         }
 
         return cleaned
+    }
+
+    private func setStringOrRemove(_ value: String, forKey key: String) {
+        if value.isEmpty {
+            defaults.removeObject(forKey: key)
+            return
+        }
+
+        defaults.set(value, forKey: key)
     }
 }
 
