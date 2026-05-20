@@ -94,8 +94,8 @@ struct FloatingScreenshotThumbnailLayout: Equatable {
 
         let scale = min(maxSize.width / imagePixelSize.width, maxSize.height / imagePixelSize.height, 1)
         return CGSize(
-            width: max(96, imagePixelSize.width * scale),
-            height: max(64, imagePixelSize.height * scale)
+            width: max(168, imagePixelSize.width * scale),
+            height: max(104, imagePixelSize.height * scale)
         )
     }
 
@@ -113,34 +113,6 @@ struct FloatingScreenshotThumbnailLayout: Equatable {
 final class FloatingScreenshotThumbnailWindow {
     private static var window: NSWindow?
     private static var delegate: WindowDelegate?
-
-    static func show(
-        screenshot: CapturedScreenshot,
-        onOpen: @escaping () -> Void,
-        onCopy: @escaping (Data) -> Void,
-        onSave: @escaping (Data) -> Void,
-        onDismiss: @escaping () -> Void
-    ) {
-        show(
-            screenshot: screenshot,
-            onOpen: {
-                onOpen()
-                return .openedEditor
-            },
-            onCopy: { data in
-                onCopy(data)
-                return .copied
-            },
-            onSave: { data in
-                onSave(data)
-                return .saved(filename: "screenshot.png")
-            },
-            onDismiss: {
-                onDismiss()
-                return .dismissed
-            }
-        )
-    }
 
     static func show(
         screenshot: CapturedScreenshot,
@@ -272,28 +244,16 @@ struct FloatingScreenshotThumbnailView: View {
     @State private var actionState = FloatingScreenshotThumbnailActionState()
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
+        ZStack {
             Image(nsImage: image)
                 .resizable()
                 .scaledToFit()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(nsColor: .windowBackgroundColor))
 
-            HStack(spacing: 6) {
-                Image(systemName: "photo")
-                Text(dimensionsText)
-                    .lineLimit(1)
-            }
-            .font(.caption2)
-            .foregroundColor(.white)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 4)
-            .background(.black.opacity(0.68))
-            .cornerRadius(6)
-            .padding(7)
-
-            VStack {
-                HStack(spacing: 6) {
+            VStack(spacing: 0) {
+                HStack {
+                    Spacer()
                     ForEach(FloatingScreenshotThumbnailAction.allCases, id: \.self) { action in
                         Button {
                             perform(action)
@@ -305,48 +265,34 @@ struct FloatingScreenshotThumbnailView: View {
                         .help(action.title)
                     }
                 }
-                .padding(6)
+                .foregroundColor(.white)
+                .padding(5)
                 .background(.black.opacity(0.62))
                 .cornerRadius(7)
 
                 Spacer()
-            }
-            .padding(7)
 
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    Text(actionState.statusText)
-                        .font(.caption2)
-                        .foregroundColor(.white)
+                HStack(spacing: 6) {
+                    Label(dimensionsText, systemImage: "photo")
                         .lineLimit(1)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 4)
-                        .background(.black.opacity(0.68))
-                        .cornerRadius(6)
+                        .truncationMode(.tail)
+
+                    Spacer()
+
+                    Text(actionState.statusText)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
                 }
+                .font(.caption2)
+                .foregroundColor(.white)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 4)
+                .background(.black.opacity(0.68))
+                .cornerRadius(6)
             }
             .padding(7)
         }
         .contentShape(Rectangle())
-        .onTapGesture {
-            perform(.open)
-        }
-        .overlay(alignment: .topTrailing) {
-            Button {
-                perform(.dismiss)
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .imageScale(.medium)
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundColor(.white)
-                    .shadow(radius: 2)
-            }
-            .buttonStyle(.plain)
-            .padding(6)
-            .help("Dismiss thumbnail")
-        }
         .contextMenu {
             ForEach(FloatingScreenshotThumbnailAction.allCases, id: \.self) { action in
                 Button {

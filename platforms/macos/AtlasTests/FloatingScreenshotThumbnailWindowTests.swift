@@ -20,7 +20,7 @@ final class FloatingScreenshotThumbnailWindowTests: XCTestCase {
             margin: 18
         )
 
-        XCTAssertEqual(layout.thumbnailSize, CGSize(width: 96, height: 64))
+        XCTAssertEqual(layout.thumbnailSize, CGSize(width: 168, height: 104))
     }
 
     func testFramePlacesThumbnailNearBottomTrailingVisibleFrame() {
@@ -32,7 +32,7 @@ final class FloatingScreenshotThumbnailWindowTests: XCTestCase {
 
         let frame = layout.frame(in: CGRect(x: 50, y: 80, width: 1000, height: 700))
 
-        XCTAssertEqual(frame, CGRect(x: 840, y: 90, width: 200, height: 100))
+        XCTAssertEqual(frame, CGRect(x: 840, y: 90, width: 200, height: 104))
     }
 
     func testInvalidImageSizeFallsBackToMaximumSize() {
