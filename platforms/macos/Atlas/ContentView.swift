@@ -13,6 +13,11 @@ struct ContentView: View {
     @State private var capturedScreenshot: CapturedScreenshot?
     @State private var recognizedScreenshotText: String = ""
     @State private var isRecognizingScreenshotText: Bool = false
+    @State private var translatedScreenshotText: String = ""
+    @State private var isTranslatingScreenshotText: Bool = false
+    @State private var screenshotTextRevision: Int = 0
+    @State private var screenshotOCRRevision: Int = 0
+    @State private var screenshotTranslationRevision: Int = 0
     @State private var captureStatus: String = ""
     @State private var captureStatusKind: CaptureStatusKind = .success
     @State private var showCaptureStatus: Bool = false
@@ -67,9 +72,13 @@ struct ContentView: View {
                     onPin: pinScreenshot,
                     recognizedText: recognizedScreenshotText,
                     isRecognizingText: isRecognizingScreenshotText,
+                    translatedText: translatedScreenshotText,
+                    isTranslatingText: isTranslatingScreenshotText,
                     onRecognizeText: recognizeScreenshotText,
                     onCopyRecognizedText: copyRecognizedText,
-                    onClose: { self.capturedScreenshot = nil }
+                    onTranslateRecognizedText: translateRecognizedScreenshotText,
+                    onCopyTranslatedText: copyTranslatedText,
+                    onClose: closeScreenshotEditor
                 )
             }
         }
@@ -259,9 +268,28 @@ struct ContentView: View {
     }
 
     private func setCapturedScreenshot(_ screenshot: CapturedScreenshot) {
+        invalidateScreenshotTextTasks()
         capturedScreenshot = screenshot
+        clearScreenshotTextState()
+    }
+
+    private func closeScreenshotEditor() {
+        invalidateScreenshotTextTasks()
+        capturedScreenshot = nil
+        clearScreenshotTextState()
+    }
+
+    private func invalidateScreenshotTextTasks() {
+        screenshotTextRevision += 1
+        screenshotOCRRevision += 1
+        screenshotTranslationRevision += 1
+    }
+
+    private func clearScreenshotTextState() {
         recognizedScreenshotText = ""
         isRecognizingScreenshotText = false
+        translatedScreenshotText = ""
+        isTranslatingScreenshotText = false
     }
 
     private func copyScreenshot(_ data: Data) {
@@ -281,13 +309,25 @@ struct ContentView: View {
     }
 
     private func recognizeScreenshotText(_ data: Data) {
+        screenshotOCRRevision += 1
+        screenshotTranslationRevision += 1
+        let textRevision = screenshotTextRevision
+        let ocrRevision = screenshotOCRRevision
+
         isRecognizingScreenshotText = true
         recognizedScreenshotText = ""
+        translatedScreenshotText = ""
+        isTranslatingScreenshotText = false
 
         DispatchQueue.global(qos: .userInitiated).async {
             let result = Result { try AtlasBridge.recognizeText(in: data) }
 
             DispatchQueue.main.async {
+                guard textRevision == screenshotTextRevision,
+                      ocrRevision == screenshotOCRRevision else {
+                    return
+                }
+
                 isRecognizingScreenshotText = false
 
                 switch result {
@@ -305,6 +345,46 @@ struct ContentView: View {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
         showStatus("Copied recognized text")
+    }
+
+    private func translateRecognizedScreenshotText(_ text: String) {
+        screenshotTranslationRevision += 1
+        let textRevision = screenshotTextRevision
+        let translationRevision = screenshotTranslationRevision
+        let sourceText = text
+
+        isTranslatingScreenshotText = true
+        translatedScreenshotText = ""
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            let result = Result {
+                try AtlasBridge.translateScreenshotText(text, targetLanguage: "English")
+            }
+
+            DispatchQueue.main.async {
+                guard textRevision == screenshotTextRevision,
+                      translationRevision == screenshotTranslationRevision,
+                      recognizedScreenshotText == sourceText else {
+                    return
+                }
+
+                isTranslatingScreenshotText = false
+
+                switch result {
+                case .success(let translationResult):
+                    translatedScreenshotText = translationResult.translatedText
+                    showStatus("Translated text")
+                case .failure(let error):
+                    showStatus(error.localizedDescription, kind: .error)
+                }
+            }
+        }
+    }
+
+    private func copyTranslatedText(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        showStatus("Copied translated text")
     }
 
     private func showStatus(

@@ -8,8 +8,12 @@ struct ScreenshotEditorView: View {
     let onPin: (Data) -> Void
     let recognizedText: String
     let isRecognizingText: Bool
+    let translatedText: String
+    let isTranslatingText: Bool
     let onRecognizeText: (Data) -> Void
     let onCopyRecognizedText: (String) -> Void
+    let onTranslateRecognizedText: (String) -> Void
+    let onCopyTranslatedText: (String) -> Void
     let onClose: () -> Void
 
     @State private var selectedTool: ScreenshotTool = .rectangle
@@ -121,6 +125,13 @@ struct ScreenshotEditorView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Spacer()
+                    if isTranslatingText {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
+                    Button("Translate") { onTranslateRecognizedText(recognizedText) }
+                        .controlSize(.small)
+                        .disabled(isTranslatingText)
                     Button("Copy Text") { onCopyRecognizedText(recognizedText) }
                         .controlSize(.small)
                 }
@@ -132,6 +143,26 @@ struct ScreenshotEditorView: View {
                         .textSelection(.enabled)
                 }
                 .frame(maxHeight: 76)
+
+                if !translatedText.isEmpty {
+                    Divider()
+                    HStack {
+                        Text("Translation")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Button("Copy Translation") { onCopyTranslatedText(translatedText) }
+                            .controlSize(.small)
+                    }
+
+                    ScrollView {
+                        Text(translatedText)
+                            .font(.system(size: 12, design: .monospaced))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .textSelection(.enabled)
+                    }
+                    .frame(maxHeight: 76)
+                }
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
