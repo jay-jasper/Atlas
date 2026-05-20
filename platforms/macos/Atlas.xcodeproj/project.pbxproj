@@ -24,6 +24,8 @@
 		83CBBA281A601CBA00E9B192 /* ScreenshotPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA391A601CBA00E9B192 /* ScreenshotPanel.swift */; };
 		83CBBB381A601CBA00E9B192 /* ScreenshotFeatureSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB391A601CBA00E9B192 /* ScreenshotFeatureSettings.swift */; };
 		83CBBB3A1A601CBA00E9B192 /* ScreenshotFeatureSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB3B1A601CBA00E9B192 /* ScreenshotFeatureSettingsTests.swift */; };
+		83CBBB3C1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB3D1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanel.swift */; };
+		83CBBB3E1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB3F1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanelTests.swift */; };
 		83CBBA291A601CBA00E9B192 /* SelectionOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3A1A601CBA00E9B192 /* SelectionOverlay.swift */; };
 		83CBBB191A601CBA00E9B192 /* SelectionGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB1A1A601CBA00E9B192 /* SelectionGeometry.swift */; };
 		83CBBB1B1A601CBA00E9B192 /* SelectionGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB1C1A601CBA00E9B192 /* SelectionGeometryTests.swift */; };
@@ -99,6 +101,8 @@
 		83CBBA391A601CBA00E9B192 /* ScreenshotPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotPanel.swift; sourceTree = "<group>"; };
 		83CBBB391A601CBA00E9B192 /* ScreenshotFeatureSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotFeatureSettings.swift; sourceTree = "<group>"; };
 		83CBBB3B1A601CBA00E9B192 /* ScreenshotFeatureSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotFeatureSettingsTests.swift; sourceTree = "<group>"; };
+		83CBBB3D1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotFeatureSettingsPanel.swift; sourceTree = "<group>"; };
+		83CBBB3F1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotFeatureSettingsPanelTests.swift; sourceTree = "<group>"; };
 		83CBBA3A1A601CBA00E9B192 /* SelectionOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionOverlay.swift; sourceTree = "<group>"; };
 		83CBBB1A1A601CBA00E9B192 /* SelectionGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionGeometry.swift; sourceTree = "<group>"; };
 		83CBBB1C1A601CBA00E9B192 /* SelectionGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionGeometryTests.swift; sourceTree = "<group>"; };
@@ -208,6 +212,7 @@
 				83CBBA381A601CBA00E9B192 /* PortMasterPanel.swift */,
 				83CBBA391A601CBA00E9B192 /* ScreenshotPanel.swift */,
 				83CBBB391A601CBA00E9B192 /* ScreenshotFeatureSettings.swift */,
+				83CBBB3D1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanel.swift */,
 				83CBBA981A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift */,
 				83CBBA9E1A601CBA00E9B192 /* ScreenshotCaptureMode.swift */,
 				83CBBA3E1A601CBA00E9B192 /* ScreenshotModels.swift */,
@@ -248,6 +253,7 @@
 				83CBBA991A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift */,
 				83CBBA9F1A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift */,
 				83CBBB3B1A601CBA00E9B192 /* ScreenshotFeatureSettingsTests.swift */,
+				83CBBB3F1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanelTests.swift */,
 				83CBBA741A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift */,
 				83CBBB261A601CBA00E9B192 /* ScreenshotOCRServiceTests.swift */,
 				83CBBB2C1A601CBA00E9B192 /* ScreenshotHTTPTranslationProviderTests.swift */,
@@ -398,6 +404,7 @@
 				83CBBA271A601CBA00E9B192 /* PortMasterPanel.swift in Sources */,
 				83CBBA281A601CBA00E9B192 /* ScreenshotPanel.swift in Sources */,
 				83CBBB381A601CBA00E9B192 /* ScreenshotFeatureSettings.swift in Sources */,
+				83CBBB3C1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanel.swift in Sources */,
 				83CBBA961A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift in Sources */,
 				83CBBAA01A601CBA00E9B192 /* ScreenshotCaptureMode.swift in Sources */,
 				83CBBA2C1A601CBA00E9B192 /* ScreenshotModels.swift in Sources */,
@@ -437,6 +444,7 @@
 				83CBBA971A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift in Sources */,
 				83CBBAA11A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift in Sources */,
 				83CBBB3A1A601CBA00E9B192 /* ScreenshotFeatureSettingsTests.swift in Sources */,
+				83CBBB3E1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanelTests.swift in Sources */,
 				83CBBA751A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift in Sources */,
 				83CBBB251A601CBA00E9B192 /* ScreenshotOCRServiceTests.swift in Sources */,
 				83CBBB2B1A601CBA00E9B192 /* ScreenshotHTTPTranslationProviderTests.swift in Sources */,
