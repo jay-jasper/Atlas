@@ -411,7 +411,7 @@ struct ContentView: View {
         FloatingScreenshotThumbnailWindow.show(
             screenshot: screenshot,
             onOpen: {
-                openFloatingThumbnailFromThumbnail(screenshot, libraryItemID: libraryItemID)
+                openFloatingThumbnail(screenshot, libraryItemID: libraryItemID)
             },
             onCopy: copyScreenshotFromThumbnail,
             onSave: saveScreenshotFromThumbnail,
@@ -419,11 +419,16 @@ struct ContentView: View {
         )
     }
 
-    private func openFloatingThumbnail(_ screenshot: CapturedScreenshot, libraryItemID: UUID?) {
+    private func openFloatingThumbnail(
+        _ screenshot: CapturedScreenshot,
+        libraryItemID: UUID?
+    ) -> FloatingScreenshotThumbnailActionResult {
         invalidateScreenshotTextTasks()
         activeLibraryItemID = libraryItemID
         capturedScreenshot = screenshot
         clearScreenshotTextState()
+        showStatus("Opened screenshot editor")
+        return .openedEditor
     }
 
     private func updateActiveLibraryItem(
@@ -503,14 +508,6 @@ struct ContentView: View {
         }
     }
 
-    private func openFloatingThumbnailFromThumbnail(
-        _ screenshot: CapturedScreenshot,
-        libraryItemID: UUID?
-    ) -> FloatingScreenshotThumbnailActionResult {
-        openFloatingThumbnail(screenshot, libraryItemID: libraryItemID)
-        return .openedEditor
-    }
-
     private func copyScreenshotFromThumbnail(_ data: Data) -> FloatingScreenshotThumbnailActionResult {
         copyScreenshot(data)
         return .copied
@@ -518,6 +515,7 @@ struct ContentView: View {
 
     private func saveScreenshotFromThumbnail(_ data: Data) -> FloatingScreenshotThumbnailActionResult {
         guard let url = ScreenshotOutput.savePNGWithPanel(data) else {
+            showStatus("Save cancelled")
             return .saveCancelled
         }
 
@@ -526,6 +524,7 @@ struct ContentView: View {
     }
 
     private func dismissFloatingThumbnail() -> FloatingScreenshotThumbnailActionResult {
+        showStatus("Dismissed screenshot thumbnail")
         return .dismissed
     }
 
