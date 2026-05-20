@@ -120,6 +120,72 @@ final class ScreenshotTranslationConfigurationTests: XCTestCase {
         XCTAssertEqual(result.translatedText, "Hello")
     }
 
+    func testSettingsDraftReadsStoredValues() {
+        defaults.set(" https://example.com/translate ", forKey: ScreenshotTranslationConfigurationKeys.endpoint)
+        defaults.set(" secret ", forKey: ScreenshotTranslationConfigurationKeys.apiKey)
+        defaults.set(" atlas-test ", forKey: ScreenshotTranslationConfigurationKeys.model)
+
+        let store = ScreenshotTranslationConfigurationStore(defaults: defaults)
+        let draft = store.settingsDraft()
+
+        XCTAssertEqual(draft.endpoint, " https://example.com/translate ")
+        XCTAssertEqual(draft.apiKey, " secret ")
+        XCTAssertEqual(draft.model, " atlas-test ")
+    }
+
+    func testSaveTrimsValuesAndUpdatesHTTPConfig() {
+        let store = ScreenshotTranslationConfigurationStore(defaults: defaults)
+
+        store.save(
+            ScreenshotTranslationSettingsDraft(
+                endpoint: " https://example.com/translate ",
+                apiKey: " secret ",
+                model: " atlas-test "
+            )
+        )
+
+        let config = store.httpConfig()
+
+        XCTAssertEqual(defaults.string(forKey: ScreenshotTranslationConfigurationKeys.endpoint), "https://example.com/translate")
+        XCTAssertEqual(defaults.string(forKey: ScreenshotTranslationConfigurationKeys.apiKey), "secret")
+        XCTAssertEqual(defaults.string(forKey: ScreenshotTranslationConfigurationKeys.model), "atlas-test")
+        XCTAssertEqual(config?.endpoint.absoluteString, "https://example.com/translate")
+        XCTAssertEqual(config?.apiKey, "secret")
+        XCTAssertEqual(config?.model, "atlas-test")
+    }
+
+    func testSaveRemovesBlankOptionalValues() {
+        defaults.set("old-secret", forKey: ScreenshotTranslationConfigurationKeys.apiKey)
+        defaults.set("old-model", forKey: ScreenshotTranslationConfigurationKeys.model)
+        let store = ScreenshotTranslationConfigurationStore(defaults: defaults)
+
+        store.save(
+            ScreenshotTranslationSettingsDraft(
+                endpoint: "https://example.com/translate",
+                apiKey: " ",
+                model: "\n"
+            )
+        )
+
+        XCTAssertNil(defaults.string(forKey: ScreenshotTranslationConfigurationKeys.apiKey))
+        XCTAssertNil(defaults.string(forKey: ScreenshotTranslationConfigurationKeys.model))
+        XCTAssertEqual(store.httpConfig()?.endpoint.absoluteString, "https://example.com/translate")
+    }
+
+    func testClearRemovesAllTranslationSettings() {
+        defaults.set("https://example.com/translate", forKey: ScreenshotTranslationConfigurationKeys.endpoint)
+        defaults.set("secret", forKey: ScreenshotTranslationConfigurationKeys.apiKey)
+        defaults.set("atlas-test", forKey: ScreenshotTranslationConfigurationKeys.model)
+        let store = ScreenshotTranslationConfigurationStore(defaults: defaults)
+
+        store.clear()
+
+        XCTAssertNil(defaults.string(forKey: ScreenshotTranslationConfigurationKeys.endpoint))
+        XCTAssertNil(defaults.string(forKey: ScreenshotTranslationConfigurationKeys.apiKey))
+        XCTAssertNil(defaults.string(forKey: ScreenshotTranslationConfigurationKeys.model))
+        XCTAssertNil(store.httpConfig())
+    }
+
 }
 
 private struct StubConfiguredTranslationService: ScreenshotTranslating {
