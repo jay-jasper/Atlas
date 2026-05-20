@@ -413,17 +413,22 @@ struct ContentView: View {
             onOpen: {
                 openFloatingThumbnail(screenshot, libraryItemID: libraryItemID)
             },
-            onCopy: copyScreenshot,
-            onSave: saveScreenshot,
-            onDismiss: {}
+            onCopy: copyScreenshotFromThumbnail,
+            onSave: saveScreenshotFromThumbnail,
+            onDismiss: dismissFloatingThumbnail
         )
     }
 
-    private func openFloatingThumbnail(_ screenshot: CapturedScreenshot, libraryItemID: UUID?) {
+    private func openFloatingThumbnail(
+        _ screenshot: CapturedScreenshot,
+        libraryItemID: UUID?
+    ) -> FloatingScreenshotThumbnailActionResult {
         invalidateScreenshotTextTasks()
         activeLibraryItemID = libraryItemID
         capturedScreenshot = screenshot
         clearScreenshotTextState()
+        showStatus("Opened screenshot editor")
+        return .openedEditor
     }
 
     private func updateActiveLibraryItem(
@@ -501,6 +506,26 @@ struct ContentView: View {
         if let url = ScreenshotOutput.savePNGWithPanel(data) {
             showStatus("Saved \(url.lastPathComponent)")
         }
+    }
+
+    private func copyScreenshotFromThumbnail(_ data: Data) -> FloatingScreenshotThumbnailActionResult {
+        copyScreenshot(data)
+        return .copied
+    }
+
+    private func saveScreenshotFromThumbnail(_ data: Data) -> FloatingScreenshotThumbnailActionResult {
+        guard let url = ScreenshotOutput.savePNGWithPanel(data) else {
+            showStatus("Save cancelled")
+            return .saveCancelled
+        }
+
+        showStatus("Saved \(url.lastPathComponent)")
+        return .saved(filename: url.lastPathComponent)
+    }
+
+    private func dismissFloatingThumbnail() -> FloatingScreenshotThumbnailActionResult {
+        showStatus("Dismissed screenshot thumbnail")
+        return .dismissed
     }
 
     private func pinScreenshot(_ data: Data) {

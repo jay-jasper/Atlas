@@ -20,7 +20,7 @@ final class FloatingScreenshotThumbnailWindowTests: XCTestCase {
             margin: 18
         )
 
-        XCTAssertEqual(layout.thumbnailSize, CGSize(width: 96, height: 64))
+        XCTAssertEqual(layout.thumbnailSize, CGSize(width: 168, height: 104))
     }
 
     func testFramePlacesThumbnailNearBottomTrailingVisibleFrame() {
@@ -32,7 +32,7 @@ final class FloatingScreenshotThumbnailWindowTests: XCTestCase {
 
         let frame = layout.frame(in: CGRect(x: 50, y: 80, width: 1000, height: 700))
 
-        XCTAssertEqual(frame, CGRect(x: 840, y: 90, width: 200, height: 100))
+        XCTAssertEqual(frame, CGRect(x: 840, y: 90, width: 200, height: 104))
     }
 
     func testInvalidImageSizeFallsBackToMaximumSize() {
@@ -43,5 +43,58 @@ final class FloatingScreenshotThumbnailWindowTests: XCTestCase {
         )
 
         XCTAssertEqual(layout.thumbnailSize, CGSize(width: 220, height: 150))
+    }
+
+    func testThumbnailActionsHaveStableMetadata() {
+        XCTAssertEqual(FloatingScreenshotThumbnailAction.allCases, [.open, .copy, .save, .dismiss])
+        XCTAssertEqual(FloatingScreenshotThumbnailAction.open.title, "Open Editor")
+        XCTAssertEqual(FloatingScreenshotThumbnailAction.open.systemImage, "square.and.pencil")
+        XCTAssertEqual(FloatingScreenshotThumbnailAction.copy.title, "Copy")
+        XCTAssertEqual(FloatingScreenshotThumbnailAction.copy.systemImage, "doc.on.doc")
+        XCTAssertEqual(FloatingScreenshotThumbnailAction.save.title, "Save")
+        XCTAssertEqual(FloatingScreenshotThumbnailAction.save.systemImage, "square.and.arrow.down")
+        XCTAssertEqual(FloatingScreenshotThumbnailAction.dismiss.title, "Dismiss")
+        XCTAssertEqual(FloatingScreenshotThumbnailAction.dismiss.systemImage, "xmark")
+    }
+
+    func testActionResultStatusText() {
+        XCTAssertEqual(FloatingScreenshotThumbnailActionResult.ready.statusText, "Ready")
+        XCTAssertEqual(FloatingScreenshotThumbnailActionResult.openedEditor.statusText, "Opened editor")
+        XCTAssertEqual(FloatingScreenshotThumbnailActionResult.copied.statusText, "Copied")
+        XCTAssertEqual(FloatingScreenshotThumbnailActionResult.saved(filename: "Atlas.png").statusText, "Saved Atlas.png")
+        XCTAssertEqual(FloatingScreenshotThumbnailActionResult.saveCancelled.statusText, "Save cancelled")
+        XCTAssertEqual(FloatingScreenshotThumbnailActionResult.dismissed.statusText, "Dismissed")
+    }
+
+    func testActionStateAppliesResults() {
+        var state = FloatingScreenshotThumbnailActionState()
+
+        XCTAssertEqual(state.statusText, "Ready")
+        state.apply(.copied)
+        XCTAssertEqual(state.statusText, "Copied")
+        state.apply(.saved(filename: "One.png"))
+        XCTAssertEqual(state.statusText, "Saved One.png")
+    }
+
+    func testActionStateStatusTextChangesAfterEachResult() {
+        var state = FloatingScreenshotThumbnailActionState()
+        let results: [FloatingScreenshotThumbnailActionResult] = [
+            .openedEditor,
+            .copied,
+            .saveCancelled,
+            .dismissed,
+        ]
+
+        let statuses = results.map { result in
+            state.apply(result)
+            return state.statusText
+        }
+
+        XCTAssertEqual(statuses, [
+            "Opened editor",
+            "Copied",
+            "Save cancelled",
+            "Dismissed",
+        ])
     }
 }
