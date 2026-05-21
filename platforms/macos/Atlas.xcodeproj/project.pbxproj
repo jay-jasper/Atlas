@@ -7,13 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		43A45E9839A874C61D3732CF /* CommandProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C1625818A6D6AA24F40EA2 /* CommandProviding.swift */; };
+		444DAD4C57A69B27319B3AB1 /* CommandPaletteModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13E0161379495141C4E72FE /* CommandPaletteModelsTests.swift */; };
 		83CBBA201A601CBA00E9B192 /* AppFooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA311A601CBA00E9B192 /* AppFooter.swift */; };
-		83CBBA9A1A601CBA00E9B192 /* AtlasCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA9C1A601CBA00E9B192 /* AtlasCaptureService.swift */; };
-		83CBBA9B1A601CBA00E9B192 /* AtlasCaptureServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA9D1A601CBA00E9B192 /* AtlasCaptureServiceTests.swift */; };
-		83CBBAA21A601CBA00E9B192 /* WindowCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBAA41A601CBA00E9B192 /* WindowCaptureService.swift */; };
-		83CBBAA31A601CBA00E9B192 /* WindowCaptureServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBAA51A601CBA00E9B192 /* WindowCaptureServiceTests.swift */; };
-		83CBBAA01A601CBA00E9B192 /* ScreenshotCaptureMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA9E1A601CBA00E9B192 /* ScreenshotCaptureMode.swift */; };
-		83CBBAA11A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA9F1A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift */; };
 		83CBBA211A601CBA00E9B192 /* AtlasApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA321A601CBA00E9B192 /* AtlasApp.swift */; };
 		83CBBA221A601CBA00E9B192 /* AtlasBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA331A601CBA00E9B192 /* AtlasBridge.swift */; };
 		83CBBA231A601CBA00E9B192 /* AtlasModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA341A601CBA00E9B192 /* AtlasModule.swift */; };
@@ -22,48 +18,29 @@
 		83CBBA261A601CBA00E9B192 /* MonitoringPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA371A601CBA00E9B192 /* MonitoringPanel.swift */; };
 		83CBBA271A601CBA00E9B192 /* PortMasterPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA381A601CBA00E9B192 /* PortMasterPanel.swift */; };
 		83CBBA281A601CBA00E9B192 /* ScreenshotPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA391A601CBA00E9B192 /* ScreenshotPanel.swift */; };
-		83CBBB381A601CBA00E9B192 /* ScreenshotFeatureSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB391A601CBA00E9B192 /* ScreenshotFeatureSettings.swift */; };
-		83CBBB3A1A601CBA00E9B192 /* ScreenshotFeatureSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB3B1A601CBA00E9B192 /* ScreenshotFeatureSettingsTests.swift */; };
-		83CBBB3C1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB3D1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanel.swift */; };
-		83CBBB3E1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB3F1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanelTests.swift */; };
-		83CBBBA01A601CBA00E9B192 /* ScreenshotLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBBA11A601CBA00E9B192 /* ScreenshotLibrary.swift */; };
-		83CBBBA21A601CBA00E9B192 /* ScreenshotLibraryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBBA31A601CBA00E9B192 /* ScreenshotLibraryTests.swift */; };
-		83CBBBA41A601CBA00E9B192 /* ScreenshotLibraryPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBBA51A601CBA00E9B192 /* ScreenshotLibraryPanel.swift */; };
-		83CBBBA61A601CBA00E9B192 /* ScreenshotLibraryPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBBA71A601CBA00E9B192 /* ScreenshotLibraryPanelTests.swift */; };
-		83CBBBB01A601CBA00E9B192 /* FloatingScreenshotThumbnailWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBBB11A601CBA00E9B192 /* FloatingScreenshotThumbnailWindow.swift */; };
-		83CBBBB21A601CBA00E9B192 /* FloatingScreenshotThumbnailWindowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBBB31A601CBA00E9B192 /* FloatingScreenshotThumbnailWindowTests.swift */; };
 		83CBBA291A601CBA00E9B192 /* SelectionOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3A1A601CBA00E9B192 /* SelectionOverlay.swift */; };
-		83CBBB191A601CBA00E9B192 /* SelectionGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB1A1A601CBA00E9B192 /* SelectionGeometry.swift */; };
-		83CBBB1B1A601CBA00E9B192 /* SelectionGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB1C1A601CBA00E9B192 /* SelectionGeometryTests.swift */; };
-		83CBBB1D1A601CBA00E9B192 /* SelectionPixelProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB1E1A601CBA00E9B192 /* SelectionPixelProbe.swift */; };
-		83CBBB1F1A601CBA00E9B192 /* SelectionPixelProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB201A601CBA00E9B192 /* SelectionPixelProbeTests.swift */; };
-		83CBBB211A601CBA00E9B192 /* SelectionKeyboardBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB221A601CBA00E9B192 /* SelectionKeyboardBridge.swift */; };
 		83CBBA2A1A601CBA00E9B192 /* SystemModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3B1A601CBA00E9B192 /* SystemModels.swift */; };
 		83CBBA2B1A601CBA00E9B192 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 83CBBA3C1A601CBA00E9B192 /* Assets.xcassets */; };
 		83CBBA2C1A601CBA00E9B192 /* ScreenshotModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3E1A601CBA00E9B192 /* ScreenshotModels.swift */; };
 		83CBBA2D1A601CBA00E9B192 /* ScreenshotModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3F1A601CBA00E9B192 /* ScreenshotModelsTests.swift */; };
-		83CBBA6B1A601CBA00E9B192 /* ScreenshotEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA6A1A601CBA00E9B192 /* ScreenshotEditorView.swift */; };
-		83CBBA681A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA691A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift */; };
-		83CBBA661A601CBA00E9B192 /* ScreenshotOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA671A601CBA00E9B192 /* ScreenshotOutput.swift */; };
 		83CBBA641A601CBA00E9B192 /* ScreenshotOutputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA651A601CBA00E9B192 /* ScreenshotOutputTests.swift */; };
-		83CBBB231A601CBA00E9B192 /* ScreenshotOCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB241A601CBA00E9B192 /* ScreenshotOCRService.swift */; };
-		83CBBB251A601CBA00E9B192 /* ScreenshotOCRServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB261A601CBA00E9B192 /* ScreenshotOCRServiceTests.swift */; };
-		83CBBB271A601CBA00E9B192 /* ScreenshotTranslationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB281A601CBA00E9B192 /* ScreenshotTranslationService.swift */; };
-		83CBBB291A601CBA00E9B192 /* ScreenshotTranslationServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB2A1A601CBA00E9B192 /* ScreenshotTranslationServiceTests.swift */; };
-		83CBBB301A601CBA00E9B192 /* ScreenshotTranslationConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB311A601CBA00E9B192 /* ScreenshotTranslationConfigurationTests.swift */; };
-		83CBBB321A601CBA00E9B192 /* ScreenshotTranslationConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB331A601CBA00E9B192 /* ScreenshotTranslationConfiguration.swift */; };
-		83CBBB341A601CBA00E9B192 /* TranslationSettingsPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB351A601CBA00E9B192 /* TranslationSettingsPanelTests.swift */; };
-		83CBBB361A601CBA00E9B192 /* TranslationSettingsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB371A601CBA00E9B192 /* TranslationSettingsPanel.swift */; };
-		83CBBB2B1A601CBA00E9B192 /* ScreenshotHTTPTranslationProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB2C1A601CBA00E9B192 /* ScreenshotHTTPTranslationProviderTests.swift */; };
-		83CBBB2D1A601CBA00E9B192 /* ScreenshotHTTPTranslationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB2E1A601CBA00E9B192 /* ScreenshotHTTPTranslationProvider.swift */; };
+		83CBBA661A601CBA00E9B192 /* ScreenshotOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA671A601CBA00E9B192 /* ScreenshotOutput.swift */; };
+		83CBBA681A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA691A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift */; };
+		83CBBA6B1A601CBA00E9B192 /* ScreenshotEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA6A1A601CBA00E9B192 /* ScreenshotEditorView.swift */; };
 		83CBBA6C1A601CBA00E9B192 /* PinnedScreenshotWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA6D1A601CBA00E9B192 /* PinnedScreenshotWindow.swift */; };
 		83CBBA731A601CBA00E9B192 /* ScreenshotSelectionWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA721A601CBA00E9B192 /* ScreenshotSelectionWindow.swift */; };
-		83CBBAAA1A601CBA00E9B192 /* WindowSelectionWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBAAB1A601CBA00E9B192 /* WindowSelectionWindow.swift */; };
 		83CBBA751A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA741A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift */; };
 		83CBBA761A601CBA00E9B192 /* atlas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA781A601CBA00E9B192 /* atlas.swift */; };
 		83CBBA771A601CBA00E9B192 /* libatlas_ffi.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 83CBBA791A601CBA00E9B192 /* libatlas_ffi.a */; };
 		83CBBA961A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA981A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift */; };
 		83CBBA971A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA991A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift */; };
+		83CBBA9A1A601CBA00E9B192 /* AtlasCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA9C1A601CBA00E9B192 /* AtlasCaptureService.swift */; };
+		83CBBA9B1A601CBA00E9B192 /* AtlasCaptureServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA9D1A601CBA00E9B192 /* AtlasCaptureServiceTests.swift */; };
+		83CBBAA01A601CBA00E9B192 /* ScreenshotCaptureMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA9E1A601CBA00E9B192 /* ScreenshotCaptureMode.swift */; };
+		83CBBAA11A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA9F1A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift */; };
+		83CBBAA21A601CBA00E9B192 /* WindowCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBAA41A601CBA00E9B192 /* WindowCaptureService.swift */; };
+		83CBBAA31A601CBA00E9B192 /* WindowCaptureServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBAA51A601CBA00E9B192 /* WindowCaptureServiceTests.swift */; };
+		83CBBAAA1A601CBA00E9B192 /* WindowSelectionWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBAAB1A601CBA00E9B192 /* WindowSelectionWindow.swift */; };
 		83CBBB011A601CBA00E9B192 /* MonitoringFFIMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB031A601CBA00E9B192 /* MonitoringFFIMapper.swift */; };
 		83CBBB021A601CBA00E9B192 /* MonitoringFFIMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB041A601CBA00E9B192 /* MonitoringFFIMapperTests.swift */; };
 		83CBBB051A601CBA00E9B192 /* MonitoringService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB071A601CBA00E9B192 /* MonitoringService.swift */; };
@@ -76,8 +53,36 @@
 		83CBBB131A601CBA00E9B192 /* AtlasBridgeFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB141A601CBA00E9B192 /* AtlasBridgeFeatureTests.swift */; };
 		83CBBB151A601CBA00E9B192 /* FeatureState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB171A601CBA00E9B192 /* FeatureState.swift */; };
 		83CBBB161A601CBA00E9B192 /* FeatureStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB181A601CBA00E9B192 /* FeatureStateTests.swift */; };
+		83CBBB191A601CBA00E9B192 /* SelectionGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB1A1A601CBA00E9B192 /* SelectionGeometry.swift */; };
+		83CBBB1B1A601CBA00E9B192 /* SelectionGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB1C1A601CBA00E9B192 /* SelectionGeometryTests.swift */; };
+		83CBBB1D1A601CBA00E9B192 /* SelectionPixelProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB1E1A601CBA00E9B192 /* SelectionPixelProbe.swift */; };
+		83CBBB1F1A601CBA00E9B192 /* SelectionPixelProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB201A601CBA00E9B192 /* SelectionPixelProbeTests.swift */; };
+		83CBBB211A601CBA00E9B192 /* SelectionKeyboardBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB221A601CBA00E9B192 /* SelectionKeyboardBridge.swift */; };
+		83CBBB231A601CBA00E9B192 /* ScreenshotOCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB241A601CBA00E9B192 /* ScreenshotOCRService.swift */; };
+		83CBBB251A601CBA00E9B192 /* ScreenshotOCRServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB261A601CBA00E9B192 /* ScreenshotOCRServiceTests.swift */; };
+		83CBBB271A601CBA00E9B192 /* ScreenshotTranslationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB281A601CBA00E9B192 /* ScreenshotTranslationService.swift */; };
+		83CBBB291A601CBA00E9B192 /* ScreenshotTranslationServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB2A1A601CBA00E9B192 /* ScreenshotTranslationServiceTests.swift */; };
+		83CBBB2B1A601CBA00E9B192 /* ScreenshotHTTPTranslationProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB2C1A601CBA00E9B192 /* ScreenshotHTTPTranslationProviderTests.swift */; };
+		83CBBB2D1A601CBA00E9B192 /* ScreenshotHTTPTranslationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB2E1A601CBA00E9B192 /* ScreenshotHTTPTranslationProvider.swift */; };
+		83CBBB301A601CBA00E9B192 /* ScreenshotTranslationConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB311A601CBA00E9B192 /* ScreenshotTranslationConfigurationTests.swift */; };
+		83CBBB321A601CBA00E9B192 /* ScreenshotTranslationConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB331A601CBA00E9B192 /* ScreenshotTranslationConfiguration.swift */; };
+		83CBBB341A601CBA00E9B192 /* TranslationSettingsPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB351A601CBA00E9B192 /* TranslationSettingsPanelTests.swift */; };
+		83CBBB361A601CBA00E9B192 /* TranslationSettingsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB371A601CBA00E9B192 /* TranslationSettingsPanel.swift */; };
+		83CBBB381A601CBA00E9B192 /* ScreenshotFeatureSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB391A601CBA00E9B192 /* ScreenshotFeatureSettings.swift */; };
+		83CBBB3A1A601CBA00E9B192 /* ScreenshotFeatureSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB3B1A601CBA00E9B192 /* ScreenshotFeatureSettingsTests.swift */; };
+		83CBBB3C1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB3D1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanel.swift */; };
+		83CBBB3E1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB3F1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanelTests.swift */; };
+		83CBBBA01A601CBA00E9B192 /* ScreenshotLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBBA11A601CBA00E9B192 /* ScreenshotLibrary.swift */; };
+		83CBBBA21A601CBA00E9B192 /* ScreenshotLibraryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBBA31A601CBA00E9B192 /* ScreenshotLibraryTests.swift */; };
+		83CBBBA41A601CBA00E9B192 /* ScreenshotLibraryPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBBA51A601CBA00E9B192 /* ScreenshotLibraryPanel.swift */; };
+		83CBBBA61A601CBA00E9B192 /* ScreenshotLibraryPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBBA71A601CBA00E9B192 /* ScreenshotLibraryPanelTests.swift */; };
+		83CBBBB01A601CBA00E9B192 /* FloatingScreenshotThumbnailWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBBB11A601CBA00E9B192 /* FloatingScreenshotThumbnailWindow.swift */; };
+		83CBBBB21A601CBA00E9B192 /* FloatingScreenshotThumbnailWindowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBBB31A601CBA00E9B192 /* FloatingScreenshotThumbnailWindowTests.swift */; };
 		83CBBC011A601CBA00E9B192 /* ScreenshotDragOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBC001A601CBA00E9B192 /* ScreenshotDragOutput.swift */; };
 		83CBBC031A601CBA00E9B192 /* ScreenshotDragOutputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBC021A601CBA00E9B192 /* ScreenshotDragOutputTests.swift */; };
+		83CBBD011A601CBA00E9B192 /* AtlasSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBD001A601CBA00E9B192 /* AtlasSettingsView.swift */; };
+		83CBBD031A601CBA00E9B192 /* GlobalHotkeyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBD021A601CBA00E9B192 /* GlobalHotkeyService.swift */; };
+		A9791A3F33C8D79679756A8D /* CommandPaletteModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC25DD80558691BEFCD5E41 /* CommandPaletteModels.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -93,12 +98,6 @@
 /* Begin PBXFileReference section */
 		83CBBA301A601CBA00E9B192 /* Atlas.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atlas.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		83CBBA311A601CBA00E9B192 /* AppFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFooter.swift; sourceTree = "<group>"; };
-		83CBBA9C1A601CBA00E9B192 /* AtlasCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasCaptureService.swift; sourceTree = "<group>"; };
-		83CBBA9D1A601CBA00E9B192 /* AtlasCaptureServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasCaptureServiceTests.swift; sourceTree = "<group>"; };
-		83CBBAA41A601CBA00E9B192 /* WindowCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowCaptureService.swift; sourceTree = "<group>"; };
-		83CBBAA51A601CBA00E9B192 /* WindowCaptureServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowCaptureServiceTests.swift; sourceTree = "<group>"; };
-		83CBBA9E1A601CBA00E9B192 /* ScreenshotCaptureMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotCaptureMode.swift; sourceTree = "<group>"; };
-		83CBBA9F1A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotCaptureModeTests.swift; sourceTree = "<group>"; };
 		83CBBA321A601CBA00E9B192 /* AtlasApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasApp.swift; sourceTree = "<group>"; };
 		83CBBA331A601CBA00E9B192 /* AtlasBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasBridge.swift; sourceTree = "<group>"; };
 		83CBBA341A601CBA00E9B192 /* AtlasModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasModule.swift; sourceTree = "<group>"; };
@@ -107,45 +106,19 @@
 		83CBBA371A601CBA00E9B192 /* MonitoringPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringPanel.swift; sourceTree = "<group>"; };
 		83CBBA381A601CBA00E9B192 /* PortMasterPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortMasterPanel.swift; sourceTree = "<group>"; };
 		83CBBA391A601CBA00E9B192 /* ScreenshotPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotPanel.swift; sourceTree = "<group>"; };
-		83CBBB391A601CBA00E9B192 /* ScreenshotFeatureSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotFeatureSettings.swift; sourceTree = "<group>"; };
-		83CBBB3B1A601CBA00E9B192 /* ScreenshotFeatureSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotFeatureSettingsTests.swift; sourceTree = "<group>"; };
-		83CBBB3D1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotFeatureSettingsPanel.swift; sourceTree = "<group>"; };
-		83CBBB3F1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotFeatureSettingsPanelTests.swift; sourceTree = "<group>"; };
-		83CBBBA11A601CBA00E9B192 /* ScreenshotLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotLibrary.swift; sourceTree = "<group>"; };
-		83CBBBA31A601CBA00E9B192 /* ScreenshotLibraryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotLibraryTests.swift; sourceTree = "<group>"; };
-		83CBBBA51A601CBA00E9B192 /* ScreenshotLibraryPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotLibraryPanel.swift; sourceTree = "<group>"; };
-		83CBBBA71A601CBA00E9B192 /* ScreenshotLibraryPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotLibraryPanelTests.swift; sourceTree = "<group>"; };
-		83CBBBB11A601CBA00E9B192 /* FloatingScreenshotThumbnailWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingScreenshotThumbnailWindow.swift; sourceTree = "<group>"; };
-		83CBBBB31A601CBA00E9B192 /* FloatingScreenshotThumbnailWindowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingScreenshotThumbnailWindowTests.swift; sourceTree = "<group>"; };
 		83CBBA3A1A601CBA00E9B192 /* SelectionOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionOverlay.swift; sourceTree = "<group>"; };
-		83CBBB1A1A601CBA00E9B192 /* SelectionGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionGeometry.swift; sourceTree = "<group>"; };
-		83CBBB1C1A601CBA00E9B192 /* SelectionGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionGeometryTests.swift; sourceTree = "<group>"; };
-		83CBBB1E1A601CBA00E9B192 /* SelectionPixelProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionPixelProbe.swift; sourceTree = "<group>"; };
-		83CBBB201A601CBA00E9B192 /* SelectionPixelProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionPixelProbeTests.swift; sourceTree = "<group>"; };
-		83CBBB221A601CBA00E9B192 /* SelectionKeyboardBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionKeyboardBridge.swift; sourceTree = "<group>"; };
 		83CBBA3B1A601CBA00E9B192 /* SystemModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemModels.swift; sourceTree = "<group>"; };
 		83CBBA3C1A601CBA00E9B192 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		83CBBA3D1A601CBA00E9B192 /* Atlas.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Atlas.entitlements; sourceTree = "<group>"; };
 		83CBBA3E1A601CBA00E9B192 /* ScreenshotModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotModels.swift; sourceTree = "<group>"; };
 		83CBBA3F1A601CBA00E9B192 /* ScreenshotModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotModelsTests.swift; sourceTree = "<group>"; };
-		83CBBA6A1A601CBA00E9B192 /* ScreenshotEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotEditorView.swift; sourceTree = "<group>"; };
 		83CBBA4A1A601CBA00E9B192 /* AtlasTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AtlasTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		83CBBA651A601CBA00E9B192 /* ScreenshotOutputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotOutputTests.swift; sourceTree = "<group>"; };
 		83CBBA671A601CBA00E9B192 /* ScreenshotOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotOutput.swift; sourceTree = "<group>"; };
-		83CBBB241A601CBA00E9B192 /* ScreenshotOCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotOCRService.swift; sourceTree = "<group>"; };
-		83CBBB261A601CBA00E9B192 /* ScreenshotOCRServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotOCRServiceTests.swift; sourceTree = "<group>"; };
-		83CBBB281A601CBA00E9B192 /* ScreenshotTranslationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTranslationService.swift; sourceTree = "<group>"; };
-		83CBBB2A1A601CBA00E9B192 /* ScreenshotTranslationServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTranslationServiceTests.swift; sourceTree = "<group>"; };
-		83CBBB311A601CBA00E9B192 /* ScreenshotTranslationConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTranslationConfigurationTests.swift; sourceTree = "<group>"; };
-		83CBBB331A601CBA00E9B192 /* ScreenshotTranslationConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTranslationConfiguration.swift; sourceTree = "<group>"; };
-		83CBBB351A601CBA00E9B192 /* TranslationSettingsPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationSettingsPanelTests.swift; sourceTree = "<group>"; };
-		83CBBB371A601CBA00E9B192 /* TranslationSettingsPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationSettingsPanel.swift; sourceTree = "<group>"; };
-		83CBBB2C1A601CBA00E9B192 /* ScreenshotHTTPTranslationProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotHTTPTranslationProviderTests.swift; sourceTree = "<group>"; };
-		83CBBB2E1A601CBA00E9B192 /* ScreenshotHTTPTranslationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotHTTPTranslationProvider.swift; sourceTree = "<group>"; };
 		83CBBA691A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasBridgeCaptureTests.swift; sourceTree = "<group>"; };
+		83CBBA6A1A601CBA00E9B192 /* ScreenshotEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotEditorView.swift; sourceTree = "<group>"; };
 		83CBBA6D1A601CBA00E9B192 /* PinnedScreenshotWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinnedScreenshotWindow.swift; sourceTree = "<group>"; };
 		83CBBA721A601CBA00E9B192 /* ScreenshotSelectionWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotSelectionWindow.swift; sourceTree = "<group>"; };
-		83CBBAAB1A601CBA00E9B192 /* WindowSelectionWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSelectionWindow.swift; sourceTree = "<group>"; };
 		83CBBA741A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotEditorRendererTests.swift; sourceTree = "<group>"; };
 		83CBBA781A601CBA00E9B192 /* atlas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = atlas.swift; sourceTree = "<group>"; };
 		83CBBA791A601CBA00E9B192 /* libatlas_ffi.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libatlas_ffi.a; sourceTree = "<group>"; };
@@ -154,6 +127,13 @@
 		83CBBA7C1A601CBA00E9B192 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		83CBBA981A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureCoordinateMapper.swift; sourceTree = "<group>"; };
 		83CBBA991A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureCoordinateMapperTests.swift; sourceTree = "<group>"; };
+		83CBBA9C1A601CBA00E9B192 /* AtlasCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasCaptureService.swift; sourceTree = "<group>"; };
+		83CBBA9D1A601CBA00E9B192 /* AtlasCaptureServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasCaptureServiceTests.swift; sourceTree = "<group>"; };
+		83CBBA9E1A601CBA00E9B192 /* ScreenshotCaptureMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotCaptureMode.swift; sourceTree = "<group>"; };
+		83CBBA9F1A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotCaptureModeTests.swift; sourceTree = "<group>"; };
+		83CBBAA41A601CBA00E9B192 /* WindowCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowCaptureService.swift; sourceTree = "<group>"; };
+		83CBBAA51A601CBA00E9B192 /* WindowCaptureServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowCaptureServiceTests.swift; sourceTree = "<group>"; };
+		83CBBAAB1A601CBA00E9B192 /* WindowSelectionWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSelectionWindow.swift; sourceTree = "<group>"; };
 		83CBBB031A601CBA00E9B192 /* MonitoringFFIMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringFFIMapper.swift; sourceTree = "<group>"; };
 		83CBBB041A601CBA00E9B192 /* MonitoringFFIMapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringFFIMapperTests.swift; sourceTree = "<group>"; };
 		83CBBB071A601CBA00E9B192 /* MonitoringService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringService.swift; sourceTree = "<group>"; };
@@ -166,8 +146,38 @@
 		83CBBB141A601CBA00E9B192 /* AtlasBridgeFeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasBridgeFeatureTests.swift; sourceTree = "<group>"; };
 		83CBBB171A601CBA00E9B192 /* FeatureState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureState.swift; sourceTree = "<group>"; };
 		83CBBB181A601CBA00E9B192 /* FeatureStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureStateTests.swift; sourceTree = "<group>"; };
+		83CBBB1A1A601CBA00E9B192 /* SelectionGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionGeometry.swift; sourceTree = "<group>"; };
+		83CBBB1C1A601CBA00E9B192 /* SelectionGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionGeometryTests.swift; sourceTree = "<group>"; };
+		83CBBB1E1A601CBA00E9B192 /* SelectionPixelProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionPixelProbe.swift; sourceTree = "<group>"; };
+		83CBBB201A601CBA00E9B192 /* SelectionPixelProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionPixelProbeTests.swift; sourceTree = "<group>"; };
+		83CBBB221A601CBA00E9B192 /* SelectionKeyboardBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionKeyboardBridge.swift; sourceTree = "<group>"; };
+		83CBBB241A601CBA00E9B192 /* ScreenshotOCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotOCRService.swift; sourceTree = "<group>"; };
+		83CBBB261A601CBA00E9B192 /* ScreenshotOCRServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotOCRServiceTests.swift; sourceTree = "<group>"; };
+		83CBBB281A601CBA00E9B192 /* ScreenshotTranslationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTranslationService.swift; sourceTree = "<group>"; };
+		83CBBB2A1A601CBA00E9B192 /* ScreenshotTranslationServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTranslationServiceTests.swift; sourceTree = "<group>"; };
+		83CBBB2C1A601CBA00E9B192 /* ScreenshotHTTPTranslationProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotHTTPTranslationProviderTests.swift; sourceTree = "<group>"; };
+		83CBBB2E1A601CBA00E9B192 /* ScreenshotHTTPTranslationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotHTTPTranslationProvider.swift; sourceTree = "<group>"; };
+		83CBBB311A601CBA00E9B192 /* ScreenshotTranslationConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTranslationConfigurationTests.swift; sourceTree = "<group>"; };
+		83CBBB331A601CBA00E9B192 /* ScreenshotTranslationConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotTranslationConfiguration.swift; sourceTree = "<group>"; };
+		83CBBB351A601CBA00E9B192 /* TranslationSettingsPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationSettingsPanelTests.swift; sourceTree = "<group>"; };
+		83CBBB371A601CBA00E9B192 /* TranslationSettingsPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationSettingsPanel.swift; sourceTree = "<group>"; };
+		83CBBB391A601CBA00E9B192 /* ScreenshotFeatureSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotFeatureSettings.swift; sourceTree = "<group>"; };
+		83CBBB3B1A601CBA00E9B192 /* ScreenshotFeatureSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotFeatureSettingsTests.swift; sourceTree = "<group>"; };
+		83CBBB3D1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotFeatureSettingsPanel.swift; sourceTree = "<group>"; };
+		83CBBB3F1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotFeatureSettingsPanelTests.swift; sourceTree = "<group>"; };
+		83CBBBA11A601CBA00E9B192 /* ScreenshotLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotLibrary.swift; sourceTree = "<group>"; };
+		83CBBBA31A601CBA00E9B192 /* ScreenshotLibraryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotLibraryTests.swift; sourceTree = "<group>"; };
+		83CBBBA51A601CBA00E9B192 /* ScreenshotLibraryPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotLibraryPanel.swift; sourceTree = "<group>"; };
+		83CBBBA71A601CBA00E9B192 /* ScreenshotLibraryPanelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotLibraryPanelTests.swift; sourceTree = "<group>"; };
+		83CBBBB11A601CBA00E9B192 /* FloatingScreenshotThumbnailWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingScreenshotThumbnailWindow.swift; sourceTree = "<group>"; };
+		83CBBBB31A601CBA00E9B192 /* FloatingScreenshotThumbnailWindowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingScreenshotThumbnailWindowTests.swift; sourceTree = "<group>"; };
 		83CBBC001A601CBA00E9B192 /* ScreenshotDragOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotDragOutput.swift; sourceTree = "<group>"; };
 		83CBBC021A601CBA00E9B192 /* ScreenshotDragOutputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotDragOutputTests.swift; sourceTree = "<group>"; };
+		83CBBD001A601CBA00E9B192 /* AtlasSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasSettingsView.swift; sourceTree = "<group>"; };
+		83CBBD021A601CBA00E9B192 /* GlobalHotkeyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotkeyService.swift; sourceTree = "<group>"; };
+		C13E0161379495141C4E72FE /* CommandPaletteModelsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommandPaletteModelsTests.swift; sourceTree = "<group>"; };
+		CFC25DD80558691BEFCD5E41 /* CommandPaletteModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommandPaletteModels.swift; sourceTree = "<group>"; };
+		D5C1625818A6D6AA24F40EA2 /* CommandProviding.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommandProviding.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -189,6 +199,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		6FADC86DBF6AF3EA16F0D67A /* CommandPalette */ = {
+			isa = PBXGroup;
+			children = (
+				D5C1625818A6D6AA24F40EA2 /* CommandProviding.swift */,
+				CFC25DD80558691BEFCD5E41 /* CommandPaletteModels.swift */,
+			);
+			name = CommandPalette;
+			path = CommandPalette;
+			sourceTree = "<group>";
+		};
 		83CBBA501A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
@@ -218,6 +238,8 @@
 				83CBBAA41A601CBA00E9B192 /* WindowCaptureService.swift */,
 				83CBBA341A601CBA00E9B192 /* AtlasModule.swift */,
 				83CBBA311A601CBA00E9B192 /* AppFooter.swift */,
+				83CBBD021A601CBA00E9B192 /* GlobalHotkeyService.swift */,
+				83CBBD001A601CBA00E9B192 /* AtlasSettingsView.swift */,
 				83CBBB0D1A601CBA00E9B192 /* FeatureModels.swift */,
 				83CBBB171A601CBA00E9B192 /* FeatureState.swift */,
 				83CBBB111A601CBA00E9B192 /* FeatureService.swift */,
@@ -253,6 +275,7 @@
 				83CBBA3B1A601CBA00E9B192 /* SystemModels.swift */,
 				83CBBA3C1A601CBA00E9B192 /* Assets.xcassets */,
 				83CBBA3D1A601CBA00E9B192 /* Atlas.entitlements */,
+				6FADC86DBF6AF3EA16F0D67A /* CommandPalette */,
 			);
 			path = Atlas;
 			sourceTree = "<group>";
@@ -288,6 +311,7 @@
 				83CBBB201A601CBA00E9B192 /* SelectionPixelProbeTests.swift */,
 				83CBBA3F1A601CBA00E9B192 /* ScreenshotModelsTests.swift */,
 				83CBBA651A601CBA00E9B192 /* ScreenshotOutputTests.swift */,
+				C13E0161379495141C4E72FE /* CommandPaletteModelsTests.swift */,
 			);
 			path = AtlasTests;
 			sourceTree = "<group>";
@@ -412,6 +436,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				83CBBA201A601CBA00E9B192 /* AppFooter.swift in Sources */,
+				83CBBD031A601CBA00E9B192 /* GlobalHotkeyService.swift in Sources */,
+				83CBBD011A601CBA00E9B192 /* AtlasSettingsView.swift in Sources */,
 				83CBBA9A1A601CBA00E9B192 /* AtlasCaptureService.swift in Sources */,
 				83CBBAA21A601CBA00E9B192 /* WindowCaptureService.swift in Sources */,
 				83CBBA211A601CBA00E9B192 /* AtlasApp.swift in Sources */,
@@ -452,6 +478,8 @@
 				83CBBB211A601CBA00E9B192 /* SelectionKeyboardBridge.swift in Sources */,
 				83CBBA2A1A601CBA00E9B192 /* SystemModels.swift in Sources */,
 				83CBBA761A601CBA00E9B192 /* atlas.swift in Sources */,
+				43A45E9839A874C61D3732CF /* CommandProviding.swift in Sources */,
+				A9791A3F33C8D79679756A8D /* CommandPaletteModels.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -487,6 +515,7 @@
 				83CBBB1F1A601CBA00E9B192 /* SelectionPixelProbeTests.swift in Sources */,
 				83CBBA2D1A601CBA00E9B192 /* ScreenshotModelsTests.swift in Sources */,
 				83CBBA641A601CBA00E9B192 /* ScreenshotOutputTests.swift in Sources */,
+				444DAD4C57A69B27319B3AB1 /* CommandPaletteModelsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -636,7 +665,7 @@
 					"$(inherited)",
 					"-lresolv",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "ai.atlas.app";
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
@@ -668,7 +697,7 @@
 					"$(inherited)",
 					"-lresolv",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "ai.atlas.app";
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
@@ -690,7 +719,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "ai.atlas.app.tests";
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
@@ -713,7 +742,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "ai.atlas.app.tests";
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
@@ -753,7 +782,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
 	};
 	rootObject = 83CBBA701A601CBA00E9B192 /* Project object */;
 }
