@@ -18,6 +18,8 @@ struct ScreenshotEditorView: View {
     let onClose: () -> Void
 
     @State private var selectedTool: ScreenshotTool = .rectangle
+    @State private var selectedAnnotationColor: ScreenshotAnnotationColor = ScreenshotAnnotationStyle.defaultStyle.colorChoice
+    @State private var annotationLineWidth: CGFloat = ScreenshotAnnotationStyle.defaultStyle.lineWidth
     @State private var annotations: [ScreenshotAnnotation] = []
     @State private var dragStart: CGPoint?
     @State private var canvasSize: CGSize = .zero
@@ -53,6 +55,36 @@ struct ScreenshotEditorView: View {
                     .background(selectedTool == tool ? Color.accentColor.opacity(0.18) : Color.clear)
                     .cornerRadius(6)
                 }
+
+                Divider()
+                    .frame(height: 18)
+
+                ForEach(ScreenshotAnnotationColor.allCases) { colorChoice in
+                    Button {
+                        selectedAnnotationColor = colorChoice
+                    } label: {
+                        Circle()
+                            .fill(colorChoice.color)
+                            .overlay(
+                                Circle()
+                                    .stroke(
+                                        selectedAnnotationColor == colorChoice ? Color.accentColor : Color.secondary.opacity(0.35),
+                                        lineWidth: selectedAnnotationColor == colorChoice ? 2 : 1
+                                    )
+                            )
+                            .frame(width: 14, height: 14)
+                    }
+                    .buttonStyle(.plain)
+                    .help(colorChoice.title)
+                }
+
+                Stepper(value: $annotationLineWidth, in: 1...12, step: 1) {
+                    Text("\(Int(annotationLineWidth)) px")
+                        .font(.caption)
+                        .frame(width: 34, alignment: .trailing)
+                }
+                .help("Line Width")
+                .controlSize(.small)
             }
 
             Spacer()
@@ -189,6 +221,10 @@ struct ScreenshotEditorView: View {
             .onEnded { value in
                 guard capabilities.annotations else { return }
                 guard let start = dragStart else { return }
+                let style = ScreenshotAnnotationStyle(
+                    colorChoice: selectedAnnotationColor,
+                    lineWidth: annotationLineWidth
+                )
                 let rect = CGRect(
                     x: min(start.x, value.location.x),
                     y: min(start.y, value.location.y),
@@ -198,13 +234,13 @@ struct ScreenshotEditorView: View {
 
                 switch selectedTool {
                 case .rectangle:
-                    annotations.append(.rectangle(rect: rect, color: .red, lineWidth: 2))
+                    annotations.append(.rectangle(rect: rect, color: style.color, lineWidth: style.lineWidth))
                 case .arrow:
-                    annotations.append(.arrow(from: start, to: value.location, color: .red, lineWidth: 2))
+                    annotations.append(.arrow(from: start, to: value.location, color: style.color, lineWidth: style.lineWidth))
                 case .pen:
-                    annotations.append(.pen(points: [start, value.location], color: .red, lineWidth: 2))
+                    annotations.append(.pen(points: [start, value.location], color: style.color, lineWidth: style.lineWidth))
                 case .text:
-                    annotations.append(.text(value: "Text", rect: rect.width > 8 && rect.height > 8 ? rect : CGRect(x: start.x, y: start.y, width: 80, height: 28), color: .red))
+                    annotations.append(.text(value: "Text", rect: rect.width > 8 && rect.height > 8 ? rect : CGRect(x: start.x, y: start.y, width: 80, height: 28), color: style.color))
                 case .pixelate:
                     annotations.append(.pixelate(rect: rect))
                 }
