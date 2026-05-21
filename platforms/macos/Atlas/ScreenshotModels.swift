@@ -156,6 +156,11 @@ struct ScreenshotAnnotation: Identifiable, Equatable {
     static func pixelate(id: UUID = UUID(), rect: CGRect) -> Self {
         ScreenshotAnnotation(id: id, kind: .pixelate, bounds: rect, color: .gray, lineWidth: 1, points: [])
     }
+
+    func withTextValue(_ value: String) -> ScreenshotAnnotation {
+        guard case .text = kind else { return self }
+        return ScreenshotAnnotation(id: id, kind: .text(value), bounds: bounds, color: color, lineWidth: lineWidth, points: points)
+    }
 }
 
 struct CapturedScreenshot: Identifiable, Equatable {

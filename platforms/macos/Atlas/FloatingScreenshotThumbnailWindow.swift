@@ -252,6 +252,7 @@ struct FloatingScreenshotThumbnailView: View {
     let onDragItemProvider: () -> NSItemProvider
 
     @State private var actionState = FloatingScreenshotThumbnailActionState()
+    @State private var dismissTask: DispatchWorkItem?
 
     var body: some View {
         ZStack {
@@ -331,9 +332,26 @@ struct FloatingScreenshotThumbnailView: View {
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .onAppear { scheduleAutoDismiss() }
+        .onHover { hovering in
+            if hovering { cancelAutoDismiss() } else { scheduleAutoDismiss() }
+        }
+    }
+
+    private func scheduleAutoDismiss() {
+        cancelAutoDismiss()
+        let task = DispatchWorkItem { perform(.dismiss) }
+        dismissTask = task
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: task)
+    }
+
+    private func cancelAutoDismiss() {
+        dismissTask?.cancel()
+        dismissTask = nil
     }
 
     private func perform(_ action: FloatingScreenshotThumbnailAction) {
+        cancelAutoDismiss()
         let result: FloatingScreenshotThumbnailActionResult
 
         switch action {
@@ -348,5 +366,8 @@ struct FloatingScreenshotThumbnailView: View {
         }
 
         actionState.apply(result)
+        if result != .dismissed && result != .openedEditor {
+            scheduleAutoDismiss()
+        }
     }
 }

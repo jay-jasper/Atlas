@@ -1,7 +1,10 @@
+import Charts
 import SwiftUI
 
 struct MonitoringPanel: View {
     let snapshot: MonitoringSystemSnapshot?
+    var cpuHistory: [Double] = []
+    var memoryHistory: [Double] = []
 
     var body: some View {
         if let snapshot {
@@ -43,6 +46,10 @@ struct MonitoringPanel: View {
                 ProgressView(value: snapshot.cpuUsage, total: 100)
                     .accentColor(snapshot.cpuUsage > 80 ? .red : .blue)
 
+                if cpuHistory.count >= 2 {
+                    SparklineView(values: cpuHistory, domain: 0...100, color: snapshot.cpuUsage > 80 ? .red : .blue)
+                }
+
                 if !snapshot.cpuCores.isEmpty {
                     HStack(alignment: .bottom, spacing: 2) {
                         ForEach(snapshot.cpuCores.indices, id: \.self) { index in
@@ -79,6 +86,10 @@ struct MonitoringPanel: View {
                     }
                 }
                 .frame(height: 8).cornerRadius(4)
+
+                if memoryHistory.count >= 2 {
+                    SparklineView(values: memoryHistory, domain: 0...100, color: .blue)
+                }
 
                 if snapshot.swapTotalBytes > 0 {
                     HStack {
@@ -227,5 +238,32 @@ struct MonitoringPanel: View {
         case 50...: return .orange
         default: return .blue
         }
+    }
+}
+
+private struct SparklineView: View {
+    let values: [Double]
+    let domain: ClosedRange<Double>
+    let color: Color
+
+    var body: some View {
+        Chart {
+            ForEach(values.indices, id: \.self) { i in
+                LineMark(
+                    x: .value("t", i),
+                    y: .value("v", values[i])
+                )
+                .foregroundStyle(color)
+                AreaMark(
+                    x: .value("t", i),
+                    y: .value("v", values[i])
+                )
+                .foregroundStyle(color.opacity(0.15))
+            }
+        }
+        .chartYScale(domain: domain)
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .frame(height: 28)
     }
 }

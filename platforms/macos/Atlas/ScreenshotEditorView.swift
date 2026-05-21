@@ -20,10 +20,12 @@ struct ScreenshotEditorView: View {
     @State private var selectedTool: ScreenshotTool = .rectangle
     @State private var selectedAnnotationColor: ScreenshotAnnotationColor = ScreenshotAnnotationStyle.defaultStyle.colorChoice
     @State private var annotationLineWidth: CGFloat = ScreenshotAnnotationStyle.defaultStyle.lineWidth
-    @State private var textAnnotationDraft = ScreenshotTextAnnotationDraft()
+    @AppStorage("annotation.text.draft") private var textDraftRaw: String = ScreenshotTextAnnotationDraft.fallbackValue
     @State private var annotations: [ScreenshotAnnotation] = []
     @State private var dragStart: CGPoint?
+    @State private var penPoints: [CGPoint] = []
     @State private var canvasSize: CGSize = .zero
+    @State private var editingAnnotationID: UUID?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -105,12 +107,21 @@ struct ScreenshotEditorView: View {
                 .help("Close")
             }
 
-            if capabilities.annotations && selectedTool == .text {
-                TextField("Text", text: $textAnnotationDraft.rawValue)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.caption)
-                    .frame(maxWidth: .infinity)
-                    .help("Text Annotation")
+            if capabilities.annotations && (selectedTool == .text || editingAnnotationID != nil) {
+                HStack(spacing: 6) {
+                    TextField(editingAnnotationID != nil ? "Edit text" : "Text", text: $textDraftRaw)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.caption)
+                        .frame(maxWidth: .infinity)
+                        .help("Text Annotation")
+                    if let editID = editingAnnotationID {
+                        Button("Apply") {
+                            applyTextEdit(editID)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                    }
+                }
             }
         }
         .padding(10)
@@ -126,6 +137,27 @@ struct ScreenshotEditorView: View {
 
                 ForEach(annotations) { annotation in
                     AnnotationShape(annotation: annotation)
+                        .onTapGesture(count: 2) {
+                            if case .text(let value) = annotation.kind {
+                                editingAnnotationID = annotation.id
+                                textDraftRaw = value
+                                selectedTool = .text
+                            }
+                        }
+                }
+
+                if penPoints.count >= 2 {
+                    Path { path in
+                        path.move(to: penPoints[0])
+                        for point in penPoints.dropFirst() {
+                            path.addLine(to: point)
+                        }
+                    }
+                    .stroke(
+                        ScreenshotAnnotationStyle(colorChoice: selectedAnnotationColor, lineWidth: annotationLineWidth).color,
+                        lineWidth: annotationLineWidth
+                    )
+                    .allowsHitTesting(false)
                 }
             }
             .contentShape(Rectangle())
@@ -227,6 +259,11 @@ struct ScreenshotEditorView: View {
                 guard capabilities.annotations else { return }
                 if dragStart == nil {
                     dragStart = value.startLocation
+                    if selectedTool == .pen {
+                        penPoints = [value.startLocation]
+                    }
+                } else if selectedTool == .pen {
+                    penPoints.append(value.location)
                 }
             }
             .onEnded { value in
@@ -249,10 +286,13 @@ struct ScreenshotEditorView: View {
                 case .arrow:
                     annotations.append(.arrow(from: start, to: value.location, color: style.color, lineWidth: style.lineWidth))
                 case .pen:
-                    annotations.append(.pen(points: [start, value.location], color: style.color, lineWidth: style.lineWidth))
+                    let raw = penPoints.isEmpty ? [start, value.location] : penPoints
+                    let smooth = smoothedPoints(raw)
+                    annotations.append(.pen(points: smooth, color: style.color, lineWidth: style.lineWidth))
+                    penPoints = []
                 case .text:
                     annotations.append(.text(
-                        value: textAnnotationDraft.annotationValue,
+                        value: ScreenshotTextAnnotationDraft(rawValue: textDraftRaw).annotationValue,
                         rect: rect.width > 8 && rect.height > 8 ? rect : CGRect(x: start.x, y: start.y, width: 80, height: 28),
                         color: style.color
                     ))
@@ -262,6 +302,40 @@ struct ScreenshotEditorView: View {
 
                 dragStart = nil
             }
+    }
+
+    private func smoothedPoints(_ points: [CGPoint]) -> [CGPoint] {
+        guard points.count >= 3 else { return points }
+        // Downsample: skip points closer than 2px to the previous
+        var sampled: [CGPoint] = [points[0]]
+        for p in points.dropFirst() {
+            let last = sampled[sampled.count - 1]
+            let dx = p.x - last.x, dy = p.y - last.y
+            if dx * dx + dy * dy >= 4 { sampled.append(p) }
+        }
+        // Chaikin corner-cutting (2 iterations)
+        var pts = sampled
+        for _ in 0..<2 {
+            var next: [CGPoint] = [pts[0]]
+            for i in 0..<(pts.count - 1) {
+                let a = pts[i], b = pts[i + 1]
+                next.append(CGPoint(x: 0.75 * a.x + 0.25 * b.x, y: 0.75 * a.y + 0.25 * b.y))
+                next.append(CGPoint(x: 0.25 * a.x + 0.75 * b.x, y: 0.25 * a.y + 0.75 * b.y))
+            }
+            next.append(pts[pts.count - 1])
+            pts = next
+        }
+        return pts
+    }
+
+    private func applyTextEdit(_ id: UUID) {
+        guard let index = annotations.firstIndex(where: { $0.id == id }) else {
+            editingAnnotationID = nil
+            return
+        }
+        let value = ScreenshotTextAnnotationDraft(rawValue: textDraftRaw).annotationValue
+        annotations[index] = annotations[index].withTextValue(value)
+        editingAnnotationID = nil
     }
 
     private func renderedData() -> Data {

@@ -29,10 +29,15 @@ struct ContentView: View {
     @State private var captureStatusKind: CaptureStatusKind = .success
     @State private var showCaptureStatus: Bool = false
     @State private var statusHideToken: Int = 0
+    @State private var annotatedScreenshotData: Data?
+    @State private var cpuHistory: [Double] = []
+    @State private var memoryHistory: [Double] = []
     private let screenshotFeatureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigurationStore = ScreenshotTranslationConfigurationStore()
     private let screenshotLibraryStore = ScreenshotLibraryStore()
     private let screenshotDragOutputStore = ScreenshotDragOutputStore()
+    private let hotkeyService = GlobalHotkeyService()
+    var paletteState: CommandPaletteState? = nil
 
     var body: some View {
         ZStack {
@@ -58,7 +63,11 @@ struct ContentView: View {
                     }
 
                     if isFeatureEnabled(.monitoring) {
-                        MonitoringPanel(snapshot: snapshot)
+                        MonitoringPanel(
+                            snapshot: snapshot,
+                            cpuHistory: cpuHistory,
+                            memoryHistory: memoryHistory
+                        )
 
                         Divider()
                     }
@@ -83,6 +92,15 @@ struct ContentView: View {
                         items: screenshotLibraryItems,
                         onOpen: openLibraryItem,
                         onDelete: deleteLibraryItem,
+                        pngURL: { screenshotLibraryStore.pngURL(for: $0) },
+                        onRunOCR: screenshotFeatureSettings.editorCapabilities.ocr ? runBackgroundOCR : nil,
+                        onRunTranslation: screenshotFeatureSettings.editorCapabilities.translation && isTranslationConfigured ? runBackgroundTranslation : nil,
+                        onUpdateTags: updateLibraryItemTags,
+                        onCopyText: { text in
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(text, forType: .string)
+                            showStatus("Copied text")
+                        },
                         query: $screenshotLibraryQuery
                     )
 
@@ -127,11 +145,14 @@ struct ContentView: View {
         .onDisappear(perform: stopModules)
     }
 
+    private static let historyMaxCount = 60
+
     private func startModules() {
         loadScreenshotFeatureSettings()
         loadTranslationSettings()
         loadScreenshotLibrary()
         cleanupScreenshotDragOutput()
+        startHotkeys()
 
         do {
             let loadedFeatures = try AtlasBridge.listFeatures()
@@ -158,6 +179,7 @@ struct ContentView: View {
             translationSettingsDraft.endpoint,
             translationSettingsDraft.apiKey,
             translationSettingsDraft.model,
+            translationSettingsDraft.targetLanguage,
         ].joined(separator: "\u{1F}")
     }
 
@@ -188,7 +210,64 @@ struct ContentView: View {
         showStatus("Translation settings cleared")
     }
 
+    private func startHotkeys() {
+        hotkeyService.requestAccessibilityIfNeeded()
+        hotkeyService.onAreaCapture = { [self] in showSelectionWindow() }
+        hotkeyService.start()
+        paletteState?.setActions(
+            onCaptureDesktop: { self.captureDesktop() },
+            onCaptureArea: { self.showSelectionWindow() },
+            onCaptureWindow: { self.showWindowSelection() }
+        )
+
+        if let controller = paletteState?.controller {
+            controller.screenshotLibraryViewBuilder = {
+                AnyView(
+                    CommandPaletteScreenshotLibraryView(
+                        store: self.screenshotLibraryStore,
+                        onOpen: { item in
+                            self.openLibraryItem(item)
+                            controller.hide()
+                        },
+                        onDelete: { self.deleteLibraryItem($0) },
+                        onRunOCR: self.screenshotFeatureSettings.editorCapabilities.ocr ? { self.runBackgroundOCR() } : nil,
+                        onRunTranslation: self.screenshotFeatureSettings.editorCapabilities.translation && self.isTranslationConfigured ? { self.runBackgroundTranslation() } : nil,
+                        onUpdateTags: { self.updateLibraryItemTags($0, tags: $1) },
+                        onCopyText: { text in
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(text, forType: .string)
+                            self.showStatus("Copied text")
+                        }
+                    )
+                )
+            }
+
+            controller.portLookupViewBuilder = {
+                AnyView(
+                    MonitoringPortsPanel()
+                )
+            }
+
+            controller.windowPickerViewBuilder = {
+                let windows = (try? AtlasBridge.listCapturableWindows()) ?? []
+                return AnyView(
+                    WindowSelectionView(
+                        windows: windows,
+                        onCancel: {
+                            controller.hide()
+                        },
+                        onSelect: { window in
+                            self.captureWindow(window)
+                            controller.hide()
+                        }
+                    )
+                )
+            }
+        }
+    }
+
     private func stopModules() {
+        hotkeyService.stop()
         do {
             try AtlasBridge.stopMonitoring()
         } catch {
@@ -236,6 +315,10 @@ struct ContentView: View {
             try AtlasBridge.startMonitoring { snapshot in
                 DispatchQueue.main.async {
                     self.snapshot = snapshot
+                    let cpu = Double(snapshot.cpuUsage)
+                    let memRatio = Double(snapshot.memUsedBytes) / Double(max(1, snapshot.memTotalBytes)) * 100
+                    self.cpuHistory = Array((self.cpuHistory + [cpu]).suffix(Self.historyMaxCount))
+                    self.memoryHistory = Array((self.memoryHistory + [memRatio]).suffix(Self.historyMaxCount))
                 }
             }
         } catch {
@@ -380,6 +463,7 @@ struct ContentView: View {
         invalidateScreenshotTextTasks()
         capturedScreenshot = nil
         activeLibraryItemID = nil
+        annotatedScreenshotData = nil
         clearScreenshotTextState()
     }
 
@@ -436,15 +520,16 @@ struct ContentView: View {
     }
 
     private func dragItemProvider(for screenshot: CapturedScreenshot) -> NSItemProvider {
+        let dragData = annotatedScreenshotData ?? screenshot.pngData
         do {
             return try screenshotDragOutputStore.makeItemProvider(
-                pngData: screenshot.pngData,
+                pngData: dragData,
                 id: screenshot.id,
                 date: screenshot.capturedAt
             )
         } catch {
             showStatus(error.localizedDescription, kind: .error, autoHide: false)
-            return NSItemProvider(item: screenshot.pngData as NSData, typeIdentifier: UTType.png.identifier)
+            return NSItemProvider(item: dragData as NSData, typeIdentifier: UTType.png.identifier)
         }
     }
 
@@ -500,6 +585,59 @@ struct ContentView: View {
         }
     }
 
+    private func updateLibraryItemTags(_ item: ScreenshotLibraryItem, tags: [String]) {
+        do {
+            try screenshotLibraryStore.updateTags(id: item.id, tags: tags)
+            loadScreenshotLibrary()
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
+        }
+    }
+
+    private func runBackgroundOCR() {
+        guard screenshotFeatureSettings.editorCapabilities.ocr else { return }
+
+        let items = screenshotLibraryItems.filter { $0.recognizedText.isEmpty }
+        guard !items.isEmpty else { return }
+
+        showStatus("Running OCR on \(items.count) screenshot\(items.count == 1 ? "" : "s")…")
+
+        DispatchQueue.global(qos: .utility).async {
+            for item in items {
+                guard let data = try? screenshotLibraryStore.pngData(for: item) else { continue }
+                guard let result = try? AtlasBridge.recognizeText(in: data) else { continue }
+                try? screenshotLibraryStore.updateText(id: item.id, recognizedText: result.text, translatedText: nil)
+            }
+
+            DispatchQueue.main.async {
+                loadScreenshotLibrary()
+                showStatus("OCR complete")
+            }
+        }
+    }
+
+    private func runBackgroundTranslation() {
+        guard screenshotFeatureSettings.editorCapabilities.translation, isTranslationConfigured else { return }
+
+        let items = screenshotLibraryItems.filter { !$0.recognizedText.isEmpty && $0.translatedText.isEmpty }
+        guard !items.isEmpty else { return }
+
+        let targetLanguage = translationSettingsDraft.trimmedTargetLanguage
+        showStatus("Translating \(items.count) screenshot\(items.count == 1 ? "" : "s")…")
+
+        DispatchQueue.global(qos: .utility).async {
+            for item in items {
+                guard let result = try? AtlasBridge.translateScreenshotText(item.recognizedText, targetLanguage: targetLanguage) else { continue }
+                try? screenshotLibraryStore.updateText(id: item.id, recognizedText: nil, translatedText: result.translatedText)
+            }
+
+            DispatchQueue.main.async {
+                loadScreenshotLibrary()
+                showStatus("Translation complete")
+            }
+        }
+    }
+
     private func deleteLibraryItem(_ item: ScreenshotLibraryItem) {
         do {
             try screenshotLibraryStore.delete(id: item.id)
@@ -527,11 +665,13 @@ struct ContentView: View {
     }
 
     private func copyScreenshot(_ data: Data) {
+        annotatedScreenshotData = data
         ScreenshotOutput.copyPNGToClipboard(data)
         showStatus("Copied screenshot")
     }
 
     private func saveScreenshot(_ data: Data) {
+        annotatedScreenshotData = data
         if let url = ScreenshotOutput.savePNGWithPanel(data) {
             showStatus("Saved \(url.lastPathComponent)")
         }
@@ -563,6 +703,7 @@ struct ContentView: View {
             return
         }
 
+        annotatedScreenshotData = data
         PinnedScreenshotWindow.show(data: data)
         showStatus("Pinned screenshot")
     }
@@ -628,7 +769,7 @@ struct ContentView: View {
 
         DispatchQueue.global(qos: .userInitiated).async {
             let result = Result {
-                try AtlasBridge.translateScreenshotText(text, targetLanguage: "English")
+                try AtlasBridge.translateScreenshotText(text, targetLanguage: translationSettingsDraft.trimmedTargetLanguage)
             }
 
             DispatchQueue.main.async {
@@ -708,6 +849,46 @@ private struct CaptureStatusBanner: View {
         case .error:
             return .red
         }
+    }
+}
+
+struct CommandPaletteScreenshotLibraryView: View {
+    let store: ScreenshotLibraryStore
+    let onOpen: (ScreenshotLibraryItem) -> Void
+    let onDelete: (ScreenshotLibraryItem) -> Void
+    let onRunOCR: (() -> Void)?
+    let onRunTranslation: (() -> Void)?
+    let onUpdateTags: (ScreenshotLibraryItem, [String]) -> Void
+    let onCopyText: (String) -> Void
+
+    @State private var items: [ScreenshotLibraryItem] = []
+    @State private var query: String = ""
+
+    var body: some View {
+        ScreenshotLibraryPanel(
+            items: items,
+            onOpen: onOpen,
+            onDelete: { item in
+                onDelete(item)
+                refresh()
+            },
+            pngURL: { store.pngURL(for: $0) },
+            onRunOCR: onRunOCR,
+            onRunTranslation: onRunTranslation,
+            onUpdateTags: { item, tags in
+                onUpdateTags(item, tags)
+                refresh()
+            },
+            onCopyText: onCopyText,
+            query: $query
+        )
+        .onAppear {
+            refresh()
+        }
+    }
+
+    private func refresh() {
+        items = (try? store.loadItems()) ?? []
     }
 }
 
