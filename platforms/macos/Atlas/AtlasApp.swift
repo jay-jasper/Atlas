@@ -36,9 +36,14 @@ final class CommandPaletteState: ObservableObject {
                 NSApp.activate(ignoringOtherApps: true)
             }
         )
+        let clipboardHistoryProvider = ClipboardHistoryProvider()
         let appLauncherProvider = AppLauncherProvider()
 
-        self.controller = CommandPaletteController(providers: [atlasProvider, appLauncherProvider])
+        self.controller = CommandPaletteController(providers: [
+            atlasProvider,
+            clipboardHistoryProvider,
+            appLauncherProvider,
+        ])
 
         // Wire hotkey updates dynamically
         self.controller.onHotkeyChanged = { [weak self] newConfig in
