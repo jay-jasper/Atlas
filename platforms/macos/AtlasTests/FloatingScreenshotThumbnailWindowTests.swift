@@ -61,6 +61,7 @@ final class FloatingScreenshotThumbnailWindowTests: XCTestCase {
         XCTAssertEqual(FloatingScreenshotThumbnailActionResult.ready.statusText, "Ready")
         XCTAssertEqual(FloatingScreenshotThumbnailActionResult.openedEditor.statusText, "Opened editor")
         XCTAssertEqual(FloatingScreenshotThumbnailActionResult.copied.statusText, "Copied")
+        XCTAssertEqual(FloatingScreenshotThumbnailActionResult.dragged.statusText, "Ready to drag")
         XCTAssertEqual(FloatingScreenshotThumbnailActionResult.saved(filename: "Atlas.png").statusText, "Saved Atlas.png")
         XCTAssertEqual(FloatingScreenshotThumbnailActionResult.saveCancelled.statusText, "Save cancelled")
         XCTAssertEqual(FloatingScreenshotThumbnailActionResult.dismissed.statusText, "Dismissed")
@@ -72,6 +73,8 @@ final class FloatingScreenshotThumbnailWindowTests: XCTestCase {
         XCTAssertEqual(state.statusText, "Ready")
         state.apply(.copied)
         XCTAssertEqual(state.statusText, "Copied")
+        state.apply(.dragged)
+        XCTAssertEqual(state.statusText, "Ready to drag")
         state.apply(.saved(filename: "One.png"))
         XCTAssertEqual(state.statusText, "Saved One.png")
     }
@@ -81,6 +84,7 @@ final class FloatingScreenshotThumbnailWindowTests: XCTestCase {
         let results: [FloatingScreenshotThumbnailActionResult] = [
             .openedEditor,
             .copied,
+            .dragged,
             .saveCancelled,
             .dismissed,
         ]
@@ -93,6 +97,7 @@ final class FloatingScreenshotThumbnailWindowTests: XCTestCase {
         XCTAssertEqual(statuses, [
             "Opened editor",
             "Copied",
+            "Ready to drag",
             "Save cancelled",
             "Dismissed",
         ])
