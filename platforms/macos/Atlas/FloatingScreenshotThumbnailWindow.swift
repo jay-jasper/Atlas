@@ -123,7 +123,7 @@ final class FloatingScreenshotThumbnailWindow {
         onCopy: @escaping (Data) -> FloatingScreenshotThumbnailActionResult,
         onSave: @escaping (Data) -> FloatingScreenshotThumbnailActionResult,
         onDismiss: @escaping () -> FloatingScreenshotThumbnailActionResult,
-        onDragItemProvider: @escaping () -> NSItemProvider = { NSItemProvider() }
+        onDragItemProvider: @escaping () -> NSItemProvider
     ) {
         if Thread.isMainThread {
             showOnMain(

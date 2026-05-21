@@ -31,6 +31,7 @@ struct ContentView: View {
     private let screenshotFeatureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigurationStore = ScreenshotTranslationConfigurationStore()
     private let screenshotLibraryStore = ScreenshotLibraryStore()
+    private let screenshotDragOutputStore = ScreenshotDragOutputStore()
 
     var body: some View {
         ZStack {
@@ -415,8 +416,24 @@ struct ContentView: View {
             },
             onCopy: copyScreenshotFromThumbnail,
             onSave: saveScreenshotFromThumbnail,
-            onDismiss: dismissFloatingThumbnail
+            onDismiss: dismissFloatingThumbnail,
+            onDragItemProvider: {
+                dragItemProvider(for: screenshot)
+            }
         )
+    }
+
+    private func dragItemProvider(for screenshot: CapturedScreenshot) -> NSItemProvider {
+        do {
+            return try screenshotDragOutputStore.makeItemProvider(
+                pngData: screenshot.pngData,
+                id: screenshot.id,
+                date: screenshot.capturedAt
+            )
+        } catch {
+            showStatus(error.localizedDescription, kind: .error, autoHide: false)
+            return NSItemProvider()
+        }
     }
 
     private func openFloatingThumbnail(
