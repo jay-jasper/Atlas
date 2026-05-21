@@ -24,14 +24,14 @@ final class WindowManagementProvider: CommandProviding {
                 action.keywords.contains { $0.localizedCaseInsensitiveContains(q) }
             }
             .prefix(Self.maxResultsCount)
-            .map { action in
+            .map { [windowManager] action in
                 PaletteCommand(
                     id: UUID(),
                     title: action.title,
                     subtitle: nil,
                     icon: .sfSymbol("rectangle.inset.filled"),
                     keywords: action.keywords,
-                    action: .execute { _ = self.windowManager.perform(action) },
+                    action: .execute { _ = windowManager.perform(action) },
                     category: "Window"
                 )
             }
