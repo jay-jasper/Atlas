@@ -91,6 +91,23 @@ struct ScreenshotAnnotationStyle: Equatable {
     }
 }
 
+struct ScreenshotTextAnnotationDraft: Equatable {
+    static let fallbackValue = "Text"
+    static let maximumLength = 80
+
+    var rawValue: String
+
+    var annotationValue: String {
+        let trimmed = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return Self.fallbackValue }
+        return String(trimmed.prefix(Self.maximumLength))
+    }
+
+    init(rawValue: String = Self.fallbackValue) {
+        self.rawValue = rawValue
+    }
+}
+
 enum ScreenshotAnnotationKind: Equatable {
     case rectangle
     case arrow
