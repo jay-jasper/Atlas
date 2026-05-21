@@ -1,17 +1,21 @@
 import Foundation
+import Security
 
 enum ScreenshotTranslationConfigurationKeys {
     static let endpoint = "translation.endpoint"
     static let apiKey = "translation.apiKey"
     static let model = "translation.model"
+    static let targetLanguage = "translation.targetLanguage"
 }
 
 struct ScreenshotTranslationSettingsDraft: Equatable {
     var endpoint: String
     var apiKey: String
     var model: String
+    var targetLanguage: String
 
-    static let empty = ScreenshotTranslationSettingsDraft(endpoint: "", apiKey: "", model: "")
+    static let empty = ScreenshotTranslationSettingsDraft(endpoint: "", apiKey: "", model: "", targetLanguage: "")
+    static let defaultTargetLanguage = "English"
 
     var trimmedEndpoint: String {
         endpoint.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -23,6 +27,55 @@ struct ScreenshotTranslationSettingsDraft: Equatable {
 
     var trimmedModel: String {
         model.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    var trimmedTargetLanguage: String {
+        let t = targetLanguage.trimmingCharacters(in: .whitespacesAndNewlines)
+        return t.isEmpty ? Self.defaultTargetLanguage : t
+    }
+}
+
+private enum AtlasKeychain {
+    private static let service = "com.atlas.app"
+
+    static func save(_ value: String, account: String) {
+        let data = Data(value.utf8)
+        let query: [CFString: Any] = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrService: service,
+            kSecAttrAccount: account,
+            kSecValueData: data
+        ]
+        SecItemDelete(query as CFDictionary)
+        if !value.isEmpty {
+            SecItemAdd(query as CFDictionary, nil)
+        }
+    }
+
+    static func load(account: String) -> String? {
+        let query: [CFString: Any] = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrService: service,
+            kSecAttrAccount: account,
+            kSecReturnData: true,
+            kSecMatchLimit: kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
+              let data = result as? Data,
+              let string = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        return string
+    }
+
+    static func delete(account: String) {
+        let query: [CFString: Any] = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrService: service,
+            kSecAttrAccount: account
+        ]
+        SecItemDelete(query as CFDictionary)
     }
 }
 
@@ -36,21 +89,24 @@ struct ScreenshotTranslationConfigurationStore {
     func settingsDraft() -> ScreenshotTranslationSettingsDraft {
         ScreenshotTranslationSettingsDraft(
             endpoint: defaults.string(forKey: ScreenshotTranslationConfigurationKeys.endpoint) ?? "",
-            apiKey: defaults.string(forKey: ScreenshotTranslationConfigurationKeys.apiKey) ?? "",
-            model: defaults.string(forKey: ScreenshotTranslationConfigurationKeys.model) ?? ""
+            apiKey: AtlasKeychain.load(account: ScreenshotTranslationConfigurationKeys.apiKey) ?? "",
+            model: defaults.string(forKey: ScreenshotTranslationConfigurationKeys.model) ?? "",
+            targetLanguage: defaults.string(forKey: ScreenshotTranslationConfigurationKeys.targetLanguage) ?? ""
         )
     }
 
     func save(_ draft: ScreenshotTranslationSettingsDraft) {
         setStringOrRemove(draft.trimmedEndpoint, forKey: ScreenshotTranslationConfigurationKeys.endpoint)
-        setStringOrRemove(draft.trimmedApiKey, forKey: ScreenshotTranslationConfigurationKeys.apiKey)
+        AtlasKeychain.save(draft.trimmedApiKey, account: ScreenshotTranslationConfigurationKeys.apiKey)
         setStringOrRemove(draft.trimmedModel, forKey: ScreenshotTranslationConfigurationKeys.model)
+        setStringOrRemove(draft.targetLanguage.trimmingCharacters(in: .whitespacesAndNewlines), forKey: ScreenshotTranslationConfigurationKeys.targetLanguage)
     }
 
     func clear() {
         defaults.removeObject(forKey: ScreenshotTranslationConfigurationKeys.endpoint)
-        defaults.removeObject(forKey: ScreenshotTranslationConfigurationKeys.apiKey)
+        AtlasKeychain.delete(account: ScreenshotTranslationConfigurationKeys.apiKey)
         defaults.removeObject(forKey: ScreenshotTranslationConfigurationKeys.model)
+        defaults.removeObject(forKey: ScreenshotTranslationConfigurationKeys.targetLanguage)
     }
 
     func httpConfig() -> HTTPTranslationEndpointConfig? {
@@ -67,7 +123,7 @@ struct ScreenshotTranslationConfigurationStore {
 
         return HTTPTranslationEndpointConfig(
             endpoint: endpoint,
-            apiKey: cleanedOptionalString(defaults.string(forKey: ScreenshotTranslationConfigurationKeys.apiKey)),
+            apiKey: cleanedOptionalString(AtlasKeychain.load(account: ScreenshotTranslationConfigurationKeys.apiKey)),
             model: cleanedOptionalString(defaults.string(forKey: ScreenshotTranslationConfigurationKeys.model))
         )
     }

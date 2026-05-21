@@ -74,6 +74,9 @@ struct TranslationSettingsPanel: View {
             TextField("Model", text: $draft.model)
                 .textFieldStyle(.roundedBorder)
 
+            TextField("Target language (default: English)", text: $draft.targetLanguage)
+                .textFieldStyle(.roundedBorder)
+
             HStack {
                 Button("Save") {
                     onSave(draft)

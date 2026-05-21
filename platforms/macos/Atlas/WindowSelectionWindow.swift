@@ -106,7 +106,7 @@ final class WindowSelectionWindow {
     }
 }
 
-private struct WindowSelectionView: View {
+struct WindowSelectionView: View {
     let windows: [CapturableWindow]
     let onCancel: () -> Void
     let onSelect: (CapturableWindow) -> Void

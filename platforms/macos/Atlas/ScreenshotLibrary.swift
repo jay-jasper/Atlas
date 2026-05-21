@@ -1,6 +1,6 @@
 import Foundation
 
-struct ScreenshotLibraryItem: Codable, Identifiable, Equatable {
+struct ScreenshotLibraryItem: Identifiable, Equatable {
     let id: UUID
     let filename: String
     let capturedAt: Date
@@ -9,9 +9,51 @@ struct ScreenshotLibraryItem: Codable, Identifiable, Equatable {
     let source: String
     var recognizedText: String
     var translatedText: String
+    var tags: [String]
+
+    init(
+        id: UUID = UUID(),
+        filename: String,
+        capturedAt: Date,
+        pixelWidth: Int,
+        pixelHeight: Int,
+        source: String,
+        recognizedText: String,
+        translatedText: String,
+        tags: [String] = []
+    ) {
+        self.id = id
+        self.filename = filename
+        self.capturedAt = capturedAt
+        self.pixelWidth = pixelWidth
+        self.pixelHeight = pixelHeight
+        self.source = source
+        self.recognizedText = recognizedText
+        self.translatedText = translatedText
+        self.tags = tags
+    }
 
     var dimensionsText: String {
         "\(pixelWidth) x \(pixelHeight)"
+    }
+}
+
+extension ScreenshotLibraryItem: Codable {
+    enum CodingKeys: String, CodingKey {
+        case id, filename, capturedAt, pixelWidth, pixelHeight, source, recognizedText, translatedText, tags
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        filename = try c.decode(String.self, forKey: .filename)
+        capturedAt = try c.decode(Date.self, forKey: .capturedAt)
+        pixelWidth = try c.decode(Int.self, forKey: .pixelWidth)
+        pixelHeight = try c.decode(Int.self, forKey: .pixelHeight)
+        source = try c.decode(String.self, forKey: .source)
+        recognizedText = try c.decode(String.self, forKey: .recognizedText)
+        translatedText = try c.decode(String.self, forKey: .translatedText)
+        tags = (try? c.decode([String].self, forKey: .tags)) ?? []
     }
 }
 
@@ -81,6 +123,13 @@ final class ScreenshotLibraryStore {
         try save(items)
 
         return item
+    }
+
+    func updateTags(id: UUID, tags: [String]) throws {
+        var items = try loadItems()
+        guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+        items[index].tags = tags
+        try save(items)
     }
 
     func updateText(id: UUID, recognizedText: String?, translatedText: String?) throws {

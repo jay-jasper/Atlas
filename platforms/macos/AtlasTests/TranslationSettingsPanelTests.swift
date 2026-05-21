@@ -17,7 +17,8 @@ final class TranslationSettingsPanelTests: XCTestCase {
             draft: ScreenshotTranslationSettingsDraft(
                 endpoint: "https://example.com/translate",
                 apiKey: "",
-                model: ""
+                model: "",
+                targetLanguage: ""
             ),
             isConfigured: true
         )
@@ -31,7 +32,8 @@ final class TranslationSettingsPanelTests: XCTestCase {
             draft: ScreenshotTranslationSettingsDraft(
                 endpoint: "not a url",
                 apiKey: "",
-                model: ""
+                model: "",
+                targetLanguage: ""
             ),
             isConfigured: false
         )
