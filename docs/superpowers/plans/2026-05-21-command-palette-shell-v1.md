@@ -1964,3 +1964,26 @@ After all tasks are complete, verify these behaviors manually by running the app
 - Snippets
 - Frecency-based ranking
 - App rescan on install/uninstall (only scans at launch)
+
+---
+
+## Verification Notes
+
+Completed on 2026-05-21 on branch `codex/command-palette-shell-v1`.
+
+- Swift parse: `swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Atlas/CommandPalette/*.swift platforms/macos/Generated/AtlasFFI/atlas.swift` passed with no output.
+- Focused command palette and affected-module tests passed with 85 tests and 0 failures:
+  - `AtlasCommandProviderTests`
+  - `AppLauncherProviderTests`
+  - `GlobalHotkeyServiceTests`
+  - `KeyRecorderViewTests`
+  - `CommandPaletteModelsTests`
+  - `ScreenshotModelsTests`
+  - `ScreenshotEditorRendererTests`
+  - `ScreenshotLibraryTests`
+  - `ScreenshotLibraryPanelTests`
+  - `ScreenshotTranslationConfigurationTests`
+  - `TranslationSettingsPanelTests`
+- Full macOS tests: `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destination 'platform=macOS'` passed with 177 tests and 0 failures.
+- Non-blocking environment warnings: Xcode reported CoreSimulator out of date and multiple matching macOS destinations, then used the first macOS destination and completed successfully.
+- Manual app verification was not run; this follows the project preference that unit tests are sufficient unless explicitly requested.
