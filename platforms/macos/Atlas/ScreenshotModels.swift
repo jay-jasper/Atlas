@@ -30,6 +30,67 @@ enum ScreenshotTool: String, CaseIterable, Identifiable {
     }
 }
 
+enum ScreenshotAnnotationColor: String, CaseIterable, Identifiable {
+    case red
+    case yellow
+    case green
+    case blue
+    case white
+    case black
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .red:
+            return "Red"
+        case .yellow:
+            return "Yellow"
+        case .green:
+            return "Green"
+        case .blue:
+            return "Blue"
+        case .white:
+            return "White"
+        case .black:
+            return "Black"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .red:
+            return .red
+        case .yellow:
+            return .yellow
+        case .green:
+            return .green
+        case .blue:
+            return .blue
+        case .white:
+            return .white
+        case .black:
+            return .black
+        }
+    }
+}
+
+struct ScreenshotAnnotationStyle: Equatable {
+    static let defaultStyle = ScreenshotAnnotationStyle(colorChoice: .red, lineWidth: 2)
+
+    let colorChoice: ScreenshotAnnotationColor
+    let lineWidth: CGFloat
+
+    var color: Color {
+        colorChoice.color
+    }
+
+    init(colorChoice: ScreenshotAnnotationColor, lineWidth: CGFloat) {
+        self.colorChoice = colorChoice
+        self.lineWidth = min(12, max(1, lineWidth))
+    }
+}
+
 enum ScreenshotAnnotationKind: Equatable {
     case rectangle
     case arrow

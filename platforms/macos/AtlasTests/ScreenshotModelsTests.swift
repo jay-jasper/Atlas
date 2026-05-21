@@ -89,6 +89,35 @@ final class ScreenshotModelsTests: XCTestCase {
         XCTAssertEqual(annotation.points, [])
     }
 
+    func testAnnotationColorMetadata() {
+        XCTAssertEqual(ScreenshotAnnotationColor.allCases.map(\.rawValue), [
+            "red",
+            "yellow",
+            "green",
+            "blue",
+            "white",
+            "black",
+        ])
+
+        XCTAssertEqual(ScreenshotAnnotationColor.red.title, "Red")
+        XCTAssertEqual(ScreenshotAnnotationColor.blue.color, .blue)
+        XCTAssertEqual(ScreenshotAnnotationColor.black.id, "black")
+    }
+
+    func testDefaultAnnotationStyleMatchesCurrentEditorBehavior() {
+        let style = ScreenshotAnnotationStyle.defaultStyle
+
+        XCTAssertEqual(style.colorChoice, .red)
+        XCTAssertEqual(style.color, .red)
+        XCTAssertEqual(style.lineWidth, 2)
+    }
+
+    func testAnnotationStyleClampsLineWidth() {
+        XCTAssertEqual(ScreenshotAnnotationStyle(colorChoice: .green, lineWidth: 0).lineWidth, 1)
+        XCTAssertEqual(ScreenshotAnnotationStyle(colorChoice: .green, lineWidth: 20).lineWidth, 12)
+        XCTAssertEqual(ScreenshotAnnotationStyle(colorChoice: .green, lineWidth: 6).lineWidth, 6)
+    }
+
     func testCapturedScreenshotInitialization() {
         let id = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
         let data = Data([0x89, 0x50, 0x4e, 0x47])
