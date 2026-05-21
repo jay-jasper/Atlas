@@ -55,6 +55,41 @@ final class WindowManagementServiceTests: XCTestCase {
         XCTAssertEqual(frame, screen)
     }
 
+    func testConvertsAXFrameToAppKitFrameUsingScreenCoordinateSpace() {
+        let frame = WindowCoordinateConverter.appKitFrame(
+            fromAXFrame: CGRect(x: 100, y: 100, width: 400, height: 300),
+            inScreenFrame: screen
+        )
+
+        XCTAssertEqual(frame, CGRect(x: 100, y: 500, width: 400, height: 300))
+    }
+
+    func testConvertsAppKitFrameToAXFrameUsingScreenCoordinateSpace() {
+        let frame = WindowCoordinateConverter.axFrame(
+            fromAppKitFrame: CGRect(x: 100, y: 500, width: 400, height: 300),
+            inScreenFrame: screen
+        )
+
+        XCTAssertEqual(frame, CGRect(x: 100, y: 100, width: 400, height: 300))
+    }
+
+    func testCoordinateConversionRoundTripsWithNonZeroScreenOrigin() {
+        let screen = CGRect(x: 200, y: 50, width: 1_440, height: 900)
+        let axFrame = CGRect(x: 300, y: 150, width: 400, height: 300)
+
+        let appKitFrame = WindowCoordinateConverter.appKitFrame(
+            fromAXFrame: axFrame,
+            inScreenFrame: screen
+        )
+        let convertedAXFrame = WindowCoordinateConverter.axFrame(
+            fromAppKitFrame: appKitFrame,
+            inScreenFrame: screen
+        )
+
+        XCTAssertEqual(appKitFrame, CGRect(x: 300, y: 550, width: 400, height: 300))
+        XCTAssertEqual(convertedAXFrame, axFrame)
+    }
+
     func testActionTitlesAreStable() {
         XCTAssertEqual(WindowManagementAction.center.title, "Center Frontmost Window")
         XCTAssertEqual(WindowManagementAction.leftHalf.title, "Move Frontmost Window Left Half")

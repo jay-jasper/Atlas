@@ -76,24 +76,52 @@ enum WindowFrameCalculator {
     }
 }
 
+enum WindowCoordinateConverter {
+    static func appKitFrame(fromAXFrame frame: CGRect, inScreenFrame screenFrame: CGRect) -> CGRect {
+        CGRect(
+            x: frame.minX,
+            y: screenFrame.maxY + screenFrame.minY - frame.maxY,
+            width: frame.width,
+            height: frame.height
+        )
+    }
+
+    static func axFrame(fromAppKitFrame frame: CGRect, inScreenFrame screenFrame: CGRect) -> CGRect {
+        CGRect(
+            x: frame.minX,
+            y: screenFrame.maxY + screenFrame.minY - frame.maxY,
+            width: frame.width,
+            height: frame.height
+        )
+    }
+}
+
 final class AccessibilityWindowManager: WindowManaging {
     @discardableResult
     func perform(_ action: WindowManagementAction) -> Bool {
         guard
             let window = focusedWindow(),
-            let currentFrame = frame(of: window),
-            let screen = screen(for: currentFrame)
+            let currentAXFrame = frame(of: window),
+            let screen = screen(forAXFrame: currentAXFrame)
         else {
             return false
         }
 
-        let targetFrame = WindowFrameCalculator.frame(
+        let currentAppKitFrame = WindowCoordinateConverter.appKitFrame(
+            fromAXFrame: currentAXFrame,
+            inScreenFrame: screen.frame
+        )
+        let targetAppKitFrame = WindowFrameCalculator.frame(
             for: action,
-            currentFrame: currentFrame,
+            currentFrame: currentAppKitFrame,
             visibleScreenFrame: screen.visibleFrame
         )
+        let targetAXFrame = WindowCoordinateConverter.axFrame(
+            fromAppKitFrame: targetAppKitFrame,
+            inScreenFrame: screen.frame
+        )
 
-        return setFrame(targetFrame, for: window)
+        return setFrame(targetAXFrame, for: window)
     }
 
     private func focusedWindow() -> AXUIElement? {
@@ -111,7 +139,7 @@ final class AccessibilityWindowManager: WindowManaging {
             return nil
         }
 
-        return rawWindow as! AXUIElement?
+        return axUIElement(from: rawWindow)
     }
 
     private func frame(of window: AXUIElement) -> CGRect? {
@@ -156,13 +184,36 @@ final class AccessibilityWindowManager: WindowManaging {
             return nil
         }
 
-        return (rawValue as! AXValue)
+        return unsafeBitCast(rawValue, to: AXValue.self)
     }
 
-    private func screen(for frame: CGRect) -> NSScreen? {
-        let center = CGPoint(x: frame.midX, y: frame.midY)
-        return NSScreen.screens.first { $0.visibleFrame.contains(center) }
-            ?? NSScreen.screens.first { $0.visibleFrame.intersects(frame) }
+    private func axUIElement(from rawValue: CFTypeRef?) -> AXUIElement? {
+        guard let rawValue, CFGetTypeID(rawValue) == AXUIElementGetTypeID() else {
+            return nil
+        }
+
+        return unsafeBitCast(rawValue, to: AXUIElement.self)
+    }
+
+    private func screen(forAXFrame frame: CGRect) -> NSScreen? {
+        matchingScreen(forAXFrame: frame) ?? NSScreen.main
+    }
+
+    private func matchingScreen(forAXFrame frame: CGRect) -> NSScreen? {
+        NSScreen.screens.first { screen in
+            let appKitFrame = WindowCoordinateConverter.appKitFrame(
+                fromAXFrame: frame,
+                inScreenFrame: screen.frame
+            )
+            let center = CGPoint(x: appKitFrame.midX, y: appKitFrame.midY)
+            return screen.visibleFrame.contains(center)
+        } ?? NSScreen.screens.first { screen in
+            let appKitFrame = WindowCoordinateConverter.appKitFrame(
+                fromAXFrame: frame,
+                inScreenFrame: screen.frame
+            )
+            return screen.visibleFrame.intersects(appKitFrame)
+        }
     }
 
     private func setFrame(_ frame: CGRect, for window: AXUIElement) -> Bool {
