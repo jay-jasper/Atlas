@@ -36,11 +36,13 @@ final class CommandPaletteState: ObservableObject {
                 NSApp.activate(ignoringOtherApps: true)
             }
         )
+        let developerToolsProvider = DeveloperToolsProvider()
         let clipboardHistoryProvider = ClipboardHistoryProvider()
         let appLauncherProvider = AppLauncherProvider()
 
         self.controller = CommandPaletteController(providers: [
             atlasProvider,
+            developerToolsProvider,
             clipboardHistoryProvider,
             appLauncherProvider,
         ])
