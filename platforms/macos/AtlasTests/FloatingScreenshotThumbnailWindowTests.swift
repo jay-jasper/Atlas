@@ -66,6 +66,10 @@ final class FloatingScreenshotThumbnailWindowTests: XCTestCase {
         XCTAssertEqual(FloatingScreenshotThumbnailActionResult.dismissed.statusText, "Dismissed")
     }
 
+    func testActionResultDraggedStatusText() {
+        XCTAssertEqual(FloatingScreenshotThumbnailActionResult.dragged.statusText, "Ready to drag")
+    }
+
     func testActionStateAppliesResults() {
         var state = FloatingScreenshotThumbnailActionState()
 
@@ -74,6 +78,14 @@ final class FloatingScreenshotThumbnailWindowTests: XCTestCase {
         XCTAssertEqual(state.statusText, "Copied")
         state.apply(.saved(filename: "One.png"))
         XCTAssertEqual(state.statusText, "Saved One.png")
+    }
+
+    func testActionStateAppliesDraggedResult() {
+        var state = FloatingScreenshotThumbnailActionState()
+
+        state.apply(.dragged)
+
+        XCTAssertEqual(state.statusText, "Ready to drag")
     }
 
     func testActionStateStatusTextChangesAfterEachResult() {

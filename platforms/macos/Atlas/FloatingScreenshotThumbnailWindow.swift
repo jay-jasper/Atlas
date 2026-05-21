@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 enum FloatingScreenshotThumbnailAction: CaseIterable, Equatable {
     case open
@@ -38,6 +39,7 @@ enum FloatingScreenshotThumbnailActionResult: Equatable {
     case ready
     case openedEditor
     case copied
+    case dragged
     case saved(filename: String)
     case saveCancelled
     case dismissed
@@ -50,6 +52,8 @@ enum FloatingScreenshotThumbnailActionResult: Equatable {
             return "Opened editor"
         case .copied:
             return "Copied"
+        case .dragged:
+            return "Ready to drag"
         case .saved(let filename):
             return "Saved \(filename)"
         case .saveCancelled:
@@ -119,7 +123,8 @@ final class FloatingScreenshotThumbnailWindow {
         onOpen: @escaping () -> FloatingScreenshotThumbnailActionResult,
         onCopy: @escaping (Data) -> FloatingScreenshotThumbnailActionResult,
         onSave: @escaping (Data) -> FloatingScreenshotThumbnailActionResult,
-        onDismiss: @escaping () -> FloatingScreenshotThumbnailActionResult
+        onDismiss: @escaping () -> FloatingScreenshotThumbnailActionResult,
+        onDragItemProvider: @escaping () -> NSItemProvider
     ) {
         if Thread.isMainThread {
             showOnMain(
@@ -127,7 +132,8 @@ final class FloatingScreenshotThumbnailWindow {
                 onOpen: onOpen,
                 onCopy: onCopy,
                 onSave: onSave,
-                onDismiss: onDismiss
+                onDismiss: onDismiss,
+                onDragItemProvider: onDragItemProvider
             )
         } else {
             DispatchQueue.main.async {
@@ -136,7 +142,8 @@ final class FloatingScreenshotThumbnailWindow {
                     onOpen: onOpen,
                     onCopy: onCopy,
                     onSave: onSave,
-                    onDismiss: onDismiss
+                    onDismiss: onDismiss,
+                    onDragItemProvider: onDragItemProvider
                 )
             }
         }
@@ -157,7 +164,8 @@ final class FloatingScreenshotThumbnailWindow {
         onOpen: @escaping () -> FloatingScreenshotThumbnailActionResult,
         onCopy: @escaping (Data) -> FloatingScreenshotThumbnailActionResult,
         onSave: @escaping (Data) -> FloatingScreenshotThumbnailActionResult,
-        onDismiss: @escaping () -> FloatingScreenshotThumbnailActionResult
+        onDismiss: @escaping () -> FloatingScreenshotThumbnailActionResult,
+        onDragItemProvider: @escaping () -> NSItemProvider
     ) {
         guard let image = NSImage(data: screenshot.pngData) else { return }
 
@@ -181,7 +189,8 @@ final class FloatingScreenshotThumbnailWindow {
                 let result = onDismiss()
                 dismissOnMain()
                 return result
-            }
+            },
+            onDragItemProvider: onDragItemProvider
         )
 
         let screenFrame = NSScreen.main?.visibleFrame ?? CGRect(x: 0, y: 0, width: 800, height: 600)
@@ -240,6 +249,7 @@ struct FloatingScreenshotThumbnailView: View {
     let onCopy: () -> FloatingScreenshotThumbnailActionResult
     let onSave: () -> FloatingScreenshotThumbnailActionResult
     let onDismiss: () -> FloatingScreenshotThumbnailActionResult
+    let onDragItemProvider: () -> NSItemProvider
 
     @State private var actionState = FloatingScreenshotThumbnailActionState()
 
@@ -253,6 +263,14 @@ struct FloatingScreenshotThumbnailView: View {
                 .contentShape(Rectangle())
                 .onTapGesture {
                     perform(.open)
+                }
+                .onDrag {
+                    let provider = onDragItemProvider()
+                    if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier)
+                        || provider.hasItemConformingToTypeIdentifier(UTType.png.identifier) {
+                        actionState.apply(.dragged)
+                    }
+                    return provider
                 }
 
             VStack(spacing: 0) {

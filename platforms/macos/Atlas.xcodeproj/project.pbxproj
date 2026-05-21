@@ -76,6 +76,8 @@
 		83CBBB131A601CBA00E9B192 /* AtlasBridgeFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB141A601CBA00E9B192 /* AtlasBridgeFeatureTests.swift */; };
 		83CBBB151A601CBA00E9B192 /* FeatureState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB171A601CBA00E9B192 /* FeatureState.swift */; };
 		83CBBB161A601CBA00E9B192 /* FeatureStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBB181A601CBA00E9B192 /* FeatureStateTests.swift */; };
+		83CBBC011A601CBA00E9B192 /* ScreenshotDragOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBC001A601CBA00E9B192 /* ScreenshotDragOutput.swift */; };
+		83CBBC031A601CBA00E9B192 /* ScreenshotDragOutputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBC021A601CBA00E9B192 /* ScreenshotDragOutputTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -164,6 +166,8 @@
 		83CBBB141A601CBA00E9B192 /* AtlasBridgeFeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtlasBridgeFeatureTests.swift; sourceTree = "<group>"; };
 		83CBBB171A601CBA00E9B192 /* FeatureState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureState.swift; sourceTree = "<group>"; };
 		83CBBB181A601CBA00E9B192 /* FeatureStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureStateTests.swift; sourceTree = "<group>"; };
+		83CBBC001A601CBA00E9B192 /* ScreenshotDragOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotDragOutput.swift; sourceTree = "<group>"; };
+		83CBBC021A601CBA00E9B192 /* ScreenshotDragOutputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotDragOutputTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -230,6 +234,7 @@
 				83CBBBB11A601CBA00E9B192 /* FloatingScreenshotThumbnailWindow.swift */,
 				83CBBA981A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift */,
 				83CBBA9E1A601CBA00E9B192 /* ScreenshotCaptureMode.swift */,
+				83CBBC001A601CBA00E9B192 /* ScreenshotDragOutput.swift */,
 				83CBBA3E1A601CBA00E9B192 /* ScreenshotModels.swift */,
 				83CBBA6A1A601CBA00E9B192 /* ScreenshotEditorView.swift */,
 				83CBBA671A601CBA00E9B192 /* ScreenshotOutput.swift */,
@@ -267,6 +272,7 @@
 				83CBBB081A601CBA00E9B192 /* MonitoringServiceTests.swift */,
 				83CBBA991A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift */,
 				83CBBA9F1A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift */,
+				83CBBC021A601CBA00E9B192 /* ScreenshotDragOutputTests.swift */,
 				83CBBB3B1A601CBA00E9B192 /* ScreenshotFeatureSettingsTests.swift */,
 				83CBBB3F1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanelTests.swift */,
 				83CBBBA31A601CBA00E9B192 /* ScreenshotLibraryTests.swift */,
@@ -428,6 +434,7 @@
 				83CBBBB01A601CBA00E9B192 /* FloatingScreenshotThumbnailWindow.swift in Sources */,
 				83CBBA961A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift in Sources */,
 				83CBBAA01A601CBA00E9B192 /* ScreenshotCaptureMode.swift in Sources */,
+				83CBBC011A601CBA00E9B192 /* ScreenshotDragOutput.swift in Sources */,
 				83CBBA2C1A601CBA00E9B192 /* ScreenshotModels.swift in Sources */,
 				83CBBA6B1A601CBA00E9B192 /* ScreenshotEditorView.swift in Sources */,
 				83CBBA661A601CBA00E9B192 /* ScreenshotOutput.swift in Sources */,
@@ -464,6 +471,7 @@
 				83CBBB061A601CBA00E9B192 /* MonitoringServiceTests.swift in Sources */,
 				83CBBA971A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift in Sources */,
 				83CBBAA11A601CBA00E9B192 /* ScreenshotCaptureModeTests.swift in Sources */,
+				83CBBC031A601CBA00E9B192 /* ScreenshotDragOutputTests.swift in Sources */,
 				83CBBB3A1A601CBA00E9B192 /* ScreenshotFeatureSettingsTests.swift in Sources */,
 				83CBBB3E1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanelTests.swift in Sources */,
 				83CBBBA21A601CBA00E9B192 /* ScreenshotLibraryTests.swift in Sources */,

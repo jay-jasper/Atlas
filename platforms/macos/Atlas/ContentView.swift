@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 private enum CaptureStatusKind {
     case success
@@ -31,6 +32,7 @@ struct ContentView: View {
     private let screenshotFeatureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigurationStore = ScreenshotTranslationConfigurationStore()
     private let screenshotLibraryStore = ScreenshotLibraryStore()
+    private let screenshotDragOutputStore = ScreenshotDragOutputStore()
 
     var body: some View {
         ZStack {
@@ -129,6 +131,7 @@ struct ContentView: View {
         loadScreenshotFeatureSettings()
         loadTranslationSettings()
         loadScreenshotLibrary()
+        cleanupScreenshotDragOutput()
 
         do {
             let loadedFeatures = try AtlasBridge.listFeatures()
@@ -388,6 +391,16 @@ struct ContentView: View {
         }
     }
 
+    private func cleanupScreenshotDragOutput() {
+        do {
+            try screenshotDragOutputStore.cleanupFiles(
+                olderThan: ScreenshotDragOutputStore.cleanupCutoff()
+            )
+        } catch {
+            showStatus(error.localizedDescription, kind: .error, autoHide: false)
+        }
+    }
+
     private func recordScreenshotInLibrary(_ screenshot: CapturedScreenshot, source: String) -> UUID? {
         do {
             let item = try screenshotLibraryStore.addScreenshot(
@@ -415,8 +428,24 @@ struct ContentView: View {
             },
             onCopy: copyScreenshotFromThumbnail,
             onSave: saveScreenshotFromThumbnail,
-            onDismiss: dismissFloatingThumbnail
+            onDismiss: dismissFloatingThumbnail,
+            onDragItemProvider: {
+                dragItemProvider(for: screenshot)
+            }
         )
+    }
+
+    private func dragItemProvider(for screenshot: CapturedScreenshot) -> NSItemProvider {
+        do {
+            return try screenshotDragOutputStore.makeItemProvider(
+                pngData: screenshot.pngData,
+                id: screenshot.id,
+                date: screenshot.capturedAt
+            )
+        } catch {
+            showStatus(error.localizedDescription, kind: .error, autoHide: false)
+            return NSItemProvider(item: screenshot.pngData as NSData, typeIdentifier: UTType.png.identifier)
+        }
     }
 
     private func openFloatingThumbnail(
