@@ -20,6 +20,7 @@ struct ScreenshotEditorView: View {
     @State private var selectedTool: ScreenshotTool = .rectangle
     @State private var selectedAnnotationColor: ScreenshotAnnotationColor = ScreenshotAnnotationStyle.defaultStyle.colorChoice
     @State private var annotationLineWidth: CGFloat = ScreenshotAnnotationStyle.defaultStyle.lineWidth
+    @State private var textAnnotationDraft = ScreenshotTextAnnotationDraft()
     @State private var annotations: [ScreenshotAnnotation] = []
     @State private var dragStart: CGPoint?
     @State private var canvasSize: CGSize = .zero
@@ -85,6 +86,14 @@ struct ScreenshotEditorView: View {
                 }
                 .help("Line Width")
                 .controlSize(.small)
+
+                if selectedTool == .text {
+                    TextField("Text", text: $textAnnotationDraft.rawValue)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.caption)
+                        .frame(width: 96)
+                        .help("Text Annotation")
+                }
             }
 
             Spacer()
@@ -240,7 +249,11 @@ struct ScreenshotEditorView: View {
                 case .pen:
                     annotations.append(.pen(points: [start, value.location], color: style.color, lineWidth: style.lineWidth))
                 case .text:
-                    annotations.append(.text(value: "Text", rect: rect.width > 8 && rect.height > 8 ? rect : CGRect(x: start.x, y: start.y, width: 80, height: 28), color: style.color))
+                    annotations.append(.text(
+                        value: textAnnotationDraft.annotationValue,
+                        rect: rect.width > 8 && rect.height > 8 ? rect : CGRect(x: start.x, y: start.y, width: 80, height: 28),
+                        color: style.color
+                    ))
                 case .pixelate:
                     annotations.append(.pixelate(rect: rect))
                 }
