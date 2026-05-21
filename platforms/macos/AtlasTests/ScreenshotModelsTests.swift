@@ -118,6 +118,32 @@ final class ScreenshotModelsTests: XCTestCase {
         XCTAssertEqual(ScreenshotAnnotationStyle(colorChoice: .green, lineWidth: 6).lineWidth, 6)
     }
 
+    func testTextAnnotationDraftDefaultsToText() {
+        let draft = ScreenshotTextAnnotationDraft()
+
+        XCTAssertEqual(draft.rawValue, "Text")
+        XCTAssertEqual(draft.annotationValue, "Text")
+    }
+
+    func testTextAnnotationDraftTrimsAnnotationValue() {
+        let draft = ScreenshotTextAnnotationDraft(rawValue: "  Release 1.0  ")
+
+        XCTAssertEqual(draft.rawValue, "  Release 1.0  ")
+        XCTAssertEqual(draft.annotationValue, "Release 1.0")
+    }
+
+    func testTextAnnotationDraftFallsBackForBlankValues() {
+        XCTAssertEqual(ScreenshotTextAnnotationDraft(rawValue: "").annotationValue, "Text")
+        XCTAssertEqual(ScreenshotTextAnnotationDraft(rawValue: "   \n\t  ").annotationValue, "Text")
+    }
+
+    func testTextAnnotationDraftLimitsLength() {
+        let draft = ScreenshotTextAnnotationDraft(rawValue: String(repeating: "A", count: 120))
+
+        XCTAssertEqual(draft.annotationValue.count, ScreenshotTextAnnotationDraft.maximumLength)
+        XCTAssertEqual(draft.annotationValue, String(repeating: "A", count: ScreenshotTextAnnotationDraft.maximumLength))
+    }
+
     func testCapturedScreenshotInitialization() {
         let id = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
         let data = Data([0x89, 0x50, 0x4e, 0x47])
