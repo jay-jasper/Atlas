@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 enum FloatingScreenshotThumbnailAction: CaseIterable, Equatable {
     case open
@@ -264,8 +265,12 @@ struct FloatingScreenshotThumbnailView: View {
                     perform(.open)
                 }
                 .onDrag {
-                    actionState.apply(.dragged)
-                    return onDragItemProvider()
+                    let provider = onDragItemProvider()
+                    if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier)
+                        || provider.hasItemConformingToTypeIdentifier(UTType.png.identifier) {
+                        actionState.apply(.dragged)
+                    }
+                    return provider
                 }
 
             VStack(spacing: 0) {

@@ -46,14 +46,24 @@ final class ScreenshotDragOutputTests: XCTestCase {
     }
 
     func testMakeItemProviderRegistersFileURLAndPNGType() throws {
+        let pngData = Data([1, 2, 3])
         let provider = try store.makeItemProvider(
-            pngData: Data([1, 2, 3]),
+            pngData: pngData,
             id: UUID(uuidString: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE")!,
             date: Date(timeIntervalSince1970: 1_704_067_200)
         )
 
         XCTAssertTrue(provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier))
         XCTAssertTrue(provider.hasItemConformingToTypeIdentifier(UTType.png.identifier))
+
+        let expectation = expectation(description: "Load PNG data representation")
+        provider.loadDataRepresentation(forTypeIdentifier: UTType.png.identifier) { data, error in
+            XCTAssertNil(error)
+            XCTAssertEqual(data, pngData)
+            expectation.fulfill()
+        }
+
+        wait(for: [expectation], timeout: 1)
     }
 
     func testCleanupRemovesOnlyOldDragFiles() throws {

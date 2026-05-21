@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 private enum CaptureStatusKind {
     case success
@@ -432,7 +433,7 @@ struct ContentView: View {
             )
         } catch {
             showStatus(error.localizedDescription, kind: .error, autoHide: false)
-            return NSItemProvider()
+            return NSItemProvider(item: screenshot.pngData as NSData, typeIdentifier: UTType.png.identifier)
         }
     }
 
