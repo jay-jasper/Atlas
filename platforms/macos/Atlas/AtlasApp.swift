@@ -37,12 +37,14 @@ final class CommandPaletteState: ObservableObject {
             }
         )
         let developerToolsProvider = DeveloperToolsProvider()
+        let windowManagementProvider = WindowManagementProvider()
         let clipboardHistoryProvider = ClipboardHistoryProvider()
         let appLauncherProvider = AppLauncherProvider()
 
         self.controller = CommandPaletteController(providers: [
             atlasProvider,
             developerToolsProvider,
+            windowManagementProvider,
             clipboardHistoryProvider,
             appLauncherProvider,
         ])
