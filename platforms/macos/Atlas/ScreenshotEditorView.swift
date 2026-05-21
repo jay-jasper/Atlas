@@ -42,74 +42,76 @@ struct ScreenshotEditorView: View {
     }
 
     private var toolbar: some View {
-        HStack(spacing: 8) {
-            if capabilities.annotations {
-                ForEach(ScreenshotTool.allCases) { tool in
-                    Button {
-                        selectedTool = tool
-                    } label: {
-                        Image(systemName: tool.systemImage)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                if capabilities.annotations {
+                    ForEach(ScreenshotTool.allCases) { tool in
+                        Button {
+                            selectedTool = tool
+                        } label: {
+                            Image(systemName: tool.systemImage)
+                        }
+                        .help(tool.title)
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .background(selectedTool == tool ? Color.accentColor.opacity(0.18) : Color.clear)
+                        .cornerRadius(6)
                     }
-                    .help(tool.title)
-                    .buttonStyle(.bordered)
+
+                    Divider()
+                        .frame(height: 18)
+
+                    ForEach(ScreenshotAnnotationColor.allCases) { colorChoice in
+                        Button {
+                            selectedAnnotationColor = colorChoice
+                        } label: {
+                            Circle()
+                                .fill(colorChoice.color)
+                                .overlay(
+                                    Circle()
+                                        .stroke(
+                                            selectedAnnotationColor == colorChoice ? Color.accentColor : Color.secondary.opacity(0.35),
+                                            lineWidth: selectedAnnotationColor == colorChoice ? 2 : 1
+                                        )
+                                )
+                                .frame(width: 14, height: 14)
+                        }
+                        .buttonStyle(.plain)
+                        .help(colorChoice.title)
+                    }
+
+                    Stepper(value: $annotationLineWidth, in: 1...12, step: 1) {
+                        Text("\(Int(annotationLineWidth)) px")
+                            .font(.caption)
+                            .frame(width: 34, alignment: .trailing)
+                    }
+                    .help("Line Width")
                     .controlSize(.small)
-                    .background(selectedTool == tool ? Color.accentColor.opacity(0.18) : Color.clear)
-                    .cornerRadius(6)
                 }
 
-                Divider()
-                    .frame(height: 18)
+                Spacer()
 
-                ForEach(ScreenshotAnnotationColor.allCases) { colorChoice in
-                    Button {
-                        selectedAnnotationColor = colorChoice
-                    } label: {
-                        Circle()
-                            .fill(colorChoice.color)
-                            .overlay(
-                                Circle()
-                                    .stroke(
-                                        selectedAnnotationColor == colorChoice ? Color.accentColor : Color.secondary.opacity(0.35),
-                                        lineWidth: selectedAnnotationColor == colorChoice ? 2 : 1
-                                    )
-                            )
-                            .frame(width: 14, height: 14)
-                    }
-                    .buttonStyle(.plain)
-                    .help(colorChoice.title)
+                Button {
+                    annotations.removeLast()
+                } label: {
+                    Image(systemName: "arrow.uturn.backward")
                 }
+                .disabled(annotations.isEmpty)
+                .help("Undo")
 
-                Stepper(value: $annotationLineWidth, in: 1...12, step: 1) {
-                    Text("\(Int(annotationLineWidth)) px")
-                        .font(.caption)
-                        .frame(width: 34, alignment: .trailing)
+                Button(action: onClose) {
+                    Image(systemName: "xmark")
                 }
-                .help("Line Width")
-                .controlSize(.small)
-
-                if selectedTool == .text {
-                    TextField("Text", text: $textAnnotationDraft.rawValue)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.caption)
-                        .frame(width: 96)
-                        .help("Text Annotation")
-                }
+                .help("Close")
             }
 
-            Spacer()
-
-            Button {
-                annotations.removeLast()
-            } label: {
-                Image(systemName: "arrow.uturn.backward")
+            if capabilities.annotations && selectedTool == .text {
+                TextField("Text", text: $textAnnotationDraft.rawValue)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.caption)
+                    .frame(maxWidth: .infinity)
+                    .help("Text Annotation")
             }
-            .disabled(annotations.isEmpty)
-            .help("Undo")
-
-            Button(action: onClose) {
-                Image(systemName: "xmark")
-            }
-            .help("Close")
         }
         .padding(10)
     }
