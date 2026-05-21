@@ -721,3 +721,18 @@ git commit -m "docs: add command palette window management plan"
 2. **Placeholder scan:** The plan contains concrete file paths, exact test code, implementation code, commands, expected results, and commit messages. It contains no undefined placeholder steps.
 
 3. **Type consistency:** `WindowManagementAction`, `WindowManaging`, `WindowFrameCalculator`, `AccessibilityWindowManager`, and `WindowManagementProvider` are introduced before later tasks reference them. Provider tests use the same `WindowManaging.perform(_:)` signature defined in Task 1.
+
+## Verification Notes
+
+Completed on 2026-05-22 on branch `codex/command-palette-window-management-v1`.
+
+- Focused provider/service tests:
+  - `WindowManagementProviderTests`
+  - `WindowManagementServiceTests`
+  - `DeveloperToolsProviderTests`
+  - `ClipboardHistoryProviderTests`
+  - `AppLauncherProviderTests`
+  - `AtlasCommandProviderTests`
+- Full macOS test suite:
+  - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destination 'platform=macOS'`
+- Manual window movement verification was not run; this follows the project preference that unit tests are sufficient unless explicitly requested.
