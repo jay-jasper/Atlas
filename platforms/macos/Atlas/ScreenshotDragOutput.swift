@@ -29,6 +29,10 @@ struct ScreenshotDragOutputStore {
         return "Atlas Drag Screenshot \(formatter.string(from: date)) \(prefix).png"
     }
 
+    static func cleanupCutoff(now: Date = Date()) -> Date {
+        now.addingTimeInterval(-86_400)
+    }
+
     func makeDragItem(
         pngData: Data,
         id: UUID,

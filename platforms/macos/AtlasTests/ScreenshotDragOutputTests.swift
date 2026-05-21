@@ -103,4 +103,11 @@ final class ScreenshotDragOutputTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: unrelatedPNGURL.path))
         XCTAssertTrue(FileManager.default.fileExists(atPath: pngDirectoryURL.path))
     }
+
+    func testCleanupCutoffForDefaultRetention() {
+        let now = Date(timeIntervalSince1970: 86_400 * 3)
+        let cutoff = ScreenshotDragOutputStore.cleanupCutoff(now: now)
+
+        XCTAssertEqual(cutoff, Date(timeIntervalSince1970: 86_400 * 2))
+    }
 }

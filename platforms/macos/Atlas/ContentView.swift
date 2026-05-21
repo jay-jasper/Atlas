@@ -131,6 +131,7 @@ struct ContentView: View {
         loadScreenshotFeatureSettings()
         loadTranslationSettings()
         loadScreenshotLibrary()
+        cleanupScreenshotDragOutput()
 
         do {
             let loadedFeatures = try AtlasBridge.listFeatures()
@@ -385,6 +386,16 @@ struct ContentView: View {
     private func loadScreenshotLibrary() {
         do {
             screenshotLibraryItems = try screenshotLibraryStore.loadItems()
+        } catch {
+            showStatus(error.localizedDescription, kind: .error, autoHide: false)
+        }
+    }
+
+    private func cleanupScreenshotDragOutput() {
+        do {
+            try screenshotDragOutputStore.cleanupFiles(
+                olderThan: ScreenshotDragOutputStore.cleanupCutoff()
+            )
         } catch {
             showStatus(error.localizedDescription, kind: .error, autoHide: false)
         }
