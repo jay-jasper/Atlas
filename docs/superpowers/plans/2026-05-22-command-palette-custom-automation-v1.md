@@ -1,10 +1,16 @@
-# Command Palette Custom Automation v1 Implementation Plan
+# Command Palette Custom Automation Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add user-defined command palette automations for shell and Python commands, with local storage, explicit execution warnings, timeout handling, output display, Feature Center gating, frecency ranking, and deterministic tests through injected process runners.
 
-**Scope:** This plan adds the first production implementation for custom command automation. It does not add scheduled/background automations, network triggers, AI skills, cloud sync, or a visual workflow builder.
-
 **Architecture:** Keep automation in Swift for this version. Command definitions are stored locally as JSON through a small store. Execution is isolated behind `AutomationProcessRunning` so tests never spawn real processes. The command palette discovers stored automations through a `CustomAutomationProvider`; executing an automation pushes an output view instead of dismissing the palette.
+
+**Tech Stack:** SwiftUI, AppKit, Foundation `Process`, JSON file storage, UserDefaults-backed command usage records, XCTest, Rust Feature Center registry, UniFFI feature list/toggle bridge.
+
+---
+
+**Scope:** This plan adds the first production implementation for custom command automation. It does not add scheduled/background automations, network triggers, AI skills, cloud sync, or a visual workflow builder.
 
 ## Files
 
@@ -24,7 +30,6 @@
 - Create: `platforms/macos/Atlas/AutomationSettingsView.swift`
 - Modify: `platforms/macos/Atlas/AtlasSettingsView.swift`
 - Create: `platforms/macos/AtlasTests/CustomAutomationStoreTests.swift`
-- Create: `platforms/macos/AtlasTests/AutomationProcessRunnerTests.swift`
 - Create: `platforms/macos/AtlasTests/CustomAutomationProviderTests.swift`
 - Create: `platforms/macos/AtlasTests/AutomationOutputViewTests.swift`
 - Modify: `platforms/macos/AtlasTests/FeatureModelsTests.swift`
@@ -356,24 +361,37 @@ final class SystemAutomationProcessRunner: AutomationProcessRunning {
 }
 ```
 
-- [ ] **Step 2: Add process runner tests with injected fixtures**
+- [ ] **Step 2: Keep process execution tests injected**
 
-Create `platforms/macos/AtlasTests/AutomationProcessRunnerTests.swift`. Test the public behavior with tiny local commands only:
+Do not add XCTest coverage that starts `/bin/zsh`, `/usr/bin/python3`, or any other real process. The production `SystemAutomationProcessRunner` is covered by direct code review and by higher-level tests that inject fake `AutomationProcessRunning` implementations.
 
-- shell command returns stdout
-- Python command returns stdout
-- non-zero command captures stderr and exit code
-- slow command times out and returns `didTimeOut == true`
+Timeout, stdout, stderr, and non-zero exit behavior are verified in `platforms/macos/AtlasTests/AutomationOutputViewTests.swift` by returning deterministic `AutomationProcessResult` values from a fake runner:
 
-Use low timeouts and skip real process tests only if `/bin/zsh` or `/usr/bin/python3` is unavailable.
+```swift
+private final class FakeAutomationRunner: AutomationProcessRunning {
+    private(set) var executed: [CustomAutomationCommand] = []
+    var result = AutomationProcessResult(
+        exitCode: 0,
+        standardOutput: "ok",
+        standardError: "",
+        didTimeOut: false,
+        duration: 0.1
+    )
+
+    func run(_ command: CustomAutomationCommand) async -> AutomationProcessResult {
+        executed.append(command)
+        return result
+    }
+}
+```
 
 Run:
 
 ```bash
-xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/AutomationProcessRunnerTests
+xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/AutomationOutputViewTests
 ```
 
-Expected: Runner tests pass locally. Provider and view tests must use injected fake runners instead of spawning processes.
+Expected: Output tests pass with fake runner results. No test starts a real shell, Python interpreter, or `Process`.
 
 ## Task 4: Provider, Output Destination, and Ranking
 
@@ -709,10 +727,10 @@ Run:
 
 ```bash
 cargo test -p atlas-core test_list_features_is_sorted_by_name
-xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/FeatureModelsTests -only-testing:AtlasTests/CustomAutomationStoreTests -only-testing:AtlasTests/AutomationProcessRunnerTests -only-testing:AtlasTests/CustomAutomationProviderTests -only-testing:AtlasTests/AutomationOutputViewTests
+xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/FeatureModelsTests -only-testing:AtlasTests/CustomAutomationStoreTests -only-testing:AtlasTests/CustomAutomationProviderTests -only-testing:AtlasTests/AutomationOutputViewTests
 ```
 
-Expected: Rust feature and custom automation tests pass.
+Expected: Rust feature and custom automation tests pass. Custom automation tests use fake injected process runners and do not start real shell or Python processes.
 
 - [ ] **Step 2: Run broader Swift verification**
 
@@ -754,4 +772,4 @@ Expected: Commit succeeds. No roadmap or unrelated files are included unless thi
 - Execution has a per-command timeout and reports timeout separately from non-zero exit status.
 - Output view displays stdout, stderr, exit code, timeout state, and empty-output state.
 - Command palette frecency ranking works for automation commands through stable command IDs and existing `CommandUsageStore`.
-- Unit tests cover storage, provider filtering/gating, output view behavior, timeout behavior, and execution using injected fake runners where commands should not spawn real processes.
+- Unit tests cover storage, provider filtering/gating, output view behavior, timeout behavior, and execution flow using injected fake runners. Tests do not start real shell or Python processes.
