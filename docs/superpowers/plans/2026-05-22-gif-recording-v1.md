@@ -100,7 +100,7 @@ XCTAssertEqual(ScreenshotSubfeature.allCases.map(\.rawValue), [
 ])
 ```
 
-- [ ] **Step 2: Run settings tests to verify failure**
+- [x] **Step 2: Run settings tests to verify failure**
 
 Run:
 
@@ -205,7 +205,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit feature gating model**
+- [x] **Step 5: Commit feature gating model**
 
 Run:
 
@@ -266,7 +266,7 @@ final class ScreenshotGIFEncoderTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run encoder tests to verify failure**
+- [x] **Step 2: Run encoder tests to verify failure**
 
 Run:
 
@@ -364,7 +364,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 2 tests.
 
-- [ ] **Step 6: Commit encoder**
+- [x] **Step 6: Commit encoder**
 
 Run:
 
@@ -540,7 +540,7 @@ private extension CGImage {
 }
 ```
 
-- [ ] **Step 2: Run recorder tests to verify failure**
+- [x] **Step 2: Run recorder tests to verify failure**
 
 Run:
 
@@ -716,7 +716,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 3 tests.
 
-- [ ] **Step 6: Commit recorder**
+- [x] **Step 6: Commit recorder**
 
 Run:
 
@@ -770,7 +770,7 @@ final class ScreenshotGIFOutputTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run output tests to verify failure**
+- [x] **Step 2: Run output tests to verify failure**
 
 Run:
 
@@ -854,7 +854,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 2 tests.
 
-- [ ] **Step 6: Commit output helpers**
+- [x] **Step 6: Commit output helpers**
 
 Run:
 
@@ -1099,7 +1099,7 @@ private func startRegionSelection(onSelect: @escaping (CGRect) -> Void) {
 }
 ```
 
-- [ ] **Step 3: Parse Swift files**
+- [x] **Step 3: Parse Swift files**
 
 Run:
 
@@ -1109,7 +1109,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS with no output.
 
-- [ ] **Step 4: Run focused GIF tests**
+- [x] **Step 4: Run focused GIF tests**
 
 Run:
 
@@ -1119,7 +1119,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit UI wiring**
+- [x] **Step 5: Commit UI wiring**
 
 Run:
 
@@ -1137,7 +1137,7 @@ Expected: Commit succeeds.
 **Files:**
 - Read: all files modified by this plan.
 
-- [ ] **Step 1: Run screenshot and GIF tests**
+- [x] **Step 1: Run screenshot and GIF tests**
 
 Run:
 
@@ -1147,7 +1147,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS.
 
-- [ ] **Step 2: Verify tests do not require live Screen Recording permission**
+- [x] **Step 2: Verify tests do not require live Screen Recording permission**
 
 Run:
 
@@ -1157,7 +1157,7 @@ rg -n 'CGPreflightScreenCaptureAccess|CGRequestScreenCaptureAccess|CGWindowListC
 
 Expected: no output. Production files may reference these APIs, but tests must use fakes.
 
-- [ ] **Step 3: Verify no Rust changes are needed**
+- [x] **Step 3: Verify no Rust changes are needed**
 
 Run:
 
@@ -1167,7 +1167,7 @@ git diff -- crates/atlas-core crates/atlas-ffi
 
 Expected: no output.
 
-- [ ] **Step 4: Commit final plan note if this plan file is updated**
+- [x] **Step 4: Commit final plan note if this plan file is updated**
 
 Run:
 
