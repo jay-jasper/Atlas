@@ -777,3 +777,21 @@ git commit -m "docs: add command palette frecency plan"
 2. **Placeholder scan:** The plan contains concrete file paths, exact test code, exact implementation code, commands, expected results, and commit messages. It avoids undefined placeholder work.
 
 3. **Type consistency:** `CommandUsageRecord`, `CommandUsageRecording`, `CommandUsageStore`, and `CommandPaletteRanker` are defined before later tasks reference them. `CommandPaletteView` and `CommandPaletteController` use the same `CommandUsageRecording` protocol introduced in Task 1.
+
+## Verification Notes
+
+Completed on 2026-05-22 on branch `codex/command-palette-frecency-v1`.
+
+- Focused command palette tests:
+  - `CommandUsageStoreTests`
+  - `CommandPaletteRankerTests`
+  - `CommandPaletteModelsTests`
+  - `AtlasCommandProviderTests`
+  - `AppLauncherProviderTests`
+  - `DeveloperToolsProviderTests`
+  - `WindowManagementProviderTests`
+  - `ClipboardHistoryProviderTests`
+  - `SnippetsProviderTests`
+- Full macOS test suite:
+  - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destination 'platform=macOS'`
+- Manual command palette ranking verification was not run; this follows the project preference that unit tests are sufficient unless explicitly requested.
