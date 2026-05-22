@@ -572,6 +572,23 @@ struct ScreenshotGIFRecordingResult: Equatable {
     let region: CGRect
 }
 
+final class ScreenshotGIFRecordingSession {
+    private let lock = NSLock()
+    private var cancelled = false
+
+    func cancel() {
+        lock.lock()
+        cancelled = true
+        lock.unlock()
+    }
+
+    var isCancelled: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return cancelled
+    }
+}
+
 enum ScreenshotGIFRecordingError: LocalizedError, Equatable {
     case screenRecordingPermissionMissing
     case noFramesCaptured
@@ -908,8 +925,8 @@ In `platforms/macos/Atlas/ContentView.swift`, add these properties:
 
 ```swift
 @State private var isRecordingGIF = false
-@State private var stopGIFRecording = false
 @State private var lastGIFOutput: ScreenshotGIFOutputItem?
+@State private var gifRecordingSession: ScreenshotGIFRecordingSession?
 
 private let gifRecorder = ScreenshotGIFRecorder()
 private let gifOutputStore = ScreenshotGIFOutputStore()
@@ -929,9 +946,21 @@ if isRecordingGIF {
         Label("Recording GIF", systemImage: "record.circle")
         Spacer()
         Button("Stop") {
-            stopGIFRecording = true
+            gifRecordingSession?.cancel()
         }
         .buttonStyle(.borderedProminent)
+    }
+}
+
+if let lastGIFOutput, !isRecordingGIF {
+    HStack {
+        Label(lastGIFOutput.filename, systemImage: "photo.stack")
+            .lineLimit(1)
+        Spacer()
+        Button("Copy GIF", action: copyLastGIFRecording)
+            .buttonStyle(.bordered)
+        Button("Save As", action: saveLastGIFRecording)
+            .buttonStyle(.borderedProminent)
     }
 }
 ```
@@ -945,14 +974,15 @@ private func startGIFRegionSelection() {
         return
     }
 
-    startRegionSelection { region in
+    startRegionSelection(onSelect: { region in
         startGIFRecording(in: region)
-    }
+    })
 }
 
 private func startGIFRecording(in region: CGRect) {
+    let session = ScreenshotGIFRecordingSession()
+    gifRecordingSession = session
     isRecordingGIF = true
-    stopGIFRecording = false
 
     DispatchQueue.global(qos: .userInitiated).async {
         do {
@@ -962,18 +992,20 @@ private func startGIFRecording(in region: CGRect) {
                     frameDelay: 0.12,
                     maximumFrames: 600
                 ),
-                shouldStop: { stopGIFRecording }
+                shouldStop: { session.isCancelled }
             )
             let output = try gifOutputStore.writeTemporaryGIF(result.gifData)
 
             DispatchQueue.main.async {
                 lastGIFOutput = output
                 isRecordingGIF = false
+                gifRecordingSession = nil
                 showStatus("Saved GIF recording")
             }
         } catch {
             DispatchQueue.main.async {
                 isRecordingGIF = false
+                gifRecordingSession = nil
                 showStatus(error.localizedDescription, kind: .error)
             }
         }
@@ -1012,14 +1044,25 @@ private func saveLastGIFRecording() {
 }
 ```
 
-If `ContentView` does not already expose `startRegionSelection`, extract the body of the existing area-selection path into:
+Replace the existing `showSelectionWindow()` body with this small delegation, then add the reusable static-presenter helper below it:
 
 ```swift
-private func startRegionSelection(onSelect: @escaping (CGRect) -> Void) {
-    let selection = ScreenshotSelectionWindow { rect in
-        onSelect(rect)
+private func showSelectionWindow() {
+    guard screenshotFeatureSettings.captureCapabilities.area else {
+        showStatus("Area capture is disabled", kind: .error)
+        return
     }
-    selection.show()
+
+    startRegionSelection(onSelect: captureSelection)
+}
+
+private func startRegionSelection(onSelect: @escaping (CGRect) -> Void) {
+    let previewImageData = selectionPreviewImageData()
+    ScreenshotSelectionWindow.show(
+        previewImageData: previewImageData,
+        onCancel: {},
+        onCapture: onSelect
+    )
 }
 ```
 

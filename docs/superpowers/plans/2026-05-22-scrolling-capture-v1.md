@@ -14,7 +14,7 @@
 
 This plan implements Scrolling Capture v1:
 
-- Select a visible window, capture it repeatedly, send scroll events to the window, and stop when the bottom is reached or the maximum frame count is reached.
+- Select a visible window, capture it repeatedly, send scroll events to the window, and stop when the configured maximum frame count is reached.
 - Stitch captured PNG frames vertically with overlap trimming.
 - Save the stitched PNG through `ScreenshotLibraryStore`.
 - Open the stitched capture in the existing screenshot editor and floating thumbnail flow.
@@ -26,7 +26,8 @@ Out of scope for v1:
 
 - Horizontal scrolling.
 - OCR during capture.
-- Auto-detecting every duplicate row perfectly across arbitrary content.
+- Automatic bottom-of-scroll detection.
+- Manual stop controls while scrolling capture is running.
 - Rust or UniFFI changes.
 - GIF recording.
 - Live UI automation against third-party apps.
@@ -428,7 +429,7 @@ final class ScreenshotScrollingCaptureTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: storeRoot) }
         let libraryStore = ScreenshotLibraryStore(rootDirectory: storeRoot)
         let frameCapture = StubScrollingFrameCapture(frames: [frame, frame, frame])
-        let scroller = StubScrollEventSender(bottomReachedAfterScrolls: 2)
+        let scroller = StubScrollEventSender()
 
         let result = try ScreenshotScrollingCaptureService(
             permissions: StubScrollingPermissions(screenRecordingAllowed: true, accessibilityAllowed: true),
@@ -438,7 +439,7 @@ final class ScreenshotScrollingCaptureTests: XCTestCase {
             libraryStore: libraryStore
         ).capture(
             request: ScrollingCaptureRequest(
-                window: CapturableWindow(id: 42, title: "Document", appName: "Preview", bounds: .zero),
+                window: CapturableWindow(id: 42, title: "Document", ownerName: "Preview", bounds: .zero),
                 maxFrames: 5,
                 scrollDelta: -8,
                 overlapPixels: 0
@@ -458,14 +459,14 @@ final class ScreenshotScrollingCaptureTests: XCTestCase {
         let service = ScreenshotScrollingCaptureService(
             permissions: StubScrollingPermissions(screenRecordingAllowed: true, accessibilityAllowed: true),
             frameCapture: StubScrollingFrameCapture(frames: [frame, frame, frame, frame]),
-            scrollSender: StubScrollEventSender(bottomReachedAfterScrolls: 10),
+            scrollSender: StubScrollEventSender(),
             stitcher: VerticalScreenshotImageStitcher(),
             libraryStore: ScreenshotLibraryStore(rootDirectory: temporaryRoot())
         )
 
         let result = try service.capture(
             request: ScrollingCaptureRequest(
-                window: CapturableWindow(id: 7, title: "Feed", appName: "Safari", bounds: .zero),
+                window: CapturableWindow(id: 7, title: "Feed", ownerName: "Safari", bounds: .zero),
                 maxFrames: 2,
                 scrollDelta: -5,
                 overlapPixels: 0
@@ -479,7 +480,7 @@ final class ScreenshotScrollingCaptureTests: XCTestCase {
         let service = ScreenshotScrollingCaptureService(
             permissions: StubScrollingPermissions(screenRecordingAllowed: false, accessibilityAllowed: true),
             frameCapture: StubScrollingFrameCapture(frames: []),
-            scrollSender: StubScrollEventSender(bottomReachedAfterScrolls: 1),
+            scrollSender: StubScrollEventSender(),
             stitcher: VerticalScreenshotImageStitcher(),
             libraryStore: ScreenshotLibraryStore(rootDirectory: temporaryRoot())
         )
@@ -493,7 +494,7 @@ final class ScreenshotScrollingCaptureTests: XCTestCase {
         let service = ScreenshotScrollingCaptureService(
             permissions: StubScrollingPermissions(screenRecordingAllowed: true, accessibilityAllowed: false),
             frameCapture: StubScrollingFrameCapture(frames: []),
-            scrollSender: StubScrollEventSender(bottomReachedAfterScrolls: 1),
+            scrollSender: StubScrollEventSender(),
             stitcher: VerticalScreenshotImageStitcher(),
             libraryStore: ScreenshotLibraryStore(rootDirectory: temporaryRoot())
         )
@@ -505,7 +506,7 @@ final class ScreenshotScrollingCaptureTests: XCTestCase {
 
     private func request() -> ScrollingCaptureRequest {
         ScrollingCaptureRequest(
-            window: CapturableWindow(id: 1, title: "Doc", appName: "App", bounds: .zero),
+            window: CapturableWindow(id: 1, title: "Doc", ownerName: "App", bounds: .zero),
             maxFrames: 3,
             scrollDelta: -6,
             overlapPixels: 0
@@ -543,16 +544,10 @@ private final class StubScrollingFrameCapture: ScrollingWindowFrameCapturing {
 }
 
 private final class StubScrollEventSender: WindowScrollEventSending {
-    let bottomReachedAfterScrolls: Int
     private(set) var windowIDs: [CGWindowID] = []
 
-    init(bottomReachedAfterScrolls: Int) {
-        self.bottomReachedAfterScrolls = bottomReachedAfterScrolls
-    }
-
-    func scrollWindow(id: CGWindowID, deltaY: Int32) throws -> Bool {
+    func scrollWindow(id: CGWindowID, deltaY: Int32) throws {
         windowIDs.append(id)
-        return windowIDs.count >= bottomReachedAfterScrolls
     }
 }
 
@@ -636,11 +631,11 @@ struct AtlasScrollingWindowFrameCapture: ScrollingWindowFrameCapturing {
 }
 
 protocol WindowScrollEventSending {
-    func scrollWindow(id: CGWindowID, deltaY: Int32) throws -> Bool
+    func scrollWindow(id: CGWindowID, deltaY: Int32) throws
 }
 
 struct CGWindowScrollEventSender: WindowScrollEventSending {
-    func scrollWindow(id: CGWindowID, deltaY: Int32) throws -> Bool {
+    func scrollWindow(id: CGWindowID, deltaY: Int32) throws {
         guard let event = CGEvent(
             scrollWheelEvent2Source: nil,
             units: .pixel,
@@ -649,11 +644,10 @@ struct CGWindowScrollEventSender: WindowScrollEventSending {
             wheel2: 0,
             wheel3: 0
         ) else {
-            return true
+            return
         }
         event.post(tap: .cghidEventTap)
         Thread.sleep(forTimeInterval: 0.12)
-        return false
     }
 }
 
@@ -692,8 +686,7 @@ struct ScreenshotScrollingCaptureService {
         for index in 0..<maxFrames {
             frames.append(try frameCapture.captureWindowFrame(id: request.window.id))
             if index == maxFrames - 1 { break }
-            let reachedBottom = try scrollSender.scrollWindow(id: request.window.id, deltaY: request.scrollDelta)
-            if reachedBottom { break }
+            try scrollSender.scrollWindow(id: request.window.id, deltaY: request.scrollDelta)
         }
 
         guard !frames.isEmpty else {
@@ -706,7 +699,7 @@ struct ScreenshotScrollingCaptureService {
             pngData: output,
             pixelWidth: Int(dimensions.width.rounded()),
             pixelHeight: Int(dimensions.height.rounded()),
-            source: "Scrolling Window: \(request.window.appName) - \(request.window.title)"
+            source: "Scrolling Window: \(request.window.ownerName) - \(request.window.title)"
         )
 
         return ScrollingCaptureResult(
@@ -818,10 +811,21 @@ private func startScrollingWindowCapture() {
         return
     }
 
-    let selection = WindowSelectionWindow { window in
-        captureScrollingWindow(window)
+    do {
+        let windows = try AtlasBridge.listCapturableWindows()
+        guard !windows.isEmpty else {
+            showStatus("No capturable windows found", kind: .error)
+            return
+        }
+
+        WindowSelectionWindow.show(
+            windows: windows,
+            onCancel: {},
+            onSelect: captureScrollingWindow
+        )
+    } catch {
+        showStatus(error.localizedDescription, kind: .error)
     }
-    selection.show()
 }
 
 private func captureScrollingWindow(_ window: CapturableWindow) {
@@ -838,7 +842,7 @@ private func captureScrollingWindow(_ window: CapturableWindow) {
             pngData: result.pngData,
             rect: CGRect(origin: .zero, size: CGSize(width: result.libraryItem.pixelWidth, height: result.libraryItem.pixelHeight))
         )
-        presentCapturedScreenshot(screenshot, source: result.libraryItem.source)
+        setCapturedScreenshot(screenshot, source: result.libraryItem.source, libraryItemID: result.libraryItem.id)
         loadScreenshotLibrary()
         showStatus("Captured scrolling window")
     } catch {
@@ -847,7 +851,24 @@ private func captureScrollingWindow(_ window: CapturableWindow) {
 }
 ```
 
-If `WindowSelectionWindow` currently has a different initializer label, use the current initializer and keep the selected-window callback body identical.
+The existing `setCapturedScreenshot(_:source:)` helper records a new library item. Because `ScreenshotScrollingCaptureService` already persists the stitched image, replace that helper with this overload before using `captureScrollingWindow(_:)`:
+
+```swift
+private func setCapturedScreenshot(
+    _ screenshot: CapturedScreenshot,
+    source: String,
+    libraryItemID existingLibraryItemID: UUID? = nil
+) {
+    invalidateScreenshotTextTasks()
+    clearScreenshotTextState()
+    capturedScreenshot = nil
+    let libraryItemID = existingLibraryItemID ?? recordScreenshotInLibrary(screenshot, source: source)
+    activeLibraryItemID = libraryItemID
+    showFloatingThumbnail(for: screenshot, libraryItemID: libraryItemID)
+}
+```
+
+Keep the existing desktop, area, and window capture call sites unchanged; the default `nil` value preserves their current library recording behavior.
 
 - [ ] **Step 3: Parse Swift files**
 
