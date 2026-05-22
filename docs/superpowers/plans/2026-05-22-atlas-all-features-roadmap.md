@@ -692,10 +692,10 @@ Expected: The commit contains only the packaging and editions child plan and thi
 Run:
 
 ```bash
-rg -n '"monitoring"|"screenshot"|"window-manager"|"clipboard"|"scratchpad"|"privacy"|"automation"|"tokenbar"' crates platforms/macos/Atlas platforms/macos/AtlasTests
+rg -n '"monitoring"|"screenshot"|"window-manager"|"clipboard"|"scratchpad"|"privacy"|"automation"|"tokenbar"|"skills"|"ai-skills"|"workspaces"' crates platforms/macos/Atlas platforms/macos/AtlasTests docs/superpowers/plans
 ```
 
-Expected: Feature name string literals are concentrated in feature registry/model files and tests. UI and service files should prefer typed feature identifiers where available.
+Expected: Feature name string literals are concentrated in feature registry/model files, edition packaging, child plans, and tests. The audit must flag stale packaging keys: AI Skills uses the registered Feature Center key `skills`, not `ai-skills`; Workspaces currently gates through `window-manager`, so `workspaces` must not appear as an edition/Feature Center key unless a later plan explicitly splits it into its own registered feature.
 
 - [ ] **Step 2: Verify all disabled modules stay idle**
 

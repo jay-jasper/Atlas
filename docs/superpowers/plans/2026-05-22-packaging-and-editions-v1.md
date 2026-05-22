@@ -182,8 +182,8 @@ enum EditionCatalog {
         ),
         EditionFeaturePackage(
             featureName: "window-manager",
-            includedEditions: [.free, .pro, .community],
-            label: "Included"
+            includedEditions: [.pro, .community],
+            label: "Pro"
         ),
         EditionFeaturePackage(
             featureName: "tokenbar",
@@ -191,12 +191,7 @@ enum EditionCatalog {
             label: "Pro"
         ),
         EditionFeaturePackage(
-            featureName: "workspaces",
-            includedEditions: [.pro, .community],
-            label: "Pro"
-        ),
-        EditionFeaturePackage(
-            featureName: "ai-skills",
+            featureName: "skills",
             includedEditions: [.pro, .community],
             label: "Pro"
         )
@@ -212,7 +207,11 @@ enum EditionCatalog {
 }
 ```
 
-If adjacent child plans have already added `AtlasModule.tokenbar`, `AtlasModule.workspaces`, or `AtlasModule.aiSkills`, use those cases in the catalog instead of string literals:
+Packaging note: the Workspaces child plan gates workspace UI and command palette actions through the existing `window-manager` Feature Center flag. For v1, keep that feature-name contract and package `window-manager` as Pro instead of inventing a separate `workspaces` entitlement key. Do not add a `workspaces` feature package unless a later plan also splits Workspaces onto its own Rust/Swift Feature Center key and updates the Workspaces child plan accordingly.
+
+AI Skills note: the AI Skills child plan registers the Feature Center key as `skills`. Do not use the earlier planning label `ai-skills` as a package key.
+
+If adjacent child plans have already added `AtlasModule.tokenbar`, `AtlasModule.windowManager`, or `AtlasModule.skills`, use those cases in the catalog instead of string literals:
 
 ```swift
 EditionFeaturePackage(
@@ -245,13 +244,12 @@ final class EditionModelsTests: XCTestCase {
     func testKnownCoreFeaturesAreIncludedForFreeEdition() {
         XCTAssertTrue(EditionCatalog.package(for: "monitoring").isIncluded(in: .free))
         XCTAssertTrue(EditionCatalog.package(for: "screenshot").isIncluded(in: .free))
-        XCTAssertTrue(EditionCatalog.package(for: "window-manager").isIncluded(in: .free))
     }
 
     func testKnownProFeaturesAreNotIncludedForFreeEdition() {
         XCTAssertFalse(EditionCatalog.package(for: "tokenbar").isIncluded(in: .free))
-        XCTAssertFalse(EditionCatalog.package(for: "workspaces").isIncluded(in: .free))
-        XCTAssertFalse(EditionCatalog.package(for: "ai-skills").isIncluded(in: .free))
+        XCTAssertFalse(EditionCatalog.package(for: "window-manager").isIncluded(in: .free))
+        XCTAssertFalse(EditionCatalog.package(for: "skills").isIncluded(in: .free))
     }
 
     func testUnknownFeatureDefaultsToIncludedToAvoidAccidentalPaywalling() {
@@ -417,6 +415,8 @@ final class EntitlementServiceTests: XCTestCase {
         XCTAssertTrue(service.availability(for: "screenshot").isAvailable)
         XCTAssertFalse(service.availability(for: "tokenbar").isAvailable)
         XCTAssertEqual(service.availability(for: "tokenbar").displayLabel, "Pro required")
+        XCTAssertFalse(service.availability(for: "window-manager").isAvailable)
+        XCTAssertFalse(service.availability(for: "skills").isAvailable)
     }
 
     func testProEditionAllowsProFeatures() {
@@ -427,8 +427,8 @@ final class EntitlementServiceTests: XCTestCase {
         )))
 
         XCTAssertTrue(service.availability(for: "tokenbar").isAvailable)
-        XCTAssertTrue(service.availability(for: "workspaces").isAvailable)
-        XCTAssertTrue(service.availability(for: "ai-skills").isAvailable)
+        XCTAssertTrue(service.availability(for: "window-manager").isAvailable)
+        XCTAssertTrue(service.availability(for: "skills").isAvailable)
     }
 
     func testCommunityEditionAllowsCommunityAndProPackagedFeaturesLocally() {
@@ -440,7 +440,8 @@ final class EntitlementServiceTests: XCTestCase {
 
         XCTAssertTrue(service.availability(for: "monitoring").isAvailable)
         XCTAssertTrue(service.availability(for: "tokenbar").isAvailable)
-        XCTAssertTrue(service.availability(for: "workspaces").isAvailable)
+        XCTAssertTrue(service.availability(for: "window-manager").isAvailable)
+        XCTAssertTrue(service.availability(for: "skills").isAvailable)
     }
 
     func testNoNetworkFallbackUsesFreeEdition() {
@@ -515,8 +516,10 @@ Expected: entitlement tests pass using only injected providers and isolated `Use
 
 **Files:**
 - Modify: `platforms/macos/Atlas/FeatureModels.swift`
+- Modify: `platforms/macos/Atlas/FeatureState.swift`
 - Modify: `platforms/macos/Atlas/FeatureTogglePanel.swift`
 - Modify: `platforms/macos/AtlasTests/FeatureModelsTests.swift`
+- Modify: `platforms/macos/AtlasTests/FeatureStateTests.swift`
 
 - [ ] **Step 1: Extend feature model additively**
 
@@ -563,7 +566,47 @@ enum AtlasFeatureMapper {
 }
 ```
 
-- [ ] **Step 2: Update Feature Center labels and toggle blocking**
+- [ ] **Step 2: Preserve availability when toggle state is refreshed**
+
+Update `platforms/macos/Atlas/FeatureState.swift` so reducer-driven toggle updates keep the attached edition metadata. The current reducer rebuilds the feature as `AtlasFeature(name:isEnabled:)`, which would drop `availability` after any successful toggle.
+
+Replace the refreshed feature construction with:
+
+```swift
+return AtlasFeature(
+    name: feature.name,
+    isEnabled: enabled,
+    availability: feature.availability
+)
+```
+
+Append a regression test to `platforms/macos/AtlasTests/FeatureStateTests.swift`:
+
+```swift
+func testRefreshedFeaturesPreservesAvailabilityMetadata() {
+    let features = [
+        AtlasFeature(
+            name: "tokenbar",
+            isEnabled: false,
+            availability: .unavailable(requiredEdition: .pro, label: "Pro required")
+        )
+    ]
+
+    let refreshedFeatures = FeatureStateReducer.refreshedFeatures(
+        features,
+        featureName: "tokenbar",
+        enabled: true
+    )
+
+    XCTAssertEqual(refreshedFeatures.first?.availabilityLabel, "Pro required")
+    XCTAssertEqual(
+        refreshedFeatures.first?.availability,
+        .unavailable(requiredEdition: .pro, label: "Pro required")
+    )
+}
+```
+
+- [ ] **Step 3: Update Feature Center labels and toggle blocking**
 
 Update `platforms/macos/Atlas/FeatureTogglePanel.swift`:
 
@@ -599,7 +642,7 @@ ForEach(features) { feature in
 
 If other workers have added extra rows or controls to `FeatureCenterPanel`, preserve them and add only the availability label/disabled behavior.
 
-- [ ] **Step 3: Add feature model tests**
+- [ ] **Step 4: Add feature model tests**
 
 Append to `platforms/macos/AtlasTests/FeatureModelsTests.swift`:
 
@@ -623,15 +666,15 @@ func testUsesAttachedAvailabilityMetadata() {
 }
 ```
 
-- [ ] **Step 4: Verify feature label model behavior**
+- [ ] **Step 5: Verify feature label model behavior**
 
 Run:
 
 ```bash
-xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/FeatureModelsTests
+xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/FeatureModelsTests -only-testing:AtlasTests/FeatureStateTests
 ```
 
-Expected: existing title tests and new availability metadata tests pass.
+Expected: existing title/state tests and new availability metadata tests pass, including the regression test proving availability labels remain attached after a toggle refresh.
 
 ---
 
@@ -715,11 +758,11 @@ This is a local status string only. Do not add network retry, license refresh, p
 Run:
 
 ```bash
-xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/EntitlementServiceTests -only-testing:AtlasTests/FeatureModelsTests
+xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/EntitlementServiceTests -only-testing:AtlasTests/FeatureModelsTests -only-testing:AtlasTests/FeatureStateTests
 xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme Atlas
 ```
 
-Expected: entitlement/model tests pass and the app target builds.
+Expected: entitlement/model/state tests pass and the app target builds. The state tests verify availability labels are still present after a feature toggle refresh.
 
 ---
 
@@ -814,14 +857,16 @@ Expected: the app builds with the local edition panel. There are no new payment,
 - Modify only if needed: `crates/atlas-core/src/features.rs`
 - Modify only if needed: `platforms/macos/Atlas/AtlasModule.swift`
 - Modify only if needed: `platforms/macos/Atlas/FeatureModels.swift`
+- Modify only if needed: `platforms/macos/Atlas/FeatureState.swift`
 - Test: `platforms/macos/AtlasTests/FeatureModelsTests.swift`
+- Test: `platforms/macos/AtlasTests/FeatureStateTests.swift`
 
 - [ ] **Step 1: Audit adjacent child-plan feature cases**
 
 Run:
 
 ```bash
-rg -n 'case .*token|case .*workspace|case .*privacy|case .*clipboard|case .*scratchpad|case .*system|case .*ai|features.insert|AtlasFeatureTitles' crates/atlas-core/src/features.rs platforms/macos/Atlas/AtlasModule.swift platforms/macos/Atlas/FeatureModels.swift docs/superpowers/plans
+rg -n 'case .*token|case .*workspace|case .*skills|case .*privacy|case .*clipboard|case .*scratchpad|case .*system|case .*ai|features.insert|AtlasFeatureTitles|FeatureStateReducer' crates/atlas-core/src/features.rs platforms/macos/Atlas/AtlasModule.swift platforms/macos/Atlas/FeatureModels.swift platforms/macos/Atlas/FeatureState.swift docs/superpowers/plans
 ```
 
 Expected: shows which adjacent roadmap child plans have already added feature names.
@@ -853,9 +898,10 @@ Run:
 ```bash
 cargo test -p atlas-core test_list_features_is_sorted_by_name
 xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/FeatureModelsTests
+xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/FeatureStateTests
 ```
 
-Expected: shared feature registration remains sorted and feature title tests still pass.
+Expected: shared feature registration remains sorted, feature title tests still pass, and reducer tests prove attached availability survives toggle refreshes.
 
 ---
 
@@ -869,10 +915,10 @@ Expected: shared feature registration remains sorted and feature title tests sti
 Run:
 
 ```bash
-xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/EditionModelsTests -only-testing:AtlasTests/EntitlementServiceTests -only-testing:AtlasTests/FeatureModelsTests
+xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/EditionModelsTests -only-testing:AtlasTests/EntitlementServiceTests -only-testing:AtlasTests/FeatureModelsTests -only-testing:AtlasTests/FeatureStateTests
 ```
 
-Expected: all edition, entitlement, and feature model tests pass.
+Expected: all edition, entitlement, feature model, and feature state tests pass.
 
 - [ ] **Step 2: Run app build**
 
@@ -910,7 +956,7 @@ Run:
 
 ```bash
 git status --short
-git add platforms/macos/Atlas/EditionModels.swift platforms/macos/Atlas/EntitlementService.swift platforms/macos/Atlas/EditionPanel.swift platforms/macos/Atlas/FeatureModels.swift platforms/macos/Atlas/FeatureTogglePanel.swift platforms/macos/Atlas/ContentView.swift platforms/macos/AtlasTests/EditionModelsTests.swift platforms/macos/AtlasTests/EntitlementServiceTests.swift platforms/macos/AtlasTests/FeatureModelsTests.swift platforms/macos/Atlas.xcodeproj/project.pbxproj
+git add platforms/macos/Atlas/EditionModels.swift platforms/macos/Atlas/EntitlementService.swift platforms/macos/Atlas/EditionPanel.swift platforms/macos/Atlas/FeatureModels.swift platforms/macos/Atlas/FeatureState.swift platforms/macos/Atlas/FeatureTogglePanel.swift platforms/macos/Atlas/ContentView.swift platforms/macos/AtlasTests/EditionModelsTests.swift platforms/macos/AtlasTests/EntitlementServiceTests.swift platforms/macos/AtlasTests/FeatureModelsTests.swift platforms/macos/AtlasTests/FeatureStateTests.swift platforms/macos/Atlas.xcodeproj/project.pbxproj
 git commit -m "Add local Atlas editions"
 ```
 
