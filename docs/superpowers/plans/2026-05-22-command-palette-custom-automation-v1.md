@@ -20,6 +20,7 @@
 - Modify: `platforms/macos/Atlas/AtlasModule.swift`
 - Modify: `platforms/macos/Atlas/FeatureModels.swift`
 - Modify: `platforms/macos/Atlas/AtlasApp.swift`
+- Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 - Modify: `platforms/macos/Atlas/CommandPalette/CommandPaletteModels.swift`
 - Modify: `platforms/macos/Atlas/CommandPalette/CommandPaletteView.swift`
 - Create: `platforms/macos/Atlas/CommandPalette/CustomAutomationModels.swift`
@@ -33,6 +34,8 @@
 - Create: `platforms/macos/AtlasTests/CustomAutomationProviderTests.swift`
 - Create: `platforms/macos/AtlasTests/AutomationOutputViewTests.swift`
 - Modify: `platforms/macos/AtlasTests/FeatureModelsTests.swift`
+
+Project membership rule: every new Swift app file must be added to the `Atlas` target sources in `platforms/macos/Atlas.xcodeproj/project.pbxproj`, and every new Swift test file must be added to the `AtlasTests` target sources before running the relevant `xcodebuild test` command.
 
 ## Task 1: Feature Center Gate
 
@@ -191,11 +194,14 @@ protocol CustomAutomationStoring {
 
 enum CustomAutomationStoreError: LocalizedError, Equatable {
     case invalidCommand
+    case duplicateTitle
 
     var errorDescription: String? {
         switch self {
         case .invalidCommand:
             return "Automation commands require a title, command text, and positive timeout."
+        case .duplicateTitle:
+            return "Automation command titles must be unique."
         }
     }
 }
@@ -220,6 +226,10 @@ final class CustomAutomationStore: CustomAutomationStoring {
     func save(_ commands: [CustomAutomationCommand]) throws {
         guard commands.allSatisfy(\.isValid) else {
             throw CustomAutomationStoreError.invalidCommand
+        }
+        let normalizedTitles = commands.map { $0.title.lowercased() }
+        guard Set(normalizedTitles).count == normalizedTitles.count else {
+            throw CustomAutomationStoreError.duplicateTitle
         }
         try FileManager.default.createDirectory(
             at: fileURL.deletingLastPathComponent(),
@@ -254,9 +264,20 @@ final class CustomAutomationStore: CustomAutomationStoring {
 }
 ```
 
-- [ ] **Step 3: Add store tests**
+- [ ] **Step 3: Add new files to the Xcode project**
 
-Create `platforms/macos/AtlasTests/CustomAutomationStoreTests.swift` with tests for empty load, save/load round trip, sorted upsert, delete, invalid empty title, invalid empty command, and invalid timeout.
+Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj` so these app files are included in the `Atlas` target sources:
+
+- `platforms/macos/Atlas/CommandPalette/CustomAutomationModels.swift`
+- `platforms/macos/Atlas/CommandPalette/CustomAutomationStore.swift`
+
+Modify the same project file so this test file is included in the `AtlasTests` target sources:
+
+- `platforms/macos/AtlasTests/CustomAutomationStoreTests.swift`
+
+- [ ] **Step 4: Add store tests**
+
+Create `platforms/macos/AtlasTests/CustomAutomationStoreTests.swift` with tests for empty load, save/load round trip, sorted upsert, delete, invalid empty title, invalid empty command, invalid timeout, and duplicate title rejection.
 
 Run:
 
@@ -289,6 +310,8 @@ protocol AutomationProcessRunning {
 
 final class SystemAutomationProcessRunner: AutomationProcessRunning {
     private let dateProvider: () -> Date
+    private let pollInterval: TimeInterval = 0.05
+    private let shutdownGracePeriod: TimeInterval = 0.5
 
     init(dateProvider: @escaping () -> Date = Date.init) {
         self.dateProvider = dateProvider
@@ -299,6 +322,8 @@ final class SystemAutomationProcessRunner: AutomationProcessRunning {
         let process = Process()
         let outputPipe = Pipe()
         let errorPipe = Pipe()
+        let outputBuffer = LockedDataBuffer()
+        let errorBuffer = LockedDataBuffer()
 
         switch command.kind {
         case .shell:
@@ -311,6 +336,12 @@ final class SystemAutomationProcessRunner: AutomationProcessRunning {
 
         process.standardOutput = outputPipe
         process.standardError = errorPipe
+        outputPipe.fileHandleForReading.readabilityHandler = { handle in
+            outputBuffer.append(handle.availableData)
+        }
+        errorPipe.fileHandleForReading.readabilityHandler = { handle in
+            errorBuffer.append(handle.availableData)
+        }
 
         do {
             try process.run()
@@ -324,9 +355,14 @@ final class SystemAutomationProcessRunner: AutomationProcessRunning {
             )
         }
 
-        let timedOut = await wait(for: process, timeout: command.timeoutSeconds)
-        let stdout = String(data: outputPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
-        let stderr = String(data: errorPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+        let timedOut = await waitBounded(for: process, timeout: command.timeoutSeconds)
+        outputPipe.fileHandleForReading.readabilityHandler = nil
+        errorPipe.fileHandleForReading.readabilityHandler = nil
+        try? outputPipe.fileHandleForReading.close()
+        try? errorPipe.fileHandleForReading.close()
+
+        let stdout = String(data: outputBuffer.data(), encoding: .utf8) ?? ""
+        let stderr = String(data: errorBuffer.data(), encoding: .utf8) ?? ""
 
         return AutomationProcessResult(
             exitCode: timedOut ? -9 : process.terminationStatus,
@@ -337,31 +373,56 @@ final class SystemAutomationProcessRunner: AutomationProcessRunning {
         )
     }
 
-    private func wait(for process: Process, timeout: TimeInterval) async -> Bool {
-        await withTaskGroup(of: Bool.self) { group in
-            group.addTask {
-                process.waitUntilExit()
-                return false
-            }
-            group.addTask {
-                let nanoseconds = UInt64(max(timeout, 0.1) * 1_000_000_000)
-                try? await Task.sleep(nanoseconds: nanoseconds)
-                if process.isRunning {
-                    process.terminate()
-                    return true
-                }
-                return false
-            }
-
-            let timedOut = await group.next() ?? false
-            group.cancelAll()
-            return timedOut
+    private func waitBounded(for process: Process, timeout: TimeInterval) async -> Bool {
+        let deadline = Date().addingTimeInterval(max(timeout, 0.1))
+        while process.isRunning && Date() < deadline {
+            await sleepPollInterval()
         }
+        guard process.isRunning else { return false }
+
+        process.terminate()
+        let terminateDeadline = Date().addingTimeInterval(shutdownGracePeriod)
+        while process.isRunning && Date() < terminateDeadline {
+            await sleepPollInterval()
+        }
+        guard process.isRunning else { return true }
+
+        process.interrupt()
+        let interruptDeadline = Date().addingTimeInterval(shutdownGracePeriod)
+        while process.isRunning && Date() < interruptDeadline {
+            await sleepPollInterval()
+        }
+
+        return true
+    }
+
+    private func sleepPollInterval() async {
+        try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
+    }
+}
+
+private final class LockedDataBuffer: @unchecked Sendable {
+    private let lock = NSLock()
+    private var storage = Data()
+
+    func append(_ data: Data) {
+        guard !data.isEmpty else { return }
+        lock.lock()
+        storage.append(data)
+        lock.unlock()
+    }
+
+    func data() -> Data {
+        lock.lock()
+        defer { lock.unlock() }
+        return storage
     }
 }
 ```
 
 - [ ] **Step 2: Keep process execution tests injected**
+
+Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `platforms/macos/Atlas/CommandPalette/AutomationProcessRunner.swift` is included in the `Atlas` target sources before running any test target that imports automation types.
 
 Do not add XCTest coverage that starts `/bin/zsh`, `/usr/bin/python3`, or any other real process. The production `SystemAutomationProcessRunner` is covered by direct code review and by higher-level tests that inject fake `AutomationProcessRunning` implementations.
 
@@ -455,9 +516,13 @@ final class CustomAutomationProvider: CommandProviding {
 }
 ```
 
-The provider uses existing `CommandPaletteRanker` automatically because `CommandPaletteView.rankedResults()` already ranks every provider's result list against `CommandUsageStore`. No separate ranking code is required.
+The provider uses existing `CommandPaletteRanker` automatically because `CommandPaletteView.rankedResults()` already ranks every provider's result list against `CommandUsageStore`. The existing `CommandUsageStore.commandKey(for:)` uses `category|title`, not `PaletteCommand.id`, so this plan keeps automation command titles unique enough for ranking. No usage-store key migration is part of this plan.
 
 - [ ] **Step 3: Add provider tests**
+
+Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `platforms/macos/Atlas/CommandPalette/CustomAutomationProvider.swift` is included in the `Atlas` target sources.
+
+Modify the same project file so `platforms/macos/AtlasTests/CustomAutomationProviderTests.swift` is included in the `AtlasTests` target sources.
 
 Create `platforms/macos/AtlasTests/CustomAutomationProviderTests.swift` with:
 
@@ -467,7 +532,8 @@ Create `platforms/macos/AtlasTests/CustomAutomationProviderTests.swift` with:
 - results are capped to five
 - result category is `Automation`
 - result action is `.push(.automationOutput(command))`
-- command IDs are stable so frecency records can rank repeated automation commands
+- generated command titles include the user-defined automation title, producing stable `CommandUsageStore` keys such as `Automation|Run Deploy Preview`
+- duplicate automation titles are rejected in `CustomAutomationStore`, so frecency does not merge two different automation commands under the same `category|title` key
 
 Run:
 
@@ -589,7 +655,13 @@ struct AutomationOutputView: View {
 }
 ```
 
-- [ ] **Step 2: Wire output destination**
+- [ ] **Step 2: Add new files to the Xcode project**
+
+Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `platforms/macos/Atlas/CommandPalette/AutomationOutputView.swift` is included in the `Atlas` target sources.
+
+Modify the same project file so `platforms/macos/AtlasTests/AutomationOutputViewTests.swift` is included in the `AtlasTests` target sources.
+
+- [ ] **Step 3: Wire output destination**
 
 In `platforms/macos/Atlas/CommandPalette/CommandPaletteView.swift`, add a runner property and initializer argument:
 
@@ -608,7 +680,7 @@ case .automationOutput(let command):
     AutomationOutputView(command: command, runner: automationRunner)
 ```
 
-- [ ] **Step 3: Add output tests**
+- [ ] **Step 4: Add output tests**
 
 Create `platforms/macos/AtlasTests/AutomationOutputViewTests.swift` with view model tests and a fake runner:
 
@@ -663,6 +735,8 @@ Create `platforms/macos/Atlas/AutomationSettingsView.swift` with:
 Use `CustomAutomationStore` through `CustomAutomationStoring` so tests can inject an in-memory store.
 
 - [ ] **Step 2: Add settings section**
+
+Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `platforms/macos/Atlas/AutomationSettingsView.swift` is included in the `Atlas` target sources before running the settings build.
 
 In `platforms/macos/Atlas/AtlasSettingsView.swift`, add a "Custom Automation" section below the existing Command Palette section:
 
@@ -747,17 +821,17 @@ Expected: Full macOS XCTest suite passes.
 Run:
 
 ```bash
-git diff -- crates/atlas-core/src/features.rs crates/atlas-ffi/src/atlas.udl crates/atlas-ffi/src/lib.rs platforms/macos/Atlas platforms/macos/AtlasTests
+git diff -- crates/atlas-core/src/features.rs crates/atlas-ffi/src/atlas.udl crates/atlas-ffi/src/lib.rs platforms/macos/Atlas platforms/macos/AtlasTests platforms/macos/Atlas.xcodeproj/project.pbxproj
 ```
 
-Expected: Diff contains only Feature Center gating, custom automation storage/execution/provider/output/settings code, and tests.
+Expected: Diff contains only Feature Center gating, custom automation storage/execution/provider/output/settings code, tests, and Xcode project source membership for the new Swift files.
 
 - [ ] **Step 4: Commit implementation**
 
 Run:
 
 ```bash
-git add crates/atlas-core/src/features.rs crates/atlas-ffi/src/atlas.udl crates/atlas-ffi/src/lib.rs platforms/macos/Atlas platforms/macos/AtlasTests
+git add crates/atlas-core/src/features.rs crates/atlas-ffi/src/atlas.udl crates/atlas-ffi/src/lib.rs platforms/macos/Atlas platforms/macos/AtlasTests platforms/macos/Atlas.xcodeproj/project.pbxproj
 git commit -m "feat(macos): add custom command automation"
 ```
 
@@ -771,5 +845,5 @@ Expected: Commit succeeds. No roadmap or unrelated files are included unless thi
 - Shell commands execute through `/bin/zsh -lc`; Python commands execute through `/usr/bin/python3 -c`.
 - Execution has a per-command timeout and reports timeout separately from non-zero exit status.
 - Output view displays stdout, stderr, exit code, timeout state, and empty-output state.
-- Command palette frecency ranking works for automation commands through stable command IDs and existing `CommandUsageStore`.
+- Command palette frecency ranking works for automation commands through unique generated `Automation|Run <title>` usage keys in existing `CommandUsageStore`.
 - Unit tests cover storage, provider filtering/gating, output view behavior, timeout behavior, and execution flow using injected fake runners. Tests do not start real shell or Python processes.
