@@ -747,7 +747,7 @@ Expected: Commit succeeds.
 - Modify: `platforms/macos/Atlas/ScreenshotPanel.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Add the Scrolling button to the screenshot panel**
+- [x] **Step 1: Add the Scrolling button to the screenshot panel**
 
 Update `ScreenshotPanel` with the new callback and button:
 
@@ -830,7 +830,7 @@ struct ScreenshotPanel: View {
 }
 ```
 
-- [ ] **Step 2: Wire `ContentView` to select a window and start scrolling capture**
+- [x] **Step 2: Wire `ContentView` to select a window and start scrolling capture**
 
 In `platforms/macos/Atlas/ContentView.swift`, add this property beside the existing screenshot services:
 
@@ -922,7 +922,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS with no output.
 
-- [ ] **Step 4: Run focused scrolling tests**
+- [x] **Step 4: Run focused scrolling tests**
 
 Run:
 

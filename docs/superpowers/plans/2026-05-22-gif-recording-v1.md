@@ -873,7 +873,7 @@ Expected: Commit succeeds.
 - Modify: `platforms/macos/Atlas/ScreenshotPanel.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Add the GIF button to the screenshot panel**
+- [x] **Step 1: Add the GIF button to the screenshot panel**
 
 Update `ScreenshotPanel` with the new callback and button:
 
@@ -952,7 +952,7 @@ struct ScreenshotPanel: View {
 }
 ```
 
-- [ ] **Step 2: Add recording state and output routing to `ContentView`**
+- [x] **Step 2: Add recording state and output routing to `ContentView`**
 
 In `platforms/macos/Atlas/ContentView.swift`, add these properties:
 

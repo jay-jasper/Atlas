@@ -30,12 +30,18 @@ struct ContentView: View {
     @State private var showCaptureStatus: Bool = false
     @State private var statusHideToken: Int = 0
     @State private var annotatedScreenshotData: Data?
+    @State private var isRecordingGIF = false
+    @State private var lastGIFOutput: ScreenshotGIFOutputItem?
+    @State private var gifRecordingSession: ScreenshotGIFRecordingSession?
     @State private var cpuHistory: [Double] = []
     @State private var memoryHistory: [Double] = []
     private let screenshotFeatureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigurationStore = ScreenshotTranslationConfigurationStore()
     private let screenshotLibraryStore = ScreenshotLibraryStore()
     private let screenshotDragOutputStore = ScreenshotDragOutputStore()
+    private let scrollingCaptureService = ScreenshotScrollingCaptureService()
+    private let gifRecorder = ScreenshotGIFRecorder()
+    private let gifOutputStore = ScreenshotGIFOutputStore()
     private let hotkeyService = GlobalHotkeyService()
     var paletteState: CommandPaletteState? = nil
 
@@ -56,8 +62,33 @@ struct ContentView: View {
                             capabilities: screenshotFeatureSettings.captureCapabilities,
                             onCaptureDesktop: captureDesktop,
                             onCaptureWindow: showWindowSelection,
-                            onCaptureArea: showSelectionWindow
+                            onCaptureArea: showSelectionWindow,
+                            onCaptureScrolling: startScrollingWindowCapture,
+                            onRecordGIF: startGIFRegionSelection
                         )
+
+                        if isRecordingGIF {
+                            HStack {
+                                Label("Recording GIF", systemImage: "record.circle")
+                                Spacer()
+                                Button("Stop") {
+                                    gifRecordingSession?.cancel()
+                                }
+                                .buttonStyle(.borderedProminent)
+                            }
+                        }
+
+                        if let lastGIFOutput, !isRecordingGIF {
+                            HStack {
+                                Label(lastGIFOutput.filename, systemImage: "photo.stack")
+                                    .lineLimit(1)
+                                Spacer()
+                                Button("Copy GIF", action: copyLastGIFRecording)
+                                    .buttonStyle(.bordered)
+                                Button("Save As", action: saveLastGIFRecording)
+                                    .buttonStyle(.borderedProminent)
+                            }
+                        }
 
                         Divider()
                     }
@@ -336,8 +367,12 @@ struct ContentView: View {
             return
         }
 
+        startRegionSelection(onSelect: captureSelection)
+    }
+
+    private func startRegionSelection(onSelect: @escaping (CGRect) -> Void) {
         let previewImageData = selectionPreviewImageData()
-        ScreenshotSelectionWindow.show(previewImageData: previewImageData, onCapture: captureSelection)
+        ScreenshotSelectionWindow.show(previewImageData: previewImageData, onCapture: onSelect)
     }
 
     private func selectionPreviewImageData() -> Data? {
@@ -398,6 +433,62 @@ struct ContentView: View {
         }
     }
 
+    private func startScrollingWindowCapture() {
+        guard screenshotFeatureSettings.captureCapabilities.scrolling else {
+            showStatus("Scrolling capture is disabled", kind: .error)
+            return
+        }
+
+        do {
+            let windows = try AtlasBridge.listCapturableWindows()
+            guard !windows.isEmpty else {
+                showStatus("No capturable windows found", kind: .error)
+                return
+            }
+
+            WindowSelectionWindow.show(
+                windows: windows,
+                onCancel: {},
+                onSelect: captureScrollingWindow
+            )
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
+        }
+    }
+
+    private func captureScrollingWindow(_ window: CapturableWindow) {
+        do {
+            let result = try scrollingCaptureService.capture(
+                request: ScrollingCaptureRequest(
+                    window: window,
+                    maxFrames: 20,
+                    scrollDelta: -900,
+                    overlapPixels: 80
+                )
+            )
+            let rect = CGRect(
+                x: 0,
+                y: 0,
+                width: result.libraryItem.pixelWidth,
+                height: result.libraryItem.pixelHeight
+            )
+            setCapturedScreenshot(
+                CapturedScreenshot(
+                    id: result.libraryItem.id,
+                    pngData: result.pngData,
+                    rect: rect,
+                    capturedAt: result.libraryItem.capturedAt
+                ),
+                source: result.libraryItem.source,
+                libraryItemID: result.libraryItem.id
+            )
+            loadScreenshotLibrary()
+            showStatus("Captured scrolling window")
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
+        }
+    }
+
     private func captureSelection(_ rect: CGRect) {
         let scale = NSScreen.main?.backingScaleFactor ?? 1
         let region = ScreenCaptureCoordinateMapper.pixelRegion(
@@ -421,6 +512,80 @@ struct ContentView: View {
             let pixelRect = CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
             setCapturedScreenshot(CapturedScreenshot(pngData: data, rect: pixelRect), source: "Area")
             showStatus("Captured \(bitmap.pixelsWide)×\(bitmap.pixelsHigh) px")
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
+        }
+    }
+
+    private func startGIFRegionSelection() {
+        guard screenshotFeatureSettings.captureCapabilities.gifRecording else {
+            showStatus("GIF recording is disabled", kind: .error)
+            return
+        }
+
+        startRegionSelection(onSelect: startGIFRecording)
+    }
+
+    private func startGIFRecording(in region: CGRect) {
+        let session = ScreenshotGIFRecordingSession()
+        gifRecordingSession = session
+        isRecordingGIF = true
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                let result = try gifRecorder.record(
+                    request: ScreenshotGIFRecordingRequest(
+                        region: region,
+                        frameDelay: 0.12,
+                        maximumFrames: 600
+                    ),
+                    shouldStop: { session.isCancelled }
+                )
+                let output = try gifOutputStore.writeTemporaryGIF(result.gifData)
+
+                DispatchQueue.main.async {
+                    lastGIFOutput = output
+                    isRecordingGIF = false
+                    gifRecordingSession = nil
+                    showStatus("Saved GIF recording")
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    isRecordingGIF = false
+                    gifRecordingSession = nil
+                    showStatus(error.localizedDescription, kind: .error)
+                }
+            }
+        }
+    }
+
+    private func copyLastGIFRecording() {
+        guard let lastGIFOutput else {
+            showStatus("No GIF recording to copy", kind: .error)
+            return
+        }
+
+        ScreenshotGIFPasteboardWriter.copy(lastGIFOutput)
+        showStatus("Copied GIF recording")
+    }
+
+    private func saveLastGIFRecording() {
+        guard let lastGIFOutput else {
+            showStatus("No GIF recording to save", kind: .error)
+            return
+        }
+
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = lastGIFOutput.filename
+        panel.allowedContentTypes = [.gif]
+        guard panel.runModal() == .OK, let destination = panel.url else { return }
+
+        do {
+            if FileManager.default.fileExists(atPath: destination.path) {
+                try FileManager.default.removeItem(at: destination)
+            }
+            try FileManager.default.copyItem(at: lastGIFOutput.url, to: destination)
+            showStatus("Saved GIF recording")
         } catch {
             showStatus(error.localizedDescription, kind: .error)
         }
@@ -451,11 +616,16 @@ struct ContentView: View {
         showStatus("Captured full screen")
     }
 
-    private func setCapturedScreenshot(_ screenshot: CapturedScreenshot, source: String) {
+    private func setCapturedScreenshot(
+        _ screenshot: CapturedScreenshot,
+        source: String,
+        libraryItemID existingLibraryItemID: UUID? = nil
+    ) {
         invalidateScreenshotTextTasks()
         clearScreenshotTextState()
         capturedScreenshot = nil
-        let libraryItemID = recordScreenshotInLibrary(screenshot, source: source)
+        let libraryItemID = existingLibraryItemID ?? recordScreenshotInLibrary(screenshot, source: source)
+        activeLibraryItemID = libraryItemID
         showFloatingThumbnail(for: screenshot, libraryItemID: libraryItemID)
     }
 

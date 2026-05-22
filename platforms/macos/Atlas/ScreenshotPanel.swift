@@ -5,6 +5,8 @@ struct ScreenshotPanel: View {
     let onCaptureDesktop: () -> Void
     let onCaptureWindow: () -> Void
     let onCaptureArea: () -> Void
+    let onCaptureScrolling: () -> Void
+    let onRecordGIF: () -> Void
 
     var body: some View {
         Group {
@@ -22,6 +24,18 @@ struct ScreenshotPanel: View {
                         action: onCaptureArea,
                         prominent: !capabilities.desktop && !capabilities.window
                     )
+                }
+                if capabilities.scrolling {
+                    Button(action: onCaptureScrolling) {
+                        Label("Scrolling", systemImage: "rectangle.stack.badge.plus")
+                    }
+                    .buttonStyle(.bordered)
+                }
+                if capabilities.gifRecording {
+                    Button(action: onRecordGIF) {
+                        Label("GIF", systemImage: "record.circle")
+                    }
+                    .buttonStyle(.bordered)
                 }
             }
         }
