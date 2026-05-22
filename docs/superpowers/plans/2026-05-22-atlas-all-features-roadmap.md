@@ -435,7 +435,7 @@ Expected: The commit contains only the clipboard history child plan and this roa
 ### Task 7: Add Scratchpad
 
 **Files:**
-- Create later: `docs/superpowers/plans/2026-05-22-scratchpad-v1.md`
+- Created: `docs/superpowers/plans/2026-05-22-scratchpad-v1.md`
 - Create in child execution: `platforms/macos/Atlas/ScratchpadModels.swift`
 - Create in child execution: `platforms/macos/Atlas/ScratchpadStore.swift`
 - Create in child execution: `platforms/macos/Atlas/ScratchpadPanel.swift`
@@ -443,7 +443,7 @@ Expected: The commit contains only the clipboard history child plan and this roa
 - Test in child execution: `platforms/macos/AtlasTests/ScratchpadStoreTests.swift`
 - Test in child execution: `platforms/macos/AtlasTests/ScratchpadSummaryServiceTests.swift`
 
-- [ ] **Step 1: Confirm Scratchpad is not already implemented**
+- [x] **Step 1: Confirm Scratchpad is not already implemented**
 
 Run:
 
@@ -453,20 +453,22 @@ rg -n 'Scratchpad|scratchpad|note|markdown' platforms/macos/Atlas platforms/maco
 
 Expected: The command shows no production Scratchpad implementation unless it has been added after this roadmap.
 
-- [ ] **Step 2: Write Scratchpad child plan**
+- [x] **Step 2: Write Scratchpad child plan**
 
 Create `docs/superpowers/plans/2026-05-22-scratchpad-v1.md`. The child plan must cover Markdown note storage, create/edit/delete, command palette access, optional AI summary via injected summarizer, Feature Center gating, and XCTest coverage.
 
-- [ ] **Step 3: Commit Scratchpad plan**
+Execution note, 2026-05-23: The audit command found Scratchpad only in roadmap/planning text. Production matches for `note` came from existing snippet fixtures such as `meeting-notes`, not a Scratchpad implementation. Created `2026-05-22-scratchpad-v1.md` using the writing-plans format. The plan covers Markdown JSON note storage, create/edit/delete UI, command palette search/open access, optional AI summaries through an injected summarizer, Feature Center gating, XCTest coverage, and explicit Xcode project membership updates for every new Swift app/test file.
+
+- [x] **Step 3: Commit Scratchpad plan**
 
 Run:
 
 ```bash
-git add docs/superpowers/plans/2026-05-22-scratchpad-v1.md
+git add docs/superpowers/plans/2026-05-22-scratchpad-v1.md docs/superpowers/plans/2026-05-22-atlas-all-features-roadmap.md
 git commit -m "docs: plan Atlas scratchpad"
 ```
 
-Expected: The commit contains only the Scratchpad child plan.
+Expected: The commit contains only the Scratchpad child plan and this roadmap Task 7 execution note.
 
 ---
 
