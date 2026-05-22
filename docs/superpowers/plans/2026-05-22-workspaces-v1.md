@@ -4,7 +4,7 @@
 
 **Goal:** Add named workspace capture and restore for current visible window layouts.
 
-**Architecture:** Keep workspace capture and restore in Swift because it depends on AppKit Accessibility and app activation. Represent workspaces as Codable value types in a local JSON store, use injected snapshot/restorer protocols in tests, and gate UI plus command palette actions behind the existing `window-manager` Feature Center flag.
+**Architecture:** Keep workspace capture and restore in Swift because it depends on AppKit Accessibility and app activation. Represent workspaces as Codable value types in a local JSON store, use injected snapshot/restorer and permission protocols in tests, and gate UI plus command palette actions behind the existing `window-manager` Feature Center flag.
 
 **Tech Stack:** Swift, SwiftUI, Foundation JSON persistence, AppKit Accessibility APIs, XCTest, explicit Xcode PBX project membership via `xcodeproj`.
 
@@ -58,6 +58,7 @@ This plan depends on the window grid plan having added `AtlasModule.windowManage
 
 - `platforms/macos/Atlas/WorkspacePanel.swift`
   - SwiftUI panel to enter a workspace name, save current layout, restore saved workspaces, and show restore issues.
+  - Injects `WindowManagementPermissionChecking` and reports permission-denied status before capture or restore.
 
 - `platforms/macos/Atlas/CommandPalette/WorkspaceProvider.swift`
   - Command palette provider for workspace actions and saved workspace restore commands.
@@ -75,7 +76,7 @@ This plan depends on the window grid plan having added `AtlasModule.windowManage
   - Tests command palette gating, save action dispatch, panel action dispatch, and saved workspace restore actions.
 
 - `platforms/macos/AtlasTests/WorkspacePanelTests.swift`
-  - Tests panel model behavior with injected store and snapshot/restorer.
+  - Tests panel model behavior with injected store, snapshot/restorer, and permission state.
 
 **Modified files:**
 
@@ -88,7 +89,13 @@ This plan depends on the window grid plan having added `AtlasModule.windowManage
   - Gates provider results through `CommandPaletteState`.
 
 - `platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift`
-  - Adds optional workspace panel view builder for push-style command palette UI.
+  - Passes an optional workspace panel view builder into `CommandPaletteView`.
+
+- `platforms/macos/Atlas/CommandPalette/CommandPaletteModels.swift`
+  - Adds `PaletteDestination.workspaces`.
+
+- `platforms/macos/Atlas/CommandPalette/CommandPaletteView.swift`
+  - Adds `workspaceViewBuilder` and handles `.workspaces` in `subView(for:)` using the existing `PaletteAction.push(PaletteDestination)` navigation path.
 
 - `platforms/macos/Atlas.xcodeproj/project.pbxproj`
   - Adds new Swift app files to the `Atlas` target sources.
@@ -803,7 +810,13 @@ final class WorkspacePanelTests: XCTestCase {
             snapshotProvider: FakeWorkspaceSnapshots(windows: [workspaceWindow("Editor")]),
             restorer: FakeWorkspaceRestore()
         )
-        let model = WorkspacePanelModel(store: store, service: service, isFeatureEnabled: { true })
+        let permission = FakeWorkspacePermissionChecker(isTrusted: true)
+        let model = WorkspacePanelModel(
+            store: store,
+            service: service,
+            permissionChecker: permission,
+            isFeatureEnabled: { true }
+        )
 
         try model.saveCurrentLayout(named: "Coding")
 
@@ -817,12 +830,39 @@ final class WorkspacePanelTests: XCTestCase {
             snapshotProvider: FakeWorkspaceSnapshots(windows: [workspaceWindow("Editor")]),
             restorer: FakeWorkspaceRestore()
         )
-        let model = WorkspacePanelModel(store: store, service: service, isFeatureEnabled: { false })
+        let permission = FakeWorkspacePermissionChecker(isTrusted: true)
+        let model = WorkspacePanelModel(
+            store: store,
+            service: service,
+            permissionChecker: permission,
+            isFeatureEnabled: { false }
+        )
 
         try model.saveCurrentLayout(named: "Coding")
 
         XCTAssertTrue(store.savedWorkspaces.isEmpty)
         XCTAssertEqual(model.statusMessage, "Window Manager is disabled")
+    }
+
+    func testSaveCurrentLayoutRequestsPermissionWhenAccessibilityIsNotTrusted() throws {
+        let store = FakeWorkspaceStore()
+        let service = WorkspaceWindowService(
+            snapshotProvider: FakeWorkspaceSnapshots(windows: [workspaceWindow("Editor")]),
+            restorer: FakeWorkspaceRestore()
+        )
+        let permission = FakeWorkspacePermissionChecker(isTrusted: false)
+        let model = WorkspacePanelModel(
+            store: store,
+            service: service,
+            permissionChecker: permission,
+            isFeatureEnabled: { true }
+        )
+
+        try model.saveCurrentLayout(named: "Coding")
+
+        XCTAssertTrue(store.savedWorkspaces.isEmpty)
+        XCTAssertEqual(permission.requestCount, 1)
+        XCTAssertEqual(model.statusMessage, "Accessibility permission is required")
     }
 
     func testRestoreRecordsMissingWindowMessage() throws {
@@ -838,13 +878,40 @@ final class WorkspacePanelTests: XCTestCase {
             snapshotProvider: FakeWorkspaceSnapshots(windows: []),
             restorer: restore
         )
-        let model = WorkspacePanelModel(store: store, service: service, isFeatureEnabled: { true })
+        let permission = FakeWorkspacePermissionChecker(isTrusted: true)
+        let model = WorkspacePanelModel(
+            store: store,
+            service: service,
+            permissionChecker: permission,
+            isFeatureEnabled: { true }
+        )
         try model.reload()
 
         try model.restore(workspace)
 
         XCTAssertEqual(model.restoreIssues.map(\.message), ["App - Missing: window not found"])
         XCTAssertEqual(model.statusMessage, "Restored 0 windows, 1 issue")
+    }
+
+    func testRestoreRequestsPermissionWhenAccessibilityIsNotTrusted() throws {
+        let store = FakeWorkspaceStore()
+        let workspace = Workspace(id: UUID(), name: "Coding", createdAt: Date(), updatedAt: Date(), windows: [])
+        store.workspaces = [workspace]
+        let permission = FakeWorkspacePermissionChecker(isTrusted: false)
+        let model = WorkspacePanelModel(
+            store: store,
+            service: WorkspaceWindowService(
+                snapshotProvider: FakeWorkspaceSnapshots(windows: []),
+                restorer: FakeWorkspaceRestore()
+            ),
+            permissionChecker: permission,
+            isFeatureEnabled: { true }
+        )
+
+        try model.restore(workspace)
+
+        XCTAssertEqual(permission.requestCount, 1)
+        XCTAssertEqual(model.statusMessage, "Accessibility permission is required")
     }
 }
 
@@ -895,6 +962,19 @@ private final class FakeWorkspaceRestore: WorkspaceRestoring {
         report
     }
 }
+
+private final class FakeWorkspacePermissionChecker: WindowManagementPermissionChecking {
+    var isTrusted: Bool
+    private(set) var requestCount = 0
+
+    init(isTrusted: Bool) {
+        self.isTrusted = isTrusted
+    }
+
+    func requestPermission() {
+        requestCount += 1
+    }
+}
 ```
 
 - [ ] **Step 2: Run panel tests and verify they fail**
@@ -922,15 +1002,18 @@ final class WorkspacePanelModel: ObservableObject {
 
     private let store: WorkspaceStoring
     private let service: WorkspaceWindowService
+    private let permissionChecker: WindowManagementPermissionChecking
     private let isFeatureEnabled: () -> Bool
 
     init(
         store: WorkspaceStoring,
         service: WorkspaceWindowService,
+        permissionChecker: WindowManagementPermissionChecking,
         isFeatureEnabled: @escaping () -> Bool
     ) {
         self.store = store
         self.service = service
+        self.permissionChecker = permissionChecker
         self.isFeatureEnabled = isFeatureEnabled
     }
 
@@ -941,6 +1024,12 @@ final class WorkspacePanelModel: ObservableObject {
     func saveCurrentLayout(named name: String) throws {
         guard isFeatureEnabled() else {
             statusMessage = "Window Manager is disabled"
+            return
+        }
+
+        guard permissionChecker.isTrusted else {
+            permissionChecker.requestPermission()
+            statusMessage = "Accessibility permission is required"
             return
         }
 
@@ -959,6 +1048,12 @@ final class WorkspacePanelModel: ObservableObject {
     func restore(_ workspace: Workspace) throws {
         guard isFeatureEnabled() else {
             statusMessage = "Window Manager is disabled"
+            return
+        }
+
+        guard permissionChecker.isTrusted else {
+            permissionChecker.requestPermission()
+            statusMessage = "Accessibility permission is required"
             return
         }
 
@@ -1076,6 +1171,8 @@ Expected: PASS.
 
 **Files:**
 - Create: `platforms/macos/Atlas/CommandPalette/WorkspaceProvider.swift`
+- Modify: `platforms/macos/Atlas/CommandPalette/CommandPaletteModels.swift`
+- Modify: `platforms/macos/Atlas/CommandPalette/CommandPaletteView.swift`
 - Modify: `platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift`
 - Modify: `platforms/macos/Atlas/AtlasApp.swift`
 - Create: `platforms/macos/AtlasTests/WorkspaceProviderTests.swift`
@@ -1115,16 +1212,47 @@ final class WorkspaceProviderTests: XCTestCase {
     }
 
     func testOpenActionDispatchesPanelCallback() {
-        var openCount = 0
+        let provider = WorkspaceProvider(
+            store: FakeWorkspaceProviderStore(),
+            isEnabled: { true }
+        )
+
+        let command = provider.results(for: "open workspaces").first
+
+        if case .push(.workspaces)? = command?.action {
+            XCTAssertEqual(command?.title, "Open Workspaces")
+        } else {
+            XCTFail("expected Open Workspaces to push the workspaces destination")
+        }
+    }
+
+    func testSaveActionDispatchesSaveCallback() {
+        var saveCount = 0
         let provider = WorkspaceProvider(
             store: FakeWorkspaceProviderStore(),
             isEnabled: { true },
-            onOpenPanel: { openCount += 1 }
+            onSaveCurrent: { saveCount += 1 }
         )
 
-        execute(provider.results(for: "open workspaces").first)
+        execute(provider.results(for: "save current workspace").first)
 
-        XCTAssertEqual(openCount, 1)
+        XCTAssertEqual(saveCount, 1)
+    }
+
+    func testRestoreActionDispatchesWorkspaceCallback() {
+        let store = FakeWorkspaceProviderStore()
+        let saved = workspace(name: "Writing")
+        store.workspaces = [saved]
+        var restored: [Workspace] = []
+        let provider = WorkspaceProvider(
+            store: store,
+            isEnabled: { true },
+            onRestore: { restored.append($0) }
+        )
+
+        execute(provider.results(for: "writing").first)
+
+        XCTAssertEqual(restored, [saved])
     }
 
     private func execute(_ command: PaletteCommand?) {
@@ -1177,20 +1305,17 @@ import Foundation
 final class WorkspaceProvider: CommandProviding {
     private let store: WorkspaceStoring
     private let isEnabled: () -> Bool
-    private let onOpenPanel: () -> Void
     private let onSaveCurrent: () -> Void
     private let onRestore: (Workspace) -> Void
 
     init(
         store: WorkspaceStoring,
         isEnabled: @escaping () -> Bool,
-        onOpenPanel: @escaping () -> Void = {},
         onSaveCurrent: @escaping () -> Void = {},
         onRestore: @escaping (Workspace) -> Void = { _ in }
     ) {
         self.store = store
         self.isEnabled = isEnabled
-        self.onOpenPanel = onOpenPanel
         self.onSaveCurrent = onSaveCurrent
         self.onRestore = onRestore
     }
@@ -1232,7 +1357,7 @@ final class WorkspaceProvider: CommandProviding {
                 subtitle: nil,
                 icon: .sfSymbol("rectangle.3.group"),
                 keywords: ["workspace", "open", "panel"],
-                action: .execute { [onOpenPanel] in onOpenPanel() },
+                action: .push(.workspaces),
                 category: "Workspace"
             ),
             PaletteCommand(
@@ -1249,7 +1374,20 @@ final class WorkspaceProvider: CommandProviding {
 }
 ```
 
-- [ ] **Step 4: Add workspace push view support to the controller**
+- [ ] **Step 4: Add the workspace palette destination**
+
+In `platforms/macos/Atlas/CommandPalette/CommandPaletteModels.swift`, update `PaletteDestination` to:
+
+```swift
+enum PaletteDestination: Equatable {
+    case windowPicker
+    case screenshotLibrary
+    case portLookup
+    case workspaces
+}
+```
+
+- [ ] **Step 5: Add workspace push view support to CommandPaletteView**
 
 In `platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift`, add this property near the existing view builders:
 
@@ -1257,23 +1395,58 @@ In `platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift`, add th
 var workspaceViewBuilder: (() -> AnyView)?
 ```
 
-Where the controller handles command execution for push views, add this command-title case next to existing screenshot library, port lookup, and window picker push handling:
+In `CommandPaletteController.show()`, pass the builder into `CommandPaletteView` by changing the initializer call to include:
 
 ```swift
-if command.title == "Open Workspaces", let workspaceViewBuilder {
-    push(workspaceViewBuilder())
-    return
+workspaceViewBuilder: workspaceViewBuilder
+```
+
+In `platforms/macos/Atlas/CommandPalette/CommandPaletteView.swift`, add this property near the existing injected view builders:
+
+```swift
+let workspaceViewBuilder: (() -> AnyView)?
+```
+
+Update `CommandPaletteView.init(...)` by adding this parameter after `windowPickerViewBuilder`:
+
+```swift
+workspaceViewBuilder: (() -> AnyView)? = nil
+```
+
+Assign it in the initializer:
+
+```swift
+self.workspaceViewBuilder = workspaceViewBuilder
+```
+
+Update `subView(for:)` with the new destination:
+
+```swift
+@ViewBuilder
+private func subView(for dest: PaletteDestination) -> some View {
+    switch dest {
+    case .screenshotLibrary:
+        screenshotLibraryViewBuilder?() ?? AnyView(Text("Screenshot Library").padding())
+    case .portLookup:
+        portLookupViewBuilder?() ?? AnyView(Text("Port Lookup").padding())
+    case .windowPicker:
+        windowPickerViewBuilder?() ?? AnyView(Text("Window Picker").padding())
+    case .workspaces:
+        workspaceViewBuilder?() ?? AnyView(Text("Workspaces").padding())
+    }
 }
 ```
 
-- [ ] **Step 5: Register the provider in AtlasApp**
+Do not add a `CommandPaletteController.push(...)` method. The existing architecture pushes destinations through `PaletteAction.push(PaletteDestination)`, and `CommandPaletteView.execute(_:)` appends the destination to its internal stack.
+
+- [ ] **Step 6: Register the provider in AtlasApp**
 
 In `platforms/macos/Atlas/AtlasApp.swift`, add these properties to `CommandPaletteState`:
 
 ```swift
 private let workspaceStore = WorkspaceStore()
 private let workspaceService = WorkspaceWindowService()
-private var onOpenWorkspaces: (() -> Void)?
+private let workspacePermissionChecker = AccessibilityPermissionChecker()
 private var onSaveCurrentWorkspace: (() -> Void)?
 private var onRestoreWorkspace: ((Workspace) -> Void)?
 ```
@@ -1284,7 +1457,6 @@ Create the provider before `self.controller = CommandPaletteController`:
 let workspaceProvider = WorkspaceProvider(
     store: workspaceStore,
     isEnabled: { [weak self] in self?.isWindowManagementEnabled == true },
-    onOpenPanel: { [weak self] in self?.onOpenWorkspaces?() },
     onSaveCurrent: { [weak self] in self?.onSaveCurrentWorkspace?() },
     onRestore: { [weak self] workspace in self?.onRestoreWorkspace?(workspace) }
 )
@@ -1296,17 +1468,15 @@ Add this method to `CommandPaletteState`:
 
 ```swift
 func setWorkspaceActions(
-    onOpen: @escaping () -> Void,
     onSaveCurrent: @escaping () -> Void,
     onRestore: @escaping (Workspace) -> Void
 ) {
-    onOpenWorkspaces = onOpen
     onSaveCurrentWorkspace = onSaveCurrent
     onRestoreWorkspace = onRestore
 }
 ```
 
-- [ ] **Step 6: Add provider files to the Xcode project**
+- [ ] **Step 7: Add provider files to the Xcode project**
 
 Run this exact script from the repository root:
 
@@ -1338,7 +1508,7 @@ project.save
 RUBY
 ```
 
-- [ ] **Step 7: Run provider tests**
+- [ ] **Step 8: Run provider tests**
 
 Run:
 
@@ -1363,6 +1533,7 @@ In `platforms/macos/Atlas/ContentView.swift`, add these properties near the exis
 ```swift
 private let workspaceStore = WorkspaceStore()
 private let workspaceService = WorkspaceWindowService()
+private let workspacePermissionChecker = AccessibilityPermissionChecker()
 ```
 
 - [ ] **Step 2: Show the panel when Window Manager is enabled**
@@ -1375,6 +1546,7 @@ if isFeatureEnabled(.windowManager) {
         model: WorkspacePanelModel(
             store: workspaceStore,
             service: workspaceService,
+            permissionChecker: workspacePermissionChecker,
             isFeatureEnabled: { isFeatureEnabled(.windowManager) }
         )
     )
@@ -1383,25 +1555,25 @@ if isFeatureEnabled(.windowManager) {
 }
 ```
 
-- [ ] **Step 3: Wire command palette actions**
+- [ ] **Step 3: Wire command palette view builder and actions**
 
 In `ContentView.startHotkeys()`, after existing controller view builders are configured, add:
 
 ```swift
-paletteState?.setWorkspaceActions(
-    onOpen: {
-        controller.push(
-            AnyView(
-                WorkspacePanel(
-                    model: WorkspacePanelModel(
-                        store: workspaceStore,
-                        service: workspaceService,
-                        isFeatureEnabled: { isFeatureEnabled(.windowManager) }
-                    )
-                )
+controller.workspaceViewBuilder = {
+    AnyView(
+        WorkspacePanel(
+            model: WorkspacePanelModel(
+                store: workspaceStore,
+                service: workspaceService,
+                permissionChecker: workspacePermissionChecker,
+                isFeatureEnabled: { isFeatureEnabled(.windowManager) }
             )
         )
-    },
+    )
+}
+
+paletteState?.setWorkspaceActions(
     onSaveCurrent: {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
@@ -1409,22 +1581,35 @@ paletteState?.setWorkspaceActions(
         let model = WorkspacePanelModel(
             store: workspaceStore,
             service: workspaceService,
+            permissionChecker: workspacePermissionChecker,
             isFeatureEnabled: { isFeatureEnabled(.windowManager) }
         )
-        try? model.saveCurrentLayout(named: name)
-        showStatus("Saved \(name)")
+        do {
+            try model.saveCurrentLayout(named: name)
+            showStatus(model.statusMessage)
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
+        }
     },
     onRestore: { workspace in
         let model = WorkspacePanelModel(
             store: workspaceStore,
             service: workspaceService,
+            permissionChecker: workspacePermissionChecker,
             isFeatureEnabled: { isFeatureEnabled(.windowManager) }
         )
-        try? model.restore(workspace)
-        showStatus("Restored \(workspace.name)")
+        do {
+            try model.restore(workspace)
+            let hasIssues = !model.restoreIssues.isEmpty || model.statusMessage == "Accessibility permission is required"
+            showStatus(model.statusMessage, kind: hasIssues ? .error : .success)
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
+        }
     }
 )
 ```
+
+Expected behavior: `Open Workspaces` uses `PaletteAction.push(.workspaces)` and renders through `CommandPaletteView.subView(for:)`. Save and restore command actions surface `WorkspacePanelModel.statusMessage`; they must not report a successful save or restore when Accessibility permission is missing.
 
 - [ ] **Step 4: Run focused workspace tests**
 
@@ -1448,6 +1633,8 @@ Expected: PASS.
 - Verify: `platforms/macos/Atlas/CommandPalette/WorkspaceProvider.swift`
 - Verify: `platforms/macos/Atlas/ContentView.swift`
 - Verify: `platforms/macos/Atlas/AtlasApp.swift`
+- Verify: `platforms/macos/Atlas/CommandPalette/CommandPaletteModels.swift`
+- Verify: `platforms/macos/Atlas/CommandPalette/CommandPaletteView.swift`
 - Verify: `platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift`
 - Verify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
@@ -1476,7 +1663,7 @@ Expected: PASS. Non-blocking CoreSimulator warnings are acceptable when the macO
 Run:
 
 ```bash
-git diff -- platforms/macos/Atlas/WorkspaceModels.swift platforms/macos/Atlas/WorkspaceStore.swift platforms/macos/Atlas/WorkspaceWindowService.swift platforms/macos/Atlas/WorkspacePanel.swift platforms/macos/Atlas/CommandPalette/WorkspaceProvider.swift platforms/macos/Atlas/ContentView.swift platforms/macos/Atlas/AtlasApp.swift platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift platforms/macos/AtlasTests/WorkspaceModelsTests.swift platforms/macos/AtlasTests/WorkspaceStoreTests.swift platforms/macos/AtlasTests/WorkspaceWindowServiceTests.swift platforms/macos/AtlasTests/WorkspacePanelTests.swift platforms/macos/AtlasTests/WorkspaceProviderTests.swift platforms/macos/Atlas.xcodeproj/project.pbxproj
+git diff -- platforms/macos/Atlas/WorkspaceModels.swift platforms/macos/Atlas/WorkspaceStore.swift platforms/macos/Atlas/WorkspaceWindowService.swift platforms/macos/Atlas/WorkspacePanel.swift platforms/macos/Atlas/CommandPalette/WorkspaceProvider.swift platforms/macos/Atlas/ContentView.swift platforms/macos/Atlas/AtlasApp.swift platforms/macos/Atlas/CommandPalette/CommandPaletteModels.swift platforms/macos/Atlas/CommandPalette/CommandPaletteView.swift platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift platforms/macos/AtlasTests/WorkspaceModelsTests.swift platforms/macos/AtlasTests/WorkspaceStoreTests.swift platforms/macos/AtlasTests/WorkspaceWindowServiceTests.swift platforms/macos/AtlasTests/WorkspacePanelTests.swift platforms/macos/AtlasTests/WorkspaceProviderTests.swift platforms/macos/Atlas.xcodeproj/project.pbxproj
 ```
 
 Expected: Diff contains only workspace models, persistence, capture/restore, panel, command palette actions, tests, and PBX membership changes.
@@ -1486,7 +1673,7 @@ Expected: Diff contains only workspace models, persistence, capture/restore, pan
 Run:
 
 ```bash
-git add platforms/macos/Atlas/WorkspaceModels.swift platforms/macos/Atlas/WorkspaceStore.swift platforms/macos/Atlas/WorkspaceWindowService.swift platforms/macos/Atlas/WorkspacePanel.swift platforms/macos/Atlas/CommandPalette/WorkspaceProvider.swift platforms/macos/Atlas/ContentView.swift platforms/macos/Atlas/AtlasApp.swift platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift platforms/macos/AtlasTests/WorkspaceModelsTests.swift platforms/macos/AtlasTests/WorkspaceStoreTests.swift platforms/macos/AtlasTests/WorkspaceWindowServiceTests.swift platforms/macos/AtlasTests/WorkspacePanelTests.swift platforms/macos/AtlasTests/WorkspaceProviderTests.swift platforms/macos/Atlas.xcodeproj/project.pbxproj
+git add platforms/macos/Atlas/WorkspaceModels.swift platforms/macos/Atlas/WorkspaceStore.swift platforms/macos/Atlas/WorkspaceWindowService.swift platforms/macos/Atlas/WorkspacePanel.swift platforms/macos/Atlas/CommandPalette/WorkspaceProvider.swift platforms/macos/Atlas/ContentView.swift platforms/macos/Atlas/AtlasApp.swift platforms/macos/Atlas/CommandPalette/CommandPaletteModels.swift platforms/macos/Atlas/CommandPalette/CommandPaletteView.swift platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift platforms/macos/AtlasTests/WorkspaceModelsTests.swift platforms/macos/AtlasTests/WorkspaceStoreTests.swift platforms/macos/AtlasTests/WorkspaceWindowServiceTests.swift platforms/macos/AtlasTests/WorkspacePanelTests.swift platforms/macos/AtlasTests/WorkspaceProviderTests.swift platforms/macos/Atlas.xcodeproj/project.pbxproj
 git commit -m "feat: add workspaces"
 ```
 

@@ -75,7 +75,9 @@ Out of scope:
   - Maps `window-manager` to `AtlasModule.windowManager.title`.
 
 - `platforms/macos/Atlas/AtlasApp.swift`
-  - Owns one shared `AccessibilityWindowManager`.
+  - Owns one shared `AccessibilityWindowManager` and one shared `AccessibilityPermissionChecker`.
+  - Injects the shared window manager into `CommandPaletteState` and `ContentView`.
+  - Injects the shared permission checker into `ContentView`.
   - Lets `CommandPaletteState` update window management gating from `ContentView`.
 
 - `platforms/macos/Atlas/ContentView.swift`
@@ -574,7 +576,21 @@ final class WindowManagementProvider: CommandProviding {
 In `platforms/macos/Atlas/AtlasApp.swift`, add this stored property to `CommandPaletteState`:
 
 ```swift
+private let windowManager: WindowManaging
 private var isWindowManagementEnabled = false
+```
+
+Update the `CommandPaletteState` initializer signature from:
+
+```swift
+init() {
+```
+
+to:
+
+```swift
+init(windowManager: WindowManaging = AccessibilityWindowManager()) {
+    self.windowManager = windowManager
 ```
 
 Replace the provider initialization:
@@ -587,6 +603,7 @@ with:
 
 ```swift
 let windowManagementProvider = WindowManagementProvider(
+    windowManager: windowManager,
     isEnabled: { [weak self] in self?.isWindowManagementEnabled == true }
 )
 ```
@@ -880,16 +897,55 @@ Expected: PASS.
 - Modify: `platforms/macos/Atlas/AtlasApp.swift`
 - Test: `platforms/macos/AtlasTests/WindowGridPanelTests.swift`
 
-- [ ] **Step 1: Add shared window manager state to ContentView**
+- [ ] **Step 1: Create shared window manager state in AtlasApp**
 
-In `platforms/macos/Atlas/ContentView.swift`, add these properties near the existing service stores:
+In `platforms/macos/Atlas/AtlasApp.swift`, replace the current `AtlasApp` stored property and `ContentView` construction with:
 
 ```swift
-private let windowManager = AccessibilityWindowManager()
-private let windowPermissionChecker = AccessibilityPermissionChecker()
+@main
+struct AtlasApp: App {
+    @StateObject private var paletteState: CommandPaletteState
+    private let windowManager: AccessibilityWindowManager
+    private let windowPermissionChecker = AccessibilityPermissionChecker()
+
+    init() {
+        let sharedWindowManager = AccessibilityWindowManager()
+        self.windowManager = sharedWindowManager
+        _paletteState = StateObject(
+            wrappedValue: CommandPaletteState(windowManager: sharedWindowManager)
+        )
+    }
+
+    var body: some Scene {
+        MenuBarExtra("Atlas", systemImage: "square.stack.3d.up.fill") {
+            ContentView(
+                windowManager: windowManager,
+                windowPermissionChecker: windowPermissionChecker,
+                paletteState: paletteState
+            )
+        }
+        .menuBarExtraStyle(.window)
+
+        Settings {
+            AtlasSettingsView(paletteController: paletteState.controller)
+        }
+    }
+}
 ```
 
-- [ ] **Step 2: Show the panel only when the feature is enabled**
+- [ ] **Step 2: Accept shared dependencies in ContentView**
+
+In `platforms/macos/Atlas/ContentView.swift`, add these stored properties near `var paletteState`:
+
+```swift
+let windowManager: WindowManaging
+let windowPermissionChecker: WindowManagementPermissionChecking
+var paletteState: CommandPaletteState? = nil
+```
+
+Remove the old standalone `var paletteState: CommandPaletteState? = nil` line so `ContentView` has only one `paletteState` property.
+
+- [ ] **Step 3: Show the panel only when the feature is enabled**
 
 In `ContentView.body`, insert this block after the monitoring panel divider and before `FeatureCenterPanel`:
 
@@ -925,7 +981,7 @@ private func handleWindowGridResult(_ result: WindowGridSelectionResult) {
 }
 ```
 
-- [ ] **Step 3: Sync Feature Center state into command palette gating**
+- [ ] **Step 4: Sync Feature Center state into command palette gating**
 
 In `ContentView.startModules()`, after `enabledFeatures = FeatureStateReducer.enabledMap(from: loadedFeatures)`, add:
 
@@ -942,7 +998,7 @@ if feature == AtlasModule.windowManager.featureName {
 }
 ```
 
-- [ ] **Step 4: Run focused window tests**
+- [ ] **Step 5: Run focused window tests**
 
 Run:
 
