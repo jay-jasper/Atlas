@@ -18,7 +18,7 @@ Use this file as the master execution map. For each subsystem below, either exec
 
 ## Existing Implementation Baseline
 
-- Screenshot capture, annotation, pinning, library, OCR, translation, drag output, feature settings, and translation settings are partially implemented in `platforms/macos/Atlas/Screenshot*.swift`, `FloatingScreenshotThumbnailWindow.swift`, `PinnedScreenshotWindow.swift`, `WindowCaptureService.swift`, and `WindowSelectionWindow.swift`.
+- Screenshot capture, annotation, pinning, library, OCR, translation, drag output, feature settings, and translation settings are partially implemented in `crates/atlas-core/src/capture/engine.rs`, exposed through `crates/atlas-ffi/src/atlas.udl`, and bridged through `platforms/macos/Atlas/AtlasCaptureService.swift`, `Screenshot*.swift`, `FloatingScreenshotThumbnailWindow.swift`, `PinnedScreenshotWindow.swift`, `WindowCaptureService.swift`, and `WindowSelectionWindow.swift`.
 - Monitoring and Port Master are partially implemented in `crates/atlas-core/src/monitor/`, `platforms/macos/Atlas/MonitoringService.swift`, `MonitoringPanel.swift`, `MonitoringFFIMapper.swift`, `PortMasterPanel.swift`, and `crates/atlas-ffi/src/atlas.udl`.
 - Enhanced monitoring data models for per-core CPU, process lists, network interfaces, disk, battery, and temperature are implemented in `crates/atlas-core/src/monitor/models.rs`, `collector.rs`, `disk.rs`, `battery.rs`, `sensors.rs`, and exposed through `crates/atlas-ffi/src/atlas.udl`.
 - Feature toggles are partially implemented in `crates/atlas-core/src/features.rs`, `crates/atlas-ffi/src/atlas.udl`, `platforms/macos/Atlas/FeatureService.swift`, `FeatureModels.swift`, `FeatureState.swift`, and `FeatureTogglePanel.swift`.
@@ -216,8 +216,11 @@ Expected: The commit contains only Feature Center and feature registry changes.
 - Use existing plan: `docs/superpowers/plans/2026-05-11-screenshot-selection-precision-v1.md`
 - Use existing plan: `docs/superpowers/plans/2026-05-20-translation-engine-v1.md`
 - Use existing plan: `docs/superpowers/plans/2026-05-20-translation-settings-v1.md`
+- Use existing plan: `docs/superpowers/plans/2026-05-21-screenshot-annotation-style-v1.md`
+- Use existing plan: `docs/superpowers/plans/2026-05-21-screenshot-annotation-text-v1.md`
 - Use existing plan: `docs/superpowers/plans/2026-05-21-screenshot-feature-controls-v1.md`
 - Use existing plan: `docs/superpowers/plans/2026-05-21-screenshot-library-v1.md`
+- Use existing plan: `docs/superpowers/plans/2026-05-21-screenshot-quick-output-feedback-v1.md`
 - Create later if still missing: `docs/superpowers/plans/2026-05-22-scrolling-capture-v1.md`
 - Create later if still missing: `docs/superpowers/plans/2026-05-22-gif-recording-v1.md`
 
