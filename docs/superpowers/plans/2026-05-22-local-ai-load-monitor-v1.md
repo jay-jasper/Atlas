@@ -751,7 +751,7 @@ Expected: Pass.
 Run:
 
 ```bash
-xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/LocalAILoadMonitorTests -only-testing:AtlasTests/LocalAIProcessSnapshotTests -only-testing:AtlasTests/FeatureModelsTests
+xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/LocalAILoadMonitorTests -only-testing:AtlasTests/LocalAILoadRefreshServiceTests -only-testing:AtlasTests/LocalAIProcessSnapshotTests -only-testing:AtlasTests/FeatureModelsTests
 ```
 
 Expected: Pass.
