@@ -1214,7 +1214,7 @@ init(
 }
 ```
 
-Keep `AtlasCaptureService.live` as the production boundary and pass the same logger when `ContentView` or app composition constructs the service. Before each desktop or region capture operation, record a screen recording event. Do not add window capture to `AtlasCaptureService`; window capture lives in `WindowCaptureService`.
+Keep `AtlasCaptureService.live` as the production boundary and pass the same logger when app composition installs the service on `AtlasBridge.captureService`. Before each desktop or region capture operation, record a screen recording event. Do not add window capture to `AtlasCaptureService`; window capture lives in `WindowCaptureService`.
 
 - [ ] **Step 2: Log window capture attempts in WindowCaptureService**
 
@@ -1248,7 +1248,7 @@ struct LoggingWindowCaptureProvider: WindowCaptureProviding {
 }
 ```
 
-Wire `ContentView` and any `WindowCaptureProvider.captureWindow(id:)` call sites to use this logged provider or an equivalent logged service path. The plan should not rely on `AtlasCaptureService` for selected-window capture.
+Wire the provider at the real boundary by assigning a logged provider to `AtlasBridge.windowCaptureProvider`, and update any other `WindowCaptureProvider.captureWindow(id:)` call sites to use the logged provider or an equivalent logged service path. The plan should not rely on `AtlasCaptureService` for selected-window capture.
 
 Do not call `CGRequestScreenCaptureAccess()` from tests or from this logging path.
 
@@ -1510,7 +1510,7 @@ init(accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()) {
 
 Preserve provider order and any adjacent child-plan providers already inserted by other tasks. Add logger arguments only to providers that support them.
 
-- [ ] **Step 3: Pass logger to hotkey service, capture service, and window capture boundaries**
+- [ ] **Step 3: Pass logger to hotkey service and AtlasBridge capture boundaries**
 
 In `ContentView`, replace local default hotkey construction with injected or logger-backed construction:
 
@@ -1525,12 +1525,23 @@ init(
     self.paletteState = paletteState
     self.privacyPulseService = privacyPulseService
     self.hotkeyService = GlobalHotkeyService(accessLogger: accessLogger)
-    self.captureService = AtlasCaptureService.live(accessLogger: accessLogger)
-    self.windowCaptureProvider = LoggingWindowCaptureProvider(accessLogger: accessLogger)
 }
 ```
 
-If `AtlasCaptureService.live` is a static value today, convert it to a static factory such as `static func live(accessLogger:) -> AtlasCaptureService` so the shared logger wraps the production closures. If `ContentView` already has a custom initializer from another child plan, add `privacyPulseService` and `accessLogger` parameters to that initializer and keep the existing arguments intact.
+Install the logged capture wrappers where capture is actually routed today: the static boundaries on `AtlasBridge`. In app composition, after creating the shared `PrivacyPulseAccessLogger`, assign the wrapped services:
+
+```swift
+AtlasBridge.captureService = AtlasCaptureService.logging(
+    base: .live,
+    logger: accessLogger
+)
+AtlasBridge.windowCaptureProvider = LoggedWindowCaptureProvider(
+    base: CoreGraphicsWindowCaptureProvider(),
+    logger: accessLogger
+)
+```
+
+Equivalent names are fine if the implementation uses `accessLogger` instead of `logger`, or `LoggingWindowCaptureProvider` instead of `LoggedWindowCaptureProvider`. The important boundary is `AtlasBridge.captureService` and `AtlasBridge.windowCaptureProvider`; do not add fake `captureService` or `windowCaptureProvider` stored properties to `ContentView`. If `AtlasCaptureService.live` is a static value today, convert it to a static factory or add a small `logging(base:logger:)` wrapper so the shared logger wraps the production closures. If `ContentView` already has a custom initializer from another child plan, add `privacyPulseService` and `accessLogger` parameters to that initializer and keep the existing arguments intact.
 
 - [ ] **Step 4: Verify app composition**
 
