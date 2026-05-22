@@ -26,7 +26,7 @@
 - Modify: `platforms/macos/Atlas/AtlasApp.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Add provider tests**
+- [x] **Step 1: Add provider tests**
 
 Create deterministic XCTest coverage for:
 - Empty query returns no results.
@@ -38,7 +38,7 @@ Create deterministic XCTest coverage for:
 - Executing a result calls its injected action.
 - Results are capped to a small fixed count.
 
-- [ ] **Step 2: Implement `DeveloperToolsProvider`**
+- [x] **Step 2: Implement `DeveloperToolsProvider`**
 
 Implement a fixed command list with injectable actions:
 - Open Terminal
@@ -50,15 +50,15 @@ Default actions should use `NSWorkspace.shared.openApplication(at:configuration:
 
 `results(for:)` should trim whitespace, return `[]` for blank query, match title and keywords case-insensitively, return at most 5 results, and map commands to `PaletteCommand` with category `Developer`.
 
-- [ ] **Step 3: Register provider**
+- [x] **Step 3: Register provider**
 
 In `CommandPaletteState`, instantiate `DeveloperToolsProvider()` and register it after `AtlasCommandProvider` and before `ClipboardHistoryProvider`.
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Add `DeveloperToolsProvider.swift` to the `Atlas` target and `DeveloperToolsProviderTests.swift` to the `AtlasTests` target.
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run:
 
@@ -77,7 +77,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
   -destination 'platform=macOS'
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Commit with:
 
