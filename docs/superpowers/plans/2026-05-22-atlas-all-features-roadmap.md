@@ -342,7 +342,7 @@ Expected: The commit contains only TokenBar and local AI load monitor child plan
 - Use existing plan: `docs/superpowers/plans/2026-05-22-command-palette-window-management-v1.md`
 - Create later: `docs/superpowers/plans/2026-05-22-command-palette-custom-automation-v1.md`
 
-- [ ] **Step 1: Run current command palette tests**
+- [x] **Step 1: Run current command palette tests**
 
 Run:
 
@@ -352,7 +352,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: Command palette tests pass.
 
-- [ ] **Step 2: Audit automation support**
+- [x] **Step 2: Audit automation support**
 
 Run:
 
@@ -362,15 +362,17 @@ rg -n 'Shell|Python|script|automation|run command|Process\\(' platforms/macos/At
 
 Expected: The command shows existing shell command plan coverage and any current process execution implementation.
 
-- [ ] **Step 3: Execute existing command palette plans**
+- [x] **Step 3: Execute existing command palette plans**
 
 Execute any existing command palette plan whose acceptance criteria are not yet represented by tests or code. Commit each child plan separately.
 
-- [ ] **Step 4: Write custom automation child plan**
+Execution note, 2026-05-22: The required command palette XCTest slice passed with 57 tests and 0 failures. The automation audit command showed existing shell command coverage in `2026-05-21-command-palette-shell-v1.md`, monitoring process-kill paths, and plan text, but no current custom automation `Process(` implementation in `platforms/macos/Atlas` or `platforms/macos/AtlasTests`. Existing command palette plans for shell UI, developer tools, app rescans, frecency, snippets, and window management are represented by current providers/tests, so no production code was changed for this task. Custom user-defined shell/Python automation is still missing and is covered by the new child plan.
+
+- [x] **Step 4: Write custom automation child plan**
 
 Create `docs/superpowers/plans/2026-05-22-command-palette-custom-automation-v1.md`. The child plan must cover user-defined shell/Python commands, command storage, execution timeout, output display, permission warnings, Feature Center gating, command ranking, and tests using injected process runners.
 
-- [ ] **Step 5: Commit automation plan**
+- [x] **Step 5: Commit automation plan**
 
 Run:
 
@@ -379,7 +381,7 @@ git add docs/superpowers/plans/2026-05-22-command-palette-custom-automation-v1.m
 git commit -m "docs: plan custom command automation"
 ```
 
-Expected: The commit contains only the custom automation child plan.
+Expected: The commit contains only the custom automation child plan and this roadmap Task 5 execution note.
 
 ---
 
