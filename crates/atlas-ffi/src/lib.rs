@@ -322,11 +322,15 @@ mod tests {
     fn test_feature_management() {
         let features = list_features().unwrap();
         let names: Vec<_> = features.iter().map(|f| f.name.as_str()).collect();
-        assert_eq!(names, ["automation", "monitoring", "screenshot", "window-manager"]);
+        assert_eq!(
+            names,
+            ["automation", "monitoring", "screenshot", "tokenbar", "window-manager"]
+        );
 
         assert!(features.iter().any(|f| f.name == "automation"));
         assert!(features.iter().any(|f| f.name == "monitoring"));
         assert!(features.iter().any(|f| f.name == "screenshot"));
+        assert!(features.iter().any(|f| f.name == "tokenbar"));
         assert!(features.iter().any(|f| f.name == "window-manager"));
 
         assert!(toggle_feature("monitoring".to_string(), true).unwrap());

@@ -41,4 +41,10 @@ final class FeatureModelsTests: XCTestCase {
 
         XCTAssertEqual(feature.title, "Window Manager")
     }
+
+    func testMapsTokenBarTitle() {
+        let feature = AtlasFeature(name: "tokenbar", isEnabled: false)
+
+        XCTAssertEqual(feature.title, "TokenBar")
+    }
 }

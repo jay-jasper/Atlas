@@ -74,6 +74,7 @@ struct CommandPaletteView: View {
     let portLookupViewBuilder: (() -> AnyView)?
     let windowPickerViewBuilder: (() -> AnyView)?
     let workspaceViewBuilder: (() -> AnyView)?
+    let tokenBarViewBuilder: (() -> AnyView)?
     private let automationRunner: AutomationProcessRunning
 
     @State private var query: String = ""
@@ -95,7 +96,8 @@ struct CommandPaletteView: View {
         screenshotLibraryViewBuilder: (() -> AnyView)? = nil,
         portLookupViewBuilder: (() -> AnyView)? = nil,
         windowPickerViewBuilder: (() -> AnyView)? = nil,
-        workspaceViewBuilder: (() -> AnyView)? = nil
+        workspaceViewBuilder: (() -> AnyView)? = nil,
+        tokenBarViewBuilder: (() -> AnyView)? = nil
     ) {
         self.providers = providers
         self.onDismiss = onDismiss
@@ -105,6 +107,7 @@ struct CommandPaletteView: View {
         self.portLookupViewBuilder = portLookupViewBuilder
         self.windowPickerViewBuilder = windowPickerViewBuilder
         self.workspaceViewBuilder = workspaceViewBuilder
+        self.tokenBarViewBuilder = tokenBarViewBuilder
     }
 
     var body: some View {
@@ -212,6 +215,8 @@ struct CommandPaletteView: View {
             windowPickerViewBuilder?() ?? AnyView(Text("Window Picker").padding())
         case .workspaces:
             workspaceViewBuilder?() ?? AnyView(Text("Workspaces").padding())
+        case .tokenBar:
+            tokenBarViewBuilder?() ?? AnyView(Text("TokenBar").padding())
         case .automationOutput(let command):
             AutomationOutputView(command: command, runner: automationRunner)
         }

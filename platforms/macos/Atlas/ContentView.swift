@@ -35,6 +35,7 @@ struct ContentView: View {
     @State private var gifRecordingSession: ScreenshotGIFRecordingSession?
     @State private var cpuHistory: [Double] = []
     @State private var memoryHistory: [Double] = []
+    @State private var tokenBarSummary: TokenBarSummary = .empty
     private let screenshotFeatureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigurationStore = ScreenshotTranslationConfigurationStore()
     private let screenshotLibraryStore = ScreenshotLibraryStore()
@@ -45,6 +46,7 @@ struct ContentView: View {
     private let hotkeyService = GlobalHotkeyService()
     private let workspaceStore = WorkspaceStore()
     private let workspaceService = WorkspaceWindowService()
+    private let tokenBarLedger = TokenBarLedger()
     let windowManager: WindowManaging
     let windowPermissionChecker: WindowManagementPermissionChecking
     var paletteState: CommandPaletteState?
@@ -113,6 +115,12 @@ struct ContentView: View {
                             cpuHistory: cpuHistory,
                             memoryHistory: memoryHistory
                         )
+
+                        Divider()
+                    }
+
+                    if isFeatureEnabled(.tokenbar) {
+                        TokenBarPanel(summary: tokenBarSummary)
 
                         Divider()
                     }
@@ -207,6 +215,16 @@ struct ContentView: View {
         .frame(minWidth: 360, minHeight: 500)
         .onAppear(perform: startModules)
         .onDisappear(perform: stopModules)
+        .onReceive(NotificationCenter.default.publisher(for: .tokenBarSummaryDidChange)) { notification in
+            if let summary = notification.object as? TokenBarSummary {
+                tokenBarSummary = summary
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .tokenBarCommandStatusDidChange)) { notification in
+            if let status = notification.object as? TokenBarCommandStatus {
+                showStatus(status.message, kind: status.kind == .success ? .success : .error)
+            }
+        }
     }
 
     private static let historyMaxCount = 60
@@ -223,6 +241,7 @@ struct ContentView: View {
             features = loadedFeatures
             enabledFeatures = FeatureStateReducer.enabledMap(from: loadedFeatures)
             paletteState?.setWindowManagementEnabled(isFeatureEnabled(.windowManager))
+            tokenBarSummary = isFeatureEnabled(.tokenbar) ? ((try? tokenBarLedger.summary()) ?? .empty) : .empty
             statusText = "Atlas is Ready"
             if isFeatureEnabled(.monitoring) {
                 startMonitoring()
@@ -336,6 +355,10 @@ struct ContentView: View {
                     )
                 )
             }
+
+            controller.tokenBarViewBuilder = {
+                AnyView(TokenBarPanel(summary: tokenBarSummary))
+            }
         }
 
         paletteState?.setWorkspaceActions(
@@ -375,6 +398,11 @@ struct ContentView: View {
 
         if feature == AtlasModule.windowManager.featureName {
             paletteState?.setWindowManagementEnabled(enabled)
+            return
+        }
+
+        if feature == AtlasModule.tokenbar.featureName {
+            tokenBarSummary = enabled ? ((try? tokenBarLedger.summary()) ?? .empty) : .empty
             return
         }
 

@@ -4,11 +4,13 @@ import SwiftUI
 struct AtlasSettingsView: View {
     private let featureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigStore = ScreenshotTranslationConfigurationStore()
+    private let tokenBarConfigStore = TokenBarConfigurationStore()
     let paletteController: CommandPaletteController
 
     @State private var screenshotFeatureSettings: ScreenshotFeatureSettings = .defaultEnabled
     @State private var translationSettingsDraft: ScreenshotTranslationSettingsDraft = .empty
     @State private var isTranslationConfigured: Bool = false
+    @State private var tokenBarConfiguration: TokenBarProviderConfiguration?
     @State private var featureSettingsIdentity: String = ""
 
     var body: some View {
@@ -27,6 +29,14 @@ struct AtlasSettingsView: View {
                     isConfigured: isTranslationConfigured,
                     onSave: saveTranslationSettings,
                     onClear: clearTranslationSettings
+                )
+
+                Divider()
+
+                TokenBarSettingsPanel(
+                    configuration: tokenBarConfiguration,
+                    onSave: saveTokenBarSettings,
+                    onClear: clearTokenBarSettings
                 )
 
                 Divider()
@@ -61,6 +71,7 @@ struct AtlasSettingsView: View {
         featureSettingsIdentity = makeFeatureIdentity()
         translationSettingsDraft = translationConfigStore.settingsDraft()
         isTranslationConfigured = translationConfigStore.httpConfig() != nil
+        tokenBarConfiguration = tokenBarConfigStore.load()
     }
 
     private func saveFeatureSettings(_ settings: ScreenshotFeatureSettings) {
@@ -79,6 +90,16 @@ struct AtlasSettingsView: View {
         translationConfigStore.clear()
         translationSettingsDraft = .empty
         isTranslationConfigured = false
+    }
+
+    private func saveTokenBarSettings(_ configuration: TokenBarProviderConfiguration) {
+        tokenBarConfigStore.save(configuration)
+        tokenBarConfiguration = tokenBarConfigStore.load()
+    }
+
+    private func clearTokenBarSettings() {
+        tokenBarConfigStore.clear()
+        tokenBarConfiguration = nil
     }
 
     private func makeFeatureIdentity() -> String {

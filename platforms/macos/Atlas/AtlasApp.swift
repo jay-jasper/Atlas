@@ -62,6 +62,23 @@ final class CommandPaletteState: ObservableObject {
             windowManager: windowManager,
             isEnabled: { [weak self] in self?.isWindowManagementEnabled == true }
         )
+        let tokenBarProvider = TokenBarCommandProvider(
+            isEnabled: Self.isTokenBarFeatureEnabled,
+            onOpenSettings: {
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                NSApp.activate(ignoringOtherApps: true)
+            },
+            importer: TokenBarProviderUsageImporter(),
+            onRefreshSummary: { summary in
+                NotificationCenter.default.post(name: .tokenBarSummaryDidChange, object: summary)
+            },
+            onShowStatus: { message, kind in
+                NotificationCenter.default.post(
+                    name: .tokenBarCommandStatusDidChange,
+                    object: TokenBarCommandStatus(message: message, kind: kind)
+                )
+            }
+        )
         let workspaceProvider = WorkspaceProvider(
             store: workspaceStore,
             isEnabled: { [weak self] in self?.isWindowManagementEnabled == true },
@@ -78,6 +95,7 @@ final class CommandPaletteState: ObservableObject {
 
         self.controller = CommandPaletteController(providers: [
             atlasProvider,
+            tokenBarProvider,
             developerToolsProvider,
             windowManagementProvider,
             workspaceProvider,
@@ -128,13 +146,20 @@ final class CommandPaletteState: ObservableObject {
     }
 
     private static func isAutomationFeatureEnabled() -> Bool {
-        let automationFeatureName = AtlasModule.automation.featureName
+        isFeatureEnabled(AtlasModule.automation.featureName)
+    }
+
+    private static func isTokenBarFeatureEnabled() -> Bool {
+        isFeatureEnabled(AtlasModule.tokenbar.featureName)
+    }
+
+    private static func isFeatureEnabled(_ featureName: String) -> Bool {
         guard let features = try? AtlasBridge.listFeatures() else {
             return false
         }
 
         for feature in features {
-            if feature.name == automationFeatureName {
+            if feature.name == featureName {
                 return feature.isEnabled
             }
         }

@@ -26,5 +26,6 @@ enum PaletteDestination: Equatable {
     case screenshotLibrary
     case portLookup
     case workspaces
+    case tokenBar
     case automationOutput(CustomAutomationCommand)
 }
