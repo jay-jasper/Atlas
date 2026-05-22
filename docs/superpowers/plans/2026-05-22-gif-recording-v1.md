@@ -384,7 +384,7 @@ Expected: Commit succeeds.
 - Create: `platforms/macos/AtlasTests/ScreenshotGIFRecordingTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write recorder tests**
+- [x] **Step 1: Write recorder tests**
 
 Create `platforms/macos/AtlasTests/ScreenshotGIFRecordingTests.swift`:
 
@@ -550,7 +550,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because recorder types do not exist or the test file is not in the project.
 
-- [ ] **Step 3: Add recorder implementation**
+- [x] **Step 3: Add recorder implementation**
 
 Create `platforms/macos/Atlas/ScreenshotGIFRecording.swift`:
 
@@ -699,14 +699,14 @@ struct ScreenshotGIFRecorder {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Add:
 
 - `ScreenshotGIFRecording.swift` to the `Atlas` target Sources.
 - `ScreenshotGIFRecordingTests.swift` to the `AtlasTests` target Sources.
 
-- [ ] **Step 5: Run recorder tests**
+- [x] **Step 5: Run recorder tests**
 
 Run:
 
