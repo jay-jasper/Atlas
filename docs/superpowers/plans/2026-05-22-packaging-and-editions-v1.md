@@ -80,7 +80,7 @@ Project membership rule: this repo uses explicit PBX project references. Every n
 - Create: `platforms/macos/Atlas/EditionModels.swift`
 - Create: `platforms/macos/AtlasTests/EditionModelsTests.swift`
 
-- [ ] **Step 1: Create edition and packaging models**
+- [x] **Step 1: Create edition and packaging models**
 
 Create `platforms/macos/Atlas/EditionModels.swift`:
 
@@ -223,7 +223,7 @@ EditionFeaturePackage(
 
 Preserve any existing child-plan cases and builders. Do not replace `AtlasModule` or `EditionCatalog.packages` with a closed list that drops features added by other workers.
 
-- [ ] **Step 2: Add edition model tests**
+- [x] **Step 2: Add edition model tests**
 
 Create `platforms/macos/AtlasTests/EditionModelsTests.swift`:
 
@@ -263,7 +263,7 @@ final class EditionModelsTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 3: Add Xcode project membership**
+- [x] **Step 3: Add Xcode project membership**
 
 Add these files to `platforms/macos/Atlas.xcodeproj/project.pbxproj`:
 
@@ -272,7 +272,7 @@ Add these files to `platforms/macos/Atlas.xcodeproj/project.pbxproj`:
 
 Use the existing PBX style in the file: one `PBXFileReference`, one `PBXBuildFile`, one group entry, and one `PBXSourcesBuildPhase` entry per Swift source.
 
-- [ ] **Step 4: Verify model behavior**
+- [x] **Step 4: Verify model behavior**
 
 Run:
 
@@ -290,7 +290,7 @@ Expected: edition metadata tests pass and unknown features default to included.
 - Create: `platforms/macos/Atlas/EntitlementService.swift`
 - Create: `platforms/macos/AtlasTests/EntitlementServiceTests.swift`
 
-- [ ] **Step 1: Create entitlement provider and evaluator**
+- [x] **Step 1: Create entitlement provider and evaluator**
 
 Create `platforms/macos/Atlas/EntitlementService.swift`:
 
@@ -395,7 +395,7 @@ struct FallbackEntitlementProvider: EntitlementProviding {
 
 `FallbackEntitlementProvider` is the no-network fallback. It must never attempt network I/O and must keep core local features available through the Free edition. In v1, do not add `URLSession`, receipt readers, purchase SDKs, subscription SDKs, or remote license verification.
 
-- [ ] **Step 2: Add entitlement service tests**
+- [x] **Step 2: Add entitlement service tests**
 
 Create `platforms/macos/AtlasTests/EntitlementServiceTests.swift`:
 
@@ -493,14 +493,14 @@ final class EntitlementServiceTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 3: Add Xcode project membership**
+- [x] **Step 3: Add Xcode project membership**
 
 Add these files to `platforms/macos/Atlas.xcodeproj/project.pbxproj`:
 
 - `EntitlementService.swift` in the `Atlas` group and `Atlas` sources build phase.
 - `EntitlementServiceTests.swift` in the `AtlasTests` group and `AtlasTests` sources build phase.
 
-- [ ] **Step 4: Verify local entitlement evaluation**
+- [x] **Step 4: Verify local entitlement evaluation**
 
 Run:
 
@@ -521,7 +521,7 @@ Expected: entitlement tests pass using only injected providers and isolated `Use
 - Modify: `platforms/macos/AtlasTests/FeatureModelsTests.swift`
 - Modify: `platforms/macos/AtlasTests/FeatureStateTests.swift`
 
-- [ ] **Step 1: Extend feature model additively**
+- [x] **Step 1: Extend feature model additively**
 
 Update `platforms/macos/Atlas/FeatureModels.swift` without replacing existing title mapping behavior:
 
@@ -566,7 +566,7 @@ enum AtlasFeatureMapper {
 }
 ```
 
-- [ ] **Step 2: Preserve availability when toggle state is refreshed**
+- [x] **Step 2: Preserve availability when toggle state is refreshed**
 
 Update `platforms/macos/Atlas/FeatureState.swift` so reducer-driven toggle updates keep the attached edition metadata. The current reducer rebuilds the feature as `AtlasFeature(name:isEnabled:)`, which would drop `availability` after any successful toggle.
 
@@ -606,7 +606,7 @@ func testRefreshedFeaturesPreservesAvailabilityMetadata() {
 }
 ```
 
-- [ ] **Step 3: Update Feature Center labels and toggle blocking**
+- [x] **Step 3: Update Feature Center labels and toggle blocking**
 
 Update `platforms/macos/Atlas/FeatureTogglePanel.swift`:
 
@@ -642,7 +642,7 @@ ForEach(features) { feature in
 
 If other workers have added extra rows or controls to `FeatureCenterPanel`, preserve them and add only the availability label/disabled behavior.
 
-- [ ] **Step 4: Add feature model tests**
+- [x] **Step 4: Add feature model tests**
 
 Append to `platforms/macos/AtlasTests/FeatureModelsTests.swift`:
 
@@ -666,7 +666,7 @@ func testUsesAttachedAvailabilityMetadata() {
 }
 ```
 
-- [ ] **Step 5: Verify feature label model behavior**
+- [x] **Step 5: Verify feature label model behavior**
 
 Run:
 
@@ -684,7 +684,7 @@ Expected: existing title/state tests and new availability metadata tests pass, i
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 - Test: `platforms/macos/AtlasTests/EntitlementServiceTests.swift`
 
-- [ ] **Step 1: Add injectable entitlement service**
+- [x] **Step 1: Add injectable entitlement service**
 
 In `platforms/macos/Atlas/ContentView.swift`, add an entitlement service property near existing service properties:
 
@@ -706,7 +706,7 @@ init(
 
 If `ContentView` already has an initializer from another child plan, extend that initializer additively by adding the `entitlementService` parameter with the same default. Do not remove adjacent injected services.
 
-- [ ] **Step 2: Attach availability after loading features**
+- [x] **Step 2: Attach availability after loading features**
 
 In `startModules()`, replace the direct assignment:
 
@@ -728,7 +728,7 @@ features = loadedFeatures.map { feature in
 enabledFeatures = FeatureStateReducer.enabledMap(from: features)
 ```
 
-- [ ] **Step 3: Block unavailable toggles before reaching the bridge**
+- [x] **Step 3: Block unavailable toggles before reaching the bridge**
 
 In `handleFeatureChange`, add the local availability guard before calling `AtlasBridge.toggleFeature`:
 
@@ -742,7 +742,7 @@ if entitlementService.availability(for: feature).isAvailable == false {
 
 Keep the existing monitoring start/stop behavior after successful bridge toggles.
 
-- [ ] **Step 4: Add no-network fallback note in UI state**
+- [x] **Step 4: Add no-network fallback note in UI state**
 
 After successful feature loading in `startModules()`, read the current entitlement state:
 
@@ -753,7 +753,7 @@ statusText = entitlementState.source == .unavailable ? "Atlas is Ready - Free ed
 
 This is a local status string only. Do not add network retry, license refresh, purchase restore, or subscription status checks.
 
-- [ ] **Step 5: Verify content integration through entitlement tests and build**
+- [x] **Step 5: Verify content integration through entitlement tests and build**
 
 Run:
 
@@ -772,7 +772,7 @@ Expected: entitlement/model/state tests pass and the app target builds. The stat
 - Create: `platforms/macos/Atlas/EditionPanel.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Create local edition panel**
+- [x] **Step 1: Create local edition panel**
 
 Create `platforms/macos/Atlas/EditionPanel.swift`:
 
@@ -820,7 +820,7 @@ struct EditionPanel: View {
 
 Do not add purchase buttons, price displays, subscription copy, restore purchase controls, external links, or network refresh controls in v1.
 
-- [ ] **Step 2: Show the panel in ContentView**
+- [x] **Step 2: Show the panel in ContentView**
 
 In `platforms/macos/Atlas/ContentView.swift`, add the panel near `FeatureCenterPanel`:
 
@@ -835,11 +835,11 @@ Divider()
 
 Keep existing panels in their current order unless another child plan has already reorganized the screen. The edition panel should be visible as local metadata, not as a paywall modal.
 
-- [ ] **Step 3: Add Xcode project membership**
+- [x] **Step 3: Add Xcode project membership**
 
 Add `EditionPanel.swift` to the `Atlas` group and the `Atlas` sources build phase in `platforms/macos/Atlas.xcodeproj/project.pbxproj`.
 
-- [ ] **Step 4: Verify app build**
+- [x] **Step 4: Verify app build**
 
 Run:
 
@@ -861,7 +861,7 @@ Expected: the app builds with the local edition panel. There are no new payment,
 - Test: `platforms/macos/AtlasTests/FeatureModelsTests.swift`
 - Test: `platforms/macos/AtlasTests/FeatureStateTests.swift`
 
-- [ ] **Step 1: Audit adjacent child-plan feature cases**
+- [x] **Step 1: Audit adjacent child-plan feature cases**
 
 Run:
 
@@ -871,7 +871,7 @@ rg -n 'case .*token|case .*workspace|case .*skills|case .*privacy|case .*clipboa
 
 Expected: shows which adjacent roadmap child plans have already added feature names.
 
-- [ ] **Step 2: Preserve adjacent cases and builders**
+- [x] **Step 2: Preserve adjacent cases and builders**
 
 When adding edition-related references:
 
@@ -891,7 +891,7 @@ case .tokenbar:
 
 If the case is already present, do not duplicate it.
 
-- [ ] **Step 3: Verify shared registration surfaces**
+- [x] **Step 3: Verify shared registration surfaces**
 
 Run:
 
@@ -910,7 +910,7 @@ Expected: shared feature registration remains sorted, feature title tests still 
 **Files:**
 - All files changed by this child execution.
 
-- [ ] **Step 1: Run required focused tests**
+- [x] **Step 1: Run required focused tests**
 
 Run:
 
@@ -920,7 +920,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: all edition, entitlement, feature model, and feature state tests pass.
 
-- [ ] **Step 2: Run app build**
+- [x] **Step 2: Run app build**
 
 Run:
 
@@ -930,7 +930,7 @@ xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme Atlas
 
 Expected: the app builds. The implementation contains no real payment processing, subscription SDKs, network license checks, App Store receipt validation, or server entitlement calls.
 
-- [ ] **Step 3: Audit forbidden v1 surfaces**
+- [x] **Step 3: Audit forbidden v1 surfaces**
 
 Run:
 
@@ -940,7 +940,7 @@ rg -n 'StoreKit|SKPayment|subscription|receipt|URLSession|license server|paywall
 
 Expected: no matches for payment, subscription, receipt, paywall, network license, or restore-purchase production code introduced by this task. Existing documentation-only matches are acceptable outside `platforms/macos/Atlas` and `platforms/macos/AtlasTests`.
 
-- [ ] **Step 4: Review project membership**
+- [x] **Step 4: Review project membership**
 
 Run:
 
@@ -950,7 +950,7 @@ rg -n 'EditionModels|EntitlementService|EditionPanel|EditionModelsTests|Entitlem
 
 Expected: each new Swift app/test file appears in PBX file references, build files, group entries, and sources build phases.
 
-- [ ] **Step 5: Commit implementation**
+- [x] **Step 5: Commit implementation**
 
 Run:
 

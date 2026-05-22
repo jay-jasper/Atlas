@@ -3,11 +3,30 @@ import Foundation
 struct AtlasFeature: Identifiable, Equatable {
     let name: String
     let isEnabled: Bool
+    var availability: FeatureAvailability?
+
+    init(name: String, isEnabled: Bool, availability: FeatureAvailability? = nil) {
+        self.name = name
+        self.isEnabled = isEnabled
+        self.availability = availability
+    }
 
     var id: String { name }
 
     var title: String {
         AtlasFeatureTitles.title(for: name)
+    }
+
+    var isAvailable: Bool {
+        availability?.isAvailable ?? true
+    }
+
+    var availabilityLabel: String? {
+        availability?.displayLabel
+    }
+
+    func withAvailability(_ availability: FeatureAvailability) -> AtlasFeature {
+        AtlasFeature(name: name, isEnabled: isEnabled, availability: availability)
     }
 }
 
@@ -33,6 +52,8 @@ private enum AtlasFeatureTitles {
             return AtlasModule.scratchpad.title
         case AtlasModule.screenshot.featureName:
             return AtlasModule.screenshot.title
+        case AtlasModule.skills.featureName:
+            return AtlasModule.skills.title
         case AtlasModule.tokenbar.featureName:
             return AtlasModule.tokenbar.title
         case AtlasModule.windowManager.featureName:

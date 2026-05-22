@@ -62,4 +62,28 @@ final class FeatureModelsTests: XCTestCase {
         XCTAssertEqual(feature, AtlasFeature(name: "scratchpad", isEnabled: false))
         XCTAssertEqual(feature.title, "Scratchpad")
     }
+
+    func testMapsSkillsTitle() {
+        let feature = AtlasFeature(name: "skills", isEnabled: false)
+
+        XCTAssertEqual(feature.title, "Skills")
+    }
+
+    func testFeatureAvailabilityDefaultsToAvailable() {
+        let feature = AtlasFeature(name: "monitoring", isEnabled: true)
+
+        XCTAssertTrue(feature.isAvailable)
+        XCTAssertNil(feature.availabilityLabel)
+    }
+
+    func testFeatureAvailabilityMetadataIsExposed() {
+        let feature = AtlasFeature(
+            name: "window-manager",
+            isEnabled: false,
+            availability: .unavailable(requiredEdition: .pro, label: "Pro required")
+        )
+
+        XCTAssertFalse(feature.isAvailable)
+        XCTAssertEqual(feature.availabilityLabel, "Pro required")
+    }
 }

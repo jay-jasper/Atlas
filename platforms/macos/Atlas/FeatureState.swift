@@ -10,7 +10,7 @@ enum FeatureStateReducer {
     ) -> [AtlasFeature] {
         features.map { feature in
             guard feature.name == featureName else { return feature }
-            return AtlasFeature(name: feature.name, isEnabled: enabled)
+            return AtlasFeature(name: feature.name, isEnabled: enabled, availability: feature.availability)
         }
     }
 

@@ -37,6 +37,7 @@ struct ContentView: View {
     @State private var memoryHistory: [Double] = []
     @State private var tokenBarSummary: TokenBarSummary = .empty
     @State private var localAILoadSnapshot: LocalAILoadSnapshot = .empty
+    @State private var entitlementState: LocalEntitlementState = .fallback
     private let screenshotFeatureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigurationStore = ScreenshotTranslationConfigurationStore()
     private let screenshotLibraryStore = ScreenshotLibraryStore()
@@ -49,6 +50,7 @@ struct ContentView: View {
     private let workspaceService = WorkspaceWindowService()
     private let tokenBarLedger = TokenBarLedger()
     private let localAILoadRefreshService = LocalAILoadRefreshService()
+    private let entitlementService: EntitlementService
     private var scratchpadStore: ScratchpadStore {
         paletteState?.sharedScratchpadStore ?? ScratchpadStore()
     }
@@ -60,10 +62,12 @@ struct ContentView: View {
     init(
         windowManager: WindowManaging = AccessibilityWindowManager(),
         windowPermissionChecker: WindowManagementPermissionChecking = AccessibilityPermissionChecker(),
+        entitlementService: EntitlementService = EntitlementService(provider: LocalEntitlementProvider()),
         paletteState: CommandPaletteState? = nil
     ) {
         self.windowManager = windowManager
         self.windowPermissionChecker = windowPermissionChecker
+        self.entitlementService = entitlementService
         self.paletteState = paletteState
     }
 
@@ -173,6 +177,10 @@ struct ContentView: View {
 
                     Divider()
 
+                    EditionPanel(state: EditionPanelState(entitlement: entitlementState))
+
+                    Divider()
+
                     ScreenshotFeatureSettingsPanel(
                         settings: screenshotFeatureSettings,
                         onSave: saveScreenshotFeatureSettings
@@ -259,7 +267,8 @@ struct ContentView: View {
 
         do {
             let loadedFeatures = try AtlasBridge.listFeatures()
-            features = loadedFeatures
+            entitlementState = entitlementService.currentState()
+            features = entitlementService.applyAvailability(to: loadedFeatures)
             enabledFeatures = FeatureStateReducer.enabledMap(from: loadedFeatures)
             paletteState?.setWindowManagementEnabled(isFeatureEnabled(.windowManager))
             paletteState?.setScratchpadEnabled(isFeatureEnabled(.scratchpad))
@@ -413,6 +422,12 @@ struct ContentView: View {
     }
 
     private func handleFeatureChange(_ feature: String, enabled: Bool) {
+        guard featureAvailability(feature).isAvailable else {
+            enabledFeatures[feature] = false
+            showStatus("\(featureTitle(feature)) is unavailable: \(featureAvailability(feature).displayLabel)", kind: .error)
+            return
+        }
+
         do {
             let changed = try AtlasBridge.toggleFeature(name: feature, enabled: enabled)
             guard changed else {
@@ -430,7 +445,9 @@ struct ContentView: View {
     }
 
     private func refreshFeature(_ feature: String, enabled: Bool) {
-        features = FeatureStateReducer.refreshedFeatures(features, featureName: feature, enabled: enabled)
+        features = entitlementService.applyAvailability(
+            to: FeatureStateReducer.refreshedFeatures(features, featureName: feature, enabled: enabled)
+        )
 
         if feature == AtlasModule.windowManager.featureName {
             paletteState?.setWindowManagementEnabled(enabled)
@@ -559,7 +576,15 @@ struct ContentView: View {
     }
 
     private func isFeatureEnabled(_ module: AtlasModule) -> Bool {
-        enabledFeatures[module.featureName, default: false]
+        featureAvailability(module.featureName).isAvailable && enabledFeatures[module.featureName, default: false]
+    }
+
+    private func featureAvailability(_ featureName: String) -> FeatureAvailability {
+        features.first { $0.name == featureName }?.availability ?? entitlementService.availability(for: featureName)
+    }
+
+    private func featureTitle(_ featureName: String) -> String {
+        features.first { $0.name == featureName }?.title ?? AtlasFeature(name: featureName, isEnabled: false).title
     }
 
     private func showSelectionWindow() {
