@@ -2,6 +2,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case aiLoadMonitor = "ai-load-monitor"
     case automation
     case monitoring
+    case scratchpad
     case screenshot
     case tokenbar
     case windowManager = "window-manager"
@@ -20,6 +21,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "Automation"
         case .monitoring:
             return "Monitoring"
+        case .scratchpad:
+            return "Scratchpad"
         case .screenshot:
             return "Screenshot"
         case .tokenbar:

@@ -36,7 +36,13 @@ final class CommandPaletteState: ObservableObject {
     private let hotkeyService = GlobalHotkeyService()
     private let windowManager: WindowManaging
     private let workspaceStore = WorkspaceStore()
+    private let scratchpadStore = ScratchpadStore()
+    private let scratchpadProvider: ScratchpadProvider
     private var isWindowManagementEnabled = false
+
+    var sharedScratchpadStore: ScratchpadStore {
+        scratchpadStore
+    }
 
     // Callbacks that redirect to ContentView's actual methods at runtime
     private var onCaptureDesktop: (() -> Void)?
@@ -47,6 +53,7 @@ final class CommandPaletteState: ObservableObject {
 
     init(windowManager: WindowManaging = AccessibilityWindowManager()) {
         self.windowManager = windowManager
+        scratchpadProvider = ScratchpadProvider(store: scratchpadStore)
 
         let atlasProvider = AtlasCommandProvider(
             onCaptureDesktop: { [weak self] in self?.onCaptureDesktop?() },
@@ -101,6 +108,7 @@ final class CommandPaletteState: ObservableObject {
             workspaceProvider,
             clipboardHistoryProvider,
             snippetsProvider,
+            scratchpadProvider,
             customAutomationProvider,
             appLauncherProvider,
         ])
@@ -128,6 +136,10 @@ final class CommandPaletteState: ObservableObject {
 
     func setWindowManagementEnabled(_ enabled: Bool) {
         isWindowManagementEnabled = enabled
+    }
+
+    func setScratchpadEnabled(_ enabled: Bool) {
+        scratchpadProvider.setEnabled(enabled)
     }
 
     func setWorkspaceActions(

@@ -49,6 +49,10 @@ struct ContentView: View {
     private let workspaceService = WorkspaceWindowService()
     private let tokenBarLedger = TokenBarLedger()
     private let localAILoadRefreshService = LocalAILoadRefreshService()
+    private var scratchpadStore: ScratchpadStore {
+        paletteState?.sharedScratchpadStore ?? ScratchpadStore()
+    }
+    private let scratchpadSummarizer = DisabledScratchpadSummarizer()
     let windowManager: WindowManaging
     let windowPermissionChecker: WindowManagementPermissionChecking
     var paletteState: CommandPaletteState?
@@ -123,6 +127,15 @@ struct ContentView: View {
 
                     if isFeatureEnabled(.aiLoadMonitor) {
                         LocalAILoadPanel(snapshot: localAILoadSnapshot)
+
+                        Divider()
+                    }
+
+                    if isFeatureEnabled(.scratchpad) {
+                        ScratchpadPanel(
+                            store: scratchpadStore,
+                            summarizer: scratchpadSummarizer
+                        )
 
                         Divider()
                     }
@@ -249,6 +262,7 @@ struct ContentView: View {
             features = loadedFeatures
             enabledFeatures = FeatureStateReducer.enabledMap(from: loadedFeatures)
             paletteState?.setWindowManagementEnabled(isFeatureEnabled(.windowManager))
+            paletteState?.setScratchpadEnabled(isFeatureEnabled(.scratchpad))
             tokenBarSummary = isFeatureEnabled(.tokenbar) ? ((try? tokenBarLedger.summary()) ?? .empty) : .empty
             statusText = "Atlas is Ready"
             if isFeatureEnabled(.monitoring) {
@@ -370,6 +384,16 @@ struct ContentView: View {
             controller.tokenBarViewBuilder = {
                 AnyView(TokenBarPanel(summary: tokenBarSummary))
             }
+
+            controller.scratchpadViewBuilder = { noteID in
+                AnyView(
+                    ScratchpadPanel(
+                        store: self.scratchpadStore,
+                        summarizer: self.scratchpadSummarizer,
+                        initialSelectedNoteID: noteID
+                    )
+                )
+            }
         }
 
         paletteState?.setWorkspaceActions(
@@ -415,6 +439,11 @@ struct ContentView: View {
 
         if feature == AtlasModule.tokenbar.featureName {
             tokenBarSummary = enabled ? ((try? tokenBarLedger.summary()) ?? .empty) : .empty
+            return
+        }
+
+        if feature == AtlasModule.scratchpad.featureName {
+            paletteState?.setScratchpadEnabled(enabled)
             return
         }
 

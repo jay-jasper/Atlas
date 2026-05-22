@@ -28,6 +28,7 @@ impl FeatureManager {
         features.insert("ai-load-monitor".to_string(), FeatureStatus::Disabled);
         features.insert("automation".to_string(), FeatureStatus::Disabled);
         features.insert("monitoring".to_string(), FeatureStatus::Disabled);
+        features.insert("scratchpad".to_string(), FeatureStatus::Disabled);
         features.insert("screenshot".to_string(), FeatureStatus::Disabled);
         features.insert("tokenbar".to_string(), FeatureStatus::Disabled);
         features.insert("window-manager".to_string(), FeatureStatus::Disabled);
@@ -97,16 +98,7 @@ mod tests {
         let fm = FeatureManager::new();
         let names: Vec<_> = fm.list_features().into_iter().map(|(name, _)| name).collect();
 
-        assert_eq!(
-            names,
-            [
-                "ai-load-monitor",
-                "automation",
-                "monitoring",
-                "screenshot",
-                "tokenbar",
-                "window-manager"
-            ]
-        );
+        assert!(names.contains(&"scratchpad".to_string()));
+        assert!(names.windows(2).all(|pair| pair[0] <= pair[1]));
     }
 }

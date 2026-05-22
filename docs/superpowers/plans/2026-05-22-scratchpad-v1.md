@@ -1,6 +1,6 @@
 # Scratchpad v1 Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Add a local Markdown scratchpad with create, edit, delete, command palette access, optional AI summaries, and Feature Center gating.
 
@@ -95,7 +95,7 @@ Project membership rule: this repo uses explicit PBX project references. Every n
 - Modify: `platforms/macos/Atlas/FeatureModels.swift`
 - Test: `platforms/macos/AtlasTests/FeatureModelsTests.swift`
 
-- [ ] **Step 1: Add the Rust feature name**
+- [x] **Step 1: Add the Rust feature name**
 
 In `crates/atlas-core/src/features.rs`, add `scratchpad` to the existing registrations in `FeatureManager::new()`:
 
@@ -120,7 +120,7 @@ fn test_list_features_is_sorted_by_name() {
 }
 ```
 
-- [ ] **Step 2: Add the Swift module entry**
+- [x] **Step 2: Add the Swift module entry**
 
 In `platforms/macos/Atlas/AtlasModule.swift`, add Scratchpad additively:
 
@@ -156,7 +156,7 @@ Do not replace the enum with the snippet as a closed list. Keep all existing cas
 protocol conformances, computed properties, and switch branches, and only add the
 Scratchpad case and title branch where they fit the current file.
 
-- [ ] **Step 3: Add the feature title mapping**
+- [x] **Step 3: Add the feature title mapping**
 
 In `platforms/macos/Atlas/FeatureModels.swift`, update `AtlasFeatureTitles.title(for:)`:
 
@@ -182,7 +182,7 @@ private enum AtlasFeatureTitles {
 }
 ```
 
-- [ ] **Step 4: Add Swift feature title coverage**
+- [x] **Step 4: Add Swift feature title coverage**
 
 In `platforms/macos/AtlasTests/FeatureModelsTests.swift`, add:
 
@@ -197,7 +197,7 @@ func testMapsScratchpadFeatureTitle() {
 }
 ```
 
-- [ ] **Step 5: Verify feature registration**
+- [x] **Step 5: Verify feature registration**
 
 Run:
 
@@ -217,7 +217,7 @@ Expected: Rust feature ordering and Swift title mapping tests pass.
 - Create: `platforms/macos/Atlas/ScratchpadStore.swift`
 - Create: `platforms/macos/AtlasTests/ScratchpadStoreTests.swift`
 
-- [ ] **Step 1: Add Scratchpad models**
+- [x] **Step 1: Add Scratchpad models**
 
 Create `platforms/macos/Atlas/ScratchpadModels.swift`:
 
@@ -278,7 +278,7 @@ enum ScratchpadStoreError: LocalizedError, Equatable {
 }
 ```
 
-- [ ] **Step 2: Add JSON-backed storage**
+- [x] **Step 2: Add JSON-backed storage**
 
 Create `platforms/macos/Atlas/ScratchpadStore.swift`:
 
@@ -401,7 +401,7 @@ final class ScratchpadStore: ScratchpadStoring {
 }
 ```
 
-- [ ] **Step 3: Add store tests**
+- [x] **Step 3: Add store tests**
 
 Create `platforms/macos/AtlasTests/ScratchpadStoreTests.swift`:
 
@@ -509,7 +509,7 @@ final class ScratchpadStoreTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 4: Verify store tests fail before project membership**
+- [x] **Step 4: Verify store tests fail before project membership**
 
 Run:
 
@@ -527,7 +527,7 @@ Expected before PBX membership: Xcode reports `Skipping tests; no test bundle fo
 - Create: `platforms/macos/Atlas/ScratchpadSummaryService.swift`
 - Create: `platforms/macos/AtlasTests/ScratchpadSummaryServiceTests.swift`
 
-- [ ] **Step 1: Add the injected summarizer protocol and disabled default**
+- [x] **Step 1: Add the injected summarizer protocol and disabled default**
 
 Create `platforms/macos/Atlas/ScratchpadSummaryService.swift`:
 
@@ -550,7 +550,7 @@ struct DisabledScratchpadSummarizer: ScratchpadSummarizing {
 }
 ```
 
-- [ ] **Step 2: Add summary tests**
+- [x] **Step 2: Add summary tests**
 
 Create `platforms/macos/AtlasTests/ScratchpadSummaryServiceTests.swift`:
 
@@ -587,7 +587,7 @@ private struct FakeScratchpadSummarizer: ScratchpadSummarizing {
 }
 ```
 
-- [ ] **Step 3: Verify summary tests after project membership**
+- [x] **Step 3: Verify summary tests after project membership**
 
 Run this after Task 6 adds PBX references:
 
@@ -605,7 +605,7 @@ Expected: Both summary service tests pass without network or model access.
 - Create: `platforms/macos/Atlas/ScratchpadPanel.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Add the Scratchpad SwiftUI panel**
+- [x] **Step 1: Add the Scratchpad SwiftUI panel**
 
 Create `platforms/macos/Atlas/ScratchpadPanel.swift`:
 
@@ -798,7 +798,7 @@ struct ScratchpadPanel: View {
 }
 ```
 
-- [ ] **Step 2: Show the panel behind Feature Center gating**
+- [x] **Step 2: Show the panel behind Feature Center gating**
 
 In `platforms/macos/Atlas/ContentView.swift`, add stored dependencies near the other stores:
 
@@ -820,7 +820,7 @@ if isFeatureEnabled(.scratchpad) {
 }
 ```
 
-- [ ] **Step 3: Verify the app still builds after project membership**
+- [x] **Step 3: Verify the app still builds after project membership**
 
 Run this after Task 6 adds PBX references:
 
@@ -843,7 +843,7 @@ Expected: The app builds and the Scratchpad panel is compiled into the `Atlas` t
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 - Create: `platforms/macos/AtlasTests/ScratchpadProviderTests.swift`
 
-- [ ] **Step 1: Add the Scratchpad command provider**
+- [x] **Step 1: Add the Scratchpad command provider**
 
 Create `platforms/macos/Atlas/CommandPalette/ScratchpadProvider.swift`:
 
@@ -908,7 +908,7 @@ final class ScratchpadProvider: CommandProviding {
 }
 ```
 
-- [ ] **Step 2: Add the command palette destination**
+- [x] **Step 2: Add the command palette destination**
 
 In `platforms/macos/Atlas/CommandPalette/CommandPaletteModels.swift`, add a
 Scratchpad destination that can carry an optional selected note ID:
@@ -930,7 +930,7 @@ The empty-query "Open Scratchpad" command should push `.scratchpad(noteID: nil)`
 note search results must push `.scratchpad(noteID: note.id)` so selecting a
 result opens the matching note.
 
-- [ ] **Step 3: Add a Scratchpad destination builder**
+- [x] **Step 3: Add a Scratchpad destination builder**
 
 In `platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift`, add the property:
 
@@ -963,7 +963,7 @@ closed list. Keep all existing builder arguments from the file, including builde
 added by other child plans such as custom automation, and append/pass the
 Scratchpad builder in the same style.
 
-- [ ] **Step 4: Render the Scratchpad destination**
+- [x] **Step 4: Render the Scratchpad destination**
 
 In `platforms/macos/Atlas/CommandPalette/CommandPaletteView.swift`, add the stored builder:
 
@@ -1019,7 +1019,7 @@ and keep every existing branch from the file, including branches added by other
 child plans. If Swift exhaustiveness requires reordering, preserve behavior for
 all non-Scratchpad destinations.
 
-- [ ] **Step 5: Wire the shared provider in app state**
+- [x] **Step 5: Wire the shared provider in app state**
 
 In `platforms/macos/Atlas/AtlasApp.swift`, update `CommandPaletteState`:
 
@@ -1087,7 +1087,7 @@ insertion, and enablement method. Preserve every existing provider already
 registered in the app, including providers added by other child plans such as
 custom automation.
 
-- [ ] **Step 6: Use the shared store and update gating from ContentView**
+- [x] **Step 6: Use the shared store and update gating from ContentView**
 
 In `platforms/macos/Atlas/ContentView.swift`, replace the standalone `scratchpadStore` property from Task 4 with:
 
@@ -1127,7 +1127,7 @@ controller.scratchpadViewBuilder = {
 }
 ```
 
-- [ ] **Step 7: Add provider tests**
+- [x] **Step 7: Add provider tests**
 
 Create `platforms/macos/AtlasTests/ScratchpadProviderTests.swift`:
 
@@ -1252,7 +1252,7 @@ private final class InMemoryScratchpadStore: ScratchpadStoring {
 **Files:**
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Add app files to the Atlas target**
+- [x] **Step 1: Add app files to the Atlas target**
 
 Add these files to the `Atlas` group and `Atlas` target sources in `platforms/macos/Atlas.xcodeproj/project.pbxproj`:
 
@@ -1279,7 +1279,7 @@ Expected project diff shape:
 + /* ScratchpadProvider.swift */
 ```
 
-- [ ] **Step 2: Add test files to the AtlasTests target**
+- [x] **Step 2: Add test files to the AtlasTests target**
 
 Add these files to the `AtlasTests` group and `AtlasTests` target sources in `platforms/macos/Atlas.xcodeproj/project.pbxproj`:
 
@@ -1300,7 +1300,7 @@ Expected project diff shape:
 + /* ScratchpadSummaryServiceTests.swift */
 ```
 
-- [ ] **Step 3: Verify project membership**
+- [x] **Step 3: Verify project membership**
 
 Run:
 
@@ -1320,7 +1320,7 @@ Expected: Each new Swift file appears as a file reference and as a source build 
 - Verify: `platforms/macos/AtlasTests/**/*.swift`
 - Verify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Run focused Rust feature test**
+- [x] **Step 1: Run focused Rust feature test**
 
 Run:
 
@@ -1331,7 +1331,7 @@ cargo test -p atlas-core test_list_features_is_sorted_by_name
 Expected: The test passes, confirms `scratchpad` is present, and preserves the
 existing sorted-list behavior without asserting the full feature set.
 
-- [ ] **Step 2: Run focused XCTest slices**
+- [x] **Step 2: Run focused XCTest slices**
 
 Run:
 
@@ -1345,7 +1345,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: Feature model, storage, provider, and summary tests pass.
 
-- [ ] **Step 3: Run app build**
+- [x] **Step 3: Run app build**
 
 Run:
 
@@ -1355,7 +1355,7 @@ xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme Atlas
 
 Expected: The app builds with Scratchpad files included in the explicit Xcode project.
 
-- [ ] **Step 4: Inspect diff**
+- [x] **Step 4: Inspect diff**
 
 Run:
 
@@ -1365,7 +1365,7 @@ git diff -- crates/atlas-core/src/features.rs platforms/macos/Atlas platforms/ma
 
 Expected: The diff contains only Scratchpad feature registration, Scratchpad Swift files, command palette wiring, tests, and explicit Xcode project membership.
 
-- [ ] **Step 5: Commit implementation**
+- [x] **Step 5: Commit implementation**
 
 Run:
 

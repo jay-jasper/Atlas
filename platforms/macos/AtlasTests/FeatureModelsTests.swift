@@ -53,4 +53,13 @@ final class FeatureModelsTests: XCTestCase {
 
         XCTAssertEqual(feature.title, "AI Load")
     }
+
+    func testMapsScratchpadFeatureTitle() {
+        let entry = FeatureEntry(name: "scratchpad", status: .disabled)
+
+        let feature = AtlasFeatureMapper.map(entry)
+
+        XCTAssertEqual(feature, AtlasFeature(name: "scratchpad", isEnabled: false))
+        XCTAssertEqual(feature.title, "Scratchpad")
+    }
 }

@@ -27,5 +27,6 @@ enum PaletteDestination: Equatable {
     case portLookup
     case workspaces
     case tokenBar
+    case scratchpad(noteID: UUID?)
     case automationOutput(CustomAutomationCommand)
 }
