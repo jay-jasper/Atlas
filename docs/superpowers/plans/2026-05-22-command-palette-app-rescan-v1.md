@@ -766,3 +766,20 @@ git commit -m "docs: record command palette app rescan verification"
 2. **Placeholder scan:** The plan contains concrete file paths, exact test code, implementation code, commands, expected results, and commit messages. It does not use placeholder steps.
 
 3. **Type consistency:** `ApplicationScanning`, `FileSystemApplicationScanner`, `ApplicationChangeObserving`, and `ApplicationDirectoryChangeObserver` are defined before `AppLauncherProvider` references them. Refresh tests use the same protocols introduced in prior tasks.
+
+## Verification Notes
+
+Completed on 2026-05-22 on branch `codex/command-palette-app-rescan-v1`.
+
+- Focused tests:
+  - `AppLauncherProviderTests`
+  - `ApplicationScannerTests`
+  - `AppLauncherRefreshTests`
+  - `CommandPaletteRankerTests`
+  - `CommandUsageStoreTests`
+  - Result: 30 tests, 0 failures, `** TEST SUCCEEDED **`
+- Full macOS test suite:
+  - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destination 'platform=macOS'`
+  - Result: 245 tests, 0 failures, `** TEST SUCCEEDED **`
+- Existing CoreSimulator and `com.apple.linkd.autoShortcut` warnings appeared during test startup and were non-blocking.
+- Manual install/uninstall verification was not run; this follows the project preference that unit tests are sufficient unless explicitly requested.
