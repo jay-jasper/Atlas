@@ -67,6 +67,7 @@ extension View {
 struct CommandPaletteView: View {
     let providers: [CommandProviding]
     let onDismiss: () -> Void
+    private let usageRecorder: CommandUsageRecording
 
     // Injected closure builders for sub-views
     let screenshotLibraryViewBuilder: (() -> AnyView)?
@@ -78,7 +79,26 @@ struct CommandPaletteView: View {
     @State private var selectedIndex: Int = 0
 
     private var results: [PaletteCommand] {
-        providers.flatMap { $0.results(for: query) }
+        let records = usageRecorder.usageRecords()
+        return providers.flatMap { provider in
+            CommandPaletteRanker.ranked(provider.results(for: query), records: records)
+        }
+    }
+
+    init(
+        providers: [CommandProviding],
+        onDismiss: @escaping () -> Void,
+        usageRecorder: CommandUsageRecording = CommandUsageStore(),
+        screenshotLibraryViewBuilder: (() -> AnyView)? = nil,
+        portLookupViewBuilder: (() -> AnyView)? = nil,
+        windowPickerViewBuilder: (() -> AnyView)? = nil
+    ) {
+        self.providers = providers
+        self.onDismiss = onDismiss
+        self.usageRecorder = usageRecorder
+        self.screenshotLibraryViewBuilder = screenshotLibraryViewBuilder
+        self.portLookupViewBuilder = portLookupViewBuilder
+        self.windowPickerViewBuilder = windowPickerViewBuilder
     }
 
     var body: some View {
@@ -191,6 +211,8 @@ struct CommandPaletteView: View {
     }
 
     private func execute(_ command: PaletteCommand) {
+        usageRecorder.recordUsage(for: command)
+
         switch command.action {
         case .execute(let fn):
             fn()

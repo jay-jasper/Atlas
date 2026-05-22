@@ -6,14 +6,19 @@ final class CommandPaletteController {
     private var panel: NSPanel?
     private var mouseMonitor: Any?
     private let providers: [CommandProviding]
+    private let usageRecorder: CommandUsageRecording
 
     // Injected closure builders for sub-views
     var screenshotLibraryViewBuilder: (() -> AnyView)?
     var portLookupViewBuilder: (() -> AnyView)?
     var windowPickerViewBuilder: (() -> AnyView)?
 
-    init(providers: [CommandProviding]) {
+    init(
+        providers: [CommandProviding],
+        usageRecorder: CommandUsageRecording = CommandUsageStore()
+    ) {
         self.providers = providers
+        self.usageRecorder = usageRecorder
     }
 
     deinit {
@@ -48,6 +53,7 @@ final class CommandPaletteController {
                     self?.hide()
                 }
             },
+            usageRecorder: usageRecorder,
             screenshotLibraryViewBuilder: screenshotLibraryViewBuilder,
             portLookupViewBuilder: portLookupViewBuilder,
             windowPickerViewBuilder: windowPickerViewBuilder
