@@ -412,7 +412,7 @@ Expected: Commit succeeds with only stitcher files and project membership.
 - Create: `platforms/macos/AtlasTests/ScreenshotScrollingCaptureTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write service tests**
+- [x] **Step 1: Write service tests**
 
 Create `platforms/macos/AtlasTests/ScreenshotScrollingCaptureTests.swift`:
 
@@ -567,7 +567,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because scrolling capture service types do not exist or the test file is not in the project.
 
-- [ ] **Step 3: Add the scrolling capture service**
+- [x] **Step 3: Add the scrolling capture service**
 
 Create `platforms/macos/Atlas/ScreenshotScrollingCapture.swift`:
 
@@ -711,14 +711,14 @@ struct ScreenshotScrollingCaptureService {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Add:
 
 - `ScreenshotScrollingCapture.swift` to the `Atlas` target Sources.
 - `ScreenshotScrollingCaptureTests.swift` to the `AtlasTests` target Sources.
 
-- [ ] **Step 5: Run service tests**
+- [x] **Step 5: Run service tests**
 
 Run:
 
