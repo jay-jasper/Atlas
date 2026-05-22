@@ -36,7 +36,7 @@ platforms/macos/Atlas/
 **Files:**
 - Modify: `crates/atlas-core/src/monitor/models.rs`
 
-- [ ] **Step 1: 在 models.rs 中添加 6 个新结构体，并扩展 SystemSnapshot**
+- [x] **Step 1: 在 models.rs 中添加 6 个新结构体，并扩展 SystemSnapshot**
 
 ```rust
 // crates/atlas-core/src/monitor/models.rs
@@ -154,12 +154,12 @@ pub struct PortProcessInfo {
 }
 ```
 
-- [ ] **Step 2: 运行编译验证模型无误**
+- [x] **Step 2: 运行编译验证模型无误**
 
 Run: `cargo build -p atlas-core`
 Expected: Compiles successfully (no new tests needed for pure data structs)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add crates/atlas-core/src/monitor/models.rs
@@ -173,7 +173,7 @@ git commit -m "feat(monitor): extend SystemSnapshot with rich metrics models"
 **Files:**
 - Modify: `crates/atlas-core/src/monitor/collector.rs`
 
-- [ ] **Step 1: 在 `take_snapshot` 中添加每核 CPU 采集**
+- [x] **Step 1: 在 `take_snapshot` 中添加每核 CPU 采集**
 
 将 collector.rs 替换为以下内容（保留原有字段，新增 `cpu_cores`）：
 
@@ -398,12 +398,12 @@ mod tests {
 }
 ```
 
-- [ ] **Step 2: 运行测试**
+- [x] **Step 2: 运行测试**
 
 Run: `cargo test -p atlas-core monitor::collector`
 Expected: 4 tests pass (snapshot_has_cpu_cores, memory_breakdown, has_processes, network_interfaces)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add crates/atlas-core/src/monitor/collector.rs
@@ -418,7 +418,7 @@ git commit -m "feat(monitor): add per-core CPU, memory breakdown, top processes,
 - Create: `crates/atlas-core/src/monitor/disk.rs`
 - Modify: `crates/atlas-core/src/monitor/mod.rs`
 
-- [ ] **Step 1: 创建 disk.rs**
+- [x] **Step 1: 创建 disk.rs**
 
 ```rust
 // crates/atlas-core/src/monitor/disk.rs
@@ -469,7 +469,7 @@ mod tests {
 }
 ```
 
-- [ ] **Step 2: 在 mod.rs 中导出 disk 模块**
+- [x] **Step 2: 在 mod.rs 中导出 disk 模块**
 
 ```rust
 // crates/atlas-core/src/monitor/mod.rs
@@ -493,12 +493,12 @@ pub mod models;
 pub mod port_master;
 ```
 
-- [ ] **Step 3: 运行测试**
+- [x] **Step 3: 运行测试**
 
 Run: `cargo test -p atlas-core monitor::disk`
 Expected: 2 tests pass
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add crates/atlas-core/src/monitor/disk.rs crates/atlas-core/src/monitor/mod.rs
@@ -514,14 +514,14 @@ git commit -m "feat(monitor): add disk volume info module"
 - Create: `crates/atlas-core/src/monitor/battery.rs`
 - Modify: `crates/atlas-core/src/monitor/mod.rs`
 
-- [ ] **Step 1: 添加 battery crate 依赖**
+- [x] **Step 1: 添加 battery crate 依赖**
 
 ```toml
 # crates/atlas-core/Cargo.toml [dependencies] 中添加：
 battery = "0.7"
 ```
 
-- [ ] **Step 2: 创建 battery.rs**
+- [x] **Step 2: 创建 battery.rs**
 
 ```rust
 // crates/atlas-core/src/monitor/battery.rs
@@ -593,7 +593,7 @@ mod tests {
 }
 ```
 
-- [ ] **Step 3: 在 mod.rs 中导出 battery**
+- [x] **Step 3: 在 mod.rs 中导出 battery**
 
 ```rust
 // crates/atlas-core/src/monitor/mod.rs
@@ -604,12 +604,12 @@ pub mod models;
 pub mod port_master;
 ```
 
-- [ ] **Step 4: 运行测试**
+- [x] **Step 4: 运行测试**
 
 Run: `cargo test -p atlas-core monitor::battery`
 Expected: 2 tests pass（无电池设备时 battery_charge_in_range 直接 pass）
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add crates/atlas-core/Cargo.toml crates/atlas-core/src/monitor/battery.rs crates/atlas-core/src/monitor/mod.rs
@@ -624,7 +624,7 @@ git commit -m "feat(monitor): add battery status module"
 - Create: `crates/atlas-core/src/monitor/sensors.rs`
 - Modify: `crates/atlas-core/src/monitor/mod.rs`
 
-- [ ] **Step 1: 创建 sensors.rs**
+- [x] **Step 1: 创建 sensors.rs**
 
 ```rust
 // crates/atlas-core/src/monitor/sensors.rs
@@ -662,7 +662,7 @@ mod tests {
 }
 ```
 
-- [ ] **Step 2: 在 mod.rs 中导出 sensors**
+- [x] **Step 2: 在 mod.rs 中导出 sensors**
 
 ```rust
 // crates/atlas-core/src/monitor/mod.rs
@@ -674,12 +674,12 @@ pub mod port_master;
 pub mod sensors;
 ```
 
-- [ ] **Step 3: 运行全量测试**
+- [x] **Step 3: 运行全量测试**
 
 Run: `cargo test -p atlas-core`
 Expected: 所有测试通过（原有 11 个 + 新增约 9 个）
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add crates/atlas-core/src/monitor/sensors.rs crates/atlas-core/src/monitor/mod.rs
@@ -694,7 +694,7 @@ git commit -m "feat(monitor): add temperature sensors module"
 - Modify: `crates/atlas-ffi/src/atlas.udl`
 - Modify: `crates/atlas-ffi/src/lib.rs`
 
-- [ ] **Step 1: 更新 atlas.udl，新增 6 个 dictionary 类型并扩展 SystemSnapshot**
+- [x] **Step 1: 更新 atlas.udl，新增 6 个 dictionary 类型并扩展 SystemSnapshot**
 
 将 `atlas.udl` 中的 `SystemSnapshot` 及相关内容替换为：
 
@@ -763,7 +763,7 @@ dictionary SystemSnapshot {
 
 其余 UDL 内容（FeatureEntry、PortProcessInfo、callback interface、namespace）保持不变。
 
-- [ ] **Step 2: 在 lib.rs 中新增 6 个 FFI 结构体，更新 SystemSnapshot 及其转换逻辑**
+- [x] **Step 2: 在 lib.rs 中新增 6 个 FFI 结构体，更新 SystemSnapshot 及其转换逻辑**
 
 在 lib.rs 的现有 `SystemSnapshot` 结构体定义处（及其 `From` 实现）进行以下更新：
 
@@ -896,17 +896,17 @@ impl From<atlas_core::monitor::models::SystemSnapshot> for SystemSnapshot {
 }
 ```
 
-- [ ] **Step 3: 构建验证**
+- [x] **Step 3: 构建验证**
 
 Run: `cargo build -p atlas-ffi`
 Expected: Compiles successfully
 
-- [ ] **Step 4: 运行 FFI 测试**
+- [x] **Step 4: 运行 FFI 测试**
 
 Run: `cargo test -p atlas-ffi`
 Expected: All tests pass (test_get_core_status, test_feature_management, test_port_lookup, test_capture_functions_exist)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add crates/atlas-ffi/src/atlas.udl crates/atlas-ffi/src/lib.rs
@@ -920,7 +920,7 @@ git commit -m "feat(ffi): extend UDL and FFI bridge with rich monitoring types"
 **Files:**
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: 更新 ContentView.swift 的数据模型和 Mock Bridge**
+- [x] **Step 1: 更新 ContentView.swift 的数据模型和 Mock Bridge**
 
 将 `SystemSnapshot` struct 和 `AtlasBridge` 的 mock 数据更新为包含新字段：
 
@@ -1088,7 +1088,7 @@ class AtlasBridge {
 }
 ```
 
-- [ ] **Step 2: 重新设计 ContentView 的监控区块**
+- [x] **Step 2: 重新设计 ContentView 的监控区块**
 
 将 ContentView 的 body 中 "System Monitoring" 区块替换为：
 
@@ -1460,7 +1460,7 @@ struct ContentView: View {
 }
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ContentView.swift
