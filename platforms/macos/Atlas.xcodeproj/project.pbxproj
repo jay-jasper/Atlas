@@ -103,6 +103,7 @@
 		0E8E3D97FF77477E877D507D /* AutomationProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE8C692301948D9A1E44D75 /* AutomationProcessRunner.swift */; };
 		E62736FE2B7344A697127168 /* CustomAutomationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE7330D1F8B461D9414D165 /* CustomAutomationProvider.swift */; };
 		3BA5F911652B432EA40455AE /* AutomationOutputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E38E59EC4ED4307BE556054 /* AutomationOutputView.swift */; };
+		63B33A63560345C4B6F97C64 /* AutomationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93BB86D86DEB40FBB383E872 /* AutomationSettingsView.swift */; };
 		3B1E681F344A43809B9B1A5E /* CustomAutomationStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D68F4D6C138A45E68A28AE38 /* CustomAutomationStoreTests.swift */; };
 		E4F0313DD7A74A1191B7B882 /* CustomAutomationProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 924A14E66E5847B3B953502B /* CustomAutomationProviderTests.swift */; };
 		6088412B37F84CA78656B720 /* AutomationOutputViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5550545030C443C89F26D83B /* AutomationOutputViewTests.swift */; };
@@ -243,6 +244,7 @@
 		8DE8C692301948D9A1E44D75 /* AutomationProcessRunner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutomationProcessRunner.swift; sourceTree = "<group>"; };
 		6AE7330D1F8B461D9414D165 /* CustomAutomationProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CustomAutomationProvider.swift; sourceTree = "<group>"; };
 		5E38E59EC4ED4307BE556054 /* AutomationOutputView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutomationOutputView.swift; sourceTree = "<group>"; };
+		93BB86D86DEB40FBB383E872 /* AutomationSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutomationSettingsView.swift; sourceTree = "<group>"; };
 		D68F4D6C138A45E68A28AE38 /* CustomAutomationStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CustomAutomationStoreTests.swift; sourceTree = "<group>"; };
 		924A14E66E5847B3B953502B /* CustomAutomationProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CustomAutomationProviderTests.swift; sourceTree = "<group>"; };
 		5550545030C443C89F26D83B /* AutomationOutputViewTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutomationOutputViewTests.swift; sourceTree = "<group>"; };
@@ -352,6 +354,7 @@
 				83CBBA311A601CBA00E9B192 /* AppFooter.swift */,
 				83CBBD021A601CBA00E9B192 /* GlobalHotkeyService.swift */,
 				83CBBD001A601CBA00E9B192 /* AtlasSettingsView.swift */,
+				93BB86D86DEB40FBB383E872 /* AutomationSettingsView.swift */,
 				83CBBB0D1A601CBA00E9B192 /* FeatureModels.swift */,
 				83CBBB171A601CBA00E9B192 /* FeatureState.swift */,
 				83CBBB111A601CBA00E9B192 /* FeatureService.swift */,
@@ -579,6 +582,7 @@
 				83CBBA201A601CBA00E9B192 /* AppFooter.swift in Sources */,
 				83CBBD031A601CBA00E9B192 /* GlobalHotkeyService.swift in Sources */,
 				83CBBD011A601CBA00E9B192 /* AtlasSettingsView.swift in Sources */,
+				63B33A63560345C4B6F97C64 /* AutomationSettingsView.swift in Sources */,
 				83CBBA9A1A601CBA00E9B192 /* AtlasCaptureService.swift in Sources */,
 				83CBBAA21A601CBA00E9B192 /* WindowCaptureService.swift in Sources */,
 				83CBBA211A601CBA00E9B192 /* AtlasApp.swift in Sources */,

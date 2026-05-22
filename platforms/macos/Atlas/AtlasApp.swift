@@ -40,6 +40,10 @@ final class CommandPaletteState: ObservableObject {
         let windowManagementProvider = WindowManagementProvider()
         let clipboardHistoryProvider = ClipboardHistoryProvider()
         let snippetsProvider = SnippetsProvider()
+        let customAutomationProvider = CustomAutomationProvider(
+            store: CustomAutomationStore(),
+            isEnabled: Self.isAutomationFeatureEnabled
+        )
         let appLauncherProvider = AppLauncherProvider()
 
         self.controller = CommandPaletteController(providers: [
@@ -48,6 +52,7 @@ final class CommandPaletteState: ObservableObject {
             windowManagementProvider,
             clipboardHistoryProvider,
             snippetsProvider,
+            customAutomationProvider,
             appLauncherProvider,
         ])
 
@@ -77,5 +82,20 @@ final class CommandPaletteState: ObservableObject {
         hotkeyService.register(keyCode: config.keyCode, modifiers: flags) { [weak self] in
             self?.controller?.toggle()
         }
+    }
+
+    private static func isAutomationFeatureEnabled() -> Bool {
+        let automationFeatureName = AtlasModule.automation.featureName
+        guard let features = try? AtlasBridge.listFeatures() else {
+            return false
+        }
+
+        for feature in features {
+            if feature.name == automationFeatureName {
+                return feature.isEnabled
+            }
+        }
+
+        return false
     }
 }

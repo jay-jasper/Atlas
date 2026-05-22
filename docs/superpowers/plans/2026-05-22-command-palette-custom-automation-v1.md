@@ -721,7 +721,7 @@ Expected: Output tests pass with fake runner and no real process execution.
 
 ## Task 6: Settings UI for User-Defined Commands
 
-- [ ] **Step 1: Add settings view**
+- [x] **Step 1: Add settings view**
 
 Create `platforms/macos/Atlas/AutomationSettingsView.swift` with:
 
@@ -734,7 +734,7 @@ Create `platforms/macos/Atlas/AutomationSettingsView.swift` with:
 
 Use `CustomAutomationStore` through `CustomAutomationStoring` so tests can inject an in-memory store.
 
-- [ ] **Step 2: Add settings section**
+- [x] **Step 2: Add settings section**
 
 Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `platforms/macos/Atlas/AutomationSettingsView.swift` is included in the `Atlas` target sources before running the settings build.
 
@@ -748,7 +748,7 @@ Section("Custom Automation") {
 
 Do not expose this settings section as a replacement for Feature Center gating. Feature Center controls whether custom automation commands appear and run from the palette.
 
-- [ ] **Step 3: Verify settings build**
+- [x] **Step 3: Verify settings build**
 
 Run:
 
@@ -760,7 +760,7 @@ Expected: The macOS app builds.
 
 ## Task 7: Register Provider Behind Feature Center
 
-- [ ] **Step 1: Register provider**
+- [x] **Step 1: Register provider**
 
 In `platforms/macos/Atlas/AtlasApp.swift`, add the provider:
 
@@ -783,7 +783,7 @@ customAutomationProvider,
 appLauncherProvider,
 ```
 
-- [ ] **Step 2: Verify the command palette slice**
+- [x] **Step 2: Verify the command palette slice**
 
 Run:
 
@@ -795,7 +795,7 @@ Expected: All listed command palette and automation tests pass.
 
 ## Task 8: Final Verification and Commit
 
-- [ ] **Step 1: Run narrow verification**
+- [x] **Step 1: Run narrow verification**
 
 Run:
 
@@ -806,7 +806,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: Rust feature and custom automation tests pass. Custom automation tests use fake injected process runners and do not start real shell or Python processes.
 
-- [ ] **Step 2: Run broader Swift verification**
+- [x] **Step 2: Run broader Swift verification**
 
 Run:
 
@@ -816,7 +816,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas
 
 Expected: Full macOS XCTest suite passes.
 
-- [ ] **Step 3: Inspect diff**
+- [x] **Step 3: Inspect diff**
 
 Run:
 
@@ -826,7 +826,7 @@ git diff -- crates/atlas-core/src/features.rs crates/atlas-ffi/src/atlas.udl cra
 
 Expected: Diff contains only Feature Center gating, custom automation storage/execution/provider/output/settings code, tests, and Xcode project source membership for the new Swift files.
 
-- [ ] **Step 4: Commit implementation**
+- [x] **Step 4: Commit implementation**
 
 Run:
 

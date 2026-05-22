@@ -32,6 +32,10 @@ struct AtlasSettingsView: View {
                 Divider()
 
                 commandPaletteSection
+
+                Divider()
+
+                AutomationSettingsView(store: CustomAutomationStore())
             }
             .padding()
         }
