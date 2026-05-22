@@ -928,8 +928,12 @@ Expected: The commit contains only the panel, tests, ContentView gating, and PBX
 - Modify: `platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.swift`
 - Modify: `platforms/macos/Atlas/CommandPalette/SnippetsProvider.swift`
 - Modify: `platforms/macos/Atlas/ScreenshotOutput.swift`
+- Modify: `platforms/macos/Atlas/ContentView.swift`
 - Modify: `platforms/macos/AtlasTests/ClipboardHistoryProviderTests.swift`
 - Modify: `platforms/macos/AtlasTests/SnippetsProviderTests.swift`
+- Modify: `platforms/macos/AtlasTests/ScreenshotOutputTests.swift`
+- Modify: `platforms/macos/AtlasTests/ScreenshotLibraryTests.swift`
+- Add or modify: `platforms/macos/AtlasTests/ContentViewTests.swift`
 
 - [ ] **Step 1: Log clipboard history reads and writes**
 
@@ -983,11 +987,11 @@ In `platforms/macos/Atlas/CommandPalette/SnippetsProvider.swift`, add an optiona
 private let accessLogger: PrivacyPulseAccessLogging
 
 init(
-    store: SnippetStoring = SnippetStore(),
+    snippetProvider: SnippetProviding = SnippetStore(),
     clipboard: ClipboardReading = SystemClipboardReader(),
     accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()
 ) {
-    self.store = store
+    self.snippetProvider = snippetProvider
     self.clipboard = clipboard
     self.accessLogger = accessLogger
 }
@@ -996,12 +1000,14 @@ init(
 In the snippet execute action:
 
 ```swift
-accessLogger.record(
-    category: .clipboard,
-    title: "Clipboard Write",
-    detail: "Snippet copied text to the pasteboard"
-)
-clipboard.setString(snippet.body)
+action: .execute { [clipboard, accessLogger] in
+    accessLogger.record(
+        category: .clipboard,
+        title: "Clipboard Write",
+        detail: "Snippet copied text to the pasteboard"
+    )
+    clipboard.setString(snippet.body)
+}
 ```
 
 - [ ] **Step 3: Log screenshot pasteboard writes**
@@ -1024,7 +1030,49 @@ static func copyPNGToClipboard(
 }
 ```
 
-- [ ] **Step 4: Add fake logger tests**
+- [ ] **Step 4: Route ContentView direct pasteboard writes through the logged boundary**
+
+`platforms/macos/Atlas/ContentView.swift` currently has direct `NSPasteboard.general` writes for copied OCR text, translated text, and screenshot-library text flows. Do not leave those paths as unlogged direct writes. Prefer one small helper on `ContentView` so every text copy records through the same boundary:
+
+```swift
+private let accessLogger: PrivacyPulseAccessLogging
+
+init(
+    paletteState: CommandPaletteState? = nil,
+    privacyPulseService: PrivacyPulseService? = nil,
+    accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()
+) {
+    self.paletteState = paletteState
+    self.privacyPulseService = privacyPulseService
+    self.accessLogger = accessLogger
+}
+
+private func copyTextToClipboard(_ text: String, detail: String) {
+    accessLogger.record(
+        category: .clipboard,
+        title: "Clipboard Write",
+        detail: detail
+    )
+    NSPasteboard.general.clearContents()
+    NSPasteboard.general.setString(text, forType: .string)
+}
+```
+
+Then replace the existing direct writes:
+
+```swift
+private func copyRecognizedText(_ text: String) {
+    copyTextToClipboard(text, detail: "Screenshot recognized text copied to the pasteboard")
+}
+
+private func copyTranslatedText(_ text: String) {
+    copyTextToClipboard(text, detail: "Screenshot translated text copied to the pasteboard")
+}
+```
+
+Apply the same helper to screenshot-library text copy actions that currently call `NSPasteboard.general.clearContents()` and `NSPasteboard.general.setString(_:forType:)` inline. If the existing code shape makes the helper awkward, explicitly log immediately before each direct `NSPasteboard.general` write path instead. After this step, an `rg -n 'NSPasteboard\.general' platforms/macos/Atlas/ContentView.swift` audit should show no unlogged text write path.
+
+- [ ] **Step 5: Add fake logger tests**
 
 In `platforms/macos/AtlasTests/ClipboardHistoryProviderTests.swift`, add a fake logger and assertions:
 
@@ -1068,22 +1116,56 @@ func testExecutingClipboardResultLogsClipboardWrite() {
 
 Use the existing `PaletteCommand` execution helper in the test file. If the helper is named differently than `perform()`, call the existing helper and do not add UI automation.
 
-- [ ] **Step 5: Verify clipboard tests**
+Also cover the direct `ContentView` copy paths that this task routes through the logger:
 
-Run:
+```swift
+func testCopyRecognizedTextLogsClipboardWrite() {
+    let logger = FakePrivacyPulseAccessLogger()
+    let view = ContentView(accessLogger: logger)
 
-```bash
-xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/ClipboardHistoryProviderTests -only-testing:AtlasTests/SnippetsProviderTests -only-testing:AtlasTests/ScreenshotOutputTests
+    view.copyRecognizedTextForTesting("recognized")
+
+    XCTAssertTrue(logger.records.contains { record in
+        record.0 == .clipboard &&
+            record.1 == "Clipboard Write" &&
+            record.2 == "Screenshot recognized text copied to the pasteboard"
+    })
+}
+
+func testCopyTranslatedTextLogsClipboardWrite() {
+    let logger = FakePrivacyPulseAccessLogger()
+    let view = ContentView(accessLogger: logger)
+
+    view.copyTranslatedTextForTesting("translated")
+
+    XCTAssertTrue(logger.records.contains { record in
+        record.0 == .clipboard &&
+            record.1 == "Clipboard Write" &&
+            record.2 == "Screenshot translated text copied to the pasteboard"
+    })
+}
 ```
 
-Expected: Tests pass using fake clipboard readers or explicit test pasteboards. They do not read the real general pasteboard except where pre-existing `ScreenshotOutputTests` already injects or controls the pasteboard boundary.
+If testing private `ContentView` methods would require exposing production UI internals, extract the copy helper into a small internal clipboard text writer that accepts `ClipboardReading` and `PrivacyPulseAccessLogging`, then test that helper directly. Keep the extraction limited to the current `ContentView` copy paths.
 
-- [ ] **Step 6: Commit clipboard logging**
+For screenshot-library text copies, add or update `ScreenshotLibraryTests` or `ScreenshotLibraryPanelTests` so a copy-recognized-text and copy-translated-text action records `Clipboard Write`. These tests must cover the screenshot-library copy action path, not only `ClipboardHistoryProvider`, `SnippetsProvider`, or `ScreenshotOutput`.
+
+- [ ] **Step 6: Verify clipboard tests**
 
 Run:
 
 ```bash
-git add platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.swift platforms/macos/Atlas/CommandPalette/SnippetsProvider.swift platforms/macos/Atlas/ScreenshotOutput.swift platforms/macos/AtlasTests/ClipboardHistoryProviderTests.swift platforms/macos/AtlasTests/SnippetsProviderTests.swift
+xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/ClipboardHistoryProviderTests -only-testing:AtlasTests/SnippetsProviderTests -only-testing:AtlasTests/ScreenshotOutputTests -only-testing:AtlasTests/ContentViewTests -only-testing:AtlasTests/ScreenshotLibraryTests
+```
+
+Expected: Tests pass using fake clipboard readers, fake loggers, or explicit test pasteboards. They cover `ContentView` copy recognized text, `ContentView` copy translated text, and screenshot-library text copy actions. They do not read the real general pasteboard except where pre-existing `ScreenshotOutputTests` already injects or controls the pasteboard boundary.
+
+- [ ] **Step 7: Commit clipboard logging**
+
+Run:
+
+```bash
+git add platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.swift platforms/macos/Atlas/CommandPalette/SnippetsProvider.swift platforms/macos/Atlas/ScreenshotOutput.swift platforms/macos/Atlas/ContentView.swift platforms/macos/AtlasTests/ClipboardHistoryProviderTests.swift platforms/macos/AtlasTests/SnippetsProviderTests.swift platforms/macos/AtlasTests/ScreenshotOutputTests.swift platforms/macos/AtlasTests/ScreenshotLibraryTests.swift platforms/macos/AtlasTests/ContentViewTests.swift
 git commit -m "feat: log Atlas clipboard access"
 ```
 
@@ -1095,41 +1177,82 @@ Expected: The commit contains only Atlas clipboard/pasteboard access logging and
 
 **Files:**
 - Modify: `platforms/macos/Atlas/AtlasCaptureService.swift`
+- Modify: `platforms/macos/Atlas/WindowCaptureService.swift`
 - Modify: `platforms/macos/Atlas/WindowManagementService.swift`
 - Modify: `platforms/macos/Atlas/GlobalHotkeyService.swift`
 - Modify: `platforms/macos/AtlasTests/AtlasCaptureServiceTests.swift`
+- Modify: `platforms/macos/AtlasTests/WindowCaptureServiceTests.swift`
 - Modify: `platforms/macos/AtlasTests/WindowManagementServiceTests.swift`
 - Modify: `platforms/macos/AtlasTests/GlobalHotkeyServiceTests.swift`
 
 - [ ] **Step 1: Log screen capture attempts through injected service dependencies**
 
-In `platforms/macos/Atlas/AtlasCaptureService.swift`, add a logger dependency to the service initializer:
+`platforms/macos/Atlas/AtlasCaptureService.swift` is closure-based, not bridge-backed. Keep that architecture and wrap the existing closures with logging rather than introducing a `bridge` field:
 
 ```swift
-private let accessLogger: PrivacyPulseAccessLogging
-
 init(
-    bridge: AtlasCaptureBridge = AtlasBridgeCaptureBridge(),
+    captureFullScreen: @escaping () throws -> Data,
+    captureRegion: @escaping (Int32, Int32, UInt32, UInt32) throws -> Data,
     accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()
 ) {
-    self.bridge = bridge
-    self.accessLogger = accessLogger
+    self.captureFullScreen = {
+        accessLogger.record(
+            category: .screenRecording,
+            title: "Screen Capture",
+            detail: "Atlas requested full screen pixels for capture"
+        )
+        return try captureFullScreen()
+    }
+    self.captureRegion = { x, y, width, height in
+        accessLogger.record(
+            category: .screenRecording,
+            title: "Screen Capture",
+            detail: "Atlas requested region pixels for capture"
+        )
+        return try captureRegion(x, y, width, height)
+    }
 }
 ```
 
-Before each desktop, window, or region capture bridge call, record a screen recording event:
+Keep `AtlasCaptureService.live` as the production boundary and pass the same logger when `ContentView` or app composition constructs the service. Before each desktop or region capture operation, record a screen recording event. Do not add window capture to `AtlasCaptureService`; window capture lives in `WindowCaptureService`.
+
+- [ ] **Step 2: Log window capture attempts in WindowCaptureService**
+
+In `platforms/macos/Atlas/WindowCaptureService.swift`, log calls to `WindowCaptureProvider.captureWindow(id:)` / `WindowCaptureProviding.captureWindow(id:)`. Preserve the protocol shape if possible by wrapping the existing provider:
 
 ```swift
-accessLogger.record(
-    category: .screenRecording,
-    title: "Screen Capture",
-    detail: "Atlas requested screen pixels for capture"
-)
+struct LoggingWindowCaptureProvider: WindowCaptureProviding {
+    private let wrapped: WindowCaptureProviding
+    private let accessLogger: PrivacyPulseAccessLogging
+
+    init(
+        wrapped: WindowCaptureProviding = CoreGraphicsWindowCaptureProvider(),
+        accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()
+    ) {
+        self.wrapped = wrapped
+        self.accessLogger = accessLogger
+    }
+
+    func listWindows() throws -> [CapturableWindow] {
+        try wrapped.listWindows()
+    }
+
+    func captureWindow(id: CGWindowID) throws -> Data {
+        accessLogger.record(
+            category: .screenRecording,
+            title: "Window Capture",
+            detail: "Atlas requested pixels for a selected window"
+        )
+        return try wrapped.captureWindow(id: id)
+    }
+}
 ```
+
+Wire `ContentView` and any `WindowCaptureProvider.captureWindow(id:)` call sites to use this logged provider or an equivalent logged service path. The plan should not rely on `AtlasCaptureService` for selected-window capture.
 
 Do not call `CGRequestScreenCaptureAccess()` from tests or from this logging path.
 
-- [ ] **Step 2: Log Accessibility window actions**
+- [ ] **Step 3: Log Accessibility window actions**
 
 In `platforms/macos/Atlas/WindowManagementService.swift`, add a logger to `AccessibilityWindowManager`:
 
@@ -1153,7 +1276,7 @@ accessLogger.record(
 
 Keep the existing `WindowManaging` protocol unchanged so command palette providers and tests remain compatible.
 
-- [ ] **Step 3: Log Accessibility hotkey trust checks**
+- [ ] **Step 4: Log Accessibility hotkey trust checks**
 
 In `platforms/macos/Atlas/GlobalHotkeyService.swift`, add:
 
@@ -1177,21 +1300,41 @@ accessLogger.record(
 
 Do not change tests to call real Accessibility prompts.
 
-- [ ] **Step 4: Add injected logging tests**
+- [ ] **Step 5: Add injected logging tests**
 
 In service tests, use the fake logger from Task 5 or a shared local fake:
 
 ```swift
 func testCaptureDesktopLogsScreenRecordingAccess() throws {
-    let bridge = FakeAtlasCaptureBridge()
     let logger = FakePrivacyPulseAccessLogger()
-    let service = AtlasCaptureService(bridge: bridge, accessLogger: logger)
+    let service = AtlasCaptureService(
+        captureFullScreen: { Data([0x01]) },
+        captureRegion: { _, _, _, _ in Data([0x02]) },
+        accessLogger: logger
+    )
 
-    _ = try service.captureDesktop()
+    _ = try service.captureFullScreen()
 
     XCTAssertTrue(logger.records.contains { record in
         record.0 == .screenRecording && record.1 == "Screen Capture"
     })
+}
+```
+
+Also test the selected-window capture path without calling CoreGraphics:
+
+```swift
+func testWindowCaptureProviderLogsCaptureWindow() throws {
+    let wrapped = FakeWindowCaptureProvider(captureData: Data([0x89, 0x50, 0x4E, 0x47]))
+    let logger = FakePrivacyPulseAccessLogger()
+    let provider = LoggingWindowCaptureProvider(wrapped: wrapped, accessLogger: logger)
+
+    _ = try provider.captureWindow(id: 42)
+
+    XCTAssertTrue(logger.records.contains { record in
+        record.0 == .screenRecording && record.1 == "Window Capture"
+    })
+    XCTAssertEqual(wrapped.capturedWindowIDs, [42])
 }
 ```
 
@@ -1235,22 +1378,22 @@ func testLoggingWindowManagerRecordsAccessibilityActionWithoutRealAX() {
 }
 ```
 
-- [ ] **Step 5: Verify capture and Accessibility tests**
+- [ ] **Step 6: Verify capture and Accessibility tests**
 
 Run:
 
 ```bash
-xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/AtlasCaptureServiceTests -only-testing:AtlasTests/WindowManagementServiceTests -only-testing:AtlasTests/GlobalHotkeyServiceTests
+xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/AtlasCaptureServiceTests -only-testing:AtlasTests/WindowCaptureServiceTests -only-testing:AtlasTests/WindowManagementServiceTests -only-testing:AtlasTests/GlobalHotkeyServiceTests
 ```
 
-Expected: Tests pass. They use injected bridge/window manager/logger fakes and do not require Screen Recording or Accessibility permission.
+Expected: Tests pass. They use injected closure/window capture/window manager/logger fakes and do not require Screen Recording or Accessibility permission.
 
-- [ ] **Step 6: Commit screen and Accessibility logging**
+- [ ] **Step 7: Commit screen and Accessibility logging**
 
 Run:
 
 ```bash
-git add platforms/macos/Atlas/AtlasCaptureService.swift platforms/macos/Atlas/WindowManagementService.swift platforms/macos/Atlas/GlobalHotkeyService.swift platforms/macos/AtlasTests/AtlasCaptureServiceTests.swift platforms/macos/AtlasTests/WindowManagementServiceTests.swift platforms/macos/AtlasTests/GlobalHotkeyServiceTests.swift
+git add platforms/macos/Atlas/AtlasCaptureService.swift platforms/macos/Atlas/WindowCaptureService.swift platforms/macos/Atlas/WindowManagementService.swift platforms/macos/Atlas/GlobalHotkeyService.swift platforms/macos/AtlasTests/AtlasCaptureServiceTests.swift platforms/macos/AtlasTests/WindowCaptureServiceTests.swift platforms/macos/AtlasTests/WindowManagementServiceTests.swift platforms/macos/AtlasTests/GlobalHotkeyServiceTests.swift
 git commit -m "feat: log Atlas screen and Accessibility access"
 ```
 
@@ -1264,22 +1407,34 @@ Expected: The commit contains only screen capture and Accessibility logging plus
 - Modify: `platforms/macos/Atlas/AtlasApp.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 - Modify: `platforms/macos/Atlas/CommandPalette/WindowManagementProvider.swift`
+- Modify if needed: `platforms/macos/Atlas/AtlasCaptureService.swift`
+- Modify if needed: `platforms/macos/Atlas/WindowCaptureService.swift`
 
 - [ ] **Step 1: Own one shared logger and service in AtlasApp**
 
-In `platforms/macos/Atlas/AtlasApp.swift`, add shared app-level objects:
+In `platforms/macos/Atlas/AtlasApp.swift`, create the shared logger before constructing `CommandPaletteState`. Do not keep `@StateObject private var paletteState = CommandPaletteState()` with the default no-op logger:
 
 ```swift
-@StateObject private var paletteState = CommandPaletteState()
-private let privacyAccessLogger = PrivacyPulseAccessLogger()
-private let privacyStatusProvider = PrivacyPulseSystemStatusProvider()
+@StateObject private var paletteState: CommandPaletteState
+private let privacyAccessLogger: PrivacyPulseAccessLogger
+private let privacyStatusProvider: PrivacyPulseSystemStatusProvider
+
+init() {
+    let accessLogger = PrivacyPulseAccessLogger()
+    self.privacyAccessLogger = accessLogger
+    self.privacyStatusProvider = PrivacyPulseSystemStatusProvider()
+    self._paletteState = StateObject(
+        wrappedValue: CommandPaletteState(accessLogger: accessLogger)
+    )
+}
 ```
 
-Pass the service to `ContentView`:
+Pass the same logger and service to `ContentView`:
 
 ```swift
 ContentView(
     paletteState: paletteState,
+    accessLogger: privacyAccessLogger,
     privacyPulseService: PrivacyPulseService(
         statusProvider: privacyStatusProvider,
         eventStore: privacyAccessLogger
@@ -1293,6 +1448,7 @@ If SwiftUI rejects stored non-state properties in `App`, move object constructio
 final class AtlasAppServices {
     let privacyAccessLogger = PrivacyPulseAccessLogger()
     let privacyStatusProvider = PrivacyPulseSystemStatusProvider()
+    lazy var paletteState = CommandPaletteState(accessLogger: privacyAccessLogger)
 
     var privacyPulseService: PrivacyPulseService {
         PrivacyPulseService(
@@ -1303,7 +1459,7 @@ final class AtlasAppServices {
 }
 ```
 
-Use one `private let services = AtlasAppServices()` and pass `services.privacyPulseService`.
+Use one `private let services = AtlasAppServices()`, initialize `@StateObject` from `services.paletteState`, and pass `services.privacyAccessLogger` plus `services.privacyPulseService` to `ContentView`.
 
 - [ ] **Step 2: Pass logger to command providers additively**
 
@@ -1311,9 +1467,11 @@ Update `CommandPaletteState` so it accepts a logger:
 
 ```swift
 private let accessLogger: PrivacyPulseAccessLogging
+private let hotkeyService: GlobalHotkeyService
 
 init(accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()) {
     self.accessLogger = accessLogger
+    self.hotkeyService = GlobalHotkeyService(accessLogger: accessLogger)
     let atlasProvider = AtlasCommandProvider(
         onCaptureDesktop: { [weak self] in self?.onCaptureDesktop?() },
         onCaptureArea: { [weak self] in self?.onCaptureArea?() },
@@ -1352,7 +1510,7 @@ init(accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()) {
 
 Preserve provider order and any adjacent child-plan providers already inserted by other tasks. Add logger arguments only to providers that support them.
 
-- [ ] **Step 3: Pass logger to hotkey service and capture service boundaries**
+- [ ] **Step 3: Pass logger to hotkey service, capture service, and window capture boundaries**
 
 In `ContentView`, replace local default hotkey construction with injected or logger-backed construction:
 
@@ -1367,10 +1525,12 @@ init(
     self.paletteState = paletteState
     self.privacyPulseService = privacyPulseService
     self.hotkeyService = GlobalHotkeyService(accessLogger: accessLogger)
+    self.captureService = AtlasCaptureService.live(accessLogger: accessLogger)
+    self.windowCaptureProvider = LoggingWindowCaptureProvider(accessLogger: accessLogger)
 }
 ```
 
-If `ContentView` already has a custom initializer from another child plan, add `privacyPulseService` and `accessLogger` parameters to that initializer and keep the existing arguments intact.
+If `AtlasCaptureService.live` is a static value today, convert it to a static factory such as `static func live(accessLogger:) -> AtlasCaptureService` so the shared logger wraps the production closures. If `ContentView` already has a custom initializer from another child plan, add `privacyPulseService` and `accessLogger` parameters to that initializer and keep the existing arguments intact.
 
 - [ ] **Step 4: Verify app composition**
 
@@ -1380,7 +1540,7 @@ Run:
 xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme Atlas
 ```
 
-Expected: The app builds. There is one shared Privacy Pulse logger wired into command providers, hotkey checks, and the Privacy Pulse panel service.
+Expected: The app builds. There is one shared Privacy Pulse logger wired into command providers, hotkey checks, desktop/region capture, selected-window capture, ContentView clipboard text copies, and the Privacy Pulse panel service. Command providers must not receive the default no-op logger in app composition.
 
 - [ ] **Step 5: Commit app composition**
 
@@ -1426,10 +1586,10 @@ Expected: Privacy Pulse tests pass using injected status providers, injected eve
 Run:
 
 ```bash
-xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/ClipboardHistoryProviderTests -only-testing:AtlasTests/SnippetsProviderTests -only-testing:AtlasTests/ScreenshotOutputTests -only-testing:AtlasTests/AtlasCaptureServiceTests -only-testing:AtlasTests/WindowManagementServiceTests -only-testing:AtlasTests/GlobalHotkeyServiceTests -only-testing:AtlasTests/FeatureModelsTests
+xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/ClipboardHistoryProviderTests -only-testing:AtlasTests/SnippetsProviderTests -only-testing:AtlasTests/ScreenshotOutputTests -only-testing:AtlasTests/ContentViewTests -only-testing:AtlasTests/ScreenshotLibraryTests -only-testing:AtlasTests/AtlasCaptureServiceTests -only-testing:AtlasTests/WindowCaptureServiceTests -only-testing:AtlasTests/WindowManagementServiceTests -only-testing:AtlasTests/GlobalHotkeyServiceTests -only-testing:AtlasTests/FeatureModelsTests
 ```
 
-Expected: Clipboard, screenshot output, capture service, window management, hotkey, and feature model tests pass. None of the tests open real camera/microphone sessions, read uncontrolled real clipboard contents, or change real permissions.
+Expected: Clipboard, screenshot output, ContentView copy, screenshot-library copy, capture service, window capture, window management, hotkey, and feature model tests pass. None of the tests open real camera/microphone sessions, read uncontrolled real clipboard contents, or change real permissions.
 
 - [ ] **Step 4: Run Rust feature test**
 
