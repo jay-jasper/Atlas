@@ -520,7 +520,7 @@ Execution note, 2026-05-22: The required `xcodebuild test` command passed with 1
 ### Task 9: Add System Utility Modules
 
 **Files:**
-- Create later: `docs/superpowers/plans/2026-05-22-system-utilities-v1.md`
+- Created: `docs/superpowers/plans/2026-05-22-system-utilities-v1.md`
 - Create in child execution: `platforms/macos/Atlas/SystemUtilitiesModels.swift`
 - Create in child execution: `platforms/macos/Atlas/KeepAwakeService.swift`
 - Create in child execution: `platforms/macos/Atlas/PresentationModeService.swift`
@@ -529,7 +529,7 @@ Execution note, 2026-05-22: The required `xcodebuild test` command passed with 1
 - Test in child execution: `platforms/macos/AtlasTests/KeepAwakeServiceTests.swift`
 - Test in child execution: `platforms/macos/AtlasTests/PresentationModeServiceTests.swift`
 
-- [ ] **Step 1: Audit current utility support**
+- [x] **Step 1: Audit current utility support**
 
 Run:
 
@@ -539,11 +539,11 @@ rg -n 'awake|caffeinate|presentation|camera|mirror|display|brightness|DDC|mute n
 
 Expected: The command shows whether keep-awake, presentation mode, hand mirror, or display control already exist.
 
-- [ ] **Step 2: Write system utilities child plan**
+- [x] **Step 2: Write system utilities child plan**
 
 Create `docs/superpowers/plans/2026-05-22-system-utilities-v1.md`. The child plan must cover keep-awake, presentation mode, hand mirror, DDC/CI capability detection, Feature Center gating, permission behavior, and tests with injected system command adapters.
 
-- [ ] **Step 3: Commit system utilities plan**
+- [x] **Step 3: Commit system utilities plan**
 
 Run:
 
@@ -552,7 +552,9 @@ git add docs/superpowers/plans/2026-05-22-system-utilities-v1.md
 git commit -m "docs: plan Atlas system utilities"
 ```
 
-Expected: The commit contains only the system utilities child plan.
+Expected: The commit contains only the system utilities child plan and this roadmap status update.
+
+Execution note, 2026-05-23: The audit command showed no production implementation for keep-awake, presentation mode, hand mirror, or DDC/CI display control. Existing matches were screenshot/display references, command palette camera icon fixtures, and roadmap/planning text. Created `2026-05-22-system-utilities-v1.md` using the writing-plans format. The plan covers keep-awake, presentation mode, hand mirror camera permission behavior, DDC/CI capability detection, Feature Center gating, injected system command adapters, tests, and explicit Xcode project membership updates. No system utilities production code was implemented in this task.
 
 ---
 
