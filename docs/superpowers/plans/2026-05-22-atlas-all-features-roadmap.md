@@ -192,22 +192,22 @@ Expected: Each listed atlas-core feature test command passes.
 Run:
 
 ```bash
-xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/FeatureServiceTests -only-testing:AtlasTests/FeatureModelsTests
+xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/FeatureServiceTests -only-testing:AtlasTests/FeatureModelsTests -only-testing:AtlasTests/AtlasBridgeFeatureTests
 ```
 
-Expected: Feature service and model tests pass.
+Expected: Feature service, model, and AtlasBridge delegation tests pass.
 
-- [x] **Step 6: Commit Feature Center normalization**
+- [x] **Step 6: Commit Feature Center verification**
 
 Run:
 
 ```bash
 git status --short
-git add crates/atlas-core/src/features.rs crates/atlas-ffi/src/atlas.udl crates/atlas-ffi/src/lib.rs platforms/macos/Atlas/FeatureModels.swift platforms/macos/Atlas/FeatureService.swift platforms/macos/Atlas/FeatureTogglePanel.swift platforms/macos/AtlasTests/FeatureServiceTests.swift platforms/macos/AtlasTests/FeatureModelsTests.swift
-git commit -m "feat: normalize Atlas feature registry"
+git add docs/superpowers/plans/2026-05-22-atlas-all-features-roadmap.md
+git commit -m "docs: verify feature center normalization"
 ```
 
-Expected: The commit contains only Feature Center and feature registry changes.
+Expected: The commit contains only the roadmap verification update. No normalization code commit is created when Feature Center v1 is already implemented and the required tests pass.
 
 ---
 
