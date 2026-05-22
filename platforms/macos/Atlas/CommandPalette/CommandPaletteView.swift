@@ -76,6 +76,7 @@ struct CommandPaletteView: View {
     let workspaceViewBuilder: (() -> AnyView)?
     let tokenBarViewBuilder: (() -> AnyView)?
     let scratchpadViewBuilder: ((UUID?) -> AnyView)?
+    let skillRunViewBuilder: ((SkillDefinition) -> AnyView)?
     private let automationRunner: AutomationProcessRunning
 
     @State private var query: String = ""
@@ -99,7 +100,8 @@ struct CommandPaletteView: View {
         windowPickerViewBuilder: (() -> AnyView)? = nil,
         workspaceViewBuilder: (() -> AnyView)? = nil,
         tokenBarViewBuilder: (() -> AnyView)? = nil,
-        scratchpadViewBuilder: ((UUID?) -> AnyView)? = nil
+        scratchpadViewBuilder: ((UUID?) -> AnyView)? = nil,
+        skillRunViewBuilder: ((SkillDefinition) -> AnyView)? = nil
     ) {
         self.providers = providers
         self.onDismiss = onDismiss
@@ -111,6 +113,7 @@ struct CommandPaletteView: View {
         self.workspaceViewBuilder = workspaceViewBuilder
         self.tokenBarViewBuilder = tokenBarViewBuilder
         self.scratchpadViewBuilder = scratchpadViewBuilder
+        self.skillRunViewBuilder = skillRunViewBuilder
     }
 
     var body: some View {
@@ -224,6 +227,8 @@ struct CommandPaletteView: View {
             scratchpadViewBuilder?(noteID) ?? AnyView(Text("Scratchpad").padding())
         case .automationOutput(let command):
             AutomationOutputView(command: command, runner: automationRunner)
+        case .skillRun(let skill):
+            skillRunViewBuilder?(skill) ?? AnyView(Text(skill.title).padding())
         }
     }
 

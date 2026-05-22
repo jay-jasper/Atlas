@@ -46,6 +46,10 @@ struct AtlasSettingsView: View {
                 Divider()
 
                 AutomationSettingsView(store: CustomAutomationStore())
+
+                Divider()
+
+                SkillSettingsView()
             }
             .padding()
         }

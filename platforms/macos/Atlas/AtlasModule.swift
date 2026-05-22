@@ -27,7 +27,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
         case .screenshot:
             return "Screenshot"
         case .skills:
-            return "Skills"
+            return "AI Skills"
         case .tokenbar:
             return "TokenBar"
         case .windowManager:

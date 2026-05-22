@@ -15,6 +15,7 @@ final class CommandPaletteController {
     var workspaceViewBuilder: (() -> AnyView)?
     var tokenBarViewBuilder: (() -> AnyView)?
     var scratchpadViewBuilder: ((UUID?) -> AnyView)?
+    var skillRunViewBuilder: ((SkillDefinition) -> AnyView)?
 
     init(
         providers: [CommandProviding],
@@ -62,7 +63,8 @@ final class CommandPaletteController {
             windowPickerViewBuilder: windowPickerViewBuilder,
             workspaceViewBuilder: workspaceViewBuilder,
             tokenBarViewBuilder: tokenBarViewBuilder,
-            scratchpadViewBuilder: scratchpadViewBuilder
+            scratchpadViewBuilder: scratchpadViewBuilder,
+            skillRunViewBuilder: skillRunViewBuilder
         )
 
         let rootView = VStack(spacing: 0) {

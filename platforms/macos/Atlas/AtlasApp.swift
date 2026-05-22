@@ -98,6 +98,7 @@ final class CommandPaletteState: ObservableObject {
             store: CustomAutomationStore(),
             isEnabled: Self.isAutomationFeatureEnabled
         )
+        let skillProvider = SkillCommandProvider()
         let appLauncherProvider = AppLauncherProvider()
 
         self.controller = CommandPaletteController(providers: [
@@ -110,8 +111,13 @@ final class CommandPaletteState: ObservableObject {
             snippetsProvider,
             scratchpadProvider,
             customAutomationProvider,
+            skillProvider,
             appLauncherProvider,
         ])
+
+        self.controller.skillRunViewBuilder = { skill in
+            AnyView(SkillPanel(skill: skill, runner: SkillRuntimeFactory.makeDefaultRunner()))
+        }
 
         // Wire hotkey updates dynamically
         self.controller.onHotkeyChanged = { [weak self] newConfig in

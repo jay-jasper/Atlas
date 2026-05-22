@@ -29,4 +29,5 @@ enum PaletteDestination: Equatable {
     case tokenBar
     case scratchpad(noteID: UUID?)
     case automationOutput(CustomAutomationCommand)
+    case skillRun(SkillDefinition)
 }

@@ -66,7 +66,7 @@ final class FeatureModelsTests: XCTestCase {
     func testMapsSkillsTitle() {
         let feature = AtlasFeature(name: "skills", isEnabled: false)
 
-        XCTAssertEqual(feature.title, "Skills")
+        XCTAssertEqual(feature.title, "AI Skills")
     }
 
     func testFeatureAvailabilityDefaultsToAvailable() {
