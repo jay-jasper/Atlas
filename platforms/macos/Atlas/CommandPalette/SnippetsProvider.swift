@@ -25,14 +25,14 @@ final class SnippetsProvider: CommandProviding {
                     snippet.keywords.contains { $0.localizedCaseInsensitiveContains(q) }
             }
             .prefix(Self.maxResultsCount)
-            .map { snippet in
+            .map { [clipboard] snippet in
                 PaletteCommand(
                     id: UUID(),
                     title: "Copy \(snippet.title)",
                     subtitle: Self.subtitle(for: snippet.body),
                     icon: .sfSymbol("text.quote"),
                     keywords: snippet.keywords + [snippet.title],
-                    action: .execute { [clipboard] in
+                    action: .execute {
                         clipboard.setString(snippet.body)
                     },
                     category: "Snippet"
