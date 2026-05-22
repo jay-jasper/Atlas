@@ -4,7 +4,7 @@
 
 **Goal:** Add gated system utility modules for keep-awake, presentation mode, hand mirror, and display capability detection.
 
-**Architecture:** Keep v1 in Swift. System operations run behind injected adapters so tests never call `caffeinate`, `osascript`, camera APIs, or DDC tools directly. Keep-awake owns a long-lived cancellable command process. Presentation mode composes keep-awake plus notification-focus commands. Hand mirror uses AVFoundation permission state and a local SwiftUI preview panel. Display control v1 detects DDC/CI capability and external-display brightness support, but does not change brightness unless capability is explicitly detected.
+**Architecture:** Keep v1 in Swift. System operations run behind injected adapters so tests never call `caffeinate`, `osascript`, camera APIs, or DDC tools directly. Keep-awake owns a long-lived cancellable command process. Presentation mode composes keep-awake plus an optional best-effort notification-focus toggle. Hand mirror uses AVFoundation permission state and a local SwiftUI preview panel. Display control v1 detects DDC/CI capability only and reports unsupported state for built-in or non-DDC displays.
 
 **Tech Stack:** Swift, SwiftUI, AVFoundation, Foundation `Process`, XCTest, Rust Feature Center registry, UniFFI feature list/toggle bridge, explicit Xcode PBX project membership.
 
@@ -15,15 +15,16 @@
 This plan implements:
 
 - Keep-awake start/stop backed by `caffeinate -dimsu`.
-- Presentation mode start/stop that keeps the Mac awake and mutes notifications through injected command adapters.
+- Presentation mode start/stop that keeps the Mac awake and optionally runs a best-effort notification-focus toggle through injected command adapters.
 - Hand mirror camera permission handling and preview panel wiring.
-- Display capability detection for DDC/CI and external brightness support.
+- Display capability detection for DDC/CI support.
 - Feature Center gating for all system utilities UI and command palette commands.
 - Deterministic tests using injected system command adapters, camera permission providers, and display capability probes.
 
 Out of scope:
 
 - Production DDC brightness writes.
+- Software brightness control for built-in displays.
 - Private macOS display APIs.
 - Screen dimming or wallpaper changes.
 - Persisted schedules.
@@ -51,7 +52,7 @@ shows screenshot/display references, command palette icon fixtures, and roadmap/
 - `platforms/macos/Atlas/KeepAwakeService.swift`
   - Starts and stops the injected keep-awake command process.
 - `platforms/macos/Atlas/PresentationModeService.swift`
-  - Composes keep-awake and notification mute/unmute commands.
+  - Composes keep-awake and optional best-effort notification-focus toggle commands.
 - `platforms/macos/Atlas/HandMirrorService.swift`
   - Wraps injected camera permission state/request behavior.
 - `platforms/macos/Atlas/CameraPreviewPanel.swift`
@@ -233,14 +234,10 @@ struct DisplayDevice: Identifiable, Equatable {
     let name: String
     let isBuiltin: Bool
     let supportsDDC: Bool
-    let supportsSoftwareBrightness: Bool
 
     var capabilitySummary: String {
         if supportsDDC {
             return "DDC/CI available"
-        }
-        if supportsSoftwareBrightness {
-            return "Software brightness available"
         }
         return "Brightness control unavailable"
     }
@@ -485,7 +482,7 @@ import XCTest
 @testable import Atlas
 
 final class PresentationModeServiceTests: XCTestCase {
-    func testStartKeepsAwakeAndMutesNotifications() throws {
+    func testStartKeepsAwakeAndRunsNotificationFocusToggle() throws {
         let runner = RecordingCommandRunner()
         let keepAwake = KeepAwakeService(commandRunner: runner)
         let service = PresentationModeService(commandRunner: runner, keepAwakeService: keepAwake)
@@ -504,7 +501,7 @@ final class PresentationModeServiceTests: XCTestCase {
         XCTAssertEqual(service.status, .running)
     }
 
-    func testStopUnmutesNotificationsAndStopsKeepAwake() throws {
+    func testStopRunsNotificationFocusToggleAndStopsKeepAwake() throws {
         let runner = RecordingCommandRunner()
         let keepAwake = KeepAwakeService(commandRunner: runner)
         let service = PresentationModeService(commandRunner: runner, keepAwakeService: keepAwake)
@@ -520,11 +517,12 @@ final class PresentationModeServiceTests: XCTestCase {
         XCTAssertEqual(service.status, .idle)
     }
 
-    func testNotificationCommandFailureReportsUnavailable() {
+    func testNotificationCommandFailureStopsKeepAwakeAndReportsUnavailable() {
         let runner = RecordingCommandRunner(runResult: SystemCommandResult(terminationStatus: 1, standardOutput: "", standardError: "not allowed"))
         let service = PresentationModeService(commandRunner: runner, keepAwakeService: KeepAwakeService(commandRunner: runner))
 
         XCTAssertThrowsError(try service.start())
+        XCTAssertEqual(runner.processes.first?.terminateCallCount, 1)
         XCTAssertEqual(service.status, .failed("not allowed"))
     }
 }
@@ -570,7 +568,7 @@ final class PresentationModeService: ObservableObject {
 
     private let commandRunner: SystemCommandRunning
     private let keepAwakeService: KeepAwakeService
-    private let muteNotificationsScript = "tell application \"System Events\" to tell process \"Control Center\" to key code 113 using {option down}"
+    private let toggleNotificationFocusScript = "tell application \"System Events\" to tell process \"Control Center\" to key code 113 using {option down}"
 
     init(
         commandRunner: SystemCommandRunning = LiveSystemCommandRunner(),
@@ -583,10 +581,11 @@ final class PresentationModeService: ObservableObject {
     func start() throws {
         do {
             try keepAwakeService.start()
-            let result = try commandRunner.run("/usr/bin/osascript", arguments: ["-e", muteNotificationsScript])
+            let result = try commandRunner.run("/usr/bin/osascript", arguments: ["-e", toggleNotificationFocusScript])
             guard result.succeeded else {
-                let message = result.standardError.isEmpty ? "Unable to mute notifications" : result.standardError
+                let message = result.standardError.isEmpty ? "Unable to toggle notification focus" : result.standardError
                 status = .failed(message)
+                keepAwakeService.stop()
                 throw PresentationModeError.commandFailed(message)
             }
             status = .running
@@ -595,12 +594,13 @@ final class PresentationModeService: ObservableObject {
             } else {
                 status = .failed(error.localizedDescription)
             }
+            keepAwakeService.stop()
             throw error
         }
     }
 
     func stop() {
-        _ = try? commandRunner.run("/usr/bin/osascript", arguments: ["-e", muteNotificationsScript])
+        _ = try? commandRunner.run("/usr/bin/osascript", arguments: ["-e", toggleNotificationFocusScript])
         keepAwakeService.stop()
         status = .idle
     }
@@ -611,7 +611,7 @@ enum PresentationModeError: Error, Equatable {
 }
 ```
 
-Permission behavior: if Automation permission blocks `osascript`, show the failure message in the panel and leave keep-awake stopped by calling `keepAwakeService.stop()` before throwing. If the implementation chooses to keep awake despite notification failure, it must say so in UI text and tests. Prefer stopping to avoid partially enabled presentation mode.
+Notification behavior: the sample `osascript` is a toggle, not a reliable mute or unmute API. Treat it as optional best-effort notification-focus automation and surface status text that does not promise a guaranteed notification state. If Automation permission blocks `osascript` or any presentation setup step fails after keep-awake starts, show the failure message in the panel and leave keep-awake stopped by calling `keepAwakeService.stop()` before throwing.
 
 - [ ] **Step 3: Verify presentation tests**
 
@@ -873,8 +873,8 @@ final class DisplayControlServiceTests: XCTestCase {
         let displays = try service.refreshDisplays()
 
         XCTAssertEqual(displays, [
-            DisplayDevice(id: "display-1", name: "Built-in Retina", isBuiltin: true, supportsDDC: false, supportsSoftwareBrightness: true),
-            DisplayDevice(id: "display-2", name: "LG UltraFine", isBuiltin: false, supportsDDC: true, supportsSoftwareBrightness: false),
+            DisplayDevice(id: "display-1", name: "Built-in Retina", isBuiltin: true, supportsDDC: false),
+            DisplayDevice(id: "display-2", name: "LG UltraFine", isBuiltin: false, supportsDDC: true),
         ])
     }
 
@@ -980,15 +980,14 @@ enum DisplayControlParser {
                     id: "display-\(index + 1)",
                     name: rawName,
                     isBuiltin: isBuiltin,
-                    supportsDDC: supportsDDC,
-                    supportsSoftwareBrightness: isBuiltin
+                    supportsDDC: supportsDDC
                 )
             }
     }
 }
 ```
 
-Capability behavior: v1 detects and reports DDC/CI availability only. Do not implement brightness writes in this plan unless the user explicitly requests a follow-up implementation plan for brightness control.
+Capability behavior: v1 detects and reports DDC/CI availability only. Built-in and non-DDC displays must remain in an honest unsupported state; do not add software brightness probing or brightness writes in this plan unless the user explicitly requests a follow-up implementation plan for brightness control.
 
 - [ ] **Step 3: Verify display tests**
 
@@ -1240,7 +1239,7 @@ final class SystemUtilitiesProviderTests: XCTestCase {
             onRefreshDisplays: {}
         )
 
-        XCTAssertEqual(provider.commands(matching: "awake").count, 0)
+        XCTAssertEqual(provider.results(for: "awake").count, 0)
     }
 
     func testEnabledFeatureReturnsUtilityCommands() {
@@ -1252,7 +1251,7 @@ final class SystemUtilitiesProviderTests: XCTestCase {
             onRefreshDisplays: {}
         )
 
-        let titles = provider.commands(matching: "system").map(\.title)
+        let titles = provider.results(for: "system").map(\.title)
 
         XCTAssertEqual(titles, [
             "Keep Mac Awake",
@@ -1272,7 +1271,7 @@ final class SystemUtilitiesProviderTests: XCTestCase {
             onRefreshDisplays: {}
         )
 
-        guard case let .execute(action) = provider.commands(matching: "awake").first?.action else {
+        guard case let .execute(action) = provider.results(for: "awake").first?.action else {
             return XCTFail("Expected execute action")
         }
         action()
@@ -1296,7 +1295,7 @@ struct SystemUtilitiesProvider: CommandProviding {
     let onOpenHandMirror: () -> Void
     let onRefreshDisplays: () -> Void
 
-    func commands(matching query: String) -> [PaletteCommand] {
+    func results(for query: String) -> [PaletteCommand] {
         guard isEnabled() else {
             return []
         }
@@ -1311,7 +1310,7 @@ struct SystemUtilitiesProvider: CommandProviding {
             ),
             makeCommand(
                 title: "Presentation Mode",
-                subtitle: "Keep awake and mute notifications",
+                subtitle: "Keep awake and optionally toggle Focus",
                 icon: "person.crop.rectangle.stack",
                 keywords: ["system", "presentation", "notifications", "focus"],
                 action: onTogglePresentationMode
@@ -1585,7 +1584,7 @@ Expected: the app builds with all new Swift files included in the explicit Xcode
 - `system-utilities` is disabled by default in Feature Center.
 - When disabled, the System Utilities panel is hidden and command palette provider returns no commands.
 - Keep-awake starts one injected `/usr/bin/caffeinate -dimsu` process and stops it on toggle.
-- Presentation mode starts keep-awake and runs notification mute/unmute through injected command adapters.
+- Presentation mode starts keep-awake, runs optional best-effort notification-focus automation through injected command adapters, and stops keep-awake if any presentation setup step fails.
 - Hand mirror requests camera permission only when state is `notDetermined`, opens preview only when authorized, and shows denied/restricted states without starting camera capture.
 - Display control reports DDC/CI capability detection and unavailable probe failures without changing brightness.
 - All new Swift app and test files are members of the explicit Xcode project targets.
@@ -1595,6 +1594,6 @@ Expected: the app builds with all new Swift files included in the explicit Xcode
 
 - Keep command adapters injectable. Tests must not depend on live `caffeinate`, `osascript`, `ddcctl`, camera hardware, external displays, or current notification settings.
 - Preserve adjacent child-plan enum cases, provider lists, and command palette builders. Do not replace `AtlasModule`, `CommandPaletteController`, `CommandPaletteView`, or `CommandPaletteState` with closed-list snippets.
-- The notification mute script is intentionally isolated behind `SystemCommandRunning` because macOS Automation permission behavior varies. UI must report failures instead of assuming permission is available.
+- The notification-focus script is intentionally isolated behind `SystemCommandRunning` because it is only a toggle and macOS Automation permission behavior varies. UI and tests must not claim guaranteed mute/unmute state.
 - `CameraPreviewPanel` requires camera usage text in app metadata if the Xcode target does not already include it. Add `NSCameraUsageDescription` with a concise value such as `Atlas uses the camera for the hand mirror preview.` before running on a real machine.
 - DDC/CI detection is best-effort. Treat missing `ddcctl` or unsupported displays as unavailable, not as an error that breaks the panel.
