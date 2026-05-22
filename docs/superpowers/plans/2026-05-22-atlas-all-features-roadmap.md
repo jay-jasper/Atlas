@@ -289,7 +289,7 @@ Expected: The commit contains only the two child plan files and this roadmap upd
 - Create later: `docs/superpowers/plans/2026-05-22-tokenbar-v1.md`
 - Create later: `docs/superpowers/plans/2026-05-22-local-ai-load-monitor-v1.md`
 
-- [ ] **Step 1: Run current monitoring tests**
+- [x] **Step 1: Run current monitoring tests**
 
 Run:
 
@@ -300,7 +300,9 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: Rust monitor tests and Swift monitoring mapper/service tests pass.
 
-- [ ] **Step 2: Audit TokenBar absence or presence**
+Execution note, 2026-05-22: `cargo test -p atlas-core monitor` passed with 12 monitor tests. The requested `xcodebuild test` slice passed with 8 tests across `AtlasBridgeMonitoringTests`, `MonitoringFFIMapperTests`, and `MonitoringServiceTests`; Xcode also reported a CoreSimulator version warning, but the macOS test destination completed successfully.
+
+- [x] **Step 2: Audit TokenBar absence or presence**
 
 Run:
 
@@ -310,24 +312,30 @@ rg -n 'TokenBar|OpenAI|Claude|usage|cost|billing|Ollama|LM Studio|GPU|NPU' crate
 
 Expected: The command identifies whether TokenBar and local AI load monitoring are absent, planned, or partially implemented.
 
-- [ ] **Step 3: Write the TokenBar child plan**
+Execution note, 2026-05-22: The audit found TokenBar and local AI load monitoring only in roadmap/planning text. Production `crates/`, `platforms/macos/Atlas`, and `platforms/macos/AtlasTests` matches were existing monitoring `usage` fields and command palette usage tracking. No TokenBar, Ollama, LM Studio, GPU, or NPU production implementation was present.
+
+- [x] **Step 3: Write the TokenBar child plan**
 
 Create `docs/superpowers/plans/2026-05-22-tokenbar-v1.md`. The child plan must cover provider configuration, local cost ledger, manual usage import, API-key storage behavior, command palette actions, Feature Center gating, and tests with injected network transports.
 
-- [ ] **Step 4: Write the local AI load child plan**
+Execution note, 2026-05-22: Created `docs/superpowers/plans/2026-05-22-tokenbar-v1.md` using the writing-plans format. The plan covers provider configuration, Keychain API-key storage, local JSON ledger, manual CSV usage import, injected network transports, command palette actions, Feature Center gating, Xcode project membership, and exact test commands.
+
+- [x] **Step 4: Write the local AI load child plan**
 
 Create `docs/superpowers/plans/2026-05-22-local-ai-load-monitor-v1.md`. The child plan must cover Ollama detection, LM Studio detection, process-level CPU/memory attribution, best-effort GPU/NPU reporting, UI display, Feature Center gating, and tests that use injected process snapshots.
 
-- [ ] **Step 5: Commit monitoring expansion plans**
+Execution note, 2026-05-22: Created `docs/superpowers/plans/2026-05-22-local-ai-load-monitor-v1.md` using the writing-plans format. The plan covers Ollama and LM Studio process detection, injected process snapshots, CPU and memory aggregation, best-effort GPU/NPU reporting, UI display, Feature Center gating, Xcode project membership, and exact test commands.
+
+- [x] **Step 5: Commit monitoring expansion plans**
 
 Run:
 
 ```bash
-git add docs/superpowers/plans/2026-05-22-tokenbar-v1.md docs/superpowers/plans/2026-05-22-local-ai-load-monitor-v1.md
+git add docs/superpowers/plans/2026-05-22-tokenbar-v1.md docs/superpowers/plans/2026-05-22-local-ai-load-monitor-v1.md docs/superpowers/plans/2026-05-22-atlas-all-features-roadmap.md
 git commit -m "docs: plan Atlas AI monitoring features"
 ```
 
-Expected: The commit contains only TokenBar and local AI load monitor child plans.
+Expected: The commit contains only TokenBar and local AI load monitor child plans plus this Task 4 roadmap execution note.
 
 ---
 
