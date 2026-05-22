@@ -1586,7 +1586,12 @@ paletteState?.setWorkspaceActions(
         )
         do {
             try model.saveCurrentLayout(named: name)
-            showStatus(model.statusMessage)
+            let saveFailed = [
+                "Window Manager is disabled",
+                "Accessibility permission is required",
+                "Workspace name is required",
+            ].contains(model.statusMessage)
+            showStatus(model.statusMessage, kind: saveFailed ? .error : .success)
         } catch {
             showStatus(error.localizedDescription, kind: .error)
         }
