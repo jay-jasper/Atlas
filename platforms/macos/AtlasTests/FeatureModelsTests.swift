@@ -69,6 +69,12 @@ final class FeatureModelsTests: XCTestCase {
         XCTAssertEqual(feature.title, "AI Skills")
     }
 
+    func testClipboardFeatureUsesProductTitle() {
+        let feature = AtlasFeature(name: "clipboard", isEnabled: false)
+
+        XCTAssertEqual(feature.title, "Clipboard History")
+    }
+
     func testFeatureAvailabilityDefaultsToAvailable() {
         let feature = AtlasFeature(name: "monitoring", isEnabled: true)
 

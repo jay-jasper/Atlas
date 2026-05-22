@@ -1,15 +1,10 @@
 import AppKit
 import Foundation
 
-struct ClipboardHistoryItem: Equatable, Sendable {
-    let id: UUID
-    let text: String
-    let capturedAt: Date
-}
-
 protocol ClipboardReading {
     var changeCount: Int { get }
     func string() -> String?
+    func imageMetadata() -> ClipboardImageMetadata?
     func setString(_ text: String)
 }
 
@@ -28,6 +23,26 @@ final class SystemClipboardReader: ClipboardReading {
         pasteboard.string(forType: .string)
     }
 
+    func imageMetadata() -> ClipboardImageMetadata? {
+        let preferredTypes: [NSPasteboard.PasteboardType] = [.png, .tiff]
+        guard let type = preferredTypes.first(where: { pasteboard.data(forType: $0) != nil }),
+              let data = pasteboard.data(forType: type),
+              let image = NSImage(data: data) else {
+            return nil
+        }
+
+        let pixelSize = image.representations.first.map {
+            (width: $0.pixelsWide, height: $0.pixelsHigh)
+        } ?? (width: Int(image.size.width), height: Int(image.size.height))
+
+        return ClipboardImageMetadata(
+            typeIdentifier: type.rawValue,
+            pixelWidth: pixelSize.width,
+            pixelHeight: pixelSize.height,
+            byteCount: data.count
+        )
+    }
+
     func setString(_ text: String) {
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
@@ -38,73 +53,91 @@ final class ClipboardHistoryProvider: CommandProviding {
     private static let maxResultsCount = 5
 
     private let reader: ClipboardReading
-    private let maxHistoryCount: Int
+    private let store: ClipboardHistoryStoring
     private let dateProvider: () -> Date
+    private var enabled: Bool
+    private var onHistoryChanged: () -> Void
     private var lastChangeCount: Int?
-    private(set) var items: [ClipboardHistoryItem] = []
 
     init(
         reader: ClipboardReading = SystemClipboardReader(),
-        maxHistoryCount: Int = 20,
-        dateProvider: @escaping () -> Date = Date.init
+        store: ClipboardHistoryStoring = ClipboardHistoryStore(),
+        isEnabled: @escaping () -> Bool = { false },
+        dateProvider: @escaping () -> Date = Date.init,
+        onHistoryChanged: @escaping () -> Void = {}
     ) {
         self.reader = reader
-        self.maxHistoryCount = maxHistoryCount
+        self.store = store
+        self.enabled = isEnabled()
         self.dateProvider = dateProvider
+        self.onHistoryChanged = onHistoryChanged
+    }
+
+    func setEnabled(_ enabled: Bool) {
+        self.enabled = enabled
+    }
+
+    func setHistoryChangedHandler(_ handler: @escaping () -> Void) {
+        onHistoryChanged = handler
     }
 
     func results(for query: String) -> [PaletteCommand] {
+        guard enabled else { return [] }
         captureCurrentClipboard()
 
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !q.isEmpty else { return [] }
 
-        return items
-            .filter { item in
-                q.localizedCaseInsensitiveContains("clip") ||
-                item.text.localizedCaseInsensitiveContains(q)
-            }
+        let matches = q.localizedCaseInsensitiveContains("clip") ? store.items() : store.search(q)
+        return matches
             .prefix(Self.maxResultsCount)
-            .map { item in
-                PaletteCommand(
-                    id: item.id,
-                    title: Self.title(for: item.text),
-                    subtitle: "Copy from clipboard history",
-                    icon: .sfSymbol("doc.on.clipboard"),
-                    keywords: ["clipboard", "copy", item.text],
-                    action: .execute { [reader] in
-                        reader.setString(item.text)
-                    },
-                    category: "Clipboard"
-                )
-            }
+            .map(command)
     }
 
     func captureCurrentClipboard() {
+        guard enabled else { return }
+
         let currentChangeCount = reader.changeCount
         guard lastChangeCount != currentChangeCount else { return }
         lastChangeCount = currentChangeCount
 
-        guard let text = reader.string() else { return }
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        guard items.first?.text != text else { return }
+        if let text = reader.string(),
+           !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            store.addText(text, capturedAt: dateProvider())
+            onHistoryChanged()
+            return
+        }
 
-        items.insert(
-            ClipboardHistoryItem(id: UUID(), text: text, capturedAt: dateProvider()),
-            at: 0
-        )
-
-        if items.count > maxHistoryCount {
-            items.removeLast(items.count - maxHistoryCount)
+        if let metadata = reader.imageMetadata() {
+            store.addImageMetadata(metadata, capturedAt: dateProvider())
+            onHistoryChanged()
         }
     }
 
-    private static func title(for text: String) -> String {
-        let firstLine = text
-            .split(whereSeparator: \.isNewline)
-            .first
-            .map(String.init) ?? text
-        return String(firstLine.prefix(80))
+    private func command(for item: ClipboardHistoryItem) -> PaletteCommand {
+        switch item.content {
+        case .text(let text):
+            return PaletteCommand(
+                id: item.id,
+                title: item.displayTitle,
+                subtitle: "Copy from clipboard history",
+                icon: .sfSymbol("doc.on.clipboard"),
+                keywords: ["clipboard", "copy", text],
+                action: .execute { [reader] in
+                    reader.setString(text)
+                },
+                category: "Clipboard"
+            )
+        case .image:
+            return PaletteCommand(
+                id: item.id,
+                title: item.displayTitle,
+                subtitle: "Image metadata only",
+                icon: .sfSymbol("photo"),
+                keywords: ["clipboard", "image", item.searchableText],
+                action: .execute {},
+                category: "Clipboard"
+            )
+        }
     }
 }

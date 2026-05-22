@@ -134,6 +134,10 @@ private final class FakeSnippetClipboard: ClipboardReading {
         writtenText
     }
 
+    func imageMetadata() -> ClipboardImageMetadata? {
+        nil
+    }
+
     func setString(_ text: String) {
         writtenText = text
         changeCount += 1

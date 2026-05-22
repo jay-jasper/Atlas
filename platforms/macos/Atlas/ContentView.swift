@@ -18,6 +18,8 @@ struct ContentView: View {
     @State private var isTranslatingScreenshotText: Bool = false
     @State private var screenshotLibraryItems: [ScreenshotLibraryItem] = []
     @State private var screenshotLibraryQuery: String = ""
+    @State private var clipboardHistoryItems: [ClipboardHistoryItem] = []
+    @State private var clipboardHistoryQuery: String = ""
     @State private var activeLibraryItemID: UUID?
     @State private var screenshotFeatureSettings: ScreenshotFeatureSettings = .defaultEnabled
     @State private var translationSettingsDraft: ScreenshotTranslationSettingsDraft = .empty
@@ -41,6 +43,7 @@ struct ContentView: View {
     private let screenshotFeatureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigurationStore = ScreenshotTranslationConfigurationStore()
     private let screenshotLibraryStore = ScreenshotLibraryStore()
+    private let fallbackClipboardHistoryStore = ClipboardHistoryStore()
     private let screenshotDragOutputStore = ScreenshotDragOutputStore()
     private let scrollingCaptureService = ScreenshotScrollingCaptureService()
     private let gifRecorder = ScreenshotGIFRecorder()
@@ -53,6 +56,9 @@ struct ContentView: View {
     private let entitlementService: EntitlementService
     private var scratchpadStore: ScratchpadStore {
         paletteState?.sharedScratchpadStore ?? ScratchpadStore()
+    }
+    private var clipboardHistoryStore: ClipboardHistoryStoring {
+        paletteState?.clipboardHistoryStore ?? fallbackClipboardHistoryStore
     }
     private let scratchpadSummarizer = DisabledScratchpadSummarizer()
     let windowManager: WindowManaging
@@ -124,6 +130,18 @@ struct ContentView: View {
                             snapshot: snapshot,
                             cpuHistory: cpuHistory,
                             memoryHistory: memoryHistory
+                        )
+
+                        Divider()
+                    }
+
+                    if isFeatureEnabled(.clipboard) {
+                        ClipboardHistoryPanel(
+                            items: clipboardHistoryItems,
+                            onCopyText: copyClipboardHistoryText,
+                            onDelete: deleteClipboardHistoryItem,
+                            onClear: clearClipboardHistory,
+                            query: $clipboardHistoryQuery
                         )
 
                         Divider()
@@ -272,6 +290,8 @@ struct ContentView: View {
             enabledFeatures = FeatureStateReducer.enabledMap(from: loadedFeatures)
             paletteState?.setWindowManagementEnabled(isFeatureEnabled(.windowManager))
             paletteState?.setScratchpadEnabled(isFeatureEnabled(.scratchpad))
+            syncClipboardFeatureGate()
+            loadClipboardHistory()
             tokenBarSummary = isFeatureEnabled(.tokenbar) ? ((try? tokenBarLedger.summary()) ?? .empty) : .empty
             statusText = "Atlas is Ready"
             if isFeatureEnabled(.monitoring) {
@@ -464,6 +484,12 @@ struct ContentView: View {
             return
         }
 
+        if feature == AtlasModule.clipboard.featureName {
+            syncClipboardFeatureGate()
+            loadClipboardHistory()
+            return
+        }
+
         if feature == AtlasModule.aiLoadMonitor.featureName {
             if enabled {
                 startLocalAILoadRefresh()
@@ -548,6 +574,35 @@ struct ContentView: View {
             return .error
         default:
             return .success
+        }
+    }
+
+    private func loadClipboardHistory() {
+        clipboardHistoryItems = clipboardHistoryStore.items()
+    }
+
+    private func copyClipboardHistoryText(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        showStatus("Copied clipboard item")
+    }
+
+    private func deleteClipboardHistoryItem(_ id: UUID) {
+        clipboardHistoryStore.delete(id: id)
+        loadClipboardHistory()
+        showStatus("Clipboard item deleted")
+    }
+
+    private func clearClipboardHistory() {
+        clipboardHistoryStore.clear()
+        loadClipboardHistory()
+        showStatus("Clipboard history cleared")
+    }
+
+    private func syncClipboardFeatureGate() {
+        paletteState?.setClipboardHistoryEnabled(isFeatureEnabled(.clipboard))
+        paletteState?.setClipboardHistoryChangedHandler {
+            self.loadClipboardHistory()
         }
     }
 

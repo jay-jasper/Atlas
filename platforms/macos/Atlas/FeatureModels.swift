@@ -46,6 +46,8 @@ private enum AtlasFeatureTitles {
             return AtlasModule.aiLoadMonitor.title
         case AtlasModule.automation.featureName:
             return AtlasModule.automation.title
+        case AtlasModule.clipboard.featureName:
+            return AtlasModule.clipboard.title
         case AtlasModule.monitoring.featureName:
             return AtlasModule.monitoring.title
         case AtlasModule.scratchpad.featureName:

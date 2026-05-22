@@ -27,6 +27,7 @@ impl FeatureManager {
         // Default feature placeholders
         features.insert("ai-load-monitor".to_string(), FeatureStatus::Disabled);
         features.insert("automation".to_string(), FeatureStatus::Disabled);
+        features.insert("clipboard".to_string(), FeatureStatus::Disabled);
         features.insert("monitoring".to_string(), FeatureStatus::Disabled);
         features.insert("scratchpad".to_string(), FeatureStatus::Disabled);
         features.insert("screenshot".to_string(), FeatureStatus::Disabled);
@@ -104,6 +105,7 @@ mod tests {
             vec![
                 "ai-load-monitor",
                 "automation",
+                "clipboard",
                 "monitoring",
                 "scratchpad",
                 "screenshot",

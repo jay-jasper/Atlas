@@ -108,7 +108,7 @@ Preserve the injected-reader testing approach and extend it for image metadata.
 - Test: `crates/atlas-core/src/features.rs`
 - Test: `platforms/macos/AtlasTests/FeatureModelsTests.swift`
 
-- [ ] **Step 1: Update Rust feature registration**
+- [x] **Step 1: Update Rust feature registration**
 
 In `crates/atlas-core/src/features.rs`, update `FeatureManager::new()`:
 
@@ -135,7 +135,7 @@ fn test_list_features_is_sorted_by_name() {
 }
 ```
 
-- [ ] **Step 2: Update Swift module names**
+- [x] **Step 2: Update Swift module names**
 
 Replace `platforms/macos/Atlas/AtlasModule.swift` with:
 
@@ -164,7 +164,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
 }
 ```
 
-- [ ] **Step 3: Update FeatureModels title mapping**
+- [x] **Step 3: Update FeatureModels title mapping**
 
 In `platforms/macos/Atlas/FeatureModels.swift`, update `AtlasFeatureTitles.title(for:)`:
 
@@ -190,7 +190,7 @@ private enum AtlasFeatureTitles {
 }
 ```
 
-- [ ] **Step 4: Extend FeatureModelsTests**
+- [x] **Step 4: Extend FeatureModelsTests**
 
 Add this test to `platforms/macos/AtlasTests/FeatureModelsTests.swift`:
 
@@ -202,7 +202,7 @@ func testClipboardFeatureUsesProductTitle() {
 }
 ```
 
-- [ ] **Step 5: Verify feature registration**
+- [x] **Step 5: Verify feature registration**
 
 Run:
 
@@ -215,7 +215,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: Both commands pass. The Rust sorted-name assertion includes `clipboard`, and Swift feature title tests pass.
 
-- [ ] **Step 6: Commit feature registration**
+- [x] **Step 6: Commit feature registration**
 
 Run:
 
@@ -238,7 +238,7 @@ Expected: The commit contains only feature registration and title mapping change
 - Create: `platforms/macos/AtlasTests/ClipboardHistoryStoreTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Create store tests**
+- [x] **Step 1: Create store tests**
 
 Create `platforms/macos/AtlasTests/ClipboardHistoryStoreTests.swift`:
 
@@ -366,7 +366,7 @@ final class ClipboardHistoryStoreTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Add the test file to the Xcode project**
+- [x] **Step 2: Add the test file to the Xcode project**
 
 Run:
 
@@ -384,7 +384,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Run store tests to verify they fail**
+- [x] **Step 3: Run store tests to verify they fail**
 
 Run:
 
@@ -396,7 +396,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: The build fails because `ClipboardHistoryStore`, `ClipboardHistoryItem`, and `ClipboardImageMetadata` do not exist yet.
 
-- [ ] **Step 4: Create the store implementation**
+- [x] **Step 4: Create the store implementation**
 
 Create `platforms/macos/Atlas/ClipboardHistoryStore.swift`:
 
@@ -572,7 +572,7 @@ final class ClipboardHistoryStore: ClipboardHistoryStoring {
 }
 ```
 
-- [ ] **Step 5: Add the store file to the Xcode project**
+- [x] **Step 5: Add the store file to the Xcode project**
 
 Run:
 
@@ -590,7 +590,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 6: Verify store tests pass**
+- [x] **Step 6: Verify store tests pass**
 
 Run:
 
@@ -602,7 +602,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: `ClipboardHistoryStoreTests` passes.
 
-- [ ] **Step 7: Commit store**
+- [x] **Step 7: Commit store**
 
 Run:
 
@@ -624,7 +624,7 @@ Expected: The commit includes the store, store tests, and explicit PBX membershi
 - Modify: `platforms/macos/AtlasTests/ClipboardHistoryProviderTests.swift`
 - Modify: `platforms/macos/AtlasTests/SnippetsProviderTests.swift`
 
-- [ ] **Step 1: Replace provider tests**
+- [x] **Step 1: Replace provider tests**
 
 Replace `platforms/macos/AtlasTests/ClipboardHistoryProviderTests.swift` with:
 
@@ -811,7 +811,7 @@ private final class InMemoryClipboardHistoryStore: ClipboardHistoryStoring {
 }
 ```
 
-- [ ] **Step 2: Run provider tests to verify they fail**
+- [x] **Step 2: Run provider tests to verify they fail**
 
 Run:
 
@@ -823,7 +823,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: The build fails because `ClipboardReading.imageMetadata()`, the store-backed provider initializer, the history-change callback, and feature gating do not exist yet.
 
-- [ ] **Step 3: Replace ClipboardHistoryProvider**
+- [x] **Step 3: Replace ClipboardHistoryProvider**
 
 Replace `platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.swift` with:
 
@@ -966,7 +966,7 @@ final class ClipboardHistoryProvider: CommandProviding {
 }
 ```
 
-- [ ] **Step 4: Update SnippetsProvider fake clipboard**
+- [x] **Step 4: Update SnippetsProvider fake clipboard**
 
 In `platforms/macos/AtlasTests/SnippetsProviderTests.swift`, update `FakeSnippetClipboard` so it still conforms to `ClipboardReading` after the protocol gains image metadata:
 
@@ -990,7 +990,7 @@ private final class FakeSnippetClipboard: ClipboardReading {
 }
 ```
 
-- [ ] **Step 5: Verify provider and snippet tests pass**
+- [x] **Step 5: Verify provider and snippet tests pass**
 
 Run:
 
@@ -1003,7 +1003,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: `ClipboardHistoryProviderTests` passes, including `testCaptureNotifiesPanelReloadCallback`, and `SnippetsProviderTests` still compiles and passes with the updated fake clipboard.
 
-- [ ] **Step 6: Commit provider**
+- [x] **Step 6: Commit provider**
 
 Run:
 
@@ -1026,7 +1026,7 @@ Expected: The commit contains provider changes, provider-test changes, and the `
 - Modify: `platforms/macos/Atlas/AtlasApp.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Create ClipboardHistoryPanel**
+- [x] **Step 1: Create ClipboardHistoryPanel**
 
 Create `platforms/macos/Atlas/ClipboardHistoryPanel.swift`:
 
@@ -1134,7 +1134,7 @@ private struct ClipboardHistoryRow: View {
 }
 ```
 
-- [ ] **Step 2: Add the panel file to the Xcode project**
+- [x] **Step 2: Add the panel file to the Xcode project**
 
 Run:
 
@@ -1152,7 +1152,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Wire shared ClipboardHistoryStore into ContentView**
+- [x] **Step 3: Wire shared ClipboardHistoryStore into ContentView**
 
 In `platforms/macos/Atlas/ContentView.swift`, add state near the existing screenshot library state:
 
@@ -1237,7 +1237,7 @@ private func syncClipboardFeatureGate() {
 }
 ```
 
-- [ ] **Step 4: Wire shared store and command palette gating in AtlasApp**
+- [x] **Step 4: Wire shared store and command palette gating in AtlasApp**
 
 In `platforms/macos/Atlas/AtlasApp.swift`, add shared store and provider properties to `CommandPaletteState`:
 
@@ -1320,7 +1320,7 @@ and:
 guard enabled else { return }
 ```
 
-- [ ] **Step 5: Build the app**
+- [x] **Step 5: Build the app**
 
 Run:
 
@@ -1331,7 +1331,7 @@ xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: The app builds. The Clipboard History panel compiles and is available only when the `clipboard` feature is enabled.
 
-- [ ] **Step 6: Commit UI and gating**
+- [x] **Step 6: Commit UI and gating**
 
 Run:
 
@@ -1359,7 +1359,7 @@ Expected: The commit includes panel UI, feature gating, provider enablement, and
 - Verify: `platforms/macos/AtlasTests/ClipboardHistoryStoreTests.swift`
 - Verify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Run focused Rust feature tests**
+- [x] **Step 1: Run focused Rust feature tests**
 
 Run:
 
@@ -1371,7 +1371,7 @@ cargo test -p atlas-core test_list_features_is_sorted_by_name
 
 Expected: All three Rust commands pass.
 
-- [ ] **Step 2: Run focused Swift clipboard and feature tests**
+- [x] **Step 2: Run focused Swift clipboard and feature tests**
 
 Run:
 
@@ -1385,7 +1385,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: Clipboard store, provider, and feature model tests pass.
 
-- [ ] **Step 3: Run command palette regression tests**
+- [x] **Step 3: Run command palette regression tests**
 
 Run:
 
@@ -1405,7 +1405,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: Command palette tests pass with clipboard history still ordered between Window Management and Snippets.
 
-- [ ] **Step 4: Build the macOS app**
+- [x] **Step 4: Build the macOS app**
 
 Run:
 
@@ -1416,7 +1416,7 @@ xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: The app builds successfully.
 
-- [ ] **Step 5: Inspect project membership and diff**
+- [x] **Step 5: Inspect project membership and diff**
 
 Run:
 
@@ -1437,7 +1437,7 @@ git diff -- crates/atlas-core/src/features.rs \
 
 Expected: The PBX file contains source references and build-phase entries for each new Swift app/test file, and the diff is limited to clipboard feature implementation files.
 
-- [ ] **Step 6: Commit final verification note if needed**
+- [x] **Step 6: Commit final verification note if needed**
 
 If any plan checklist or execution note is updated during implementation, run:
 

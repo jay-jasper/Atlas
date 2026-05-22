@@ -37,7 +37,9 @@ final class CommandPaletteState: ObservableObject {
     private let windowManager: WindowManaging
     private let workspaceStore = WorkspaceStore()
     private let scratchpadStore = ScratchpadStore()
+    let clipboardHistoryStore = ClipboardHistoryStore()
     private let scratchpadProvider: ScratchpadProvider
+    private let clipboardHistoryProvider: ClipboardHistoryProvider
     private var isWindowManagementEnabled = false
 
     var sharedScratchpadStore: ScratchpadStore {
@@ -54,6 +56,7 @@ final class CommandPaletteState: ObservableObject {
     init(windowManager: WindowManaging = AccessibilityWindowManager()) {
         self.windowManager = windowManager
         scratchpadProvider = ScratchpadProvider(store: scratchpadStore)
+        clipboardHistoryProvider = ClipboardHistoryProvider(store: clipboardHistoryStore)
 
         let atlasProvider = AtlasCommandProvider(
             onCaptureDesktop: { [weak self] in self?.onCaptureDesktop?() },
@@ -92,7 +95,6 @@ final class CommandPaletteState: ObservableObject {
             onSaveCurrent: { [weak self] in self?.onSaveCurrentWorkspace?() },
             onRestore: { [weak self] workspace in self?.onRestoreWorkspace?(workspace) }
         )
-        let clipboardHistoryProvider = ClipboardHistoryProvider()
         let snippetsProvider = SnippetsProvider()
         let customAutomationProvider = CustomAutomationProvider(
             store: CustomAutomationStore(),
@@ -146,6 +148,14 @@ final class CommandPaletteState: ObservableObject {
 
     func setScratchpadEnabled(_ enabled: Bool) {
         scratchpadProvider.setEnabled(enabled)
+    }
+
+    func setClipboardHistoryEnabled(_ enabled: Bool) {
+        clipboardHistoryProvider.setEnabled(enabled)
+    }
+
+    func setClipboardHistoryChangedHandler(_ handler: @escaping () -> Void) {
+        clipboardHistoryProvider.setHistoryChangedHandler(handler)
     }
 
     func setWorkspaceActions(

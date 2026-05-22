@@ -2,60 +2,56 @@ import XCTest
 @testable import Atlas
 
 final class ClipboardHistoryProviderTests: XCTestCase {
-    func testCapturesCurrentClipboardText() {
+    private var now = Date(timeIntervalSince1970: 100)
+
+    func testCapturesCurrentClipboardTextIntoStore() {
         let reader = FakeClipboardReader(text: "hello")
-        let provider = ClipboardHistoryProvider(reader: reader)
+        let store = InMemoryClipboardHistoryStore()
+        let provider = ClipboardHistoryProvider(reader: reader, store: store, isEnabled: { true }, dateProvider: { self.now })
 
         provider.captureCurrentClipboard()
 
-        XCTAssertEqual(provider.items.map(\.text), ["hello"])
+        XCTAssertEqual(store.items().map(\.textValue), ["hello"])
     }
 
-    func testIgnoresBlankClipboardText() {
-        let reader = FakeClipboardReader(text: " \n ")
-        let provider = ClipboardHistoryProvider(reader: reader)
+    func testCapturesImageMetadataWhenNoTextExists() {
+        let metadata = ClipboardImageMetadata(typeIdentifier: "public.png", pixelWidth: 320, pixelHeight: 240, byteCount: 1024)
+        let reader = FakeClipboardReader(text: nil, imageMetadata: metadata)
+        let store = InMemoryClipboardHistoryStore()
+        let provider = ClipboardHistoryProvider(reader: reader, store: store, isEnabled: { true }, dateProvider: { self.now })
 
         provider.captureCurrentClipboard()
 
-        XCTAssertTrue(provider.items.isEmpty)
+        XCTAssertEqual(store.items().map(\.content), [.image(metadata)])
     }
 
-    func testDoesNotDuplicateMostRecentClipboardText() {
-        let reader = FakeClipboardReader(text: "same")
-        let provider = ClipboardHistoryProvider(reader: reader)
+    func testDisabledFeatureDoesNotReadClipboardOrReturnResults() {
+        let reader = FakeClipboardReader(text: "secret")
+        let store = InMemoryClipboardHistoryStore()
+        let provider = ClipboardHistoryProvider(reader: reader, store: store, isEnabled: { false })
 
         provider.captureCurrentClipboard()
-        reader.bumpChangeCount(text: "same")
-        provider.captureCurrentClipboard()
+        let results = provider.results(for: "clip")
 
-        XCTAssertEqual(provider.items.map(\.text), ["same"])
-    }
-
-    func testCapsHistory() {
-        let reader = FakeClipboardReader(text: "one")
-        let provider = ClipboardHistoryProvider(reader: reader, maxHistoryCount: 2)
-
-        provider.captureCurrentClipboard()
-        reader.bumpChangeCount(text: "two")
-        provider.captureCurrentClipboard()
-        reader.bumpChangeCount(text: "three")
-        provider.captureCurrentClipboard()
-
-        XCTAssertEqual(provider.items.map(\.text), ["three", "two"])
+        XCTAssertEqual(reader.stringReadCount, 0)
+        XCTAssertTrue(store.items().isEmpty)
+        XCTAssertTrue(results.isEmpty)
     }
 
     func testBlankQueryReturnsNoResults() {
         let reader = FakeClipboardReader(text: "hello")
-        let provider = ClipboardHistoryProvider(reader: reader)
+        let store = InMemoryClipboardHistoryStore()
+        let provider = ClipboardHistoryProvider(reader: reader, store: store, isEnabled: { true })
 
         provider.captureCurrentClipboard()
 
         XCTAssertTrue(provider.results(for: "").isEmpty)
     }
 
-    func testClipboardQueryReturnsRecentResults() {
+    func testClipboardQueryReturnsRecentTextResults() {
         let reader = FakeClipboardReader(text: "hello")
-        let provider = ClipboardHistoryProvider(reader: reader)
+        let store = InMemoryClipboardHistoryStore()
+        let provider = ClipboardHistoryProvider(reader: reader, store: store, isEnabled: { true })
 
         provider.captureCurrentClipboard()
         let results = provider.results(for: "clip")
@@ -66,22 +62,26 @@ final class ClipboardHistoryProviderTests: XCTestCase {
         XCTAssertEqual(results.first?.icon, .sfSymbol("doc.on.clipboard"))
     }
 
-    func testQueryTextMatchesHistoryContent() {
-        let reader = FakeClipboardReader(text: "invoice number 42")
-        let provider = ClipboardHistoryProvider(reader: reader)
+    func testQueryMatchesImageMetadata() {
+        let metadata = ClipboardImageMetadata(typeIdentifier: "public.tiff", pixelWidth: 100, pixelHeight: 200, byteCount: nil)
+        let reader = FakeClipboardReader(text: nil, imageMetadata: metadata)
+        let store = InMemoryClipboardHistoryStore()
+        let provider = ClipboardHistoryProvider(reader: reader, store: store, isEnabled: { true })
 
         provider.captureCurrentClipboard()
-        let results = provider.results(for: "number")
+        let results = provider.results(for: "tiff")
 
-        XCTAssertEqual(results.first?.title, "invoice number 42")
+        XCTAssertEqual(results.first?.title, "Image 100 x 200")
+        XCTAssertEqual(results.first?.subtitle, "Image metadata only")
     }
 
-    func testExecutingResultCopiesTextBackToClipboard() {
+    func testExecutingTextResultCopiesTextBackToClipboard() {
         let reader = FakeClipboardReader(text: "first")
-        let provider = ClipboardHistoryProvider(reader: reader)
+        let store = InMemoryClipboardHistoryStore()
+        let provider = ClipboardHistoryProvider(reader: reader, store: store, isEnabled: { true })
 
         provider.captureCurrentClipboard()
-        reader.bumpChangeCount(text: "second")
+        reader.bumpChangeCount(text: "second", imageMetadata: nil)
         provider.captureCurrentClipboard()
 
         let result = provider.results(for: "first").first
@@ -94,41 +94,87 @@ final class ClipboardHistoryProviderTests: XCTestCase {
         XCTAssertEqual(reader.writtenText, "first")
     }
 
-    func testTitleUsesFirstLineAndCapsLength() {
-        let longLine = String(repeating: "a", count: 90)
-        let reader = FakeClipboardReader(text: "\(longLine)\nsecond")
-        let provider = ClipboardHistoryProvider(reader: reader)
+    func testCaptureNotifiesPanelReloadCallback() {
+        let reader = FakeClipboardReader(text: "visible without restart")
+        let store = InMemoryClipboardHistoryStore()
+        var panelItems: [ClipboardHistoryItem] = []
+        let provider = ClipboardHistoryProvider(
+            reader: reader,
+            store: store,
+            isEnabled: { true },
+            onHistoryChanged: {
+                panelItems = store.items()
+            }
+        )
 
         provider.captureCurrentClipboard()
-        let result = provider.results(for: "clip").first
 
-        XCTAssertEqual(result?.title.count, 80)
-        XCTAssertFalse(result?.title.contains("\n") ?? true)
+        XCTAssertEqual(panelItems.map(\.textValue), ["visible without restart"])
     }
 }
 
 private final class FakeClipboardReader: ClipboardReading {
     private(set) var changeCount: Int
     private var currentText: String?
+    private var currentImageMetadata: ClipboardImageMetadata?
     private(set) var writtenText: String?
+    private(set) var stringReadCount = 0
 
-    init(text: String?, changeCount: Int = 1) {
+    init(text: String?, imageMetadata: ClipboardImageMetadata? = nil, changeCount: Int = 1) {
         self.currentText = text
+        self.currentImageMetadata = imageMetadata
         self.changeCount = changeCount
     }
 
     func string() -> String? {
-        currentText
+        stringReadCount += 1
+        return currentText
+    }
+
+    func imageMetadata() -> ClipboardImageMetadata? {
+        currentImageMetadata
     }
 
     func setString(_ text: String) {
         writtenText = text
         currentText = text
+        currentImageMetadata = nil
         changeCount += 1
     }
 
-    func bumpChangeCount(text: String?) {
+    func bumpChangeCount(text: String?, imageMetadata: ClipboardImageMetadata?) {
         currentText = text
+        currentImageMetadata = imageMetadata
         changeCount += 1
+    }
+}
+
+private final class InMemoryClipboardHistoryStore: ClipboardHistoryStoring {
+    private var storedItems: [ClipboardHistoryItem] = []
+
+    func items() -> [ClipboardHistoryItem] {
+        storedItems
+    }
+
+    func search(_ query: String) -> [ClipboardHistoryItem] {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return storedItems }
+        return storedItems.filter { $0.searchableText.localizedCaseInsensitiveContains(trimmed) }
+    }
+
+    func addText(_ text: String, capturedAt: Date) {
+        storedItems.insert(ClipboardHistoryItem(id: UUID(), content: .text(text), capturedAt: capturedAt), at: 0)
+    }
+
+    func addImageMetadata(_ metadata: ClipboardImageMetadata, capturedAt: Date) {
+        storedItems.insert(ClipboardHistoryItem(id: UUID(), content: .image(metadata), capturedAt: capturedAt), at: 0)
+    }
+
+    func delete(id: UUID) {
+        storedItems.removeAll { $0.id == id }
+    }
+
+    func clear() {
+        storedItems = []
     }
 }
