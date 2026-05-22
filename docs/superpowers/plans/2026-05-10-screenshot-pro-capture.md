@@ -39,7 +39,7 @@ Scope note: OCR, translation, scrolling capture, and smart boundary detection ar
 - Create: `platforms/macos/Atlas/ScreenshotModels.swift`
 - Test: `platforms/macos/AtlasTests/ScreenshotModelsTests.swift`
 
-- [ ] **Step 1: Write the model tests**
+- [x] **Step 1: Write the model tests**
 
 ```swift
 import XCTest
@@ -69,13 +69,13 @@ final class ScreenshotModelsTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/ScreenshotModelsTests`
 
 Expected: FAIL because `ScreenshotAnnotation`, `ScreenshotTool`, and the test target file do not exist yet.
 
-- [ ] **Step 3: Add the screenshot model file**
+- [x] **Step 3: Add the screenshot model file**
 
 ```swift
 import SwiftUI
@@ -165,13 +165,13 @@ struct CapturedScreenshot: Identifiable, Equatable {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/ScreenshotModelsTests`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotModels.swift platforms/macos/AtlasTests/ScreenshotModelsTests.swift
@@ -186,7 +186,7 @@ git commit -m "feat(macos): add screenshot annotation models"
 - Create: `platforms/macos/Atlas/ScreenshotOutput.swift`
 - Test: `platforms/macos/AtlasTests/ScreenshotOutputTests.swift`
 
-- [ ] **Step 1: Write output helper tests**
+- [x] **Step 1: Write output helper tests**
 
 ```swift
 import XCTest
@@ -212,13 +212,13 @@ final class ScreenshotOutputTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/ScreenshotOutputTests`
 
 Expected: FAIL because `ScreenshotOutput` does not exist.
 
-- [ ] **Step 3: Add output helper implementation**
+- [x] **Step 3: Add output helper implementation**
 
 ```swift
 import AppKit
@@ -265,13 +265,13 @@ enum ScreenshotOutput {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/ScreenshotOutputTests`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotOutput.swift platforms/macos/AtlasTests/ScreenshotOutputTests.swift
@@ -286,7 +286,7 @@ git commit -m "feat(macos): add screenshot output helpers"
 - Modify: `platforms/macos/Atlas/AtlasBridge.swift`
 - Test: `platforms/macos/AtlasTests/AtlasBridgeCaptureTests.swift`
 
-- [ ] **Step 1: Write bridge capture tests**
+- [x] **Step 1: Write bridge capture tests**
 
 ```swift
 import XCTest
@@ -302,13 +302,13 @@ final class AtlasBridgeCaptureTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/AtlasBridgeCaptureTests`
 
 Expected: FAIL because the current mock returns empty `Data()`.
 
-- [ ] **Step 3: Replace mock capture return with generated PNG**
+- [x] **Step 3: Replace mock capture return with generated PNG**
 
 ```swift
 import AppKit
@@ -356,13 +356,13 @@ static func captureRegion(x: Int32, y: Int32, width: UInt32, height: UInt32) -> 
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/AtlasBridgeCaptureTests`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add platforms/macos/Atlas/AtlasBridge.swift platforms/macos/AtlasTests/AtlasBridgeCaptureTests.swift
@@ -377,7 +377,7 @@ git commit -m "test(macos): return deterministic screenshot mock data"
 - Create: `platforms/macos/Atlas/ScreenshotEditorView.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Add the editor view**
+- [x] **Step 1: Add the editor view**
 
 ```swift
 import SwiftUI
@@ -554,7 +554,7 @@ private struct AnnotationShape: View {
 }
 ```
 
-- [ ] **Step 2: Update ContentView state and presentation**
+- [x] **Step 2: Update ContentView state and presentation**
 
 Add state:
 
@@ -620,13 +620,13 @@ private func pinScreenshot(_ data: Data) {
 }
 ```
 
-- [ ] **Step 3: Parse Swift files**
+- [x] **Step 3: Parse Swift files**
 
 Run: `swiftc -parse platforms/macos/Atlas/*.swift`
 
 Expected: PASS with no output.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotEditorView.swift platforms/macos/Atlas/ContentView.swift
@@ -640,7 +640,7 @@ git commit -m "feat(macos): add screenshot editor shell"
 **Files:**
 - Create: `platforms/macos/Atlas/PinnedScreenshotWindow.swift`
 
-- [ ] **Step 1: Add pinned window implementation**
+- [x] **Step 1: Add pinned window implementation**
 
 ```swift
 import AppKit
@@ -707,13 +707,13 @@ struct PinnedScreenshotView: View {
 }
 ```
 
-- [ ] **Step 2: Parse Swift files**
+- [x] **Step 2: Parse Swift files**
 
 Run: `swiftc -parse platforms/macos/Atlas/*.swift`
 
 Expected: PASS with no output.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add platforms/macos/Atlas/PinnedScreenshotWindow.swift
@@ -728,7 +728,7 @@ git commit -m "feat(macos): add pinned screenshot window"
 - Modify: `platforms/macos/Atlas/ScreenshotPanel.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Expand ScreenshotPanel actions**
+- [x] **Step 1: Expand ScreenshotPanel actions**
 
 Replace `ScreenshotPanel` with:
 
@@ -758,7 +758,7 @@ struct ScreenshotPanel: View {
 }
 ```
 
-- [ ] **Step 2: Update ContentView call site**
+- [x] **Step 2: Update ContentView call site**
 
 Replace:
 
@@ -790,13 +790,13 @@ private func captureFullScreen() {
 }
 ```
 
-- [ ] **Step 3: Parse Swift files**
+- [x] **Step 3: Parse Swift files**
 
 Run: `swiftc -parse platforms/macos/Atlas/*.swift`
 
 Expected: PASS with no output.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotPanel.swift platforms/macos/Atlas/ContentView.swift
@@ -811,19 +811,19 @@ git commit -m "feat(macos): wire screenshot panel actions"
 - Verify: `platforms/macos/Atlas/*.swift`
 - Verify: `platforms/macos/AtlasTests/*.swift`
 
-- [ ] **Step 1: Run Swift parse check**
+- [x] **Step 1: Run Swift parse check**
 
 Run: `swiftc -parse platforms/macos/Atlas/*.swift`
 
 Expected: PASS with no output.
 
-- [ ] **Step 2: Run screenshot tests**
+- [x] **Step 2: Run screenshot tests**
 
 Run: `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/ScreenshotModelsTests -only-testing:AtlasTests/ScreenshotOutputTests -only-testing:AtlasTests/AtlasBridgeCaptureTests`
 
 Expected: PASS for all screenshot-focused tests.
 
-- [ ] **Step 3: Manual app verification**
+- [x] **Step 3: Manual app verification**
 
 Run the Atlas macOS target in Xcode, then verify:
 
@@ -838,7 +838,7 @@ Run the Atlas macOS target in Xcode, then verify:
 9. Pin opens a floating window above normal windows.
 10. Disabling the `screenshot` feature hides the screenshot panel.
 
-- [ ] **Step 4: Commit verification-only fixes**
+- [x] **Step 4: Commit verification-only fixes**
 
 If verification required small fixes, commit them:
 

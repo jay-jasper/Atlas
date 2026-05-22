@@ -60,7 +60,7 @@ This plan does not implement OCR, translation, scrolling capture, GIF recording,
 - Create: `platforms/macos/AtlasTests/SelectionGeometryTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write geometry tests**
+- [x] **Step 1: Write geometry tests**
 
 Create `platforms/macos/AtlasTests/SelectionGeometryTests.swift`:
 
@@ -122,7 +122,7 @@ final class SelectionGeometryTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run geometry tests to verify they fail**
+- [x] **Step 2: Run geometry tests to verify they fail**
 
 Run:
 
@@ -132,7 +132,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `SelectionGeometry` does not exist or the test file is not in the project yet.
 
-- [ ] **Step 3: Add geometry implementation**
+- [x] **Step 3: Add geometry implementation**
 
 Create `platforms/macos/Atlas/SelectionGeometry.swift`:
 
@@ -202,14 +202,14 @@ enum SelectionGeometry {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so:
 
 - `SelectionGeometry.swift` is in the `Atlas` target Sources.
 - `SelectionGeometryTests.swift` is in the `AtlasTests` target Sources.
 
-- [ ] **Step 5: Run geometry tests**
+- [x] **Step 5: Run geometry tests**
 
 Run:
 
@@ -219,7 +219,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 6 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add platforms/macos/Atlas/SelectionGeometry.swift \
@@ -237,7 +237,7 @@ git commit -m "feat(macos): add selection geometry helpers"
 - Create: `platforms/macos/AtlasTests/SelectionPixelProbeTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write pixel probe tests**
+- [x] **Step 1: Write pixel probe tests**
 
 Create `platforms/macos/AtlasTests/SelectionPixelProbeTests.swift`:
 
@@ -295,7 +295,7 @@ final class SelectionPixelProbeTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run pixel probe tests to verify they fail**
+- [x] **Step 2: Run pixel probe tests to verify they fail**
 
 Run:
 
@@ -305,7 +305,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `SelectionPixelProbe` does not exist or the test file is not in the project yet.
 
-- [ ] **Step 3: Add pixel probe implementation**
+- [x] **Step 3: Add pixel probe implementation**
 
 Create `platforms/macos/Atlas/SelectionPixelProbe.swift`:
 
@@ -352,14 +352,14 @@ enum SelectionPixelProbe {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so:
 
 - `SelectionPixelProbe.swift` is in the `Atlas` target Sources.
 - `SelectionPixelProbeTests.swift` is in the `AtlasTests` target Sources.
 
-- [ ] **Step 5: Run pixel probe tests**
+- [x] **Step 5: Run pixel probe tests**
 
 Run:
 
@@ -369,7 +369,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 3 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add platforms/macos/Atlas/SelectionPixelProbe.swift \
@@ -386,7 +386,7 @@ git commit -m "feat(macos): add selection pixel probe"
 - Create: `platforms/macos/Atlas/SelectionKeyboardBridge.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Add keyboard bridge implementation**
+- [x] **Step 1: Add keyboard bridge implementation**
 
 Create `platforms/macos/Atlas/SelectionKeyboardBridge.swift`:
 
@@ -448,11 +448,11 @@ struct SelectionKeyboardBridge: NSViewRepresentable {
 }
 ```
 
-- [ ] **Step 2: Add file to Xcode project**
+- [x] **Step 2: Add file to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `SelectionKeyboardBridge.swift` is in the `Atlas` target Sources.
 
-- [ ] **Step 3: Parse Swift files**
+- [x] **Step 3: Parse Swift files**
 
 Run:
 
@@ -462,7 +462,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add platforms/macos/Atlas/SelectionKeyboardBridge.swift \
@@ -477,7 +477,7 @@ git commit -m "feat(macos): add selection keyboard bridge"
 **Files:**
 - Modify: `platforms/macos/Atlas/SelectionOverlay.swift`
 
-- [ ] **Step 1: Replace overlay with precision-aware implementation**
+- [x] **Step 1: Replace overlay with precision-aware implementation**
 
 Replace `platforms/macos/Atlas/SelectionOverlay.swift` with:
 
@@ -880,7 +880,7 @@ private extension NSColor {
 }
 ```
 
-- [ ] **Step 2: Parse Swift files**
+- [x] **Step 2: Parse Swift files**
 
 Run:
 
@@ -890,7 +890,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS.
 
-- [ ] **Step 3: Run selection helper tests**
+- [x] **Step 3: Run selection helper tests**
 
 Run:
 
@@ -902,7 +902,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 9 tests.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add platforms/macos/Atlas/SelectionOverlay.swift
@@ -917,7 +917,7 @@ git commit -m "feat(macos): add precision selection overlay"
 - Modify: `platforms/macos/Atlas/ScreenshotSelectionWindow.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Update selection window API**
+- [x] **Step 1: Update selection window API**
 
 In `platforms/macos/Atlas/ScreenshotSelectionWindow.swift`, replace the `show` signature:
 
@@ -981,7 +981,7 @@ let overlay = SelectionOverlay(
 )
 ```
 
-- [ ] **Step 2: Update ContentView to provide a preview**
+- [x] **Step 2: Update ContentView to provide a preview**
 
 In `platforms/macos/Atlas/ContentView.swift`, replace:
 
@@ -1003,7 +1003,7 @@ private func showSelectionWindow() {
 }
 ```
 
-- [ ] **Step 3: Parse Swift files**
+- [x] **Step 3: Parse Swift files**
 
 Run:
 
@@ -1013,7 +1013,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS.
 
-- [ ] **Step 4: Build app**
+- [x] **Step 4: Build app**
 
 Run:
 
@@ -1023,7 +1023,7 @@ xcodebuild -project platforms/macos/Atlas.xcodeproj -scheme Atlas -configuration
 
 Expected: BUILD SUCCEEDED.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotSelectionWindow.swift \
@@ -1038,7 +1038,7 @@ git commit -m "feat(macos): provide screenshot preview to selection overlay"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-05-11-screenshot-selection-precision-v1.md`
 
-- [ ] **Step 1: Run Swift parse**
+- [x] **Step 1: Run Swift parse**
 
 Run:
 
@@ -1048,7 +1048,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS.
 
-- [ ] **Step 2: Run focused tests**
+- [x] **Step 2: Run focused tests**
 
 Run:
 
@@ -1060,7 +1060,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS.
 
-- [ ] **Step 3: Run full Xcode tests**
+- [x] **Step 3: Run full Xcode tests**
 
 Run:
 
@@ -1070,7 +1070,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: TEST SUCCEEDED.
 
-- [ ] **Step 4: Append verification notes**
+- [x] **Step 4: Append verification notes**
 
 Append this section to `docs/superpowers/plans/2026-05-11-screenshot-selection-precision-v1.md`:
 
@@ -1094,7 +1094,7 @@ Append this section to `docs/superpowers/plans/2026-05-11-screenshot-selection-p
   - Multi-display coordinate stitching is not included in this slice.
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add docs/superpowers/plans/2026-05-11-screenshot-selection-precision-v1.md
