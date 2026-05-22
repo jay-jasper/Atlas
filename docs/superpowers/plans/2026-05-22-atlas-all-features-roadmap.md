@@ -178,10 +178,12 @@ If `2026-05-11-feature-center-v1.md` still matches the current code, execute it 
 Run:
 
 ```bash
-cargo test -p atlas-core test_feature_toggle test_toggle_non_existent_feature test_list_features_is_sorted_by_name
+cargo test -p atlas-core test_feature_toggle
+cargo test -p atlas-core test_toggle_non_existent_feature
+cargo test -p atlas-core test_list_features_is_sorted_by_name
 ```
 
-Expected: All listed atlas-core feature tests pass.
+Expected: Each listed atlas-core feature test command passes.
 
 - [ ] **Step 5: Verify Swift feature behavior**
 
