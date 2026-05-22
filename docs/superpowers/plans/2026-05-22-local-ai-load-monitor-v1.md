@@ -22,8 +22,10 @@
 - Create: `platforms/macos/Atlas/LocalAILoadModels.swift`
 - Create: `platforms/macos/Atlas/LocalAIProcessSnapshot.swift`
 - Create: `platforms/macos/Atlas/LocalAILoadMonitor.swift`
+- Create: `platforms/macos/Atlas/LocalAILoadRefreshService.swift`
 - Create: `platforms/macos/Atlas/LocalAILoadPanel.swift`
 - Create: `platforms/macos/AtlasTests/LocalAILoadMonitorTests.swift`
+- Create: `platforms/macos/AtlasTests/LocalAILoadRefreshServiceTests.swift`
 - Create: `platforms/macos/AtlasTests/LocalAIProcessSnapshotTests.swift`
 - Modify: `platforms/macos/AtlasTests/FeatureModelsTests.swift`
 
@@ -62,13 +64,14 @@ assert_eq!(names, ["ai-load-monitor", "monitoring", "screenshot", "tokenbar", "w
 
 - [ ] **Step 2: Add the Swift module case**
 
-Replace `platforms/macos/Atlas/AtlasModule.swift` with:
+Update `platforms/macos/Atlas/AtlasModule.swift` by adding `aiLoadMonitor` to the existing enum. Do not replace the whole file if another plan has already added modules. If TokenBar is already present, preserve `case tokenbar` and its title mapping:
 
 ```swift
 enum AtlasModule: String, CaseIterable, Identifiable {
     case screenshot
     case monitoring
     case aiLoadMonitor = "ai-load-monitor"
+    case tokenbar // Keep if already present.
 
     var id: String { rawValue }
 
@@ -84,12 +87,14 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "Monitoring"
         case .aiLoadMonitor:
             return "AI Load"
+        case .tokenbar:
+            return "TokenBar"
         }
     }
 }
 ```
 
-If TokenBar has already landed, keep `case tokenbar` and its `TokenBar` title in this enum.
+If `tokenbar` is not present yet, add only `case aiLoadMonitor = "ai-load-monitor"` and the `AI Load` switch branch.
 
 - [ ] **Step 3: Add title mapping and tests**
 
@@ -263,6 +268,8 @@ Expected: Parser tests pass after project membership is added in Task 6.
 **Files:**
 - Create: `platforms/macos/Atlas/LocalAILoadMonitor.swift`
 - Create: `platforms/macos/AtlasTests/LocalAILoadMonitorTests.swift`
+- Create: `platforms/macos/Atlas/LocalAILoadRefreshService.swift`
+- Create: `platforms/macos/AtlasTests/LocalAILoadRefreshServiceTests.swift`
 
 - [ ] **Step 1: Add monitor tests with injected process snapshots**
 
@@ -371,15 +378,156 @@ struct LocalAILoadMonitor {
 }
 ```
 
-- [ ] **Step 3: Verify monitor attribution**
+- [ ] **Step 3: Add refresh service tests with injected scheduler**
+
+Create `platforms/macos/AtlasTests/LocalAILoadRefreshServiceTests.swift`:
+
+```swift
+import XCTest
+@testable import Atlas
+
+final class LocalAILoadRefreshServiceTests: XCTestCase {
+    func testStartRefreshesImmediatelyAndOnScheduledTicks() throws {
+        let scheduler = ManualLocalAILoadScheduler()
+        let collector = CountingLocalAILoadCollector(snapshots: [
+            LocalAILoadSnapshot(providers: [], capturedAt: Date(timeIntervalSince1970: 1)),
+            LocalAILoadSnapshot(providers: [LocalAIProviderLoad(provider: .ollama, processCount: 1, cpuPercent: 2, residentMemoryBytes: 3, accelerator: .unavailable)], capturedAt: Date(timeIntervalSince1970: 2)),
+        ])
+        var received: [LocalAILoadSnapshot] = []
+        let service = LocalAILoadRefreshService(collector: collector, scheduler: scheduler, interval: 5)
+
+        service.start { received.append($0) }
+        scheduler.fire()
+
+        XCTAssertEqual(received.map(\.capturedAt), [Date(timeIntervalSince1970: 1), Date(timeIntervalSince1970: 2)])
+        XCTAssertEqual(scheduler.startedIntervals, [5])
+    }
+
+    func testStopCancelsScheduledRefreshes() throws {
+        let scheduler = ManualLocalAILoadScheduler()
+        let collector = CountingLocalAILoadCollector(snapshots: [.empty, .empty])
+        var refreshCount = 0
+        let service = LocalAILoadRefreshService(collector: collector, scheduler: scheduler, interval: 5)
+
+        service.start { _ in refreshCount += 1 }
+        service.stop()
+        scheduler.fire()
+
+        XCTAssertEqual(refreshCount, 1)
+        XCTAssertTrue(scheduler.cancelled)
+    }
+}
+
+final class ManualLocalAILoadScheduler: LocalAILoadScheduling {
+    var tick: (() -> Void)?
+    var startedIntervals: [TimeInterval] = []
+    var cancelled = false
+
+    func schedule(every interval: TimeInterval, _ tick: @escaping () -> Void) {
+        startedIntervals.append(interval)
+        self.tick = tick
+    }
+
+    func cancel() {
+        cancelled = true
+        tick = nil
+    }
+
+    func fire() {
+        tick?()
+    }
+}
+
+final class CountingLocalAILoadCollector: LocalAILoadCollecting {
+    var snapshots: [LocalAILoadSnapshot]
+
+    init(snapshots: [LocalAILoadSnapshot]) {
+        self.snapshots = snapshots
+    }
+
+    func snapshot() throws -> LocalAILoadSnapshot {
+        snapshots.removeFirst()
+    }
+}
+```
+
+- [ ] **Step 4: Add refresh service implementation**
+
+Create `platforms/macos/Atlas/LocalAILoadRefreshService.swift`:
+
+```swift
+import Foundation
+
+protocol LocalAILoadCollecting {
+    func snapshot() throws -> LocalAILoadSnapshot
+}
+
+extension LocalAILoadMonitor: LocalAILoadCollecting {
+    func snapshot() throws -> LocalAILoadSnapshot {
+        try snapshot(now: Date())
+    }
+}
+
+protocol LocalAILoadScheduling {
+    func schedule(every interval: TimeInterval, _ tick: @escaping () -> Void)
+    func cancel()
+}
+
+final class TimerLocalAILoadScheduler: LocalAILoadScheduling {
+    private var timer: Timer?
+
+    func schedule(every interval: TimeInterval, _ tick: @escaping () -> Void) {
+        cancel()
+        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in tick() }
+    }
+
+    func cancel() {
+        timer?.invalidate()
+        timer = nil
+    }
+}
+
+final class LocalAILoadRefreshService {
+    private let collector: LocalAILoadCollecting
+    private let scheduler: LocalAILoadScheduling
+    private let interval: TimeInterval
+
+    init(collector: LocalAILoadCollecting = LocalAILoadMonitor(), scheduler: LocalAILoadScheduling = TimerLocalAILoadScheduler(), interval: TimeInterval = 5) {
+        self.collector = collector
+        self.scheduler = scheduler
+        self.interval = interval
+    }
+
+    func start(onSnapshot: @escaping (LocalAILoadSnapshot) -> Void) {
+        refresh(onSnapshot: onSnapshot)
+        scheduler.schedule(every: interval) { [weak self] in
+            self?.refresh(onSnapshot: onSnapshot)
+        }
+    }
+
+    func stop() {
+        scheduler.cancel()
+    }
+
+    private func refresh(onSnapshot: (LocalAILoadSnapshot) -> Void) {
+        if let snapshot = try? collector.snapshot() {
+            onSnapshot(snapshot)
+        }
+    }
+}
+```
+
+The refresh cadence is intentionally modest: start the service only while the `ai-load-monitor` feature is enabled, refresh immediately, refresh every 5 seconds afterward, and stop the timer when the feature is disabled. Failed refreshes keep the previous snapshot visible so the panel does not flicker to empty because of one transient `ps` failure.
+
+- [ ] **Step 5: Verify monitor attribution and refresh behavior**
 
 Run:
 
 ```bash
-xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/LocalAILoadMonitorTests
+xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/LocalAILoadMonitorTests -only-testing:AtlasTests/LocalAILoadRefreshServiceTests
 ```
 
-Expected: Ollama and LM Studio detection, CPU aggregation, memory aggregation, and best-effort accelerator reporting pass with injected snapshots.
+Expected: Ollama and LM Studio detection, CPU aggregation, memory aggregation, best-effort accelerator reporting, start/stop behavior, and scheduled refresh behavior pass with injected snapshots and scheduler.
 
 ## Task 4: UI Display and Feature Gating
 
@@ -439,7 +587,7 @@ In `platforms/macos/Atlas/ContentView.swift`, add state and monitor:
 
 ```swift
 @State private var localAILoadSnapshot: LocalAILoadSnapshot = .empty
-private let localAILoadMonitor = LocalAILoadMonitor()
+private let localAILoadRefreshService = LocalAILoadRefreshService()
 ```
 
 Inside the main `VStack`, after `MonitoringPanel`:
@@ -456,7 +604,7 @@ In `startModules()`, after the monitoring start check:
 
 ```swift
 if isFeatureEnabled(.aiLoadMonitor) {
-    refreshLocalAILoad()
+    startLocalAILoadRefresh()
 }
 ```
 
@@ -465,8 +613,9 @@ In `refreshFeature(_ feature:enabled:)`, before the monitoring branch:
 ```swift
 if feature == AtlasModule.aiLoadMonitor.featureName {
     if enabled {
-        refreshLocalAILoad()
+        startLocalAILoadRefresh()
     } else {
+        localAILoadRefreshService.stop()
         localAILoadSnapshot = .empty
     }
     return
@@ -476,22 +625,23 @@ if feature == AtlasModule.aiLoadMonitor.featureName {
 Add:
 
 ```swift
-private func refreshLocalAILoad() {
-    do {
-        localAILoadSnapshot = try localAILoadMonitor.snapshot()
-    } catch {
-        localAILoadSnapshot = .empty
-        showStatus(error.localizedDescription, kind: .error, autoHide: false)
+private func startLocalAILoadRefresh() {
+    localAILoadRefreshService.start { snapshot in
+        DispatchQueue.main.async {
+            localAILoadSnapshot = snapshot
+        }
     }
 }
 ```
+
+If the app has a teardown hook for the menu bar panel or feature refresh lifecycle, call `localAILoadRefreshService.stop()` there as well. Do not clear the snapshot on individual refresh failures; let the refresh service keep the previous reading until the feature is disabled.
 
 - [ ] **Step 3: Verify app build**
 
 Run:
 
 ```bash
-xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/LocalAILoadMonitorTests -only-testing:AtlasTests/LocalAIProcessSnapshotTests -only-testing:AtlasTests/FeatureModelsTests
+xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/LocalAILoadMonitorTests -only-testing:AtlasTests/LocalAILoadRefreshServiceTests -only-testing:AtlasTests/LocalAIProcessSnapshotTests -only-testing:AtlasTests/FeatureModelsTests
 ```
 
 Expected: App compiles and all local AI load tests pass after project membership is added in Task 6.
@@ -512,6 +662,8 @@ Add these entries to the `PBXBuildFile` section:
 9B0100041A601CBA00E9B192 /* LocalAILoadPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0200041A601CBA00E9B192 /* LocalAILoadPanel.swift */; };
 9B0100051A601CBA00E9B192 /* LocalAILoadMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0200051A601CBA00E9B192 /* LocalAILoadMonitorTests.swift */; };
 9B0100061A601CBA00E9B192 /* LocalAIProcessSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0200061A601CBA00E9B192 /* LocalAIProcessSnapshotTests.swift */; };
+9B0100071A601CBA00E9B192 /* LocalAILoadRefreshService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0200071A601CBA00E9B192 /* LocalAILoadRefreshService.swift */; };
+9B0100081A601CBA00E9B192 /* LocalAILoadRefreshServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0200081A601CBA00E9B192 /* LocalAILoadRefreshServiceTests.swift */; };
 ```
 
 - [ ] **Step 2: Add file references**
@@ -525,6 +677,8 @@ Add these entries to the `PBXFileReference` section:
 9B0200041A601CBA00E9B192 /* LocalAILoadPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAILoadPanel.swift; sourceTree = "<group>"; };
 9B0200051A601CBA00E9B192 /* LocalAILoadMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAILoadMonitorTests.swift; sourceTree = "<group>"; };
 9B0200061A601CBA00E9B192 /* LocalAIProcessSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAIProcessSnapshotTests.swift; sourceTree = "<group>"; };
+9B0200071A601CBA00E9B192 /* LocalAILoadRefreshService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAILoadRefreshService.swift; sourceTree = "<group>"; };
+9B0200081A601CBA00E9B192 /* LocalAILoadRefreshServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAILoadRefreshServiceTests.swift; sourceTree = "<group>"; };
 ```
 
 - [ ] **Step 3: Add group children**
@@ -535,6 +689,7 @@ Add these app files to the `Atlas` group children list before `Assets.xcassets`:
 9B0200011A601CBA00E9B192 /* LocalAILoadModels.swift */,
 9B0200021A601CBA00E9B192 /* LocalAIProcessSnapshot.swift */,
 9B0200031A601CBA00E9B192 /* LocalAILoadMonitor.swift */,
+9B0200071A601CBA00E9B192 /* LocalAILoadRefreshService.swift */,
 9B0200041A601CBA00E9B192 /* LocalAILoadPanel.swift */,
 ```
 
@@ -543,6 +698,7 @@ Add these test files to the `AtlasTests` group children list:
 ```text
 9B0200051A601CBA00E9B192 /* LocalAILoadMonitorTests.swift */,
 9B0200061A601CBA00E9B192 /* LocalAIProcessSnapshotTests.swift */,
+9B0200081A601CBA00E9B192 /* LocalAILoadRefreshServiceTests.swift */,
 ```
 
 - [ ] **Step 4: Add source phase entries**
@@ -553,6 +709,7 @@ Add these build file IDs to the `Atlas` `PBXSourcesBuildPhase` files list:
 9B0100011A601CBA00E9B192 /* LocalAILoadModels.swift in Sources */,
 9B0100021A601CBA00E9B192 /* LocalAIProcessSnapshot.swift in Sources */,
 9B0100031A601CBA00E9B192 /* LocalAILoadMonitor.swift in Sources */,
+9B0100071A601CBA00E9B192 /* LocalAILoadRefreshService.swift in Sources */,
 9B0100041A601CBA00E9B192 /* LocalAILoadPanel.swift in Sources */,
 ```
 
@@ -561,6 +718,7 @@ Add these build file IDs to the `AtlasTests` `PBXSourcesBuildPhase` files list:
 ```text
 9B0100051A601CBA00E9B192 /* LocalAILoadMonitorTests.swift in Sources */,
 9B0100061A601CBA00E9B192 /* LocalAIProcessSnapshotTests.swift in Sources */,
+9B0100081A601CBA00E9B192 /* LocalAILoadRefreshServiceTests.swift in Sources */,
 ```
 
 - [ ] **Step 5: Verify project membership**
@@ -568,7 +726,7 @@ Add these build file IDs to the `AtlasTests` `PBXSourcesBuildPhase` files list:
 Run:
 
 ```bash
-xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/LocalAILoadMonitorTests -only-testing:AtlasTests/LocalAIProcessSnapshotTests -only-testing:AtlasTests/FeatureModelsTests
+xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/LocalAILoadMonitorTests -only-testing:AtlasTests/LocalAILoadRefreshServiceTests -only-testing:AtlasTests/LocalAIProcessSnapshotTests -only-testing:AtlasTests/FeatureModelsTests
 ```
 
 Expected: New app files compile and the local AI load test slice passes.
