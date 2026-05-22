@@ -517,7 +517,7 @@ final class PresentationModeServiceTests: XCTestCase {
         XCTAssertEqual(service.status, .idle)
     }
 
-    func testNotificationCommandFailureStopsKeepAwakeAndReportsUnavailable() {
+    func testNotificationCommandFailureStopsKeepAwakeAndReportsFailure() {
         let runner = RecordingCommandRunner(runResult: SystemCommandResult(terminationStatus: 1, standardOutput: "", standardError: "not allowed"))
         let service = PresentationModeService(commandRunner: runner, keepAwakeService: KeepAwakeService(commandRunner: runner))
 
