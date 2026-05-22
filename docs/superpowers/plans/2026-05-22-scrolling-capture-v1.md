@@ -98,7 +98,7 @@ XCTAssertEqual(ScreenshotSubfeature.allCases.map(\.rawValue), [
 ])
 ```
 
-- [ ] **Step 2: Run settings tests to verify failure**
+- [x] **Step 2: Run settings tests to verify failure**
 
 Run:
 
@@ -203,7 +203,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit feature gating model**
+- [x] **Step 5: Commit feature gating model**
 
 Run:
 
@@ -289,7 +289,7 @@ final class ScreenshotImageStitcherTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run stitcher tests to verify failure**
+- [x] **Step 2: Run stitcher tests to verify failure**
 
 Run:
 
@@ -392,7 +392,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 3 tests.
 
-- [ ] **Step 6: Commit stitcher**
+- [x] **Step 6: Commit stitcher**
 
 Run:
 
@@ -557,7 +557,7 @@ private struct StubScrollingPermissions: ScrollingCapturePermissionProviding {
 }
 ```
 
-- [ ] **Step 2: Run service tests to verify failure**
+- [x] **Step 2: Run service tests to verify failure**
 
 Run:
 
@@ -728,7 +728,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 4 tests.
 
-- [ ] **Step 6: Commit service**
+- [x] **Step 6: Commit service**
 
 Run:
 
@@ -912,7 +912,7 @@ private func setCapturedScreenshot(
 
 Keep the existing desktop, area, and window capture call sites unchanged; the default `nil` value preserves their current library recording behavior.
 
-- [ ] **Step 3: Parse Swift files**
+- [x] **Step 3: Parse Swift files**
 
 Run:
 
@@ -932,7 +932,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit UI wiring**
+- [x] **Step 5: Commit UI wiring**
 
 Run:
 
@@ -950,7 +950,7 @@ Expected: Commit succeeds.
 **Files:**
 - Read: all files modified by this plan.
 
-- [ ] **Step 1: Run screenshot tests**
+- [x] **Step 1: Run screenshot tests**
 
 Run:
 
@@ -960,7 +960,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS.
 
-- [ ] **Step 2: Verify no Rust changes are needed**
+- [x] **Step 2: Verify no Rust changes are needed**
 
 Run:
 
@@ -970,7 +970,7 @@ git diff -- crates/atlas-core crates/atlas-ffi
 
 Expected: no output.
 
-- [ ] **Step 3: Commit final plan note if this plan file is updated**
+- [x] **Step 3: Commit final plan note if this plan file is updated**
 
 Run:
 
