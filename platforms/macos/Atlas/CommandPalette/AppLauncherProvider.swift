@@ -7,7 +7,6 @@ struct AppEntry: Equatable, Sendable {
 }
 
 final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
-    // Constants for Scoring and Limits
     private static let exactPrefixBaseScore = 1000
     private static let maxPrefixLengthBonus = 100
     private static let containsMatchScore = 500
@@ -16,8 +15,10 @@ final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
     private static let maxResultsCount = 5
 
     private let lock = NSLock()
+    private let scanner: ApplicationScanning?
+    private let changeObserver: ApplicationChangeObserving?
     private var _apps: [AppEntry] = []
-    
+
     private var apps: [AppEntry] {
         get {
             lock.lock()
@@ -31,15 +32,33 @@ final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
         }
     }
 
-    init(apps: [AppEntry]? = nil) {
+    init(
+        apps: [AppEntry]? = nil,
+        scanner: ApplicationScanning = FileSystemApplicationScanner(),
+        changeObserver: ApplicationChangeObserving? = ApplicationDirectoryChangeObserver()
+    ) {
         if let apps {
             self._apps = apps
+            self.scanner = nil
+            self.changeObserver = nil
         } else {
-            Task.detached(priority: .utility) { [weak self] in
-                let scanned = Self.scanApplications()
-                self?.apps = scanned
+            self.scanner = scanner
+            self.changeObserver = changeObserver
+            refreshApplications()
+            changeObserver?.setChangeHandler { [weak self] in
+                self?.refreshApplications()
             }
+            changeObserver?.start()
         }
+    }
+
+    deinit {
+        changeObserver?.stop()
+    }
+
+    func refreshApplications() {
+        guard let scanner else { return }
+        apps = scanner.scanApplications()
     }
 
     func results(for query: String) -> [PaletteCommand] {
@@ -82,7 +101,7 @@ final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
         // Fuzzy: all query chars must appear in order in target
         let qChars = Array(q)
         let tChars = Array(t)
-        
+
         var qi = 0
         var consecutiveBonus = 0
         var lastMatchIndex: Int? = nil
@@ -102,39 +121,5 @@ final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
 
         guard qi == qChars.count else { return 0 }
         return fuzzyMatchBaseScore + consecutiveBonus
-    }
-
-    private static func scanApplications() -> [AppEntry] {
-        let dirs = [
-            URL(fileURLWithPath: "/Applications"),
-            URL(fileURLWithPath: "/System/Applications"),
-            URL(fileURLWithPath: "/Applications/Utilities"),
-            URL(fileURLWithPath: "/System/Applications/Utilities"),
-            URL(fileURLWithPath: (NSHomeDirectory() as NSString).appendingPathComponent("Applications")),
-        ]
-        
-        var entries: [AppEntry] = []
-        for dir in dirs {
-            guard let contents = try? FileManager.default.contentsOfDirectory(
-                at: dir, includingPropertiesForKeys: nil
-            ) else { continue }
-            
-            for url in contents where url.pathExtension == "app" {
-                let name = url.deletingPathExtension().lastPathComponent
-                entries.append(AppEntry(name: name, url: url))
-            }
-        }
-        
-        // Deduplicate in case an app is present in multiple folders or scanned twice
-        var seen = Set<URL>()
-        var uniqueEntries: [AppEntry] = []
-        for entry in entries {
-            if !seen.contains(entry.url) {
-                seen.insert(entry.url)
-                uniqueEntries.append(entry)
-            }
-        }
-        
-        return uniqueEntries.sorted { $0.name < $1.name }
     }
 }
