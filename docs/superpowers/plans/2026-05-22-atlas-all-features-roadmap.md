@@ -687,7 +687,7 @@ Expected: The commit contains only the packaging and editions child plan and thi
 - Modify in child execution: `platforms/macos/Atlas/FeatureTogglePanel.swift`
 - Test in child execution: relevant `platforms/macos/AtlasTests/*.swift`
 
-- [ ] **Step 1: Verify all feature names are centralized**
+- [x] **Step 1: Verify all feature names are centralized**
 
 Run:
 
@@ -697,7 +697,7 @@ rg -n '"monitoring"|"screenshot"|"window-manager"|"clipboard"|"scratchpad"|"priv
 
 Expected: Feature name string literals are concentrated in feature registry/model files, edition packaging, child plans, and tests. The audit must flag stale packaging keys: AI Skills uses the registered Feature Center key `skills`, not `ai-skills`; Workspaces currently gates through `window-manager`, so `workspaces` must not appear as an edition/Feature Center key unless a later plan explicitly splits it into its own registered feature.
 
-- [ ] **Step 2: Verify all disabled modules stay idle**
+- [x] **Step 2: Verify all disabled modules stay idle**
 
 Run:
 
@@ -707,7 +707,7 @@ rg -n 'Timer|DispatchSource|NSEvent.addGlobalMonitor|NSPasteboard|startMonitorin
 
 Expected: Background services are started through feature-gated entry points, not unconditionally during app launch.
 
-- [ ] **Step 3: Run full Rust test suite**
+- [x] **Step 3: Run full Rust test suite**
 
 Run:
 
@@ -717,7 +717,7 @@ cargo test
 
 Expected: All Rust workspace tests pass.
 
-- [ ] **Step 4: Run full macOS test suite**
+- [x] **Step 4: Run full macOS test suite**
 
 Run:
 
@@ -727,7 +727,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas
 
 Expected: All macOS XCTest tests pass.
 
-- [ ] **Step 5: Build app**
+- [x] **Step 5: Build app**
 
 Run:
 
@@ -748,7 +748,7 @@ Open `platforms/macos/Atlas.xcodeproj` in Xcode, run the app, and verify:
 - Disabling a module hides or idles its background services.
 - Permission-gated features show clear status when permission is missing.
 
-- [ ] **Step 7: Commit final integration**
+- [x] **Step 7: Commit final integration**
 
 Run:
 
@@ -757,6 +757,8 @@ git status --short
 git add platforms/macos/Atlas platforms/macos/AtlasTests crates docs/superpowers/plans
 git commit -m "feat: integrate Atlas feature suite"
 ```
+
+Execution note, 2026-05-23: This final pass verified the roadmap/planning branch, not implementation of every child feature plan. Feature-name audit command completed. Findings: production feature keys remain concentrated in `crates/atlas-core/src/features.rs`, `crates/atlas-ffi/src/lib.rs`, Swift feature model/service tests, and existing command/screenshot code; child roadmap plans contain planned keys for `clipboard`, `scratchpad`, `privacy`, `automation`, `tokenbar`, and `skills`. The audit did not find `"ai-skills"` as a Feature Center or edition key, and did not find `"workspaces"` as a Feature Center or edition key. Disabled-module/background-service audit command completed. Findings: `MonitoringService` exposes `startMonitoring`, `ContentView` starts monitoring from view flow, `AtlasApp`/`ContentView` start the global hotkey service, command palette app launch observation starts a `DispatchSource` watcher, and pasteboard/window APIs appear in user-action/provider code; this is an audit finding for the current branch and not proof that all child-plan feature gates have been implemented. `cargo test` passed with 25 total Rust tests across workspace crates and 0 failures. `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas` passed with 245 XCTest tests and 0 failures; Xcode emitted non-blocking CoreSimulator version, multiple macOS destination, and system service warnings. `xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme Atlas` passed with `** BUILD SUCCEEDED **` and the same non-blocking CoreSimulator/multiple destination warnings. Manual app smoke test was not run because this headless command pass did not run the app through Xcode UI. Final commit used the requested docs-only message `docs: record Atlas roadmap integration audit` instead of the stale roadmap commit command.
 
 Expected: The final integration commit contains only changes needed to connect already implemented child features.
 
