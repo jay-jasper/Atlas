@@ -149,7 +149,7 @@ Expected: The diff only changes this roadmap file. The commit succeeds.
 - Test in child execution: `platforms/macos/AtlasTests/FeatureServiceTests.swift`
 - Test in child execution: `platforms/macos/AtlasTests/FeatureModelsTests.swift`
 
-- [ ] **Step 1: Re-read the existing Feature Center plan**
+- [x] **Step 1: Re-read the existing Feature Center plan**
 
 Run:
 
@@ -159,7 +159,7 @@ sed -n '1,220p' docs/superpowers/plans/2026-05-11-feature-center-v1.md
 
 Expected: The plan describes replacing Swift feature mocks with real UniFFI-backed feature entries.
 
-- [ ] **Step 2: Audit current feature names**
+- [x] **Step 2: Audit current feature names**
 
 Run:
 
@@ -169,11 +169,13 @@ rg -n '"monitoring"|"screenshot"|"window-manager"|AtlasModule|FeatureCenter|Feat
 
 Expected: The command shows current feature names and reveals any mismatch between Rust, UniFFI, Swift models, tests, and UI.
 
-- [ ] **Step 3: Execute or refresh the Feature Center plan**
+- [x] **Step 3: Execute or refresh the Feature Center plan**
 
 If `2026-05-11-feature-center-v1.md` still matches the current code, execute it task-by-task. If it refers to deleted or renamed files, create `docs/superpowers/plans/2026-05-22-feature-center-v2.md` with exact current file paths and tests before editing code.
 
-- [ ] **Step 4: Verify Rust feature behavior**
+Execution note, 2026-05-22: `2026-05-11-feature-center-v1.md` still matches the current code. Feature Center v1 is already implemented through UniFFI-backed `FeatureService.live`, `AtlasBridge` delegation, `AtlasFeature` mapping, and `FeatureCenterPanel`; no v2 plan or code change was needed.
+
+- [x] **Step 4: Verify Rust feature behavior**
 
 Run:
 
@@ -185,7 +187,7 @@ cargo test -p atlas-core test_list_features_is_sorted_by_name
 
 Expected: Each listed atlas-core feature test command passes.
 
-- [ ] **Step 5: Verify Swift feature behavior**
+- [x] **Step 5: Verify Swift feature behavior**
 
 Run:
 
@@ -195,7 +197,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: Feature service and model tests pass.
 
-- [ ] **Step 6: Commit Feature Center normalization**
+- [x] **Step 6: Commit Feature Center normalization**
 
 Run:
 
