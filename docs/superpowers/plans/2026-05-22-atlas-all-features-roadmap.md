@@ -599,7 +599,7 @@ Execution note, 2026-05-23: The audit command showed current Accessibility handl
 ### Task 11: Add AI Skills and Workflow Extensions
 
 **Files:**
-- Create later: `docs/superpowers/plans/2026-05-22-ai-skills-v1.md`
+- Created: `docs/superpowers/plans/2026-05-22-ai-skills-v1.md`
 - Create in child execution: `platforms/macos/Atlas/SkillModels.swift`
 - Create in child execution: `platforms/macos/Atlas/SkillStore.swift`
 - Create in child execution: `platforms/macos/Atlas/SkillRunner.swift`
@@ -607,7 +607,7 @@ Execution note, 2026-05-23: The audit command showed current Accessibility handl
 - Test in child execution: `platforms/macos/AtlasTests/SkillStoreTests.swift`
 - Test in child execution: `platforms/macos/AtlasTests/SkillRunnerTests.swift`
 
-- [ ] **Step 1: Audit current skill and workflow support**
+- [x] **Step 1: Audit current skill and workflow support**
 
 Run:
 
@@ -617,20 +617,24 @@ rg -n 'Skill|workflow|automation|trigger|script|send email|summary' platforms/ma
 
 Expected: The command shows command automation work and whether a dedicated skill interface exists.
 
-- [ ] **Step 2: Write AI Skills child plan**
+Execution note, 2026-05-23: The audit command showed existing command palette surfaces, screenshot OCR/summary-adjacent services, and the custom automation child plan. It did not show a dedicated production `SkillModels`, `SkillStore`, `SkillRunner`, or `SkillPanel` interface in `platforms/macos/Atlas` or `platforms/macos/AtlasTests`.
+
+- [x] **Step 2: Write AI Skills child plan**
 
 Create `docs/superpowers/plans/2026-05-22-ai-skills-v1.md`. The child plan must cover skill metadata, trigger types, screenshot-to-summary example, shell/Python execution reuse, permissions, local storage, command palette integration, Feature Center gating, and tests with injected runners.
 
-- [ ] **Step 3: Commit AI Skills plan**
+Execution note, 2026-05-23: Created `docs/superpowers/plans/2026-05-22-ai-skills-v1.md` as a child implementation plan only. The plan covers skill metadata, trigger types, screenshot-to-summary, reuse of the custom automation process runner/store concepts, permissions, local JSON storage, command palette integration, Feature Center gating, Xcode project membership for new Swift app/test files, and deterministic tests with injected runners/providers. No AI Skills production code was implemented in this task.
+
+- [x] **Step 3: Commit AI Skills plan**
 
 Run:
 
 ```bash
-git add docs/superpowers/plans/2026-05-22-ai-skills-v1.md
+git add docs/superpowers/plans/2026-05-22-ai-skills-v1.md docs/superpowers/plans/2026-05-22-atlas-all-features-roadmap.md
 git commit -m "docs: plan Atlas AI skills"
 ```
 
-Expected: The commit contains only the AI Skills child plan.
+Expected: The commit contains only the AI Skills child plan and this roadmap Task 11 update.
 
 ---
 
