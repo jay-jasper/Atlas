@@ -76,7 +76,7 @@ Out of scope:
 - Create: `platforms/macos/AtlasTests/CommandUsageStoreTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write the failing usage store tests**
+- [x] **Step 1: Write the failing usage store tests**
 
 Create `platforms/macos/AtlasTests/CommandUsageStoreTests.swift`:
 
@@ -174,7 +174,7 @@ final class CommandUsageStoreTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Add the test file to the Xcode project**
+- [x] **Step 2: Add the test file to the Xcode project**
 
 Run:
 
@@ -192,7 +192,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Run usage store tests to verify they fail**
+- [x] **Step 3: Run usage store tests to verify they fail**
 
 Run:
 
@@ -204,7 +204,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: compile failure mentioning missing `CommandUsageStore` and `CommandUsageRecord`.
 
-- [ ] **Step 4: Write the usage store implementation**
+- [x] **Step 4: Write the usage store implementation**
 
 Create `platforms/macos/Atlas/CommandPalette/CommandUsageStore.swift`:
 
@@ -280,7 +280,7 @@ final class CommandUsageStore: CommandUsageRecording {
 }
 ```
 
-- [ ] **Step 5: Add the source file to the Xcode project**
+- [x] **Step 5: Add the source file to the Xcode project**
 
 Run:
 
@@ -298,7 +298,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 6: Run usage store tests to verify they pass**
+- [x] **Step 6: Run usage store tests to verify they pass**
 
 Run:
 
@@ -310,7 +310,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: `CommandUsageStoreTests` passes with 5 tests and 0 failures.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Run:
 
@@ -330,7 +330,7 @@ git commit -m "feat(macos): add command palette usage store"
 - Create: `platforms/macos/AtlasTests/CommandPaletteRankerTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write the failing ranker tests**
+- [x] **Step 1: Write the failing ranker tests**
 
 Create `platforms/macos/AtlasTests/CommandPaletteRankerTests.swift`:
 
@@ -432,7 +432,7 @@ final class CommandPaletteRankerTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Add the test file to the Xcode project**
+- [x] **Step 2: Add the test file to the Xcode project**
 
 Run:
 
@@ -450,7 +450,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Run ranker tests to verify they fail**
+- [x] **Step 3: Run ranker tests to verify they fail**
 
 Run:
 
@@ -462,7 +462,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: compile failure mentioning missing `CommandPaletteRanker`.
 
-- [ ] **Step 4: Write the ranker implementation**
+- [x] **Step 4: Write the ranker implementation**
 
 Create `platforms/macos/Atlas/CommandPalette/CommandPaletteRanker.swift`:
 
@@ -499,7 +499,7 @@ enum CommandPaletteRanker {
 }
 ```
 
-- [ ] **Step 5: Add the source file to the Xcode project**
+- [x] **Step 5: Add the source file to the Xcode project**
 
 Run:
 
@@ -517,7 +517,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 6: Run store and ranker tests**
+- [x] **Step 6: Run store and ranker tests**
 
 Run:
 
@@ -530,7 +530,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: both test classes pass with 10 tests and 0 failures.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Run:
 
@@ -551,7 +551,7 @@ git commit -m "feat(macos): add command palette frecency ranker"
 - Test: `platforms/macos/AtlasTests/CommandUsageStoreTests.swift`
 - Test: `platforms/macos/AtlasTests/CommandPaletteRankerTests.swift`
 
-- [ ] **Step 1: Update `CommandPaletteView` to inject usage recorder**
+- [x] **Step 1: Update `CommandPaletteView` to inject usage recorder**
 
 In `platforms/macos/Atlas/CommandPalette/CommandPaletteView.swift`, replace the stored property block at the top of `CommandPaletteView` with:
 
@@ -597,7 +597,7 @@ struct CommandPaletteView: View {
 
 This keeps provider order stable because each provider is ranked independently before `flatMap` combines the groups.
 
-- [ ] **Step 2: Record command usage before action execution**
+- [x] **Step 2: Record command usage before action execution**
 
 In the same file, replace `execute(_:)` with:
 
@@ -619,7 +619,7 @@ private func execute(_ command: PaletteCommand) {
 }
 ```
 
-- [ ] **Step 3: Update `CommandPaletteController` to inject usage store**
+- [x] **Step 3: Update `CommandPaletteController` to inject usage store**
 
 In `platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift`, change:
 
@@ -687,7 +687,7 @@ let paletteView = CommandPaletteView(
 )
 ```
 
-- [ ] **Step 4: Run focused command palette tests**
+- [x] **Step 4: Run focused command palette tests**
 
 Run:
 
@@ -707,7 +707,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: selected tests pass with 70 tests and 0 failures.
 
-- [ ] **Step 5: Run full macOS test suite**
+- [x] **Step 5: Run full macOS test suite**
 
 Run:
 
@@ -718,7 +718,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: full suite passes. Existing CoreSimulator/linkd warnings are non-blocking if the test run ends with `** TEST SUCCEEDED **`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Run:
 
@@ -735,7 +735,7 @@ git commit -m "feat(macos): apply command palette frecency ranking"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-05-22-command-palette-frecency-v1.md`
 
-- [ ] **Step 1: Append verification notes**
+- [x] **Step 1: Append verification notes**
 
 Append this section to `docs/superpowers/plans/2026-05-22-command-palette-frecency-v1.md`:
 
@@ -759,7 +759,7 @@ Completed on 2026-05-22 on branch `codex/command-palette-frecency-v1`.
 - Manual command palette ranking verification was not run; this follows the project preference that unit tests are sufficient unless explicitly requested.
 ```
 
-- [ ] **Step 2: Commit plan verification notes**
+- [x] **Step 2: Commit plan verification notes**
 
 Run:
 

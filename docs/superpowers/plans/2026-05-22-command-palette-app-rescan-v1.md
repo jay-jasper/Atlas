@@ -70,7 +70,7 @@ Out of scope:
 - Create: `platforms/macos/AtlasTests/ApplicationScannerTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write the failing scanner tests**
+- [x] **Step 1: Write the failing scanner tests**
 
 Create `platforms/macos/AtlasTests/ApplicationScannerTests.swift`:
 
@@ -155,7 +155,7 @@ final class ApplicationScannerTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Add test file to the Xcode project**
+- [x] **Step 2: Add test file to the Xcode project**
 
 Run:
 
@@ -173,7 +173,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Run scanner tests to verify they fail**
+- [x] **Step 3: Run scanner tests to verify they fail**
 
 Run:
 
@@ -185,7 +185,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: compile failure mentioning missing `FileSystemApplicationScanner`.
 
-- [ ] **Step 4: Write the scanner implementation**
+- [x] **Step 4: Write the scanner implementation**
 
 Create `platforms/macos/Atlas/CommandPalette/ApplicationScanner.swift`:
 
@@ -247,7 +247,7 @@ struct FileSystemApplicationScanner: ApplicationScanning {
 }
 ```
 
-- [ ] **Step 5: Add source file to the Xcode project**
+- [x] **Step 5: Add source file to the Xcode project**
 
 Run:
 
@@ -265,7 +265,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 6: Run scanner tests to verify they pass**
+- [x] **Step 6: Run scanner tests to verify they pass**
 
 Run:
 
@@ -277,7 +277,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: `ApplicationScannerTests` passes with 5 tests and 0 failures.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Run:
 
@@ -296,7 +296,7 @@ git commit -m "feat(macos): add application scanner"
 - Create: `platforms/macos/Atlas/CommandPalette/ApplicationChangeObserver.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write the observer implementation**
+- [x] **Step 1: Write the observer implementation**
 
 Create `platforms/macos/Atlas/CommandPalette/ApplicationChangeObserver.swift`:
 
@@ -361,7 +361,7 @@ final class ApplicationDirectoryChangeObserver: ApplicationChangeObserving {
 }
 ```
 
-- [ ] **Step 2: Add source file to the Xcode project**
+- [x] **Step 2: Add source file to the Xcode project**
 
 Run:
 
@@ -379,7 +379,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Build to verify observer compiles**
+- [x] **Step 3: Build to verify observer compiles**
 
 Run:
 
@@ -390,7 +390,7 @@ xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: `BUILD SUCCEEDED`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Run:
 
@@ -409,7 +409,7 @@ git commit -m "feat(macos): add application change observer"
 - Create: `platforms/macos/AtlasTests/AppLauncherRefreshTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write failing refresh tests**
+- [x] **Step 1: Write failing refresh tests**
 
 Create `platforms/macos/AtlasTests/AppLauncherRefreshTests.swift`:
 
@@ -511,7 +511,7 @@ private final class FakeApplicationChangeObserver: ApplicationChangeObserving {
 }
 ```
 
-- [ ] **Step 2: Add test file to the Xcode project**
+- [x] **Step 2: Add test file to the Xcode project**
 
 Run:
 
@@ -529,7 +529,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Run refresh tests to verify they fail**
+- [x] **Step 3: Run refresh tests to verify they fail**
 
 Run:
 
@@ -541,7 +541,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: compile failure because `AppLauncherProvider(scanner:changeObserver:)` and `refreshApplications()` do not exist yet.
 
-- [ ] **Step 4: Refactor `AppLauncherProvider`**
+- [x] **Step 4: Refactor `AppLauncherProvider`**
 
 Replace `platforms/macos/Atlas/CommandPalette/AppLauncherProvider.swift` with:
 
@@ -669,7 +669,7 @@ final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
 }
 ```
 
-- [ ] **Step 5: Run focused app launcher tests**
+- [x] **Step 5: Run focused app launcher tests**
 
 Run:
 
@@ -683,7 +683,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: selected app launcher tests pass with 18 tests and 0 failures.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Run:
 
@@ -701,7 +701,7 @@ git commit -m "feat(macos): refresh app launcher results on app changes"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-05-22-command-palette-app-rescan-v1.md`
 
-- [ ] **Step 1: Run focused command palette tests**
+- [x] **Step 1: Run focused command palette tests**
 
 Run:
 
@@ -717,7 +717,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: selected tests pass with 28 tests and 0 failures.
 
-- [ ] **Step 2: Run full macOS test suite**
+- [x] **Step 2: Run full macOS test suite**
 
 Run:
 
@@ -728,7 +728,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: full suite passes. Existing CoreSimulator/linkd warnings are non-blocking if the test run ends with `** TEST SUCCEEDED **`.
 
-- [ ] **Step 3: Append verification notes**
+- [x] **Step 3: Append verification notes**
 
 Append this section to `docs/superpowers/plans/2026-05-22-command-palette-app-rescan-v1.md`:
 
@@ -748,7 +748,7 @@ Completed on 2026-05-22 on branch `codex/command-palette-app-rescan-v1`.
 - Manual install/uninstall verification was not run; this follows the project preference that unit tests are sufficient unless explicitly requested.
 ```
 
-- [ ] **Step 4: Commit verification notes**
+- [x] **Step 4: Commit verification notes**
 
 Run:
 

@@ -63,7 +63,7 @@ Out of scope:
 - Create: `platforms/macos/AtlasTests/SnippetStoreTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write the failing store tests**
+- [x] **Step 1: Write the failing store tests**
 
 Create `platforms/macos/AtlasTests/SnippetStoreTests.swift`:
 
@@ -160,7 +160,7 @@ final class SnippetStoreTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Add the test file to the Xcode project**
+- [x] **Step 2: Add the test file to the Xcode project**
 
 Run:
 
@@ -178,7 +178,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Run the store tests to verify they fail**
+- [x] **Step 3: Run the store tests to verify they fail**
 
 Run:
 
@@ -190,7 +190,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: compile failure mentioning missing `Snippet` and `SnippetStore`.
 
-- [ ] **Step 4: Write the store implementation**
+- [x] **Step 4: Write the store implementation**
 
 Create `platforms/macos/Atlas/SnippetStore.swift`:
 
@@ -271,7 +271,7 @@ final class SnippetStore: SnippetProviding {
 }
 ```
 
-- [ ] **Step 5: Add the store file to the Xcode project**
+- [x] **Step 5: Add the store file to the Xcode project**
 
 Run:
 
@@ -289,7 +289,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 6: Run store tests to verify they pass**
+- [x] **Step 6: Run store tests to verify they pass**
 
 Run:
 
@@ -301,7 +301,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: `SnippetStoreTests` passes with 5 tests and 0 failures.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Run:
 
@@ -321,7 +321,7 @@ git commit -m "feat(macos): add snippet store"
 - Create: `platforms/macos/AtlasTests/SnippetsProviderTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write the failing provider tests**
+- [x] **Step 1: Write the failing provider tests**
 
 Create `platforms/macos/AtlasTests/SnippetsProviderTests.swift`:
 
@@ -453,7 +453,7 @@ private final class FakeClipboardReader: ClipboardReading {
 }
 ```
 
-- [ ] **Step 2: Add the test file to the Xcode project**
+- [x] **Step 2: Add the test file to the Xcode project**
 
 Run:
 
@@ -471,7 +471,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Run the provider tests to verify they fail**
+- [x] **Step 3: Run the provider tests to verify they fail**
 
 Run:
 
@@ -483,7 +483,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: compile failure mentioning missing `SnippetsProvider`.
 
-- [ ] **Step 4: Write the provider implementation**
+- [x] **Step 4: Write the provider implementation**
 
 Create `platforms/macos/Atlas/CommandPalette/SnippetsProvider.swift`:
 
@@ -539,7 +539,7 @@ final class SnippetsProvider: CommandProviding {
 }
 ```
 
-- [ ] **Step 5: Add the provider file to the Xcode project**
+- [x] **Step 5: Add the provider file to the Xcode project**
 
 Run:
 
@@ -557,7 +557,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 6: Run provider and store tests**
+- [x] **Step 6: Run provider and store tests**
 
 Run:
 
@@ -570,7 +570,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: both test classes pass with 13 tests and 0 failures.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Run:
 
@@ -590,7 +590,7 @@ git commit -m "feat(macos): add command palette snippets provider"
 - Test: `platforms/macos/AtlasTests/SnippetsProviderTests.swift`
 - Test: `platforms/macos/AtlasTests/SnippetStoreTests.swift`
 
-- [ ] **Step 1: Register `SnippetsProvider`**
+- [x] **Step 1: Register `SnippetsProvider`**
 
 In `platforms/macos/Atlas/AtlasApp.swift`, update `CommandPaletteState.init()` provider construction from:
 
@@ -628,7 +628,7 @@ self.controller = CommandPaletteController(providers: [
 ])
 ```
 
-- [ ] **Step 2: Run focused provider tests**
+- [x] **Step 2: Run focused provider tests**
 
 Run:
 
@@ -646,7 +646,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: selected tests pass with 66 tests and 0 failures.
 
-- [ ] **Step 3: Run full macOS test suite**
+- [x] **Step 3: Run full macOS test suite**
 
 Run:
 
@@ -657,7 +657,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: full suite passes. Existing environment warnings about CoreSimulator or `com.apple.linkd.autoShortcut` are non-blocking if the test result ends with `** TEST SUCCEEDED **`.
 
-- [ ] **Step 4: Commit registration**
+- [x] **Step 4: Commit registration**
 
 Run:
 
@@ -673,7 +673,7 @@ git commit -m "feat(macos): register snippet commands"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-05-22-command-palette-snippets-v1.md`
 
-- [ ] **Step 1: Append verification notes**
+- [x] **Step 1: Append verification notes**
 
 Append this section to `docs/superpowers/plans/2026-05-22-command-palette-snippets-v1.md`:
 
@@ -695,7 +695,7 @@ Completed on 2026-05-22 on branch `codex/command-palette-snippets-v1`.
 - Manual snippet copy verification was not run; this follows the project preference that unit tests are sufficient unless explicitly requested.
 ```
 
-- [ ] **Step 2: Commit the plan and verification notes**
+- [x] **Step 2: Commit the plan and verification notes**
 
 Run:
 

@@ -64,7 +64,7 @@ Out of scope:
 - Create: `platforms/macos/AtlasTests/WindowManagementServiceTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write the failing service tests**
+- [x] **Step 1: Write the failing service tests**
 
 Create `platforms/macos/AtlasTests/WindowManagementServiceTests.swift`:
 
@@ -134,7 +134,7 @@ final class WindowManagementServiceTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Add the test file to the Xcode project**
+- [x] **Step 2: Add the test file to the Xcode project**
 
 Run:
 
@@ -152,7 +152,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Run the service tests to verify they fail**
+- [x] **Step 3: Run the service tests to verify they fail**
 
 Run:
 
@@ -164,7 +164,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: compile failure mentioning missing `WindowFrameCalculator` and `WindowManagementAction`.
 
-- [ ] **Step 4: Write the service implementation**
+- [x] **Step 4: Write the service implementation**
 
 Create `platforms/macos/Atlas/WindowManagementService.swift`:
 
@@ -331,7 +331,7 @@ final class AccessibilityWindowManager: WindowManaging {
 }
 ```
 
-- [ ] **Step 5: Add the service file to the Xcode project**
+- [x] **Step 5: Add the service file to the Xcode project**
 
 Run:
 
@@ -349,7 +349,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 6: Run the service tests to verify they pass**
+- [x] **Step 6: Run the service tests to verify they pass**
 
 Run:
 
@@ -361,7 +361,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: `WindowManagementServiceTests` passes with 6 tests and 0 failures.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Run:
 
@@ -381,7 +381,7 @@ git commit -m "feat(macos): add window management service"
 - Create: `platforms/macos/AtlasTests/WindowManagementProviderTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write the failing provider tests**
+- [x] **Step 1: Write the failing provider tests**
 
 Create `platforms/macos/AtlasTests/WindowManagementProviderTests.swift`:
 
@@ -475,7 +475,7 @@ private final class RecordingWindowManager: WindowManaging {
 }
 ```
 
-- [ ] **Step 2: Add the test file to the Xcode project**
+- [x] **Step 2: Add the test file to the Xcode project**
 
 Run:
 
@@ -493,7 +493,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Run the provider tests to verify they fail**
+- [x] **Step 3: Run the provider tests to verify they fail**
 
 Run:
 
@@ -505,7 +505,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: compile failure mentioning missing `WindowManagementProvider`.
 
-- [ ] **Step 4: Write the provider implementation**
+- [x] **Step 4: Write the provider implementation**
 
 Create `platforms/macos/Atlas/CommandPalette/WindowManagementProvider.swift`:
 
@@ -553,7 +553,7 @@ final class WindowManagementProvider: CommandProviding {
 }
 ```
 
-- [ ] **Step 5: Add the provider file to the Xcode project**
+- [x] **Step 5: Add the provider file to the Xcode project**
 
 Run:
 
@@ -571,7 +571,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 6: Run provider and service tests**
+- [x] **Step 6: Run provider and service tests**
 
 Run:
 
@@ -584,7 +584,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: both test classes pass with 14 tests and 0 failures.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Run:
 
@@ -604,7 +604,7 @@ git commit -m "feat(macos): add command palette window management provider"
 - Test: `platforms/macos/AtlasTests/WindowManagementProviderTests.swift`
 - Test: `platforms/macos/AtlasTests/WindowManagementServiceTests.swift`
 
-- [ ] **Step 1: Register `WindowManagementProvider`**
+- [x] **Step 1: Register `WindowManagementProvider`**
 
 In `platforms/macos/Atlas/AtlasApp.swift`, update `CommandPaletteState.init()` provider construction from:
 
@@ -638,7 +638,7 @@ self.controller = CommandPaletteController(providers: [
 ])
 ```
 
-- [ ] **Step 2: Run focused command palette provider tests**
+- [x] **Step 2: Run focused command palette provider tests**
 
 Run:
 
@@ -655,7 +655,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: selected tests pass with 47 tests and 0 failures.
 
-- [ ] **Step 3: Run full macOS test suite**
+- [x] **Step 3: Run full macOS test suite**
 
 Run:
 
@@ -666,7 +666,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: full suite passes. Existing environment warnings about CoreSimulator or `com.apple.linkd.autoShortcut` are non-blocking if the test result ends with `** TEST SUCCEEDED **`.
 
-- [ ] **Step 4: Commit registration**
+- [x] **Step 4: Commit registration**
 
 Run:
 
@@ -682,7 +682,7 @@ git commit -m "feat(macos): register window management commands"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-05-22-command-palette-window-management-v1.md`
 
-- [ ] **Step 1: Append verification notes**
+- [x] **Step 1: Append verification notes**
 
 Append this section to `docs/superpowers/plans/2026-05-22-command-palette-window-management-v1.md`:
 
@@ -703,7 +703,7 @@ Completed on 2026-05-22 on branch `codex/command-palette-window-management-v1`.
 - Manual window movement verification was not run; this follows the project preference that unit tests are sufficient unless explicitly requested.
 ```
 
-- [ ] **Step 2: Commit the plan and verification notes**
+- [x] **Step 2: Commit the plan and verification notes**
 
 Run:
 
