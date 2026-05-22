@@ -78,7 +78,7 @@ struct CommandPaletteView: View {
     @State private var stack: [PaletteDestination] = []
     @State private var selectedIndex: Int = 0
 
-    private var results: [PaletteCommand] {
+    private func rankedResults() -> [PaletteCommand] {
         let records = usageRecorder.usageRecords()
         return providers.flatMap { provider in
             CommandPaletteRanker.ranked(provider.results(for: query), records: records)
@@ -136,7 +136,7 @@ struct CommandPaletteView: View {
             TextField(stack.isEmpty ? "Search Atlas…" : "Filter…", text: $query)
                 .textFieldStyle(.plain)
                 .font(.system(size: 17))
-                .onSubmit { executeSelected() }
+                .onSubmit { executeSelected(from: rankedResults()) }
                 .onChange(of: query) { _ in selectedIndex = 0 }
             if !stack.isEmpty {
                 Button {
@@ -154,16 +154,18 @@ struct CommandPaletteView: View {
 
     @ViewBuilder
     private var resultsList: some View {
+        let results = rankedResults()
+
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    ForEach(results.indices, id: \.self) { i in
+                    ForEach(Array(results.enumerated()), id: \.offset) { i, command in
                         ResultRow(
-                            command: results[i],
+                            command: command,
                             isSelected: i == selectedIndex
                         )
                         .id(i)
-                        .onTapGesture { execute(results[i]) }
+                        .onTapGesture { execute(command) }
                     }
                 }
             }
@@ -183,11 +185,11 @@ struct CommandPaletteView: View {
                 return .handled
             }
             .onKeyPressCompatible(.return) {
-                executeSelected()
+                executeSelected(from: results)
                 return .handled
             }
             .onKeyPressCompatible(.tab) {
-                executeSelected()
+                executeSelected(from: results)
                 return .handled
             }
         }
@@ -205,7 +207,7 @@ struct CommandPaletteView: View {
         }
     }
 
-    private func executeSelected() {
+    private func executeSelected(from results: [PaletteCommand]) {
         guard results.indices.contains(selectedIndex) else { return }
         execute(results[selectedIndex])
     }
