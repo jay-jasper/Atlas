@@ -19,7 +19,7 @@
 - Create: `crates/atlas-ffi/Cargo.toml`
 - Create: `crates/atlas-ffi/src/lib.rs`
 
-- [ ] **Step 1: 创建 Workspace 配置文件**
+- [x] **Step 1: 创建 Workspace 配置文件**
 
 ```toml
 # Cargo.toml
@@ -31,7 +31,7 @@ members = [
 resolver = "2"
 ```
 
-- [ ] **Step 2: 初始化 atlas-core (核心逻辑层)**
+- [x] **Step 2: 初始化 atlas-core (核心逻辑层)**
 
 ```rust
 // crates/atlas-core/src/lib.rs
@@ -52,12 +52,12 @@ impl AtlasCore {
 }
 ```
 
-- [ ] **Step 3: 运行测试验证核心逻辑**
+- [x] **Step 3: 运行测试验证核心逻辑**
 
 Run: `cargo test -p atlas-core`
 Expected: PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add Cargo.toml crates/atlas-core
@@ -73,7 +73,7 @@ git commit -m "chore: initialize rust workspace and atlas-core"
 - Create: `crates/atlas-ffi/src/atlas.udl`
 - Modify: `crates/atlas-ffi/src/lib.rs`
 
-- [ ] **Step 1: 配置 UniFFI 依赖**
+- [x] **Step 1: 配置 UniFFI 依赖**
 
 ```toml
 # crates/atlas-ffi/Cargo.toml
@@ -93,7 +93,7 @@ uniffi = { version = "0.28", features = ["build"] }
 crate-type = ["staticlib", "cdylib"]
 ```
 
-- [ ] **Step 2: 编写接口定义文件 (UDL)**
+- [x] **Step 2: 编写接口定义文件 (UDL)**
 
 ```udl
 // crates/atlas-ffi/src/atlas.udl
@@ -102,7 +102,7 @@ namespace atlas {
 };
 ```
 
-- [ ] **Step 3: 实现 FFI 导出函数**
+- [x] **Step 3: 实现 FFI 导出函数**
 
 ```rust
 // crates/atlas-ffi/src/lib.rs
@@ -116,12 +116,12 @@ pub fn get_core_status() -> String {
 }
 ```
 
-- [ ] **Step 4: 编译并生成绑定代码**
+- [x] **Step 4: 编译并生成绑定代码**
 
 Run: `cargo build -p atlas-ffi`
 Expected: 生成静态库及 UniFFI 中间产物。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add crates/atlas-ffi
@@ -136,7 +136,7 @@ git commit -m "feat: setup uniffi bridge for atlas"
 - Create: `platforms/macos/Atlas/AtlasApp.swift`
 - Create: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: 创建基础菜单栏应用 (SwiftUI)**
+- [x] **Step 1: 创建基础菜单栏应用 (SwiftUI)**
 
 ```swift
 // platforms/macos/Atlas/AtlasApp.swift
@@ -166,11 +166,11 @@ struct AtlasApp: App {
 }
 ```
 
-- [ ] **Step 2: 验证编译 (模拟)**
+- [x] **Step 2: 验证编译 (模拟)**
 
 由于需要 Xcode 环境，此处仅验证文件结构。
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add platforms/macos/Atlas
@@ -185,7 +185,7 @@ git commit -m "feat: add basic macos menu bar shell"
 - Modify: `crates/atlas-core/src/lib.rs`
 - Create: `crates/atlas-core/src/features.rs`
 
-- [ ] **Step 1: 定义模块特性与状态**
+- [x] **Step 1: 定义模块特性与状态**
 
 ```rust
 // crates/atlas-core/src/features.rs
@@ -217,7 +217,7 @@ impl FeatureManager {
 }
 ```
 
-- [ ] **Step 2: 在核心中集成管理器**
+- [x] **Step 2: 在核心中集成管理器**
 
 ```rust
 // crates/atlas-core/src/lib.rs (部分更新)
@@ -230,12 +230,12 @@ pub struct AtlasCore {
 }
 ```
 
-- [ ] **Step 3: 运行测试**
+- [x] **Step 3: 运行测试**
 
 Run: `cargo test -p atlas-core`
 Expected: PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add crates/atlas-core/src/features.rs
