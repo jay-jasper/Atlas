@@ -23,6 +23,8 @@ enum AtlasFeatureMapper {
 private enum AtlasFeatureTitles {
     static func title(for name: String) -> String {
         switch name {
+        case AtlasModule.automation.featureName:
+            return AtlasModule.automation.title
         case AtlasModule.monitoring.featureName:
             return AtlasModule.monitoring.title
         case AtlasModule.screenshot.featureName:

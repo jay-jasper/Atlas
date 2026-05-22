@@ -322,8 +322,9 @@ mod tests {
     fn test_feature_management() {
         let features = list_features().unwrap();
         let names: Vec<_> = features.iter().map(|f| f.name.as_str()).collect();
-        assert_eq!(names, ["monitoring", "screenshot", "window-manager"]);
+        assert_eq!(names, ["automation", "monitoring", "screenshot", "window-manager"]);
 
+        assert!(features.iter().any(|f| f.name == "automation"));
         assert!(features.iter().any(|f| f.name == "monitoring"));
         assert!(features.iter().any(|f| f.name == "screenshot"));
         assert!(features.iter().any(|f| f.name == "window-manager"));

@@ -39,7 +39,7 @@ Project membership rule: every new Swift app file must be added to the `Atlas` t
 
 ## Task 1: Feature Center Gate
 
-- [ ] **Step 1: Add the Rust feature name**
+- [x] **Step 1: Add the Rust feature name**
 
 In `crates/atlas-core/src/features.rs`, update `FeatureManager::new()` and `test_list_features_is_sorted_by_name()`:
 
@@ -54,13 +54,13 @@ features.insert("window-manager".to_string(), FeatureStatus::Disabled);
 assert_eq!(names, ["automation", "monitoring", "screenshot", "window-manager"]);
 ```
 
-- [ ] **Step 2: Confirm UniFFI does not need a new API shape**
+- [x] **Step 2: Confirm UniFFI does not need a new API shape**
 
 Read `crates/atlas-ffi/src/atlas.udl` and `crates/atlas-ffi/src/lib.rs`.
 
 Expected: No edits are needed. The existing `list_features()` and `toggle_feature(name:enabled:)` API exposes Feature Center entries from `FeatureManager`, so adding `"automation"` in `crates/atlas-core/src/features.rs` is enough for Swift to discover and toggle the feature.
 
-- [ ] **Step 3: Add the Swift module entry**
+- [x] **Step 3: Add the Swift module entry**
 
 In `platforms/macos/Atlas/AtlasModule.swift`, replace the enum with:
 
@@ -103,7 +103,7 @@ case AtlasModule.automation.featureName:
     return AtlasModule.automation.title
 ```
 
-- [ ] **Step 4: Verify feature behavior**
+- [x] **Step 4: Verify feature behavior**
 
 Run:
 
@@ -116,7 +116,7 @@ Expected: Rust feature ordering and Swift feature title tests pass.
 
 ## Task 2: Automation Models and Store
 
-- [ ] **Step 1: Add automation models**
+- [x] **Step 1: Add automation models**
 
 Create `platforms/macos/Atlas/CommandPalette/CustomAutomationModels.swift`:
 
@@ -178,7 +178,7 @@ struct CustomAutomationCommand: Codable, Equatable, Identifiable, Sendable {
 }
 ```
 
-- [ ] **Step 2: Add JSON-backed storage**
+- [x] **Step 2: Add JSON-backed storage**
 
 Create `platforms/macos/Atlas/CommandPalette/CustomAutomationStore.swift`:
 
@@ -264,7 +264,7 @@ final class CustomAutomationStore: CustomAutomationStoring {
 }
 ```
 
-- [ ] **Step 3: Add new files to the Xcode project**
+- [x] **Step 3: Add new files to the Xcode project**
 
 Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj` so these app files are included in the `Atlas` target sources:
 
@@ -275,7 +275,7 @@ Modify the same project file so this test file is included in the `AtlasTests` t
 
 - `platforms/macos/AtlasTests/CustomAutomationStoreTests.swift`
 
-- [ ] **Step 4: Add store tests**
+- [x] **Step 4: Add store tests**
 
 Create `platforms/macos/AtlasTests/CustomAutomationStoreTests.swift` with tests for empty load, save/load round trip, sorted upsert, delete, invalid empty title, invalid empty command, invalid timeout, and duplicate title rejection.
 
@@ -289,7 +289,7 @@ Expected: Store tests pass without touching real Application Support by using a 
 
 ## Task 3: Injected Process Runner
 
-- [ ] **Step 1: Add process result and runner protocol**
+- [x] **Step 1: Add process result and runner protocol**
 
 Create `platforms/macos/Atlas/CommandPalette/AutomationProcessRunner.swift`:
 
@@ -420,7 +420,7 @@ private final class LockedDataBuffer: @unchecked Sendable {
 }
 ```
 
-- [ ] **Step 2: Keep process execution tests injected**
+- [x] **Step 2: Keep process execution tests injected**
 
 Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `platforms/macos/Atlas/CommandPalette/AutomationProcessRunner.swift` is included in the `Atlas` target sources before running any test target that imports automation types.
 
@@ -456,7 +456,7 @@ Expected: Output tests pass with fake runner results. No test starts a real shel
 
 ## Task 4: Provider, Output Destination, and Ranking
 
-- [ ] **Step 1: Add a palette destination for automation output**
+- [x] **Step 1: Add a palette destination for automation output**
 
 In `platforms/macos/Atlas/CommandPalette/CommandPaletteModels.swift`, update `PaletteDestination`:
 
@@ -469,7 +469,7 @@ enum PaletteDestination: Equatable {
 }
 ```
 
-- [ ] **Step 2: Add provider**
+- [x] **Step 2: Add provider**
 
 Create `platforms/macos/Atlas/CommandPalette/CustomAutomationProvider.swift`:
 
@@ -518,7 +518,7 @@ final class CustomAutomationProvider: CommandProviding {
 
 The provider uses existing `CommandPaletteRanker` automatically because `CommandPaletteView.rankedResults()` already ranks every provider's result list against `CommandUsageStore`. The existing `CommandUsageStore.commandKey(for:)` uses `category|title`, not `PaletteCommand.id`, so this plan keeps automation command titles unique enough for ranking. No usage-store key migration is part of this plan.
 
-- [ ] **Step 3: Add provider tests**
+- [x] **Step 3: Add provider tests**
 
 Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `platforms/macos/Atlas/CommandPalette/CustomAutomationProvider.swift` is included in the `Atlas` target sources.
 
@@ -545,7 +545,7 @@ Expected: Provider, ranking, and usage-store tests pass.
 
 ## Task 5: Output Display and Permission Warning
 
-- [ ] **Step 1: Add output view**
+- [x] **Step 1: Add output view**
 
 Create `platforms/macos/Atlas/CommandPalette/AutomationOutputView.swift`:
 
@@ -655,13 +655,13 @@ struct AutomationOutputView: View {
 }
 ```
 
-- [ ] **Step 2: Add new files to the Xcode project**
+- [x] **Step 2: Add new files to the Xcode project**
 
 Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `platforms/macos/Atlas/CommandPalette/AutomationOutputView.swift` is included in the `Atlas` target sources.
 
 Modify the same project file so `platforms/macos/AtlasTests/AutomationOutputViewTests.swift` is included in the `AtlasTests` target sources.
 
-- [ ] **Step 3: Wire output destination**
+- [x] **Step 3: Wire output destination**
 
 In `platforms/macos/Atlas/CommandPalette/CommandPaletteView.swift`, add a runner property and initializer argument:
 
@@ -680,7 +680,7 @@ case .automationOutput(let command):
     AutomationOutputView(command: command, runner: automationRunner)
 ```
 
-- [ ] **Step 4: Add output tests**
+- [x] **Step 4: Add output tests**
 
 Create `platforms/macos/AtlasTests/AutomationOutputViewTests.swift` with view model tests and a fake runner:
 

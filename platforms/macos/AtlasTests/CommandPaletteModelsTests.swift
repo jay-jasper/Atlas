@@ -42,9 +42,11 @@ final class CommandPaletteModelsTests: XCTestCase {
     }
 
     func testPaletteDestinationEquality() {
+        let command = CustomAutomationCommand(title: "Deploy", command: "echo deploy", kind: .shell)
         XCTAssertEqual(PaletteDestination.portLookup, PaletteDestination.portLookup)
         XCTAssertEqual(PaletteDestination.windowPicker, PaletteDestination.windowPicker)
         XCTAssertEqual(PaletteDestination.screenshotLibrary, PaletteDestination.screenshotLibrary)
+        XCTAssertEqual(PaletteDestination.automationOutput(command), PaletteDestination.automationOutput(command))
         XCTAssertNotEqual(PaletteDestination.portLookup, PaletteDestination.windowPicker)
     }
 }

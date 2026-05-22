@@ -2,6 +2,15 @@ import XCTest
 @testable import Atlas
 
 final class FeatureModelsTests: XCTestCase {
+    func testMapsAutomationFeatureTitle() {
+        let entry = FeatureEntry(name: "automation", status: .disabled)
+
+        let feature = AtlasFeatureMapper.map(entry)
+
+        XCTAssertEqual(feature, AtlasFeature(name: "automation", isEnabled: false))
+        XCTAssertEqual(feature.title, "Automation")
+    }
+
     func testMapsEnabledFeatureEntry() {
         let entry = FeatureEntry(name: "monitoring", status: .enabled)
 

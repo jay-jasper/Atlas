@@ -25,6 +25,7 @@ impl FeatureManager {
     pub fn new() -> Self {
         let mut features = HashMap::new();
         // Default feature placeholders
+        features.insert("automation".to_string(), FeatureStatus::Disabled);
         features.insert("monitoring".to_string(), FeatureStatus::Disabled);
         features.insert("screenshot".to_string(), FeatureStatus::Disabled);
         features.insert("window-manager".to_string(), FeatureStatus::Disabled);
@@ -94,6 +95,6 @@ mod tests {
         let fm = FeatureManager::new();
         let names: Vec<_> = fm.list_features().into_iter().map(|(name, _)| name).collect();
 
-        assert_eq!(names, ["monitoring", "screenshot", "window-manager"]);
+        assert_eq!(names, ["automation", "monitoring", "screenshot", "window-manager"]);
     }
 }
