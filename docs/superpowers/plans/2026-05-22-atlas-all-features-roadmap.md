@@ -218,6 +218,7 @@ Expected: The commit contains only Feature Center and feature registry changes.
 - Use existing plan: `docs/superpowers/plans/2026-05-20-translation-settings-v1.md`
 - Use existing plan: `docs/superpowers/plans/2026-05-21-screenshot-annotation-style-v1.md`
 - Use existing plan: `docs/superpowers/plans/2026-05-21-screenshot-annotation-text-v1.md`
+- Use existing plan: `docs/superpowers/plans/2026-05-21-screenshot-drag-output-v1.md`
 - Use existing plan: `docs/superpowers/plans/2026-05-21-screenshot-feature-controls-v1.md`
 - Use existing plan: `docs/superpowers/plans/2026-05-21-screenshot-library-v1.md`
 - Use existing plan: `docs/superpowers/plans/2026-05-21-screenshot-quick-output-feedback-v1.md`
