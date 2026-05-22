@@ -226,10 +226,10 @@ Expected: The commit contains only the roadmap verification update. No normaliza
 - Use existing plan: `docs/superpowers/plans/2026-05-21-screenshot-feature-controls-v1.md`
 - Use existing plan: `docs/superpowers/plans/2026-05-21-screenshot-library-v1.md`
 - Use existing plan: `docs/superpowers/plans/2026-05-21-screenshot-quick-output-feedback-v1.md`
-- Create later if still missing: `docs/superpowers/plans/2026-05-22-scrolling-capture-v1.md`
-- Create later if still missing: `docs/superpowers/plans/2026-05-22-gif-recording-v1.md`
+- Created: `docs/superpowers/plans/2026-05-22-scrolling-capture-v1.md`
+- Created: `docs/superpowers/plans/2026-05-22-gif-recording-v1.md`
 
-- [ ] **Step 1: Audit shipped screenshot surfaces**
+- [x] **Step 1: Audit shipped screenshot surfaces**
 
 Run:
 
@@ -239,7 +239,9 @@ rg -n 'captureDesktop|captureWindow|captureRegion|OCR|Translate|ScreenshotLibrar
 
 Expected: The command shows implemented capture, OCR, translation, and library paths. It should not show implemented scrolling capture or GIF recording unless those features have been added since this roadmap was written.
 
-- [ ] **Step 2: Run current screenshot tests**
+Execution note, 2026-05-22: The audit showed implemented capture, OCR, translation, and screenshot library paths in `platforms/macos/Atlas`, `platforms/macos/AtlasTests`, and `crates/atlas-ffi`. Matches for `record` were unrelated command usage/library recording paths; no implemented scrolling capture or GIF recording surface was present.
+
+- [x] **Step 2: Run current screenshot tests**
 
 Run:
 
@@ -249,28 +251,32 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: Existing screenshot, OCR, library, and translation tests pass.
 
-- [ ] **Step 3: Execute remaining existing screenshot plans**
+Execution note, 2026-05-22: The requested `xcodebuild test` command passed with 32 selected tests and 0 failures. Xcode emitted non-blocking CoreSimulator version and multiple macOS destination warnings, then completed with `** TEST SUCCEEDED **`.
+
+- [x] **Step 3: Execute remaining existing screenshot plans**
 
 Execute any existing screenshot plan whose acceptance criteria are not yet represented by tests or code. Use the plan file as the source of truth and commit after each plan.
 
-- [ ] **Step 4: Write the scrolling capture child plan**
+Execution note, 2026-05-22: Existing screenshot child plan acceptance criteria are represented by current code and tests for pro capture, real UniFFI capture, capture modes, selection precision, translation engine/settings, annotation style/text, drag output, feature controls, screenshot library, and quick output feedback. Some older plan files remain unchecked and describe pre-existing/mock-era steps, but their target surfaces now exist; no old plan was re-executed and no screenshot implementation code was changed.
+
+- [x] **Step 4: Write the scrolling capture child plan**
 
 Create `docs/superpowers/plans/2026-05-22-scrolling-capture-v1.md`. The child plan must cover window scroll capture, stitch behavior, permission behavior, image output, library persistence, Feature Center gating, and XCTest coverage.
 
-- [ ] **Step 5: Write the GIF recording child plan**
+- [x] **Step 5: Write the GIF recording child plan**
 
 Create `docs/superpowers/plans/2026-05-22-gif-recording-v1.md`. The child plan must cover region selection, frame capture loop, stop control, GIF encoding, output save/copy, Feature Center gating, and tests that avoid requiring live screen recording permission.
 
-- [ ] **Step 6: Commit screenshot roadmap expansion**
+- [x] **Step 6: Commit screenshot roadmap expansion**
 
 Run:
 
 ```bash
-git add docs/superpowers/plans/2026-05-22-scrolling-capture-v1.md docs/superpowers/plans/2026-05-22-gif-recording-v1.md
+git add docs/superpowers/plans/2026-05-22-scrolling-capture-v1.md docs/superpowers/plans/2026-05-22-gif-recording-v1.md docs/superpowers/plans/2026-05-22-atlas-all-features-roadmap.md
 git commit -m "docs: plan advanced screenshot capture"
 ```
 
-Expected: The commit contains only the two child plan files.
+Expected: The commit contains only the two child plan files and this roadmap update.
 
 ---
 
