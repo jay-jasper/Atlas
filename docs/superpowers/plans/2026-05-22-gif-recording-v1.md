@@ -92,7 +92,6 @@ XCTAssertEqual(ScreenshotSubfeature.allCases.map(\.rawValue), [
     "desktop-capture",
     "window-capture",
     "area-capture",
-    "scrolling-capture",
     "gif-recording",
     "annotations",
     "pinning",
@@ -120,7 +119,6 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
     case desktopCapture = "desktop-capture"
     case windowCapture = "window-capture"
     case areaCapture = "area-capture"
-    case scrollingCapture = "scrolling-capture"
     case gifRecording = "gif-recording"
     case annotations
     case pinning
@@ -134,7 +132,6 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
         case .desktopCapture: return "Desktop Capture"
         case .windowCapture: return "Window Capture"
         case .areaCapture: return "Area Capture"
-        case .scrollingCapture: return "Scrolling Capture"
         case .gifRecording: return "GIF Recording"
         case .annotations: return "Annotations"
         case .pinning: return "Pinning"
@@ -148,7 +145,6 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
         case .desktopCapture: return "Capture the full desktop."
         case .windowCapture: return "Capture a selected application window."
         case .areaCapture: return "Capture a selected screen region."
-        case .scrollingCapture: return "Capture and stitch a scrollable window."
         case .gifRecording: return "Record a selected region as an animated GIF."
         case .annotations: return "Show rectangle, arrow, pen, text, and pixelate tools."
         case .pinning: return "Pin screenshots in a floating window."
@@ -162,7 +158,6 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
         case .desktopCapture: return "display"
         case .windowCapture: return "macwindow"
         case .areaCapture: return "selection.pin.in.out"
-        case .scrollingCapture: return "rectangle.stack.badge.plus"
         case .gifRecording: return "record.circle"
         case .annotations: return "pencil.and.outline"
         case .pinning: return "pin"
@@ -176,14 +171,12 @@ struct ScreenshotCaptureCapabilities: Equatable {
     var desktop: Bool
     var window: Bool
     var area: Bool
-    var scrolling: Bool
     var gifRecording: Bool
 
     static let allEnabled = ScreenshotCaptureCapabilities(
         desktop: true,
         window: true,
         area: true,
-        scrolling: true,
         gifRecording: true
     )
 }
@@ -197,7 +190,6 @@ var captureCapabilities: ScreenshotCaptureCapabilities {
         desktop: isEnabled(.desktopCapture),
         window: isEnabled(.windowCapture),
         area: isEnabled(.areaCapture),
-        scrolling: isEnabled(.scrollingCapture),
         gifRecording: isEnabled(.gifRecording)
     )
 }
@@ -407,6 +399,7 @@ final class ScreenshotGIFRecordingTests: XCTestCase {
         let clock = StubGIFClock(stopAfterSleeps: 2)
         let encoder = StubGIFEncoder(output: Data([0x47, 0x49, 0x46]))
         let recorder = ScreenshotGIFRecorder(
+            permissionProvider: StubGIFPermissionProvider(screenRecordingAllowed: true),
             frameSource: frameSource,
             clock: clock,
             encoder: encoder
@@ -435,6 +428,7 @@ final class ScreenshotGIFRecordingTests: XCTestCase {
     func testRecorderStopsAtMaximumFrames() throws {
         let frameSource = StubGIFFrameSource(frame: try image(width: 4, height: 4, color: .blue))
         let recorder = ScreenshotGIFRecorder(
+            permissionProvider: StubGIFPermissionProvider(screenRecordingAllowed: true),
             frameSource: frameSource,
             clock: StubGIFClock(stopAfterSleeps: 99),
             encoder: StubGIFEncoder(output: Data([1]))
@@ -885,7 +879,6 @@ struct ScreenshotPanel: View {
     let onCaptureDesktop: () -> Void
     let onCaptureWindow: () -> Void
     let onCaptureArea: () -> Void
-    let onCaptureScrolling: () -> Void
     let onRecordGIF: () -> Void
 
     var body: some View {
@@ -900,12 +893,6 @@ struct ScreenshotPanel: View {
                 }
                 if capabilities.area {
                     captureButton(for: .area, action: onCaptureArea, prominent: !capabilities.desktop && !capabilities.window)
-                }
-                if capabilities.scrolling {
-                    Button(action: onCaptureScrolling) {
-                        Label("Scrolling", systemImage: "rectangle.stack.badge.plus")
-                    }
-                    .buttonStyle(.bordered)
                 }
                 if capabilities.gifRecording {
                     Button(action: onRecordGIF) {
