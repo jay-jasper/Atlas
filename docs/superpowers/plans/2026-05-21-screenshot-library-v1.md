@@ -62,7 +62,7 @@ Out of scope for v1:
 - Create: `platforms/macos/AtlasTests/ScreenshotLibraryTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write failing store tests**
+- [x] **Step 1: Write failing store tests**
 
 Create `platforms/macos/AtlasTests/ScreenshotLibraryTests.swift`:
 
@@ -236,7 +236,7 @@ final class ScreenshotLibraryTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -246,7 +246,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `ScreenshotLibraryStore` and `ScreenshotLibraryItem` do not exist yet.
 
-- [ ] **Step 3: Add store implementation**
+- [x] **Step 3: Add store implementation**
 
 Create `platforms/macos/Atlas/ScreenshotLibrary.swift`:
 
@@ -448,7 +448,7 @@ private extension JSONDecoder {
 }
 ```
 
-- [ ] **Step 4: Add files to the Xcode project**
+- [x] **Step 4: Add files to the Xcode project**
 
 Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj`:
 
@@ -457,7 +457,7 @@ Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj`:
 - Use new unique 24-character hex IDs following the existing `83CBBB...` formatting.
 - Do not reorder unrelated project entries or change build settings.
 
-- [ ] **Step 5: Run store tests**
+- [x] **Step 5: Run store tests**
 
 Run:
 
@@ -467,7 +467,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 8 tests.
 
-- [ ] **Step 6: Commit store**
+- [x] **Step 6: Commit store**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotLibrary.swift platforms/macos/AtlasTests/ScreenshotLibraryTests.swift platforms/macos/Atlas.xcodeproj/project.pbxproj
@@ -483,7 +483,7 @@ git commit -m "feat(macos): add screenshot library store"
 - Create: `platforms/macos/AtlasTests/ScreenshotLibraryPanelTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write failing panel state tests**
+- [x] **Step 1: Write failing panel state tests**
 
 Create `platforms/macos/AtlasTests/ScreenshotLibraryPanelTests.swift`:
 
@@ -554,7 +554,7 @@ final class ScreenshotLibraryPanelTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -564,7 +564,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `ScreenshotLibraryPanelState` and `ScreenshotLibraryPanel` do not exist.
 
-- [ ] **Step 3: Add panel implementation**
+- [x] **Step 3: Add panel implementation**
 
 Create `platforms/macos/Atlas/ScreenshotLibraryPanel.swift`:
 
@@ -708,7 +708,7 @@ private struct ScreenshotLibraryRow: View {
 }
 ```
 
-- [ ] **Step 4: Add files to the Xcode project**
+- [x] **Step 4: Add files to the Xcode project**
 
 Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj`:
 
@@ -716,7 +716,7 @@ Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj`:
 - Add `ScreenshotLibraryPanelTests.swift` to the `AtlasTests` group and test target `Sources`.
 - Use new unique 24-character hex IDs following the surrounding entries.
 
-- [ ] **Step 5: Run panel tests**
+- [x] **Step 5: Run panel tests**
 
 Run:
 
@@ -726,7 +726,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 4 tests.
 
-- [ ] **Step 6: Commit panel**
+- [x] **Step 6: Commit panel**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotLibraryPanel.swift platforms/macos/AtlasTests/ScreenshotLibraryPanelTests.swift platforms/macos/Atlas.xcodeproj/project.pbxproj
@@ -740,7 +740,7 @@ git commit -m "feat(macos): add screenshot library panel"
 **Files:**
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Add library state and store to `ContentView`**
+- [x] **Step 1: Add library state and store to `ContentView`**
 
 Modify `platforms/macos/Atlas/ContentView.swift` near the existing screenshot state:
 
@@ -751,7 +751,7 @@ Modify `platforms/macos/Atlas/ContentView.swift` near the existing screenshot st
 private let screenshotLibraryStore = ScreenshotLibraryStore()
 ```
 
-- [ ] **Step 2: Render the library panel**
+- [x] **Step 2: Render the library panel**
 
 Insert this panel after `ScreenshotFeatureSettingsPanel` and before `TranslationSettingsPanel`:
 
@@ -766,7 +766,7 @@ ScreenshotLibraryPanel(
 Divider()
 ```
 
-- [ ] **Step 3: Load library state at startup**
+- [x] **Step 3: Load library state at startup**
 
 Modify `startModules()` so it loads screenshot settings, translation settings, and library state:
 
@@ -791,7 +791,7 @@ private func startModules() {
 }
 ```
 
-- [ ] **Step 4: Add library helper methods**
+- [x] **Step 4: Add library helper methods**
 
 Add these private methods near the existing screenshot helpers:
 
@@ -873,7 +873,7 @@ private func deleteLibraryItem(_ item: ScreenshotLibraryItem) {
 }
 ```
 
-- [ ] **Step 5: Record captures with source labels**
+- [x] **Step 5: Record captures with source labels**
 
 Change capture completion call sites:
 
@@ -913,7 +913,7 @@ with:
 setCapturedScreenshot(CapturedScreenshot(pngData: data, rect: rect), source: "Desktop")
 ```
 
-- [ ] **Step 6: Update `setCapturedScreenshot`**
+- [x] **Step 6: Update `setCapturedScreenshot`**
 
 Replace:
 
@@ -936,7 +936,7 @@ private func setCapturedScreenshot(_ screenshot: CapturedScreenshot, source: Str
 }
 ```
 
-- [ ] **Step 7: Clear active library item when the editor closes**
+- [x] **Step 7: Clear active library item when the editor closes**
 
 Update `closeScreenshotEditor()` to clear `activeLibraryItemID`:
 
@@ -949,7 +949,7 @@ private func closeScreenshotEditor() {
 }
 ```
 
-- [ ] **Step 8: Update library text after OCR success**
+- [x] **Step 8: Update library text after OCR success**
 
 In `recognizeScreenshotText(_:)`, inside `.success(let ocrResult)` after setting `recognizedScreenshotText`, add:
 
@@ -966,7 +966,7 @@ case .success(let ocrResult):
     showStatus(ocrResult.text.isEmpty ? "No text found" : "Recognized text")
 ```
 
-- [ ] **Step 9: Update library text after translation success**
+- [x] **Step 9: Update library text after translation success**
 
 In `translateRecognizedScreenshotText(_:)`, inside `.success(let translationResult)` after setting `translatedScreenshotText`, add:
 
@@ -983,7 +983,7 @@ case .success(let translationResult):
     showStatus("Translated text")
 ```
 
-- [ ] **Step 10: Run Swift parse**
+- [x] **Step 10: Run Swift parse**
 
 Run:
 
@@ -993,7 +993,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS with no output.
 
-- [ ] **Step 11: Run focused library tests**
+- [x] **Step 11: Run focused library tests**
 
 Run:
 
@@ -1003,7 +1003,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 12 tests.
 
-- [ ] **Step 12: Commit wiring**
+- [x] **Step 12: Commit wiring**
 
 ```bash
 git add platforms/macos/Atlas/ContentView.swift

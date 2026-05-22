@@ -50,7 +50,7 @@ Out of scope:
 - Modify: `platforms/macos/Atlas/FloatingScreenshotThumbnailWindow.swift`
 - Modify: `platforms/macos/AtlasTests/FloatingScreenshotThumbnailWindowTests.swift`
 
-- [ ] **Step 1: Write failing action model tests**
+- [x] **Step 1: Write failing action model tests**
 
 Append these tests to `platforms/macos/AtlasTests/FloatingScreenshotThumbnailWindowTests.swift` before the closing brace:
 
@@ -87,7 +87,7 @@ Append these tests to `platforms/macos/AtlasTests/FloatingScreenshotThumbnailWin
     }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -97,7 +97,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `FloatingScreenshotThumbnailAction`, `FloatingScreenshotThumbnailActionResult`, and `FloatingScreenshotThumbnailActionState` do not exist.
 
-- [ ] **Step 3: Add the action model**
+- [x] **Step 3: Add the action model**
 
 In `platforms/macos/Atlas/FloatingScreenshotThumbnailWindow.swift`, insert this code after the imports and before `FloatingScreenshotThumbnailLayout`:
 
@@ -174,7 +174,7 @@ struct FloatingScreenshotThumbnailActionState: Equatable {
 }
 ```
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run:
 
@@ -184,7 +184,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 7 tests.
 
-- [ ] **Step 5: Commit action model**
+- [x] **Step 5: Commit action model**
 
 Run:
 
@@ -201,7 +201,7 @@ git commit -m "feat(macos): model screenshot thumbnail actions"
 - Modify: `platforms/macos/Atlas/FloatingScreenshotThumbnailWindow.swift`
 - Modify: `platforms/macos/AtlasTests/FloatingScreenshotThumbnailWindowTests.swift`
 
-- [ ] **Step 1: Write failing view model test**
+- [x] **Step 1: Write failing view model test**
 
 Append this test to `platforms/macos/AtlasTests/FloatingScreenshotThumbnailWindowTests.swift` before the closing brace:
 
@@ -229,7 +229,7 @@ Append this test to `platforms/macos/AtlasTests/FloatingScreenshotThumbnailWindo
     }
 ```
 
-- [ ] **Step 2: Run tests to verify current state**
+- [x] **Step 2: Run tests to verify current state**
 
 Run:
 
@@ -239,7 +239,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS if Task 1 model was implemented correctly. If this fails, fix Task 1 before editing the view.
 
-- [ ] **Step 3: Update callback signatures**
+- [x] **Step 3: Update callback signatures**
 
 In `FloatingScreenshotThumbnailWindow.show`, change the callback parameters from:
 
@@ -261,7 +261,7 @@ onDismiss: @escaping () -> FloatingScreenshotThumbnailActionResult
 
 Make the same signature change in the private `showOnMain` method.
 
-- [ ] **Step 4: Update view construction callbacks**
+- [x] **Step 4: Update view construction callbacks**
 
 In `showOnMain`, replace the `FloatingScreenshotThumbnailView` construction callbacks with:
 
@@ -288,7 +288,7 @@ let view = FloatingScreenshotThumbnailView(
 )
 ```
 
-- [ ] **Step 5: Update `FloatingScreenshotThumbnailView` stored properties**
+- [x] **Step 5: Update `FloatingScreenshotThumbnailView` stored properties**
 
 In `FloatingScreenshotThumbnailView`, replace the action closure properties:
 
@@ -310,7 +310,7 @@ let onDismiss: () -> FloatingScreenshotThumbnailActionResult
 @State private var actionState = FloatingScreenshotThumbnailActionState()
 ```
 
-- [ ] **Step 6: Add action execution helper**
+- [x] **Step 6: Add action execution helper**
 
 Inside `FloatingScreenshotThumbnailView`, add this helper below `body`:
 
@@ -333,7 +333,7 @@ private func perform(_ action: FloatingScreenshotThumbnailAction) {
 }
 ```
 
-- [ ] **Step 7: Replace tap and context menu actions**
+- [x] **Step 7: Replace tap and context menu actions**
 
 In `FloatingScreenshotThumbnailView.body`, replace:
 
@@ -361,7 +361,7 @@ Replace the `contextMenu` block with:
 }
 ```
 
-- [ ] **Step 8: Add visible action controls and status chip**
+- [x] **Step 8: Add visible action controls and status chip**
 
 Inside the main `ZStack`, after the existing dimensions `HStack`, add this overlay content:
 
@@ -410,7 +410,7 @@ Keep the existing top-right dismiss button in place, but change its action from 
 perform(.dismiss)
 ```
 
-- [ ] **Step 9: Run Swift parse**
+- [x] **Step 9: Run Swift parse**
 
 Run:
 
@@ -420,7 +420,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS with no output.
 
-- [ ] **Step 10: Run focused tests**
+- [x] **Step 10: Run focused tests**
 
 Run:
 
@@ -430,7 +430,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 8 tests.
 
-- [ ] **Step 11: Commit UI status feedback**
+- [x] **Step 11: Commit UI status feedback**
 
 Run:
 
@@ -446,7 +446,7 @@ git commit -m "feat(macos): show screenshot thumbnail action feedback"
 **Files:**
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Update thumbnail routing call**
+- [x] **Step 1: Update thumbnail routing call**
 
 In `showFloatingThumbnail(for:libraryItemID:)`, replace:
 
@@ -470,7 +470,7 @@ onSave: saveScreenshotFromThumbnail,
 onDismiss: dismissFloatingThumbnail
 ```
 
-- [ ] **Step 2: Return action result from open handler**
+- [x] **Step 2: Return action result from open handler**
 
 Change `openFloatingThumbnail` from:
 
@@ -499,7 +499,7 @@ private func openFloatingThumbnail(
 }
 ```
 
-- [ ] **Step 3: Add thumbnail-specific copy/save/dismiss handlers**
+- [x] **Step 3: Add thumbnail-specific copy/save/dismiss handlers**
 
 Add these methods below `openFloatingThumbnail`:
 
@@ -528,7 +528,7 @@ private func dismissFloatingThumbnail() -> FloatingScreenshotThumbnailActionResu
 
 Keep the existing `copyScreenshot(_:)` and `saveScreenshot(_:)` methods unchanged because the editor still uses them.
 
-- [ ] **Step 4: Run Swift parse**
+- [x] **Step 4: Run Swift parse**
 
 Run:
 
@@ -538,7 +538,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS with no output.
 
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 5: Run focused tests**
 
 Run:
 
@@ -548,7 +548,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 8 tests.
 
-- [ ] **Step 6: Commit ContentView routing**
+- [x] **Step 6: Commit ContentView routing**
 
 Run:
 
@@ -564,7 +564,7 @@ git commit -m "feat(macos): route screenshot thumbnail output actions"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-05-21-screenshot-quick-output-feedback-v1.md`
 
-- [ ] **Step 1: Run Swift parse**
+- [x] **Step 1: Run Swift parse**
 
 Run:
 
@@ -574,7 +574,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS with no output.
 
-- [ ] **Step 2: Run focused thumbnail tests**
+- [x] **Step 2: Run focused thumbnail tests**
 
 Run:
 
@@ -584,7 +584,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 8 tests.
 
-- [ ] **Step 3: Run full macOS tests**
+- [x] **Step 3: Run full macOS tests**
 
 Run:
 
@@ -594,7 +594,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS. The existing CoreSimulator out-of-date warning is acceptable if macOS tests run and `TEST SUCCEEDED` appears.
 
-- [ ] **Step 4: Append verification notes**
+- [x] **Step 4: Append verification notes**
 
 Append this section to `docs/superpowers/plans/2026-05-21-screenshot-quick-output-feedback-v1.md`:
 
@@ -610,7 +610,7 @@ Append this section to `docs/superpowers/plans/2026-05-21-screenshot-quick-outpu
 Screenshot Quick Output Feedback v1 keeps the output workflow local to the macOS UI layer. It adds visible feedback and testable routing without changing capture, library, OCR, or translation persistence.
 ```
 
-- [ ] **Step 5: Commit verification notes**
+- [x] **Step 5: Commit verification notes**
 
 Run:
 

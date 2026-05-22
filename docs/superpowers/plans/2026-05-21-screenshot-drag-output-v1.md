@@ -52,7 +52,7 @@ Out of scope:
 - Create: `platforms/macos/AtlasTests/ScreenshotDragOutputTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write failing drag output tests**
+- [x] **Step 1: Write failing drag output tests**
 
 Create `platforms/macos/AtlasTests/ScreenshotDragOutputTests.swift`:
 
@@ -147,7 +147,7 @@ final class ScreenshotDragOutputTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -157,7 +157,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `ScreenshotDragOutputStore` does not exist.
 
-- [ ] **Step 3: Add drag output implementation**
+- [x] **Step 3: Add drag output implementation**
 
 Create `platforms/macos/Atlas/ScreenshotDragOutput.swift`:
 
@@ -243,7 +243,7 @@ struct ScreenshotDragOutputStore {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj` following the existing nearby pattern for `FloatingScreenshotThumbnailWindow.swift` and `FloatingScreenshotThumbnailWindowTests.swift`:
 
@@ -254,7 +254,7 @@ ScreenshotDragOutputTests.swift
 
 Add the source file to the `Atlas` target source build phase, and add the test file to the `AtlasTests` target source build phase.
 
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 5: Run focused tests**
 
 Run:
 
@@ -264,7 +264,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 4 tests.
 
-- [ ] **Step 6: Commit drag output store**
+- [x] **Step 6: Commit drag output store**
 
 Run:
 
@@ -281,7 +281,7 @@ git commit -m "feat(macos): add screenshot drag output store"
 - Modify: `platforms/macos/Atlas/FloatingScreenshotThumbnailWindow.swift`
 - Modify: `platforms/macos/AtlasTests/FloatingScreenshotThumbnailWindowTests.swift`
 
-- [ ] **Step 1: Write failing drag state tests**
+- [x] **Step 1: Write failing drag state tests**
 
 Append these tests to `platforms/macos/AtlasTests/FloatingScreenshotThumbnailWindowTests.swift` before the closing brace:
 
@@ -299,7 +299,7 @@ Append these tests to `platforms/macos/AtlasTests/FloatingScreenshotThumbnailWin
     }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -309,7 +309,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `FloatingScreenshotThumbnailActionResult.dragged` does not exist.
 
-- [ ] **Step 3: Add dragged action result**
+- [x] **Step 3: Add dragged action result**
 
 In `platforms/macos/Atlas/FloatingScreenshotThumbnailWindow.swift`, add a new case to `FloatingScreenshotThumbnailActionResult`:
 
@@ -324,7 +324,7 @@ case .dragged:
     return "Ready to drag"
 ```
 
-- [ ] **Step 4: Add item provider closure to window and view**
+- [x] **Step 4: Add item provider closure to window and view**
 
 Update `FloatingScreenshotThumbnailWindow.show` and `showOnMain` signatures by adding:
 
@@ -359,7 +359,7 @@ Update `FloatingScreenshotThumbnailView` stored properties by adding:
 let onDragItemProvider: () -> NSItemProvider
 ```
 
-- [ ] **Step 5: Attach `.onDrag` to image/background layer**
+- [x] **Step 5: Attach `.onDrag` to image/background layer**
 
 In `FloatingScreenshotThumbnailView.body`, on the image/background view that already has `.onTapGesture`, add:
 
@@ -388,7 +388,7 @@ Image(nsImage: image)
     }
 ```
 
-- [ ] **Step 6: Run focused thumbnail tests**
+- [x] **Step 6: Run focused thumbnail tests**
 
 Run:
 
@@ -398,7 +398,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 10 tests.
 
-- [ ] **Step 7: Commit thumbnail drag integration**
+- [x] **Step 7: Commit thumbnail drag integration**
 
 Run:
 
@@ -414,7 +414,7 @@ git commit -m "feat(macos): enable floating thumbnail drag"
 **Files:**
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Add drag output store**
+- [x] **Step 1: Add drag output store**
 
 In `ContentView`, below the existing `screenshotLibraryStore` property:
 
@@ -422,7 +422,7 @@ In `ContentView`, below the existing `screenshotLibraryStore` property:
 private let screenshotDragOutputStore = ScreenshotDragOutputStore()
 ```
 
-- [ ] **Step 2: Pass drag provider into thumbnail window**
+- [x] **Step 2: Pass drag provider into thumbnail window**
 
 In `showFloatingThumbnail(for:libraryItemID:)`, update the `FloatingScreenshotThumbnailWindow.show` call from:
 
@@ -455,7 +455,7 @@ FloatingScreenshotThumbnailWindow.show(
 )
 ```
 
-- [ ] **Step 3: Add drag item provider helper**
+- [x] **Step 3: Add drag item provider helper**
 
 Add this method below `dismissFloatingThumbnail()`:
 
@@ -474,7 +474,7 @@ private func dragItemProvider(for screenshot: CapturedScreenshot) -> NSItemProvi
 }
 ```
 
-- [ ] **Step 4: Run Swift parse**
+- [x] **Step 4: Run Swift parse**
 
 Run:
 
@@ -484,7 +484,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS with no output.
 
-- [ ] **Step 5: Run drag output and thumbnail tests**
+- [x] **Step 5: Run drag output and thumbnail tests**
 
 Run:
 
@@ -494,7 +494,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 14 tests.
 
-- [ ] **Step 6: Commit ContentView drag wiring**
+- [x] **Step 6: Commit ContentView drag wiring**
 
 Run:
 
@@ -512,7 +512,7 @@ git commit -m "feat(macos): wire screenshot thumbnail drag output"
 - Modify: `platforms/macos/AtlasTests/ScreenshotDragOutputTests.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Write cleanup cutoff test**
+- [x] **Step 1: Write cleanup cutoff test**
 
 Append this test to `platforms/macos/AtlasTests/ScreenshotDragOutputTests.swift` before the closing brace:
 
@@ -525,7 +525,7 @@ Append this test to `platforms/macos/AtlasTests/ScreenshotDragOutputTests.swift`
     }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -535,7 +535,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `cleanupCutoff(now:)` does not exist.
 
-- [ ] **Step 3: Add cleanup cutoff helper**
+- [x] **Step 3: Add cleanup cutoff helper**
 
 In `ScreenshotDragOutputStore`, add this static method below `filename(id:date:)`:
 
@@ -545,7 +545,7 @@ static func cleanupCutoff(now: Date = Date()) -> Date {
 }
 ```
 
-- [ ] **Step 4: Add startup cleanup call**
+- [x] **Step 4: Add startup cleanup call**
 
 In `ContentView.startModules()`, after:
 
@@ -573,7 +573,7 @@ private func cleanupScreenshotDragOutput() {
 }
 ```
 
-- [ ] **Step 5: Run Swift parse**
+- [x] **Step 5: Run Swift parse**
 
 Run:
 
@@ -583,7 +583,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS with no output.
 
-- [ ] **Step 6: Run focused tests**
+- [x] **Step 6: Run focused tests**
 
 Run:
 
@@ -593,7 +593,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 5 tests.
 
-- [ ] **Step 7: Commit cleanup**
+- [x] **Step 7: Commit cleanup**
 
 Run:
 

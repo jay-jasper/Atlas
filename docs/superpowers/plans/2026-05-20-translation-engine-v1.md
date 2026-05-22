@@ -56,7 +56,7 @@ This plan does not implement a settings UI, Keychain storage, OpenAI/DeepL/Ollam
 - Modify: `platforms/macos/Atlas/ScreenshotTranslationService.swift`
 - Modify: `platforms/macos/AtlasTests/ScreenshotTranslationServiceTests.swift`
 
-- [ ] **Step 1: Add failing provider-backed service tests**
+- [x] **Step 1: Add failing provider-backed service tests**
 
 Append these tests and helper to `platforms/macos/AtlasTests/ScreenshotTranslationServiceTests.swift`:
 
@@ -111,7 +111,7 @@ private final class CapturingScreenshotTranslationProvider: ScreenshotTranslatio
 }
 ```
 
-- [ ] **Step 2: Run service tests to verify failure**
+- [x] **Step 2: Run service tests to verify failure**
 
 Run:
 
@@ -121,7 +121,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL with missing types such as `ProviderBackedScreenshotTranslationService`, `ScreenshotTranslationRequest`, `ScreenshotTranslationProviding`, and `ScreenshotTranslationError.providerFailed`.
 
-- [ ] **Step 3: Extend the translation service boundary**
+- [x] **Step 3: Extend the translation service boundary**
 
 Update `platforms/macos/Atlas/ScreenshotTranslationService.swift` to this content:
 
@@ -202,7 +202,7 @@ struct ProviderBackedScreenshotTranslationService: ScreenshotTranslating {
 }
 ```
 
-- [ ] **Step 4: Run service tests**
+- [x] **Step 4: Run service tests**
 
 Run:
 
@@ -212,7 +212,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, all `ScreenshotTranslationServiceTests` pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotTranslationService.swift \
@@ -229,7 +229,7 @@ git commit -m "feat(macos): add translation provider service"
 - Create: `platforms/macos/AtlasTests/ScreenshotHTTPTranslationProviderTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Add failing HTTP provider tests**
+- [x] **Step 1: Add failing HTTP provider tests**
 
 Create `platforms/macos/AtlasTests/ScreenshotHTTPTranslationProviderTests.swift`:
 
@@ -381,7 +381,7 @@ private enum StubTransportError: LocalizedError {
 }
 ```
 
-- [ ] **Step 2: Add test file to Xcode project**
+- [x] **Step 2: Add test file to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `ScreenshotHTTPTranslationProviderTests.swift` is listed in:
 
@@ -392,7 +392,7 @@ AtlasTests group
 AtlasTests Sources build phase
 ```
 
-- [ ] **Step 3: Run HTTP provider tests to verify failure**
+- [x] **Step 3: Run HTTP provider tests to verify failure**
 
 Run:
 
@@ -402,7 +402,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL with missing `ScreenshotHTTPTranslationProvider`, `HTTPTranslationEndpointConfig`, and `HTTPTranslationTransporting`.
 
-- [ ] **Step 4: Add HTTP provider implementation**
+- [x] **Step 4: Add HTTP provider implementation**
 
 Create `platforms/macos/Atlas/ScreenshotHTTPTranslationProvider.swift`:
 
@@ -534,7 +534,7 @@ private struct HTTPTranslationResponse: Decodable {
 }
 ```
 
-- [ ] **Step 5: Add app source file to Xcode project**
+- [x] **Step 5: Add app source file to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `ScreenshotHTTPTranslationProvider.swift` is listed in:
 
@@ -545,7 +545,7 @@ Atlas group
 Atlas Sources build phase
 ```
 
-- [ ] **Step 6: Run HTTP provider tests**
+- [x] **Step 6: Run HTTP provider tests**
 
 Run:
 
@@ -555,7 +555,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 5 tests.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotHTTPTranslationProvider.swift \
@@ -574,7 +574,7 @@ git commit -m "feat(macos): add http screenshot translation provider"
 - Modify: `platforms/macos/Atlas/AtlasBridge.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Add failing configuration tests**
+- [x] **Step 1: Add failing configuration tests**
 
 Create `platforms/macos/AtlasTests/ScreenshotTranslationConfigurationTests.swift`:
 
@@ -687,7 +687,7 @@ private final class CapturingConfiguredTranslationProvider: ScreenshotTranslatio
 }
 ```
 
-- [ ] **Step 2: Add test file to Xcode project**
+- [x] **Step 2: Add test file to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `ScreenshotTranslationConfigurationTests.swift` is listed in:
 
@@ -698,7 +698,7 @@ AtlasTests group
 AtlasTests Sources build phase
 ```
 
-- [ ] **Step 3: Run configuration tests to verify failure**
+- [x] **Step 3: Run configuration tests to verify failure**
 
 Run:
 
@@ -708,7 +708,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL with missing `ScreenshotTranslationConfigurationStore`, `ScreenshotTranslationConfigurationKeys`, `ConfiguredScreenshotTranslationService`, and `ScreenshotTranslationServiceFactory`.
 
-- [ ] **Step 4: Add configuration implementation**
+- [x] **Step 4: Add configuration implementation**
 
 Create `platforms/macos/Atlas/ScreenshotTranslationConfiguration.swift`:
 
@@ -786,7 +786,7 @@ enum ScreenshotTranslationServiceFactory {
 }
 ```
 
-- [ ] **Step 5: Add app source file to Xcode project**
+- [x] **Step 5: Add app source file to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `ScreenshotTranslationConfiguration.swift` is listed in:
 
@@ -797,7 +797,7 @@ Atlas group
 Atlas Sources build phase
 ```
 
-- [ ] **Step 6: Update AtlasBridge live default**
+- [x] **Step 6: Update AtlasBridge live default**
 
 In `platforms/macos/Atlas/AtlasBridge.swift`, change the translation service default from:
 
@@ -811,7 +811,7 @@ to:
 static var translationService: ScreenshotTranslating = ScreenshotTranslationServiceFactory.live()
 ```
 
-- [ ] **Step 7: Run configuration tests**
+- [x] **Step 7: Run configuration tests**
 
 Run:
 
@@ -821,7 +821,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 5 tests.
 
-- [ ] **Step 8: Run existing translation service tests**
+- [x] **Step 8: Run existing translation service tests**
 
 Run:
 
@@ -840,7 +840,7 @@ override func tearDown() {
 
 and rerun the command until it passes.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotTranslationConfiguration.swift \
@@ -858,7 +858,7 @@ git commit -m "feat(macos): configure screenshot translation service"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-05-20-translation-engine-v1.md`
 
-- [ ] **Step 1: Run Swift parse**
+- [x] **Step 1: Run Swift parse**
 
 Run:
 
@@ -868,7 +868,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS with no output.
 
-- [ ] **Step 2: Run focused translation tests**
+- [x] **Step 2: Run focused translation tests**
 
 Run:
 
@@ -878,7 +878,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS.
 
-- [ ] **Step 3: Run full macOS tests**
+- [x] **Step 3: Run full macOS tests**
 
 Run:
 
@@ -888,7 +888,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS. The existing CoreSimulator out-of-date warning is acceptable if macOS tests run and `TEST SUCCEEDED` appears.
 
-- [ ] **Step 4: Run Rust core tests**
+- [x] **Step 4: Run Rust core tests**
 
 Run:
 
@@ -898,7 +898,7 @@ cargo test -p atlas-core
 
 Expected: PASS.
 
-- [ ] **Step 5: Append verification notes**
+- [x] **Step 5: Append verification notes**
 
 Append this section to `docs/superpowers/plans/2026-05-20-translation-engine-v1.md`:
 
@@ -915,7 +915,7 @@ Append this section to `docs/superpowers/plans/2026-05-20-translation-engine-v1.
 Translation Engine v1 is intentionally Atlas-compatible HTTP only. Provider-specific adapters, Keychain-backed secrets, and settings UI remain future work.
 ```
 
-- [ ] **Step 6: Commit verification notes**
+- [x] **Step 6: Commit verification notes**
 
 ```bash
 git add docs/superpowers/plans/2026-05-20-translation-engine-v1.md
