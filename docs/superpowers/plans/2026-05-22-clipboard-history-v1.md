@@ -4,7 +4,7 @@
 
 **Goal:** Replace the current in-memory clipboard command provider with gated, persistent clipboard history for text plus image metadata.
 
-**Architecture:** Keep clipboard capture in Swift because it depends on `NSPasteboard`, and keep the Rust/UniFFI layer limited to registering the `clipboard` feature flag. `ClipboardHistoryStore` owns durable text and image-metadata history, while `ClipboardHistoryProvider` captures through an injected `ClipboardReading` interface and maps searchable history to command palette results. `ClipboardHistoryPanel` provides privacy messaging, search, delete, and clear-all controls in the main Atlas window behind Feature Center gating.
+**Architecture:** Keep clipboard capture in Swift because it depends on `NSPasteboard`, and keep the Rust/UniFFI layer limited to registering the `clipboard` feature flag. `CommandPaletteState` owns one shared `ClipboardHistoryStore`, injects it into `ClipboardHistoryProvider`, and exposes the same store to `ContentView` so command palette capture and panel rendering read the same history. `ClipboardHistoryProvider` captures through an injected `ClipboardReading` interface, maps searchable history to command palette results, and calls `onHistoryChanged` after capture so the visible panel snapshot reloads without restarting the app. `ClipboardHistoryPanel` provides privacy messaging, search, delete, and clear-all controls in the main Atlas window behind Feature Center gating.
 
 **Tech Stack:** Swift, SwiftUI, AppKit `NSPasteboard`, Foundation `UserDefaults`, XCTest, Rust feature registry, UniFFI feature list, explicit Xcode PBX project membership via `xcodeproj`.
 
@@ -65,10 +65,14 @@ Preserve the injected-reader testing approach and extend it for image metadata.
   - Reuses store-backed `ClipboardHistoryItem`.
   - Extends `ClipboardReading` with `imageMetadata()`.
   - Captures text or image metadata into `ClipboardHistoryStoring`.
+  - Calls `onHistoryChanged` after successful capture so the panel can reload.
   - Returns no results and performs no capture when the `clipboard` feature is disabled.
 
 - `platforms/macos/AtlasTests/ClipboardHistoryProviderTests.swift`
-  - Updates fake reader and tests for store-backed capture, image metadata, disabled gating, search, and copy.
+  - Updates fake reader and tests for store-backed capture, image metadata, disabled gating, search, copy, and the panel reload callback.
+
+- `platforms/macos/AtlasTests/SnippetsProviderTests.swift`
+  - Updates `FakeSnippetClipboard` with `imageMetadata() -> nil` because it also conforms to `ClipboardReading`.
 
 - `crates/atlas-core/src/features.rs`
   - Registers the `clipboard` feature with default disabled status.
@@ -81,12 +85,12 @@ Preserve the injected-reader testing approach and extend it for image metadata.
   - Maps `AtlasModule.clipboard.featureName` to the `Clipboard History` title.
 
 - `platforms/macos/Atlas/ContentView.swift`
-  - Owns a `ClipboardHistoryStore`.
+  - Reads the shared `ClipboardHistoryStore` from `CommandPaletteState`.
   - Shows `ClipboardHistoryPanel` only when the `clipboard` feature is enabled.
   - Updates the command palette clipboard provider when Feature Center toggles clipboard.
 
 - `platforms/macos/Atlas/AtlasApp.swift`
-  - Keeps a strong reference to `ClipboardHistoryProvider`.
+  - Keeps a strong reference to the shared `ClipboardHistoryStore` and `ClipboardHistoryProvider`.
   - Adds `setClipboardHistoryEnabled(_:)` on `CommandPaletteState`.
 
 - `platforms/macos/Atlas.xcodeproj/project.pbxproj`
@@ -618,6 +622,7 @@ Expected: The commit includes the store, store tests, and explicit PBX membershi
 **Files:**
 - Modify: `platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.swift`
 - Modify: `platforms/macos/AtlasTests/ClipboardHistoryProviderTests.swift`
+- Modify: `platforms/macos/AtlasTests/SnippetsProviderTests.swift`
 
 - [ ] **Step 1: Replace provider tests**
 
@@ -719,6 +724,24 @@ final class ClipboardHistoryProviderTests: XCTestCase {
 
         XCTAssertEqual(reader.writtenText, "first")
     }
+
+    func testCaptureNotifiesPanelReloadCallback() {
+        let reader = FakeClipboardReader(text: "visible without restart")
+        let store = InMemoryClipboardHistoryStore()
+        var panelItems: [ClipboardHistoryItem] = []
+        let provider = ClipboardHistoryProvider(
+            reader: reader,
+            store: store,
+            isEnabled: { true },
+            onHistoryChanged: {
+                panelItems = store.items()
+            }
+        )
+
+        provider.captureCurrentClipboard()
+
+        XCTAssertEqual(panelItems.map(\.textValue), ["visible without restart"])
+    }
 }
 
 private final class FakeClipboardReader: ClipboardReading {
@@ -798,7 +821,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
   -only-testing:AtlasTests/ClipboardHistoryProviderTests
 ```
 
-Expected: The build fails because `ClipboardReading.imageMetadata()`, the store-backed provider initializer, and feature gating do not exist yet.
+Expected: The build fails because `ClipboardReading.imageMetadata()`, the store-backed provider initializer, the history-change callback, and feature gating do not exist yet.
 
 - [ ] **Step 3: Replace ClipboardHistoryProvider**
 
@@ -864,18 +887,21 @@ final class ClipboardHistoryProvider: CommandProviding {
     private let store: ClipboardHistoryStoring
     private let isEnabled: () -> Bool
     private let dateProvider: () -> Date
+    private let onHistoryChanged: () -> Void
     private var lastChangeCount: Int?
 
     init(
         reader: ClipboardReading = SystemClipboardReader(),
         store: ClipboardHistoryStoring = ClipboardHistoryStore(),
         isEnabled: @escaping () -> Bool = { false },
-        dateProvider: @escaping () -> Date = Date.init
+        dateProvider: @escaping () -> Date = Date.init,
+        onHistoryChanged: @escaping () -> Void = {}
     ) {
         self.reader = reader
         self.store = store
         self.isEnabled = isEnabled
         self.dateProvider = dateProvider
+        self.onHistoryChanged = onHistoryChanged
     }
 
     func results(for query: String) -> [PaletteCommand] {
@@ -901,11 +927,13 @@ final class ClipboardHistoryProvider: CommandProviding {
         if let text = reader.string(),
            !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             store.addText(text, capturedAt: dateProvider())
+            onHistoryChanged()
             return
         }
 
         if let metadata = reader.imageMetadata() {
             store.addImageMetadata(metadata, capturedAt: dateProvider())
+            onHistoryChanged()
         }
     }
 
@@ -938,29 +966,55 @@ final class ClipboardHistoryProvider: CommandProviding {
 }
 ```
 
-- [ ] **Step 4: Verify provider tests pass**
+- [ ] **Step 4: Update SnippetsProvider fake clipboard**
+
+In `platforms/macos/AtlasTests/SnippetsProviderTests.swift`, update `FakeSnippetClipboard` so it still conforms to `ClipboardReading` after the protocol gains image metadata:
+
+```swift
+private final class FakeSnippetClipboard: ClipboardReading {
+    private(set) var changeCount = 0
+    private(set) var writtenText: String?
+
+    func string() -> String? {
+        writtenText
+    }
+
+    func imageMetadata() -> ClipboardImageMetadata? {
+        nil
+    }
+
+    func setString(_ text: String) {
+        writtenText = text
+        changeCount += 1
+    }
+}
+```
+
+- [ ] **Step 5: Verify provider and snippet tests pass**
 
 Run:
 
 ```bash
 xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
   -destination 'platform=macOS' \
-  -only-testing:AtlasTests/ClipboardHistoryProviderTests
+  -only-testing:AtlasTests/ClipboardHistoryProviderTests \
+  -only-testing:AtlasTests/SnippetsProviderTests
 ```
 
-Expected: `ClipboardHistoryProviderTests` passes.
+Expected: `ClipboardHistoryProviderTests` passes, including `testCaptureNotifiesPanelReloadCallback`, and `SnippetsProviderTests` still compiles and passes with the updated fake clipboard.
 
-- [ ] **Step 5: Commit provider**
+- [ ] **Step 6: Commit provider**
 
 Run:
 
 ```bash
 git add platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.swift \
-  platforms/macos/AtlasTests/ClipboardHistoryProviderTests.swift
+  platforms/macos/AtlasTests/ClipboardHistoryProviderTests.swift \
+  platforms/macos/AtlasTests/SnippetsProviderTests.swift
 git commit -m "feat: back clipboard provider with history store"
 ```
 
-Expected: The commit contains only provider and provider-test changes.
+Expected: The commit contains provider changes, provider-test changes, and the `FakeSnippetClipboard.imageMetadata() -> nil` compatibility update.
 
 ---
 
@@ -1098,14 +1152,23 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Wire ClipboardHistoryStore into ContentView**
+- [ ] **Step 3: Wire shared ClipboardHistoryStore into ContentView**
 
-In `platforms/macos/Atlas/ContentView.swift`, add state and store properties near the existing screenshot library state:
+In `platforms/macos/Atlas/ContentView.swift`, add state near the existing screenshot library state:
 
 ```swift
 @State private var clipboardHistoryItems: [ClipboardHistoryItem] = []
 @State private var clipboardHistoryQuery: String = ""
-private let clipboardHistoryStore = ClipboardHistoryStore()
+```
+
+Add a fallback store and computed store near the existing store properties. The fallback is only used in previews or tests where `paletteState` is nil; the running app uses the shared store owned by `CommandPaletteState`.
+
+```swift
+private let fallbackClipboardHistoryStore = ClipboardHistoryStore()
+
+private var clipboardHistoryStore: ClipboardHistoryStoring {
+    paletteState?.clipboardHistoryStore ?? fallbackClipboardHistoryStore
+}
 ```
 
 In `startModules()`, after `enabledFeatures = FeatureStateReducer.enabledMap(from: loadedFeatures)`, add:
@@ -1168,15 +1231,19 @@ private func clearClipboardHistory() {
 
 private func syncClipboardFeatureGate() {
     paletteState?.setClipboardHistoryEnabled(isFeatureEnabled(.clipboard))
+    paletteState?.setClipboardHistoryChangedHandler {
+        self.loadClipboardHistory()
+    }
 }
 ```
 
-- [ ] **Step 4: Wire command palette gating in AtlasApp**
+- [ ] **Step 4: Wire shared store and command palette gating in AtlasApp**
 
-In `platforms/macos/Atlas/AtlasApp.swift`, add a provider property to `CommandPaletteState`:
+In `platforms/macos/Atlas/AtlasApp.swift`, add shared store and provider properties to `CommandPaletteState`:
 
 ```swift
-private let clipboardHistoryProvider = ClipboardHistoryProvider()
+let clipboardHistoryStore = ClipboardHistoryStore()
+private lazy var clipboardHistoryProvider = ClipboardHistoryProvider(store: clipboardHistoryStore)
 ```
 
 Remove the local `let clipboardHistoryProvider = ClipboardHistoryProvider()` from `init()` and keep the existing provider order using the property:
@@ -1198,12 +1265,17 @@ Add this method to `CommandPaletteState`:
 func setClipboardHistoryEnabled(_ enabled: Bool) {
     clipboardHistoryProvider.setEnabled(enabled)
 }
+
+func setClipboardHistoryChangedHandler(_ handler: @escaping () -> Void) {
+    clipboardHistoryProvider.setHistoryChangedHandler(handler)
+}
 ```
 
-In `platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.swift`, support mutable feature state by replacing the `isEnabled` property with:
+In `platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.swift`, support mutable feature state and a mutable history-change callback by replacing these properties:
 
 ```swift
 private var enabled: Bool
+private var onHistoryChanged: () -> Void
 ```
 
 Update the initializer signature:
@@ -1213,20 +1285,26 @@ init(
     reader: ClipboardReading = SystemClipboardReader(),
     store: ClipboardHistoryStoring = ClipboardHistoryStore(),
     isEnabled: @escaping () -> Bool = { false },
-    dateProvider: @escaping () -> Date = Date.init
+    dateProvider: @escaping () -> Date = Date.init,
+    onHistoryChanged: @escaping () -> Void = {}
 ) {
     self.reader = reader
     self.store = store
     self.enabled = isEnabled()
     self.dateProvider = dateProvider
+    self.onHistoryChanged = onHistoryChanged
 }
 ```
 
-Add this method:
+Add these methods:
 
 ```swift
 func setEnabled(_ enabled: Bool) {
     self.enabled = enabled
+}
+
+func setHistoryChangedHandler(_ handler: @escaping () -> Void) {
+    self.onHistoryChanged = handler
 }
 ```
 
@@ -1375,6 +1453,7 @@ Expected: This commit is only needed if the implementation worker records factua
 - The `clipboard` feature appears in Feature Center as `Clipboard History` and defaults disabled.
 - When `clipboard` is disabled, command palette clipboard history performs no pasteboard reads and returns no results.
 - When enabled, text clipboard entries persist across store instances.
+- When the command palette captures a clipboard item while the panel is visible, the shared store plus `onHistoryChanged` callback reloads panel state without restarting the app.
 - Image clipboard entries persist only metadata: type identifier, dimensions, and optional byte count.
 - The panel states that text is stored locally and image pixels are not stored.
 - Search works for text content and image metadata.
