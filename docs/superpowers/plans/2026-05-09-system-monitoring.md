@@ -18,7 +18,7 @@
 - Create: `crates/atlas-core/src/monitor/models.rs`
 - Modify: `crates/atlas-core/src/lib.rs`
 
-- [ ] **Step 1: 添加 Rust 依赖**
+- [x] **Step 1: 添加 Rust 依赖**
 
 ```toml
 # crates/atlas-core/Cargo.toml
@@ -29,7 +29,7 @@ anyhow = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 ```
 
-- [ ] **Step 2: 定义监控数据结构**
+- [x] **Step 2: 定义监控数据结构**
 
 ```rust
 // crates/atlas-core/src/monitor/models.rs
@@ -52,7 +52,7 @@ pub struct PortProcessInfo {
 }
 ```
 
-- [ ] **Step 3: 导出模块**
+- [x] **Step 3: 导出模块**
 
 ```rust
 // crates/atlas-core/src/monitor/mod.rs
@@ -64,7 +64,7 @@ pub mod models;
 pub mod monitor;
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add crates/atlas-core/Cargo.toml crates/atlas-core/src/monitor
@@ -79,7 +79,7 @@ git commit -m "feat: add monitoring models and dependencies"
 - Create: `crates/atlas-core/src/monitor/collector.rs`
 - Modify: `crates/atlas-core/src/monitor/mod.rs`
 
-- [ ] **Step 1: 实现指标采集逻辑**
+- [x] **Step 1: 实现指标采集逻辑**
 
 ```rust
 // crates/atlas-core/src/monitor/collector.rs
@@ -126,7 +126,7 @@ impl Collector {
 }
 ```
 
-- [ ] **Step 2: 运行单元测试验证采集**
+- [x] **Step 2: 运行单元测试验证采集**
 
 ```rust
 #[cfg(test)]
@@ -143,7 +143,7 @@ mod tests {
 
 Run: `cargo test -p atlas-core`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add crates/atlas-core/src/monitor/collector.rs
@@ -158,7 +158,7 @@ git commit -m "feat: implement hardware monitoring collector"
 - Create: `crates/atlas-core/src/monitor/port_master.rs`
 - Modify: `crates/atlas-core/src/monitor/mod.rs`
 
-- [ ] **Step 1: 实现端口查找逻辑 (macOS 适配)**
+- [x] **Step 1: 实现端口查找逻辑 (macOS 适配)**
 
 ```rust
 // crates/atlas-core/src/monitor/port_master.rs
@@ -195,7 +195,7 @@ pub fn kill_process(pid: u32) -> bool {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add crates/atlas-core/src/monitor/port_master.rs
@@ -210,7 +210,7 @@ git commit -m "feat: implement port master logic"
 - Modify: `crates/atlas-ffi/src/atlas.udl`
 - Modify: `crates/atlas-ffi/src/lib.rs`
 
-- [ ] **Step 1: 定义 UDL 回调接口与数据类型**
+- [x] **Step 1: 定义 UDL 回调接口与数据类型**
 
 ```udl
 // crates/atlas-ffi/src/atlas.udl
@@ -234,7 +234,7 @@ namespace atlas {
 };
 ```
 
-- [ ] **Step 2: 在 FFI 层实现异步推送循环**
+- [x] **Step 2: 在 FFI 层实现异步推送循环**
 
 ```rust
 // crates/atlas-ffi/src/lib.rs (部分)
@@ -256,7 +256,7 @@ pub fn start_monitoring(callback: Box<dyn SystemMonitorCallback>) {
 }
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add crates/atlas-ffi
@@ -270,7 +270,7 @@ git commit -m "feat: setup ffi callbacks for system monitoring"
 **Files:**
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: 更新 UI 显示实时数据**
+- [x] **Step 1: 更新 UI 显示实时数据**
 
 ```swift
 // platforms/macos/Atlas/ContentView.swift
@@ -305,7 +305,7 @@ struct ContentView: View {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ContentView.swift
