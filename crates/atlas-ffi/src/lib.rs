@@ -324,9 +324,17 @@ mod tests {
         let names: Vec<_> = features.iter().map(|f| f.name.as_str()).collect();
         assert_eq!(
             names,
-            ["automation", "monitoring", "screenshot", "tokenbar", "window-manager"]
+            [
+                "ai-load-monitor",
+                "automation",
+                "monitoring",
+                "screenshot",
+                "tokenbar",
+                "window-manager"
+            ]
         );
 
+        assert!(features.iter().any(|f| f.name == "ai-load-monitor"));
         assert!(features.iter().any(|f| f.name == "automation"));
         assert!(features.iter().any(|f| f.name == "monitoring"));
         assert!(features.iter().any(|f| f.name == "screenshot"));

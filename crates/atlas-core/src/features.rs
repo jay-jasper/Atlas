@@ -25,6 +25,7 @@ impl FeatureManager {
     pub fn new() -> Self {
         let mut features = HashMap::new();
         // Default feature placeholders
+        features.insert("ai-load-monitor".to_string(), FeatureStatus::Disabled);
         features.insert("automation".to_string(), FeatureStatus::Disabled);
         features.insert("monitoring".to_string(), FeatureStatus::Disabled);
         features.insert("screenshot".to_string(), FeatureStatus::Disabled);
@@ -98,7 +99,14 @@ mod tests {
 
         assert_eq!(
             names,
-            ["automation", "monitoring", "screenshot", "tokenbar", "window-manager"]
+            [
+                "ai-load-monitor",
+                "automation",
+                "monitoring",
+                "screenshot",
+                "tokenbar",
+                "window-manager"
+            ]
         );
     }
 }

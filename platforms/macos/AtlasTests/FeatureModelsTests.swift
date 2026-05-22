@@ -47,4 +47,10 @@ final class FeatureModelsTests: XCTestCase {
 
         XCTAssertEqual(feature.title, "TokenBar")
     }
+
+    func testMapsAILoadTitle() {
+        let feature = AtlasFeature(name: "ai-load-monitor", isEnabled: false)
+
+        XCTAssertEqual(feature.title, "AI Load")
+    }
 }

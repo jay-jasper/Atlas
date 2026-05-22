@@ -36,6 +36,7 @@ struct ContentView: View {
     @State private var cpuHistory: [Double] = []
     @State private var memoryHistory: [Double] = []
     @State private var tokenBarSummary: TokenBarSummary = .empty
+    @State private var localAILoadSnapshot: LocalAILoadSnapshot = .empty
     private let screenshotFeatureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigurationStore = ScreenshotTranslationConfigurationStore()
     private let screenshotLibraryStore = ScreenshotLibraryStore()
@@ -47,6 +48,7 @@ struct ContentView: View {
     private let workspaceStore = WorkspaceStore()
     private let workspaceService = WorkspaceWindowService()
     private let tokenBarLedger = TokenBarLedger()
+    private let localAILoadRefreshService = LocalAILoadRefreshService()
     let windowManager: WindowManaging
     let windowPermissionChecker: WindowManagementPermissionChecking
     var paletteState: CommandPaletteState?
@@ -115,6 +117,12 @@ struct ContentView: View {
                             cpuHistory: cpuHistory,
                             memoryHistory: memoryHistory
                         )
+
+                        Divider()
+                    }
+
+                    if isFeatureEnabled(.aiLoadMonitor) {
+                        LocalAILoadPanel(snapshot: localAILoadSnapshot)
 
                         Divider()
                     }
@@ -246,6 +254,9 @@ struct ContentView: View {
             if isFeatureEnabled(.monitoring) {
                 startMonitoring()
             }
+            if isFeatureEnabled(.aiLoadMonitor) {
+                startLocalAILoadRefresh()
+            }
         } catch {
             statusText = "Atlas feature loading failed"
             showStatus(error.localizedDescription, kind: .error, autoHide: false)
@@ -369,6 +380,7 @@ struct ContentView: View {
 
     private func stopModules() {
         hotkeyService.stop()
+        localAILoadRefreshService.stop()
         do {
             try AtlasBridge.stopMonitoring()
         } catch {
@@ -403,6 +415,16 @@ struct ContentView: View {
 
         if feature == AtlasModule.tokenbar.featureName {
             tokenBarSummary = enabled ? ((try? tokenBarLedger.summary()) ?? .empty) : .empty
+            return
+        }
+
+        if feature == AtlasModule.aiLoadMonitor.featureName {
+            if enabled {
+                startLocalAILoadRefresh()
+            } else {
+                localAILoadRefreshService.stop()
+                localAILoadSnapshot = .empty
+            }
             return
         }
 
@@ -496,6 +518,14 @@ struct ContentView: View {
             }
         } catch {
             showStatus(error.localizedDescription, kind: .error, autoHide: false)
+        }
+    }
+
+    private func startLocalAILoadRefresh() {
+        localAILoadRefreshService.start { snapshot in
+            DispatchQueue.main.async {
+                localAILoadSnapshot = snapshot
+            }
         }
     }
 
