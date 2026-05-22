@@ -6,7 +6,7 @@ final class ApplicationScannerTests: XCTestCase {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        root = FileManager.default.temporaryDirectory
+        root = scannerVisibleTemporaryDirectory()
             .appendingPathComponent("ApplicationScannerTests-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     }
@@ -54,7 +54,7 @@ final class ApplicationScannerTests: XCTestCase {
         ])
     }
 
-    func testScannerSkipsUnreadableOrMissingDirectories() throws {
+    func testScannerSkipsMissingDirectories() throws {
         let existingURL = try makeDirectory("Terminal.app")
         let missing = root.appendingPathComponent("Missing", isDirectory: true)
         let scanner = FileSystemApplicationScanner(directories: [missing, root])
@@ -74,5 +74,13 @@ final class ApplicationScannerTests: XCTestCase {
         let url = root.appendingPathComponent(name, isDirectory: true)
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
+    }
+
+    private func scannerVisibleTemporaryDirectory() -> URL {
+        let temporaryDirectory = FileManager.default.temporaryDirectory
+        if temporaryDirectory.path.hasPrefix("/var/") {
+            return URL(fileURLWithPath: "/private" + temporaryDirectory.path, isDirectory: true)
+        }
+        return temporaryDirectory
     }
 }
