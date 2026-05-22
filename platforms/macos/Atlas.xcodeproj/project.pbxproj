@@ -106,6 +106,8 @@
 		6998D1F9CAA64608A5E71EDE /* ScreenshotScrollingCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 650A01D6BACA4B03A5D7ECC3 /* ScreenshotScrollingCaptureTests.swift */; };
 		C27EB696CACA4ABC9D34B787 /* ScreenshotGIFRecording.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA6CF520A2524B3899891093 /* ScreenshotGIFRecording.swift */; };
 		C250A333099F44698E5D6B05 /* ScreenshotGIFRecordingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7ACF5FA17334730ADDA72E6 /* ScreenshotGIFRecordingTests.swift */; };
+		AFEE5883ED4E468ABBCF9E24 /* ScreenshotGIFOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44C6600E344589BB08786 /* ScreenshotGIFOutput.swift */; };
+		50F4ECA080184A9EA61B06F2 /* ScreenshotGIFOutputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1408CAF605184C5F990E7F9C /* ScreenshotGIFOutputTests.swift */; };
 		8909E1D5DE07DA956392B285 /* AtlasCommandProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBDF9E2A609A5F89E4AB4EB4 /* AtlasCommandProvider.swift */; };
 		8D0FFFF365D97EEB88E53BE2 /* WindowManagementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4C5CBAE9FE37D7DC6578B52 /* WindowManagementService.swift */; };
 		94024FC42A48A5F2D890B4E4 /* ClipboardHistoryProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7197E28D112572E9204A1D59 /* ClipboardHistoryProviderTests.swift */; };
@@ -236,6 +238,8 @@
 		650A01D6BACA4B03A5D7ECC3 /* ScreenshotScrollingCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotScrollingCaptureTests.swift; sourceTree = "<group>"; };
 		DA6CF520A2524B3899891093 /* ScreenshotGIFRecording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotGIFRecording.swift; sourceTree = "<group>"; };
 		E7ACF5FA17334730ADDA72E6 /* ScreenshotGIFRecordingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotGIFRecordingTests.swift; sourceTree = "<group>"; };
+		CDB44C6600E344589BB08786 /* ScreenshotGIFOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotGIFOutput.swift; sourceTree = "<group>"; };
+		1408CAF605184C5F990E7F9C /* ScreenshotGIFOutputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotGIFOutputTests.swift; sourceTree = "<group>"; };
 		94C4D8FB21FE5A3384C0FC21 /* KeyRecorderView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeyRecorderView.swift; sourceTree = "<group>"; };
 		A24E8707B23A8AC9918F81A5 /* SnippetsProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnippetsProvider.swift; sourceTree = "<group>"; };
 		A75E6A854484E3D03D8A606F /* KeyRecorderViewTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeyRecorderViewTests.swift; sourceTree = "<group>"; };
@@ -348,6 +352,7 @@
 				A44156B2EB514BCCA0C59582 /* ScreenshotGIFEncoder.swift */,
 				2034F05F41CF484BBE71C6C4 /* ScreenshotScrollingCapture.swift */,
 				DA6CF520A2524B3899891093 /* ScreenshotGIFRecording.swift */,
+				CDB44C6600E344589BB08786 /* ScreenshotGIFOutput.swift */,
 				83CBBA3E1A601CBA00E9B192 /* ScreenshotModels.swift */,
 				83CBBA6A1A601CBA00E9B192 /* ScreenshotEditorView.swift */,
 				83CBBA671A601CBA00E9B192 /* ScreenshotOutput.swift */,
@@ -393,6 +398,7 @@
 				B433C2E38443490FBF109616 /* ScreenshotGIFEncoderTests.swift */,
 				650A01D6BACA4B03A5D7ECC3 /* ScreenshotScrollingCaptureTests.swift */,
 				E7ACF5FA17334730ADDA72E6 /* ScreenshotGIFRecordingTests.swift */,
+				1408CAF605184C5F990E7F9C /* ScreenshotGIFOutputTests.swift */,
 				83CBBB3B1A601CBA00E9B192 /* ScreenshotFeatureSettingsTests.swift */,
 				83CBBB3F1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanelTests.swift */,
 				83CBBBA31A601CBA00E9B192 /* ScreenshotLibraryTests.swift */,
@@ -576,6 +582,7 @@
 				2033376B4AC44FB3A1C0AEFB /* ScreenshotGIFEncoder.swift in Sources */,
 				2F63C38B83534A0C9BD536CA /* ScreenshotScrollingCapture.swift in Sources */,
 				C27EB696CACA4ABC9D34B787 /* ScreenshotGIFRecording.swift in Sources */,
+				AFEE5883ED4E468ABBCF9E24 /* ScreenshotGIFOutput.swift in Sources */,
 				83CBBA2C1A601CBA00E9B192 /* ScreenshotModels.swift in Sources */,
 				83CBBA6B1A601CBA00E9B192 /* ScreenshotEditorView.swift in Sources */,
 				83CBBA661A601CBA00E9B192 /* ScreenshotOutput.swift in Sources */,
@@ -634,6 +641,7 @@
 				5BA74D883726415982FBBDF6 /* ScreenshotGIFEncoderTests.swift in Sources */,
 				6998D1F9CAA64608A5E71EDE /* ScreenshotScrollingCaptureTests.swift in Sources */,
 				C250A333099F44698E5D6B05 /* ScreenshotGIFRecordingTests.swift in Sources */,
+				50F4ECA080184A9EA61B06F2 /* ScreenshotGIFOutputTests.swift in Sources */,
 				83CBBB3A1A601CBA00E9B192 /* ScreenshotFeatureSettingsTests.swift in Sources */,
 				83CBBB3E1A601CBA00E9B192 /* ScreenshotFeatureSettingsPanelTests.swift in Sources */,
 				83CBBBA21A601CBA00E9B192 /* ScreenshotLibraryTests.swift in Sources */,

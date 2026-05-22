@@ -736,7 +736,7 @@ Expected: Commit succeeds.
 - Create: `platforms/macos/AtlasTests/ScreenshotGIFOutputTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write output tests**
+- [x] **Step 1: Write output tests**
 
 Create `platforms/macos/AtlasTests/ScreenshotGIFOutputTests.swift`:
 
@@ -780,7 +780,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because GIF output types do not exist or the test file is not in the project.
 
-- [ ] **Step 3: Add output implementation**
+- [x] **Step 3: Add output implementation**
 
 Create `platforms/macos/Atlas/ScreenshotGIFOutput.swift`:
 
@@ -837,14 +837,14 @@ enum ScreenshotGIFPasteboardWriter {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Add:
 
 - `ScreenshotGIFOutput.swift` to the `Atlas` target Sources.
 - `ScreenshotGIFOutputTests.swift` to the `AtlasTests` target Sources.
 
-- [ ] **Step 5: Run output tests**
+- [x] **Step 5: Run output tests**
 
 Run:
 
