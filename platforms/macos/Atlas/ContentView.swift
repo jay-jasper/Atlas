@@ -43,6 +43,8 @@ struct ContentView: View {
     private let gifRecorder = ScreenshotGIFRecorder()
     private let gifOutputStore = ScreenshotGIFOutputStore()
     private let hotkeyService = GlobalHotkeyService()
+    private let workspaceStore = WorkspaceStore()
+    private let workspaceService = WorkspaceWindowService()
     let windowManager: WindowManaging
     let windowPermissionChecker: WindowManagementPermissionChecking
     var paletteState: CommandPaletteState?
@@ -123,6 +125,12 @@ struct ContentView: View {
                                 isFeatureEnabled: { isFeatureEnabled(.windowManager) }
                             ),
                             onResult: handleWindowGridResult
+                        )
+
+                        Divider()
+
+                        WorkspacePanel(
+                            model: workspacePanelModel()
                         )
 
                         Divider()
@@ -320,7 +328,20 @@ struct ContentView: View {
                     )
                 )
             }
+
+            controller.workspaceViewBuilder = {
+                AnyView(
+                    WorkspacePanel(
+                        model: workspacePanelModel()
+                    )
+                )
+            }
         }
+
+        paletteState?.setWorkspaceActions(
+            onSaveCurrent: saveCurrentWorkspaceFromPalette,
+            onRestore: restoreWorkspaceFromPalette
+        )
     }
 
     private func stopModules() {
@@ -382,6 +403,55 @@ struct ContentView: View {
             showStatus("Window Manager is disabled", kind: .error)
         case .permissionRequired:
             showStatus("Accessibility permission is required", kind: .error)
+        }
+    }
+
+    private func workspacePanelModel() -> WorkspacePanelModel {
+        WorkspacePanelModel(
+            store: workspaceStore,
+            service: workspaceService,
+            permissionChecker: windowPermissionChecker,
+            isFeatureEnabled: { isFeatureEnabled(.windowManager) }
+        )
+    }
+
+    private func saveCurrentWorkspaceFromPalette() {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        let name = "Workspace \(formatter.string(from: Date()))"
+        let model = workspacePanelModel()
+
+        do {
+            try model.saveCurrentLayout(named: name)
+            showStatus(model.statusMessage, kind: workspaceStatusKind(for: model))
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
+        }
+    }
+
+    private func restoreWorkspaceFromPalette(_ workspace: Workspace) {
+        let model = workspacePanelModel()
+
+        do {
+            try model.restore(workspace)
+            showStatus(model.statusMessage, kind: workspaceStatusKind(for: model))
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
+        }
+    }
+
+    private func workspaceStatusKind(for model: WorkspacePanelModel) -> CaptureStatusKind {
+        if !model.restoreIssues.isEmpty {
+            return .error
+        }
+
+        switch model.statusMessage {
+        case "Window Manager is disabled",
+             "Accessibility permission is required",
+             "Workspace name is required":
+            return .error
+        default:
+            return .success
         }
     }
 

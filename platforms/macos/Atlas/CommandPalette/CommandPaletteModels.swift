@@ -25,5 +25,6 @@ enum PaletteDestination: Equatable {
     case windowPicker
     case screenshotLibrary
     case portLookup
+    case workspaces
     case automationOutput(CustomAutomationCommand)
 }

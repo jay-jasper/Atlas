@@ -110,7 +110,7 @@ This plan depends on the window grid plan having added `AtlasModule.windowManage
 - Create: `platforms/macos/AtlasTests/WorkspaceModelsTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write failing model tests**
+- [x] **Step 1: Write failing model tests**
 
 Create `platforms/macos/AtlasTests/WorkspaceModelsTests.swift`:
 
@@ -164,7 +164,7 @@ final class WorkspaceModelsTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run model tests and verify they fail**
+- [x] **Step 2: Run model tests and verify they fail**
 
 Run:
 
@@ -174,7 +174,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: FAIL because workspace model types do not exist yet.
 
-- [ ] **Step 3: Create workspace models**
+- [x] **Step 3: Create workspace models**
 
 Create `platforms/macos/Atlas/WorkspaceModels.swift`:
 
@@ -260,7 +260,7 @@ extension JSONDecoder {
 }
 ```
 
-- [ ] **Step 4: Add model files to the Xcode project**
+- [x] **Step 4: Add model files to the Xcode project**
 
 Run this exact script from the repository root:
 
@@ -292,7 +292,7 @@ project.save
 RUBY
 ```
 
-- [ ] **Step 5: Run model tests**
+- [x] **Step 5: Run model tests**
 
 Run:
 
@@ -311,7 +311,7 @@ Expected: PASS.
 - Create: `platforms/macos/AtlasTests/WorkspaceStoreTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write failing store tests**
+- [x] **Step 1: Write failing store tests**
 
 Create `platforms/macos/AtlasTests/WorkspaceStoreTests.swift`:
 
@@ -379,7 +379,7 @@ final class WorkspaceStoreTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run store tests and verify they fail**
+- [x] **Step 2: Run store tests and verify they fail**
 
 Run:
 
@@ -389,7 +389,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: FAIL because `WorkspaceStore` does not exist yet.
 
-- [ ] **Step 3: Create the store**
+- [x] **Step 3: Create the store**
 
 Create `platforms/macos/Atlas/WorkspaceStore.swift`:
 
@@ -449,7 +449,7 @@ final class WorkspaceStore: WorkspaceStoring {
 }
 ```
 
-- [ ] **Step 4: Add store files to the Xcode project**
+- [x] **Step 4: Add store files to the Xcode project**
 
 Run this exact script from the repository root:
 
@@ -481,7 +481,7 @@ project.save
 RUBY
 ```
 
-- [ ] **Step 5: Run store tests**
+- [x] **Step 5: Run store tests**
 
 Run:
 
@@ -500,7 +500,7 @@ Expected: PASS.
 - Create: `platforms/macos/AtlasTests/WorkspaceWindowServiceTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write failing injected snapshot tests**
+- [x] **Step 1: Write failing injected snapshot tests**
 
 Create `platforms/macos/AtlasTests/WorkspaceWindowServiceTests.swift`:
 
@@ -582,7 +582,7 @@ private final class FakeWorkspaceRestorer: WorkspaceRestoring {
 }
 ```
 
-- [ ] **Step 2: Run service tests and verify they fail**
+- [x] **Step 2: Run service tests and verify they fail**
 
 Run:
 
@@ -592,7 +592,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: FAIL because workspace service protocols and types do not exist yet.
 
-- [ ] **Step 3: Create the service boundary**
+- [x] **Step 3: Create the service boundary**
 
 Create `platforms/macos/Atlas/WorkspaceWindowService.swift`:
 
@@ -743,7 +743,7 @@ final class AccessibilityWorkspaceWindowService: WindowSnapshotProviding, Worksp
 }
 ```
 
-- [ ] **Step 4: Add service files to the Xcode project**
+- [x] **Step 4: Add service files to the Xcode project**
 
 Run this exact script from the repository root:
 
@@ -775,7 +775,7 @@ project.save
 RUBY
 ```
 
-- [ ] **Step 5: Run service tests**
+- [x] **Step 5: Run service tests**
 
 Run:
 
@@ -794,7 +794,7 @@ Expected: PASS.
 - Create: `platforms/macos/AtlasTests/WorkspacePanelTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write failing panel model tests**
+- [x] **Step 1: Write failing panel model tests**
 
 Create `platforms/macos/AtlasTests/WorkspacePanelTests.swift`:
 
@@ -977,7 +977,7 @@ private final class FakeWorkspacePermissionChecker: WindowManagementPermissionCh
 }
 ```
 
-- [ ] **Step 2: Run panel tests and verify they fail**
+- [x] **Step 2: Run panel tests and verify they fail**
 
 Run:
 
@@ -987,7 +987,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: FAIL because `WorkspacePanelModel` does not exist yet.
 
-- [ ] **Step 3: Create panel model and view**
+- [x] **Step 3: Create panel model and view**
 
 Create `platforms/macos/Atlas/WorkspacePanel.swift`:
 
@@ -1123,7 +1123,7 @@ struct WorkspacePanel: View {
 }
 ```
 
-- [ ] **Step 4: Add panel files to the Xcode project**
+- [x] **Step 4: Add panel files to the Xcode project**
 
 Run this exact script from the repository root:
 
@@ -1155,7 +1155,7 @@ project.save
 RUBY
 ```
 
-- [ ] **Step 5: Run panel tests**
+- [x] **Step 5: Run panel tests**
 
 Run:
 
@@ -1178,7 +1178,7 @@ Expected: PASS.
 - Create: `platforms/macos/AtlasTests/WorkspaceProviderTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write failing provider tests**
+- [x] **Step 1: Write failing provider tests**
 
 Create `platforms/macos/AtlasTests/WorkspaceProviderTests.swift`:
 
@@ -1285,7 +1285,7 @@ private func workspace(name: String) -> Workspace {
 }
 ```
 
-- [ ] **Step 2: Run provider tests and verify they fail**
+- [x] **Step 2: Run provider tests and verify they fail**
 
 Run:
 
@@ -1295,7 +1295,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: FAIL because `WorkspaceProvider` does not exist yet.
 
-- [ ] **Step 3: Create the provider**
+- [x] **Step 3: Create the provider**
 
 Create `platforms/macos/Atlas/CommandPalette/WorkspaceProvider.swift`:
 
@@ -1374,7 +1374,7 @@ final class WorkspaceProvider: CommandProviding {
 }
 ```
 
-- [ ] **Step 4: Add the workspace palette destination**
+- [x] **Step 4: Add the workspace palette destination**
 
 In `platforms/macos/Atlas/CommandPalette/CommandPaletteModels.swift`, update `PaletteDestination` to:
 
@@ -1387,7 +1387,7 @@ enum PaletteDestination: Equatable {
 }
 ```
 
-- [ ] **Step 5: Add workspace push view support to CommandPaletteView**
+- [x] **Step 5: Add workspace push view support to CommandPaletteView**
 
 In `platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift`, add this property near the existing view builders:
 
@@ -1439,7 +1439,7 @@ private func subView(for dest: PaletteDestination) -> some View {
 
 Do not add a `CommandPaletteController.push(...)` method. The existing architecture pushes destinations through `PaletteAction.push(PaletteDestination)`, and `CommandPaletteView.execute(_:)` appends the destination to its internal stack.
 
-- [ ] **Step 6: Register the provider in AtlasApp**
+- [x] **Step 6: Register the provider in AtlasApp**
 
 In `platforms/macos/Atlas/AtlasApp.swift`, add these properties to `CommandPaletteState`:
 
@@ -1476,7 +1476,7 @@ func setWorkspaceActions(
 }
 ```
 
-- [ ] **Step 7: Add provider files to the Xcode project**
+- [x] **Step 7: Add provider files to the Xcode project**
 
 Run this exact script from the repository root:
 
@@ -1508,7 +1508,7 @@ project.save
 RUBY
 ```
 
-- [ ] **Step 8: Run provider tests**
+- [x] **Step 8: Run provider tests**
 
 Run:
 
@@ -1526,7 +1526,7 @@ Expected: PASS.
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 - Verify: `platforms/macos/Atlas/AtlasApp.swift`
 
-- [ ] **Step 1: Add workspace dependencies to ContentView**
+- [x] **Step 1: Add workspace dependencies to ContentView**
 
 In `platforms/macos/Atlas/ContentView.swift`, add these properties near the existing stores:
 
@@ -1536,7 +1536,7 @@ private let workspaceService = WorkspaceWindowService()
 private let workspacePermissionChecker = AccessibilityPermissionChecker()
 ```
 
-- [ ] **Step 2: Show the panel when Window Manager is enabled**
+- [x] **Step 2: Show the panel when Window Manager is enabled**
 
 In `ContentView.body`, insert this block after `WindowGridPanel` and before `FeatureCenterPanel`:
 
@@ -1555,7 +1555,7 @@ if isFeatureEnabled(.windowManager) {
 }
 ```
 
-- [ ] **Step 3: Wire command palette view builder and actions**
+- [x] **Step 3: Wire command palette view builder and actions**
 
 In `ContentView.startHotkeys()`, after existing controller view builders are configured, add:
 
@@ -1616,7 +1616,7 @@ paletteState?.setWorkspaceActions(
 
 Expected behavior: `Open Workspaces` uses `PaletteAction.push(.workspaces)` and renders through `CommandPaletteView.subView(for:)`. Save and restore command actions surface `WorkspacePanelModel.statusMessage`; they must not report a successful save or restore when Accessibility permission is missing.
 
-- [ ] **Step 4: Run focused workspace tests**
+- [x] **Step 4: Run focused workspace tests**
 
 Run:
 
@@ -1643,7 +1643,7 @@ Expected: PASS.
 - Verify: `platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift`
 - Verify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Run the focused test suite**
+- [x] **Step 1: Run the focused test suite**
 
 Run:
 
@@ -1653,7 +1653,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: PASS.
 
-- [ ] **Step 2: Run the broader macOS XCTest suite**
+- [x] **Step 2: Run the broader macOS XCTest suite**
 
 Run:
 
@@ -1663,7 +1663,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas
 
 Expected: PASS. Non-blocking CoreSimulator warnings are acceptable when the macOS tests still finish with `** TEST SUCCEEDED **`.
 
-- [ ] **Step 3: Review changed files**
+- [x] **Step 3: Review changed files**
 
 Run:
 
@@ -1673,7 +1673,7 @@ git diff -- platforms/macos/Atlas/WorkspaceModels.swift platforms/macos/Atlas/Wo
 
 Expected: Diff contains only workspace models, persistence, capture/restore, panel, command palette actions, tests, and PBX membership changes.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Run:
 

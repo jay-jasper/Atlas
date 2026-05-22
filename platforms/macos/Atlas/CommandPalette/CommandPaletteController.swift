@@ -12,6 +12,7 @@ final class CommandPaletteController {
     var screenshotLibraryViewBuilder: (() -> AnyView)?
     var portLookupViewBuilder: (() -> AnyView)?
     var windowPickerViewBuilder: (() -> AnyView)?
+    var workspaceViewBuilder: (() -> AnyView)?
 
     init(
         providers: [CommandProviding],
@@ -56,7 +57,8 @@ final class CommandPaletteController {
             usageRecorder: usageRecorder,
             screenshotLibraryViewBuilder: screenshotLibraryViewBuilder,
             portLookupViewBuilder: portLookupViewBuilder,
-            windowPickerViewBuilder: windowPickerViewBuilder
+            windowPickerViewBuilder: windowPickerViewBuilder,
+            workspaceViewBuilder: workspaceViewBuilder
         )
 
         let rootView = VStack(spacing: 0) {

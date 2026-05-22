@@ -35,12 +35,15 @@ final class CommandPaletteState: ObservableObject {
     private(set) var controller: CommandPaletteController!
     private let hotkeyService = GlobalHotkeyService()
     private let windowManager: WindowManaging
+    private let workspaceStore = WorkspaceStore()
     private var isWindowManagementEnabled = false
 
     // Callbacks that redirect to ContentView's actual methods at runtime
     private var onCaptureDesktop: (() -> Void)?
     private var onCaptureArea: (() -> Void)?
     private var onCaptureWindow: (() -> Void)?
+    private var onSaveCurrentWorkspace: (() -> Void)?
+    private var onRestoreWorkspace: ((Workspace) -> Void)?
 
     init(windowManager: WindowManaging = AccessibilityWindowManager()) {
         self.windowManager = windowManager
@@ -59,6 +62,12 @@ final class CommandPaletteState: ObservableObject {
             windowManager: windowManager,
             isEnabled: { [weak self] in self?.isWindowManagementEnabled == true }
         )
+        let workspaceProvider = WorkspaceProvider(
+            store: workspaceStore,
+            isEnabled: { [weak self] in self?.isWindowManagementEnabled == true },
+            onSaveCurrent: { [weak self] in self?.onSaveCurrentWorkspace?() },
+            onRestore: { [weak self] workspace in self?.onRestoreWorkspace?(workspace) }
+        )
         let clipboardHistoryProvider = ClipboardHistoryProvider()
         let snippetsProvider = SnippetsProvider()
         let customAutomationProvider = CustomAutomationProvider(
@@ -71,6 +80,7 @@ final class CommandPaletteState: ObservableObject {
             atlasProvider,
             developerToolsProvider,
             windowManagementProvider,
+            workspaceProvider,
             clipboardHistoryProvider,
             snippetsProvider,
             customAutomationProvider,
@@ -100,6 +110,14 @@ final class CommandPaletteState: ObservableObject {
 
     func setWindowManagementEnabled(_ enabled: Bool) {
         isWindowManagementEnabled = enabled
+    }
+
+    func setWorkspaceActions(
+        onSaveCurrent: @escaping () -> Void,
+        onRestore: @escaping (Workspace) -> Void
+    ) {
+        onSaveCurrentWorkspace = onSaveCurrent
+        onRestoreWorkspace = onRestore
     }
 
     private func registerHotkey(_ config: HotkeyConfig) {
