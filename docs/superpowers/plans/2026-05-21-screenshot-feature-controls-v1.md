@@ -61,7 +61,7 @@ Out of scope for this version:
 - Create: `platforms/macos/AtlasTests/ScreenshotFeatureSettingsTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write failing tests for defaults and persistence**
+- [x] **Step 1: Write failing tests for defaults and persistence**
 
 Create `platforms/macos/AtlasTests/ScreenshotFeatureSettingsTests.swift`:
 
@@ -169,7 +169,7 @@ final class ScreenshotFeatureSettingsTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -179,7 +179,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `ScreenshotFeatureSettingsTests.swift` is not yet in the project and the referenced types do not exist.
 
-- [ ] **Step 3: Add settings implementation**
+- [x] **Step 3: Add settings implementation**
 
 Create `platforms/macos/Atlas/ScreenshotFeatureSettings.swift`:
 
@@ -352,7 +352,7 @@ struct ScreenshotFeatureSettingsStore {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj` using the existing PBX patterns in the file:
 
@@ -362,7 +362,7 @@ Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj` using the existing PBX 
 
 Do not change build settings or reorder unrelated project entries.
 
-- [ ] **Step 5: Run tests to verify settings pass**
+- [x] **Step 5: Run tests to verify settings pass**
 
 Run:
 
@@ -372,7 +372,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 6 tests.
 
-- [ ] **Step 6: Commit settings model**
+- [x] **Step 6: Commit settings model**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotFeatureSettings.swift platforms/macos/AtlasTests/ScreenshotFeatureSettingsTests.swift platforms/macos/Atlas.xcodeproj/project.pbxproj
@@ -388,7 +388,7 @@ git commit -m "feat(macos): add screenshot feature settings"
 - Create: `platforms/macos/AtlasTests/ScreenshotFeatureSettingsPanelTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write failing tests for panel state**
+- [x] **Step 1: Write failing tests for panel state**
 
 Create `platforms/macos/AtlasTests/ScreenshotFeatureSettingsPanelTests.swift`:
 
@@ -431,7 +431,7 @@ final class ScreenshotFeatureSettingsPanelTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -441,7 +441,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `ScreenshotFeatureSettingsPanelState` and `ScreenshotFeatureSettingsPanel` do not exist.
 
-- [ ] **Step 3: Add panel implementation**
+- [x] **Step 3: Add panel implementation**
 
 Create `platforms/macos/Atlas/ScreenshotFeatureSettingsPanel.swift`:
 
@@ -541,7 +541,7 @@ struct ScreenshotFeatureSettingsPanel: View {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj`:
 
@@ -549,7 +549,7 @@ Modify `platforms/macos/Atlas.xcodeproj/project.pbxproj`:
 - Add `ScreenshotFeatureSettingsPanelTests.swift` to the `AtlasTests` group and test target `Sources`.
 - Use new unique 24-character hex IDs with the same formatting as adjacent entries.
 
-- [ ] **Step 5: Run focused panel tests**
+- [x] **Step 5: Run focused panel tests**
 
 Run:
 
@@ -559,7 +559,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 3 tests.
 
-- [ ] **Step 6: Commit panel**
+- [x] **Step 6: Commit panel**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotFeatureSettingsPanel.swift platforms/macos/AtlasTests/ScreenshotFeatureSettingsPanelTests.swift platforms/macos/Atlas.xcodeproj/project.pbxproj
@@ -575,7 +575,7 @@ git commit -m "feat(macos): add screenshot feature settings panel"
 - Modify: `platforms/macos/Atlas/ScreenshotEditorView.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Update `ScreenshotPanel` to hide disabled capture buttons**
+- [x] **Step 1: Update `ScreenshotPanel` to hide disabled capture buttons**
 
 Modify `platforms/macos/Atlas/ScreenshotPanel.swift` to this full implementation:
 
@@ -630,7 +630,7 @@ struct ScreenshotPanel: View {
 }
 ```
 
-- [ ] **Step 2: Update `ScreenshotEditorView` to accept editor capabilities**
+- [x] **Step 2: Update `ScreenshotEditorView` to accept editor capabilities**
 
 Modify `platforms/macos/Atlas/ScreenshotEditorView.swift`:
 
@@ -739,7 +739,7 @@ private var annotationDrag: some Gesture {
 }
 ```
 
-- [ ] **Step 3: Wire settings into `ContentView`**
+- [x] **Step 3: Wire settings into `ContentView`**
 
 Modify `platforms/macos/Atlas/ContentView.swift`:
 
@@ -974,7 +974,7 @@ private func translateRecognizedScreenshotText(_ text: String) {
 }
 ```
 
-- [ ] **Step 4: Run Swift parse**
+- [x] **Step 4: Run Swift parse**
 
 Run:
 
@@ -984,7 +984,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS with no output.
 
-- [ ] **Step 5: Run focused screenshot feature tests**
+- [x] **Step 5: Run focused screenshot feature tests**
 
 Run:
 
@@ -994,7 +994,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS with 9 tests.
 
-- [ ] **Step 6: Commit UI gating**
+- [x] **Step 6: Commit UI gating**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotPanel.swift platforms/macos/Atlas/ScreenshotEditorView.swift platforms/macos/Atlas/ContentView.swift

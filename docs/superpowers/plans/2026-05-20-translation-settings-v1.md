@@ -54,7 +54,7 @@ This plan does not implement Keychain, provider presets, settings import/export,
 - Modify: `platforms/macos/Atlas/ScreenshotTranslationConfiguration.swift`
 - Modify: `platforms/macos/AtlasTests/ScreenshotTranslationConfigurationTests.swift`
 
-- [ ] **Step 1: Add failing store write tests**
+- [x] **Step 1: Add failing store write tests**
 
 Append these tests to `platforms/macos/AtlasTests/ScreenshotTranslationConfigurationTests.swift`:
 
@@ -126,7 +126,7 @@ func testClearRemovesAllTranslationSettings() {
 }
 ```
 
-- [ ] **Step 2: Run configuration tests to verify failure**
+- [x] **Step 2: Run configuration tests to verify failure**
 
 Run:
 
@@ -136,7 +136,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL with missing `ScreenshotTranslationSettingsDraft`, `settingsDraft()`, `save(_:)`, and `clear()`.
 
-- [ ] **Step 3: Add draft model and store write helpers**
+- [x] **Step 3: Add draft model and store write helpers**
 
 Update `platforms/macos/Atlas/ScreenshotTranslationConfiguration.swift` to include this `ScreenshotTranslationSettingsDraft` directly after `ScreenshotTranslationConfigurationKeys`:
 
@@ -199,7 +199,7 @@ private func setStringOrRemove(_ value: String, forKey key: String) {
 }
 ```
 
-- [ ] **Step 4: Run configuration tests**
+- [x] **Step 4: Run configuration tests**
 
 Run:
 
@@ -209,7 +209,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotTranslationConfiguration.swift \
@@ -226,7 +226,7 @@ git commit -m "feat(macos): add translation settings persistence"
 - Create: `platforms/macos/AtlasTests/TranslationSettingsPanelTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Add failing settings panel tests**
+- [x] **Step 1: Add failing settings panel tests**
 
 Create `platforms/macos/AtlasTests/TranslationSettingsPanelTests.swift`:
 
@@ -275,7 +275,7 @@ final class TranslationSettingsPanelTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Add test file to Xcode project**
+- [x] **Step 2: Add test file to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `TranslationSettingsPanelTests.swift` is listed in:
 
@@ -286,7 +286,7 @@ AtlasTests group
 AtlasTests Sources build phase
 ```
 
-- [ ] **Step 3: Run panel tests to verify failure**
+- [x] **Step 3: Run panel tests to verify failure**
 
 Run:
 
@@ -296,7 +296,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL with missing `TranslationSettingsPanelState`.
 
-- [ ] **Step 4: Add settings panel implementation**
+- [x] **Step 4: Add settings panel implementation**
 
 Create `platforms/macos/Atlas/TranslationSettingsPanel.swift`:
 
@@ -395,7 +395,7 @@ struct TranslationSettingsPanel: View {
 }
 ```
 
-- [ ] **Step 5: Add app source file to Xcode project**
+- [x] **Step 5: Add app source file to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `TranslationSettingsPanel.swift` is listed in:
 
@@ -406,7 +406,7 @@ Atlas group
 Atlas Sources build phase
 ```
 
-- [ ] **Step 6: Run panel tests**
+- [x] **Step 6: Run panel tests**
 
 Run:
 
@@ -416,7 +416,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 3 tests.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add platforms/macos/Atlas/TranslationSettingsPanel.swift \
@@ -432,7 +432,7 @@ git commit -m "feat(macos): add translation settings panel"
 **Files:**
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Add translation settings state and helpers**
+- [x] **Step 1: Add translation settings state and helpers**
 
 In `platforms/macos/Atlas/ContentView.swift`, add these state properties below `isTranslatingScreenshotText`:
 
@@ -465,7 +465,7 @@ private func clearTranslationSettings() {
 }
 ```
 
-- [ ] **Step 2: Load settings on appear**
+- [x] **Step 2: Load settings on appear**
 
 In `startModules()`, insert this line as the first statement:
 
@@ -473,7 +473,7 @@ In `startModules()`, insert this line as the first statement:
 loadTranslationSettings()
 ```
 
-- [ ] **Step 3: Render settings panel**
+- [x] **Step 3: Render settings panel**
 
 In `ContentView.body`, after `FeatureCenterPanel(...)` and before the following `Divider()`, insert:
 
@@ -511,7 +511,7 @@ Divider()
 AppFooter()
 ```
 
-- [ ] **Step 4: Parse Swift files**
+- [x] **Step 4: Parse Swift files**
 
 Run:
 
@@ -521,7 +521,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS with no output.
 
-- [ ] **Step 5: Run focused settings tests**
+- [x] **Step 5: Run focused settings tests**
 
 Run:
 
@@ -531,7 +531,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ContentView.swift
