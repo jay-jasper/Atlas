@@ -286,8 +286,8 @@ Expected: The commit contains only the two child plan files and this roadmap upd
 - Use existing plan: `docs/superpowers/plans/2026-05-09-system-monitoring.md`
 - Use existing plan: `docs/superpowers/plans/2026-05-09-enhanced-monitoring.md`
 - Use existing plan: `docs/superpowers/plans/2026-05-11-monitoring-v2-port-master.md`
-- Create later: `docs/superpowers/plans/2026-05-22-tokenbar-v1.md`
-- Create later: `docs/superpowers/plans/2026-05-22-local-ai-load-monitor-v1.md`
+- Created: `docs/superpowers/plans/2026-05-22-tokenbar-v1.md`
+- Created: `docs/superpowers/plans/2026-05-22-local-ai-load-monitor-v1.md`
 
 - [x] **Step 1: Run current monitoring tests**
 
