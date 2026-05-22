@@ -64,6 +64,18 @@ final class WindowManagementProviderTests: XCTestCase {
         XCTAssertEqual(windowManager.performedActions, [.leftHalf])
     }
 
+    func testDisabledProviderReturnsNoWindowResults() {
+        let provider = makeProvider(isEnabled: { false })
+
+        XCTAssertTrue(provider.results(for: "window").isEmpty)
+    }
+
+    func testEnabledProviderReturnsWindowResults() {
+        let provider = makeProvider(isEnabled: { true })
+
+        XCTAssertFalse(provider.results(for: "window").isEmpty)
+    }
+
     func testResultsAreCappedToFixedSmallCount() {
         let provider = makeProvider(actions: [
             .center,
@@ -80,9 +92,14 @@ final class WindowManagementProviderTests: XCTestCase {
 
     private func makeProvider(
         windowManager: WindowManaging = FakeWindowManager(),
-        actions: [WindowManagementAction] = WindowManagementAction.allCases
+        actions: [WindowManagementAction] = WindowManagementAction.commandPaletteActions,
+        isEnabled: @escaping () -> Bool = { true }
     ) -> WindowManagementProvider {
-        WindowManagementProvider(windowManager: windowManager, actions: actions)
+        WindowManagementProvider(
+            windowManager: windowManager,
+            actions: actions,
+            isEnabled: isEnabled
+        )
     }
 }
 

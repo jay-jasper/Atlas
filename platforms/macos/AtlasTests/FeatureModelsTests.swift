@@ -31,6 +31,12 @@ final class FeatureModelsTests: XCTestCase {
     }
 
     func testFormatsUnknownFeatureName() {
+        let feature = AtlasFeature(name: "local-cache", isEnabled: false)
+
+        XCTAssertEqual(feature.title, "Local Cache")
+    }
+
+    func testWindowManagerFeatureUsesAtlasModuleTitle() {
         let feature = AtlasFeature(name: "window-manager", isEnabled: false)
 
         XCTAssertEqual(feature.title, "Window Manager")

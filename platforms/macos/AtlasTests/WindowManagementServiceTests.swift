@@ -90,10 +90,48 @@ final class WindowManagementServiceTests: XCTestCase {
         XCTAssertEqual(convertedAXFrame, axFrame)
     }
 
+    func testGridTopLeftUsesOneThirdOfVisibleScreen() {
+        let frame = WindowFrameCalculator.frame(
+            for: .grid(WindowGridPosition(row: 0, column: 0)),
+            currentFrame: .zero,
+            visibleScreenFrame: screen
+        )
+
+        XCTAssertEqual(frame, CGRect(x: 0, y: 600, width: 480, height: 300))
+    }
+
+    func testGridCenterUsesMiddleCell() {
+        let frame = WindowFrameCalculator.frame(
+            for: .grid(WindowGridPosition(row: 1, column: 1)),
+            currentFrame: .zero,
+            visibleScreenFrame: screen
+        )
+
+        XCTAssertEqual(frame, CGRect(x: 480, y: 300, width: 480, height: 300))
+    }
+
+    func testGridBottomRightUsesDisplayOriginAndIntegralFrame() {
+        let frame = WindowFrameCalculator.frame(
+            for: .grid(WindowGridPosition(row: 2, column: 2)),
+            currentFrame: .zero,
+            visibleScreenFrame: CGRect(x: 200, y: 50, width: 1_440, height: 900)
+        )
+
+        XCTAssertEqual(frame, CGRect(x: 1_160, y: 50, width: 480, height: 300))
+    }
+
+    func testGridPositionClampsInvalidInputToGridBounds() {
+        XCTAssertEqual(WindowGridPosition(row: -1, column: 9), WindowGridPosition(row: 0, column: 2))
+    }
+
     func testActionTitlesAreStable() {
         XCTAssertEqual(WindowManagementAction.center.title, "Center Frontmost Window")
         XCTAssertEqual(WindowManagementAction.leftHalf.title, "Move Frontmost Window Left Half")
         XCTAssertEqual(WindowManagementAction.rightHalf.title, "Move Frontmost Window Right Half")
         XCTAssertEqual(WindowManagementAction.maximize.title, "Maximize Frontmost Window")
+        XCTAssertEqual(
+            WindowManagementAction.grid(WindowGridPosition(row: 0, column: 0)).title,
+            "Move Frontmost Window Top Left"
+        )
     }
 }

@@ -3,11 +3,53 @@ import ApplicationServices
 import CoreGraphics
 import Foundation
 
-enum WindowManagementAction: CaseIterable, Equatable {
+struct WindowGridPosition: Equatable, Hashable {
+    let row: Int
+    let column: Int
+
+    init(row: Int, column: Int) {
+        self.row = min(max(row, 0), 2)
+        self.column = min(max(column, 0), 2)
+    }
+
+    var titleSuffix: String {
+        let vertical: String
+        switch row {
+        case 0:
+            vertical = "Top"
+        case 1:
+            vertical = "Middle"
+        default:
+            vertical = "Bottom"
+        }
+
+        let horizontal: String
+        switch column {
+        case 0:
+            horizontal = "Left"
+        case 1:
+            horizontal = "Center"
+        default:
+            horizontal = "Right"
+        }
+
+        return "\(vertical) \(horizontal)"
+    }
+}
+
+enum WindowManagementAction: Equatable {
     case center
     case leftHalf
     case rightHalf
     case maximize
+    case grid(WindowGridPosition)
+
+    static let commandPaletteActions: [WindowManagementAction] = [
+        .center,
+        .leftHalf,
+        .rightHalf,
+        .maximize,
+    ]
 
     var title: String {
         switch self {
@@ -19,6 +61,8 @@ enum WindowManagementAction: CaseIterable, Equatable {
             return "Move Frontmost Window Right Half"
         case .maximize:
             return "Maximize Frontmost Window"
+        case .grid(let position):
+            return "Move Frontmost Window \(position.titleSuffix)"
         }
     }
 
@@ -32,6 +76,8 @@ enum WindowManagementAction: CaseIterable, Equatable {
             return ["window", "manage", "right", "half", "tile", "frontmost"]
         case .maximize:
             return ["window", "manage", "maximize", "full", "frontmost"]
+        case .grid(let position):
+            return ["window", "manage", "grid", "tile", "frontmost", position.titleSuffix]
         }
     }
 }
@@ -71,6 +117,15 @@ enum WindowFrameCalculator {
                 y: visibleScreenFrame.minY + (visibleScreenFrame.height - height) / 2,
                 width: width,
                 height: height
+            ).integral
+        case .grid(let position):
+            let cellWidth = visibleScreenFrame.width / 3
+            let cellHeight = visibleScreenFrame.height / 3
+            return CGRect(
+                x: visibleScreenFrame.minX + CGFloat(position.column) * cellWidth,
+                y: visibleScreenFrame.maxY - CGFloat(position.row + 1) * cellHeight,
+                width: cellWidth,
+                height: cellHeight
             ).integral
         }
     }

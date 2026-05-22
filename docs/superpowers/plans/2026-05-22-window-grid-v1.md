@@ -106,7 +106,7 @@ Out of scope:
 - Modify: `platforms/macos/Atlas/FeatureModels.swift`
 - Test: `platforms/macos/AtlasTests/FeatureModelsTests.swift`
 
-- [ ] **Step 1: Add the failing title mapping test**
+- [x] **Step 1: Add the failing title mapping test**
 
 Append this test inside `FeatureModelsTests` in `platforms/macos/AtlasTests/FeatureModelsTests.swift`:
 
@@ -118,7 +118,7 @@ func testWindowManagerFeatureUsesAtlasModuleTitle() {
 }
 ```
 
-- [ ] **Step 2: Run the feature model test and verify it fails**
+- [x] **Step 2: Run the feature model test and verify it fails**
 
 Run:
 
@@ -128,7 +128,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: FAIL because `AtlasModule.windowManager` is not defined or `window-manager` still falls through to the default title mapping.
 
-- [ ] **Step 3: Add the window manager module**
+- [x] **Step 3: Add the window manager module**
 
 Replace `platforms/macos/Atlas/AtlasModule.swift` with:
 
@@ -157,7 +157,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
 }
 ```
 
-- [ ] **Step 4: Map the title explicitly**
+- [x] **Step 4: Map the title explicitly**
 
 In `platforms/macos/Atlas/FeatureModels.swift`, replace the `switch name` body in `AtlasFeatureTitles.title(for:)` with:
 
@@ -179,7 +179,7 @@ default:
 }
 ```
 
-- [ ] **Step 5: Run the feature model test and verify it passes**
+- [x] **Step 5: Run the feature model test and verify it passes**
 
 Run:
 
@@ -197,7 +197,7 @@ Expected: PASS.
 - Modify: `platforms/macos/Atlas/WindowManagementService.swift`
 - Test: `platforms/macos/AtlasTests/WindowManagementServiceTests.swift`
 
-- [ ] **Step 1: Add failing grid tests**
+- [x] **Step 1: Add failing grid tests**
 
 Append these tests inside `WindowManagementServiceTests` in `platforms/macos/AtlasTests/WindowManagementServiceTests.swift`:
 
@@ -237,7 +237,7 @@ func testGridPositionClampsInvalidInputToGridBounds() {
 }
 ```
 
-- [ ] **Step 2: Run the grid tests and verify they fail**
+- [x] **Step 2: Run the grid tests and verify they fail**
 
 Run:
 
@@ -247,7 +247,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: FAIL because `WindowGridPosition` and `WindowManagementAction.grid` do not exist yet.
 
-- [ ] **Step 3: Extend the action model and frame calculator**
+- [x] **Step 3: Extend the action model and frame calculator**
 
 In `platforms/macos/Atlas/WindowManagementService.swift`, replace `WindowManagementAction` and `WindowFrameCalculator` with:
 
@@ -371,7 +371,7 @@ enum WindowFrameCalculator {
 }
 ```
 
-- [ ] **Step 4: Update provider default actions**
+- [x] **Step 4: Update provider default actions**
 
 In `platforms/macos/Atlas/CommandPalette/WindowManagementProvider.swift`, change the initializer default from:
 
@@ -385,7 +385,7 @@ to:
 actions: [WindowManagementAction] = WindowManagementAction.commandPaletteActions
 ```
 
-- [ ] **Step 5: Run window management tests**
+- [x] **Step 5: Run window management tests**
 
 Run:
 
@@ -404,7 +404,7 @@ Expected: PASS.
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 - Test through: `platforms/macos/AtlasTests/WindowGridPanelTests.swift` in Task 5
 
-- [ ] **Step 1: Create the permission checker**
+- [x] **Step 1: Create the permission checker**
 
 Create `platforms/macos/Atlas/WindowManagementPermissions.swift`:
 
@@ -431,7 +431,7 @@ struct AccessibilityPermissionChecker: WindowManagementPermissionChecking {
 }
 ```
 
-- [ ] **Step 2: Add the file to the Xcode project**
+- [x] **Step 2: Add the file to the Xcode project**
 
 Run this exact script from the repository root:
 
@@ -457,7 +457,7 @@ project.save
 RUBY
 ```
 
-- [ ] **Step 3: Verify the permission file builds**
+- [x] **Step 3: Verify the permission file builds**
 
 Run:
 
@@ -476,7 +476,7 @@ Expected: PASS.
 - Modify: `platforms/macos/Atlas/AtlasApp.swift`
 - Test: `platforms/macos/AtlasTests/WindowManagementProviderTests.swift`
 
-- [ ] **Step 1: Add failing provider gating tests**
+- [x] **Step 1: Add failing provider gating tests**
 
 Append these tests inside `WindowManagementProviderTests`:
 
@@ -510,7 +510,7 @@ private func makeProvider(
 }
 ```
 
-- [ ] **Step 2: Run provider tests and verify they fail**
+- [x] **Step 2: Run provider tests and verify they fail**
 
 Run:
 
@@ -520,7 +520,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: FAIL because `WindowManagementProvider` has no `isEnabled` initializer parameter.
 
-- [ ] **Step 3: Gate provider results**
+- [x] **Step 3: Gate provider results**
 
 Replace `platforms/macos/Atlas/CommandPalette/WindowManagementProvider.swift` with:
 
@@ -571,7 +571,7 @@ final class WindowManagementProvider: CommandProviding {
 }
 ```
 
-- [ ] **Step 4: Update command palette state**
+- [x] **Step 4: Update command palette state**
 
 In `platforms/macos/Atlas/AtlasApp.swift`, add this stored property to `CommandPaletteState`:
 
@@ -616,7 +616,7 @@ func setWindowManagementEnabled(_ enabled: Bool) {
 }
 ```
 
-- [ ] **Step 5: Run provider tests**
+- [x] **Step 5: Run provider tests**
 
 Run:
 
@@ -635,7 +635,7 @@ Expected: PASS.
 - Create: `platforms/macos/AtlasTests/WindowGridPanelTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Create panel tests with injected state**
+- [x] **Step 1: Create panel tests with injected state**
 
 Create `platforms/macos/AtlasTests/WindowGridPanelTests.swift`:
 
@@ -731,7 +731,7 @@ private final class FakeWindowManagementPermissionChecker: WindowManagementPermi
 }
 ```
 
-- [ ] **Step 2: Run panel tests and verify they fail**
+- [x] **Step 2: Run panel tests and verify they fail**
 
 Run:
 
@@ -741,7 +741,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: FAIL because `WindowGridPanelModel` and `WindowGridPanel` do not exist yet.
 
-- [ ] **Step 3: Create the panel**
+- [x] **Step 3: Create the panel**
 
 Create `platforms/macos/Atlas/WindowGridPanel.swift`:
 
@@ -843,7 +843,7 @@ struct WindowGridPanel: View {
 }
 ```
 
-- [ ] **Step 4: Add new files to the Xcode project**
+- [x] **Step 4: Add new files to the Xcode project**
 
 Run this exact script from the repository root:
 
@@ -878,7 +878,7 @@ project.save
 RUBY
 ```
 
-- [ ] **Step 5: Run panel tests**
+- [x] **Step 5: Run panel tests**
 
 Run:
 
@@ -897,7 +897,7 @@ Expected: PASS.
 - Modify: `platforms/macos/Atlas/AtlasApp.swift`
 - Test: `platforms/macos/AtlasTests/WindowGridPanelTests.swift`
 
-- [ ] **Step 1: Create shared window manager state in AtlasApp**
+- [x] **Step 1: Create shared window manager state in AtlasApp**
 
 In `platforms/macos/Atlas/AtlasApp.swift`, replace the current `AtlasApp` stored property and `ContentView` construction with:
 
@@ -933,7 +933,7 @@ struct AtlasApp: App {
 }
 ```
 
-- [ ] **Step 2: Accept shared dependencies in ContentView**
+- [x] **Step 2: Accept shared dependencies in ContentView**
 
 In `platforms/macos/Atlas/ContentView.swift`, add these stored properties near `var paletteState`:
 
@@ -945,7 +945,7 @@ var paletteState: CommandPaletteState? = nil
 
 Remove the old standalone `var paletteState: CommandPaletteState? = nil` line so `ContentView` has only one `paletteState` property.
 
-- [ ] **Step 3: Show the panel only when the feature is enabled**
+- [x] **Step 3: Show the panel only when the feature is enabled**
 
 In `ContentView.body`, insert this block after the monitoring panel divider and before `FeatureCenterPanel`:
 
@@ -981,7 +981,7 @@ private func handleWindowGridResult(_ result: WindowGridSelectionResult) {
 }
 ```
 
-- [ ] **Step 4: Sync Feature Center state into command palette gating**
+- [x] **Step 4: Sync Feature Center state into command palette gating**
 
 In `ContentView.startModules()`, after `enabledFeatures = FeatureStateReducer.enabledMap(from: loadedFeatures)`, add:
 
@@ -998,7 +998,7 @@ if feature == AtlasModule.windowManager.featureName {
 }
 ```
 
-- [ ] **Step 5: Run focused window tests**
+- [x] **Step 5: Run focused window tests**
 
 Run:
 
@@ -1021,7 +1021,7 @@ Expected: PASS.
 - Verify: `platforms/macos/Atlas/AtlasApp.swift`
 - Verify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Run the focused test suite**
+- [x] **Step 1: Run the focused test suite**
 
 Run:
 
@@ -1031,7 +1031,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: PASS.
 
-- [ ] **Step 2: Run the broader macOS XCTest suite**
+- [x] **Step 2: Run the broader macOS XCTest suite**
 
 Run:
 
@@ -1041,7 +1041,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas
 
 Expected: PASS. Non-blocking CoreSimulator warnings are acceptable when the macOS tests still finish with `** TEST SUCCEEDED **`.
 
-- [ ] **Step 3: Review changed files**
+- [x] **Step 3: Review changed files**
 
 Run:
 
@@ -1051,7 +1051,7 @@ git diff -- platforms/macos/Atlas/WindowManagementService.swift platforms/macos/
 
 Expected: Diff contains only window grid, feature gating, permission, tests, and PBX membership changes.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Run:
 

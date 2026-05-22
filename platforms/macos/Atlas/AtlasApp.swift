@@ -2,11 +2,25 @@ import SwiftUI
 
 @main
 struct AtlasApp: App {
-    @StateObject private var paletteState = CommandPaletteState()
+    @StateObject private var paletteState: CommandPaletteState
+    private let windowManager: AccessibilityWindowManager
+    private let windowPermissionChecker = AccessibilityPermissionChecker()
+
+    init() {
+        let sharedWindowManager = AccessibilityWindowManager()
+        self.windowManager = sharedWindowManager
+        _paletteState = StateObject(
+            wrappedValue: CommandPaletteState(windowManager: sharedWindowManager)
+        )
+    }
 
     var body: some Scene {
         MenuBarExtra("Atlas", systemImage: "square.stack.3d.up.fill") {
-            ContentView(paletteState: paletteState)
+            ContentView(
+                windowManager: windowManager,
+                windowPermissionChecker: windowPermissionChecker,
+                paletteState: paletteState
+            )
         }
         .menuBarExtraStyle(.window)
 
@@ -20,13 +34,17 @@ struct AtlasApp: App {
 final class CommandPaletteState: ObservableObject {
     private(set) var controller: CommandPaletteController!
     private let hotkeyService = GlobalHotkeyService()
+    private let windowManager: WindowManaging
+    private var isWindowManagementEnabled = false
 
     // Callbacks that redirect to ContentView's actual methods at runtime
     private var onCaptureDesktop: (() -> Void)?
     private var onCaptureArea: (() -> Void)?
     private var onCaptureWindow: (() -> Void)?
 
-    init() {
+    init(windowManager: WindowManaging = AccessibilityWindowManager()) {
+        self.windowManager = windowManager
+
         let atlasProvider = AtlasCommandProvider(
             onCaptureDesktop: { [weak self] in self?.onCaptureDesktop?() },
             onCaptureArea: { [weak self] in self?.onCaptureArea?() },
@@ -37,7 +55,10 @@ final class CommandPaletteState: ObservableObject {
             }
         )
         let developerToolsProvider = DeveloperToolsProvider()
-        let windowManagementProvider = WindowManagementProvider()
+        let windowManagementProvider = WindowManagementProvider(
+            windowManager: windowManager,
+            isEnabled: { [weak self] in self?.isWindowManagementEnabled == true }
+        )
         let clipboardHistoryProvider = ClipboardHistoryProvider()
         let snippetsProvider = SnippetsProvider()
         let customAutomationProvider = CustomAutomationProvider(
@@ -75,6 +96,10 @@ final class CommandPaletteState: ObservableObject {
         self.onCaptureDesktop = onCaptureDesktop
         self.onCaptureArea = onCaptureArea
         self.onCaptureWindow = onCaptureWindow
+    }
+
+    func setWindowManagementEnabled(_ enabled: Bool) {
+        isWindowManagementEnabled = enabled
     }
 
     private func registerHotkey(_ config: HotkeyConfig) {

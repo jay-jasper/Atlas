@@ -43,7 +43,19 @@ struct ContentView: View {
     private let gifRecorder = ScreenshotGIFRecorder()
     private let gifOutputStore = ScreenshotGIFOutputStore()
     private let hotkeyService = GlobalHotkeyService()
-    var paletteState: CommandPaletteState? = nil
+    let windowManager: WindowManaging
+    let windowPermissionChecker: WindowManagementPermissionChecking
+    var paletteState: CommandPaletteState?
+
+    init(
+        windowManager: WindowManaging = AccessibilityWindowManager(),
+        windowPermissionChecker: WindowManagementPermissionChecking = AccessibilityPermissionChecker(),
+        paletteState: CommandPaletteState? = nil
+    ) {
+        self.windowManager = windowManager
+        self.windowPermissionChecker = windowPermissionChecker
+        self.paletteState = paletteState
+    }
 
     var body: some View {
         ZStack {
@@ -98,6 +110,19 @@ struct ContentView: View {
                             snapshot: snapshot,
                             cpuHistory: cpuHistory,
                             memoryHistory: memoryHistory
+                        )
+
+                        Divider()
+                    }
+
+                    if isFeatureEnabled(.windowManager) {
+                        WindowGridPanel(
+                            model: WindowGridPanelModel(
+                                windowManager: windowManager,
+                                permissionChecker: windowPermissionChecker,
+                                isFeatureEnabled: { isFeatureEnabled(.windowManager) }
+                            ),
+                            onResult: handleWindowGridResult
                         )
 
                         Divider()
@@ -189,6 +214,7 @@ struct ContentView: View {
             let loadedFeatures = try AtlasBridge.listFeatures()
             features = loadedFeatures
             enabledFeatures = FeatureStateReducer.enabledMap(from: loadedFeatures)
+            paletteState?.setWindowManagementEnabled(isFeatureEnabled(.windowManager))
             statusText = "Atlas is Ready"
             if isFeatureEnabled(.monitoring) {
                 startMonitoring()
@@ -326,6 +352,11 @@ struct ContentView: View {
     private func refreshFeature(_ feature: String, enabled: Bool) {
         features = FeatureStateReducer.refreshedFeatures(features, featureName: feature, enabled: enabled)
 
+        if feature == AtlasModule.windowManager.featureName {
+            paletteState?.setWindowManagementEnabled(enabled)
+            return
+        }
+
         guard feature == AtlasModule.monitoring.featureName else { return }
 
         if enabled {
@@ -338,6 +369,19 @@ struct ContentView: View {
             snapshot = nil
         } catch {
             showStatus(error.localizedDescription, kind: .error, autoHide: false)
+        }
+    }
+
+    private func handleWindowGridResult(_ result: WindowGridSelectionResult) {
+        switch result {
+        case .performed:
+            showStatus("Moved frontmost window")
+        case .failed:
+            showStatus("No active window to move", kind: .error)
+        case .featureDisabled:
+            showStatus("Window Manager is disabled", kind: .error)
+        case .permissionRequired:
+            showStatus("Accessibility permission is required", kind: .error)
         }
     }
 

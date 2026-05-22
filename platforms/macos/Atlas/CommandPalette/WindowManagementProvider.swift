@@ -5,16 +5,21 @@ final class WindowManagementProvider: CommandProviding {
 
     private let windowManager: WindowManaging
     private let actions: [WindowManagementAction]
+    private let isEnabled: () -> Bool
 
     init(
         windowManager: WindowManaging = AccessibilityWindowManager(),
-        actions: [WindowManagementAction] = WindowManagementAction.allCases
+        actions: [WindowManagementAction] = WindowManagementAction.commandPaletteActions,
+        isEnabled: @escaping () -> Bool = { true }
     ) {
         self.windowManager = windowManager
         self.actions = actions
+        self.isEnabled = isEnabled
     }
 
     func results(for query: String) -> [PaletteCommand] {
+        guard isEnabled() else { return [] }
+
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !q.isEmpty else { return [] }
 
