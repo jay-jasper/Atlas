@@ -561,13 +561,13 @@ Execution note, 2026-05-23: The audit command showed no production implementatio
 ### Task 10: Add Privacy Pulse
 
 **Files:**
-- Create later: `docs/superpowers/plans/2026-05-22-privacy-pulse-v1.md`
+- Created: `docs/superpowers/plans/2026-05-22-privacy-pulse-v1.md`
 - Create in child execution: `platforms/macos/Atlas/PrivacyPulseModels.swift`
 - Create in child execution: `platforms/macos/Atlas/PrivacyPulseService.swift`
 - Create in child execution: `platforms/macos/Atlas/PrivacyPulsePanel.swift`
 - Test in child execution: `platforms/macos/AtlasTests/PrivacyPulseServiceTests.swift`
 
-- [ ] **Step 1: Audit privacy event support**
+- [x] **Step 1: Audit privacy event support**
 
 Run:
 
@@ -577,11 +577,11 @@ rg -n 'privacy|camera|microphone|pasteboard|clipboard|permission|Screen Recordin
 
 Expected: The command shows current permission handling and any privacy event tracking.
 
-- [ ] **Step 2: Write Privacy Pulse child plan**
+- [x] **Step 2: Write Privacy Pulse child plan**
 
 Create `docs/superpowers/plans/2026-05-22-privacy-pulse-v1.md`. The child plan must cover visible status for camera, microphone, clipboard reads, screen recording, Accessibility use, Atlas-internal access logging, Feature Center gating, and tests with injected event sources.
 
-- [ ] **Step 3: Commit Privacy Pulse plan**
+- [x] **Step 3: Commit Privacy Pulse plan**
 
 Run:
 
@@ -591,6 +591,8 @@ git commit -m "docs: plan Privacy Pulse"
 ```
 
 Expected: The commit contains only the Privacy Pulse child plan.
+
+Execution note, 2026-05-23: The audit command showed current Accessibility handling in `GlobalHotkeyService.swift`, `ContentView.swift`, and `WindowManagementService.swift`, current pasteboard reads/writes in `ClipboardHistoryProvider.swift`, `SnippetsProvider.swift`, `ScreenshotOutput.swift`, and screenshot text copy flows, plus existing planning references for Screen Recording, Accessibility, camera, microphone, and clipboard behavior. No production Privacy Pulse surface or centralized privacy event tracking exists. Created `2026-05-22-privacy-pulse-v1.md` using the writing-plans format. The child plan covers visible status for camera, microphone, clipboard reads, screen recording, and Accessibility use; Atlas-internal access logging; Feature Center gating; injected event-source tests that avoid real camera/microphone sessions, real clipboard reads, and permission changes; additive shared enum/provider updates; and explicit Xcode project membership updates. No Privacy Pulse production code was implemented in this task.
 
 ---
 
