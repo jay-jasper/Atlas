@@ -474,7 +474,7 @@ Expected: The commit contains only the Scratchpad child plan.
 - Create in child execution: `platforms/macos/Atlas/WorkspaceStore.swift`
 - Create in child execution: `platforms/macos/Atlas/WorkspacePanel.swift`
 
-- [ ] **Step 1: Run current window management tests**
+- [x] **Step 1: Run current window management tests**
 
 Run:
 
@@ -484,24 +484,26 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: Current window management tests pass.
 
-- [ ] **Step 2: Write window grid child plan**
+- [x] **Step 2: Write window grid child plan**
 
 Create `docs/superpowers/plans/2026-05-22-window-grid-v1.md`. The child plan must cover 3x3 grid UI, active window targeting, Accessibility permission handling, multi-display coordinate mapping, Feature Center gating, and tests with injected window manager state.
 
-- [ ] **Step 3: Write workspaces child plan**
+- [x] **Step 3: Write workspaces child plan**
 
 Create `docs/superpowers/plans/2026-05-22-workspaces-v1.md`. The child plan must cover capture current layout, save named workspace, restore layout, missing app/window behavior, command palette actions, Feature Center gating, and tests with injected window snapshots.
 
-- [ ] **Step 4: Commit window plans**
+- [x] **Step 4: Commit window plans**
 
 Run:
 
 ```bash
-git add docs/superpowers/plans/2026-05-22-window-grid-v1.md docs/superpowers/plans/2026-05-22-workspaces-v1.md
+git add docs/superpowers/plans/2026-05-22-window-grid-v1.md docs/superpowers/plans/2026-05-22-workspaces-v1.md docs/superpowers/plans/2026-05-22-atlas-all-features-roadmap.md
 git commit -m "docs: plan window grid and workspaces"
 ```
 
-Expected: The commit contains only the window grid and workspaces child plans.
+Expected: The commit contains only the window grid child plan, workspaces child plan, and this roadmap update.
+
+Execution note, 2026-05-22: The required `xcodebuild test` command passed with 17 selected window management tests and 0 failures. Created `2026-05-22-window-grid-v1.md` covering 3x3 grid UI, active frontmost window targeting, Accessibility permission handling, multi-display coordinate mapping, Feature Center gating, injected-state tests, and explicit Xcode project membership updates. Created `2026-05-22-workspaces-v1.md` covering current layout capture, named workspace save, restore, missing app/window reporting, command palette actions, Feature Center gating, injected window snapshot tests, and explicit Xcode project membership updates. No window grid or workspace production code was implemented in this task.
 
 ---
 
