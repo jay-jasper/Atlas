@@ -1,9 +1,13 @@
 import AppKit
 import Foundation
 
-struct AppEntry: Sendable {
+struct AppEntry: Equatable, Sendable {
     let name: String
     let url: URL
+
+    static func == (lhs: AppEntry, rhs: AppEntry) -> Bool {
+        lhs.name == rhs.name && lhs.url.resolvingSymlinksInPath() == rhs.url.resolvingSymlinksInPath()
+    }
 }
 
 final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
