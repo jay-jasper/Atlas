@@ -15,6 +15,7 @@ final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
     private static let maxResultsCount = 5
 
     private let lock = NSLock()
+    private let refreshLock = NSLock()
     private let scanner: ApplicationScanning?
     private let changeObserver: ApplicationChangeObserving?
     private var _apps: [AppEntry] = []
@@ -32,24 +33,47 @@ final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
         }
     }
 
-    init(
-        apps: [AppEntry]? = nil,
-        scanner: ApplicationScanning = FileSystemApplicationScanner(),
+    convenience init() {
+        self.init(
+            scanner: FileSystemApplicationScanner(),
+            changeObserver: ApplicationDirectoryChangeObserver(),
+            refreshOnInit: false
+        )
+        Task.detached(priority: .utility) { [weak self] in
+            self?.refreshApplications()
+        }
+    }
+
+    convenience init(
+        scanner: ApplicationScanning,
         changeObserver: ApplicationChangeObserving? = ApplicationDirectoryChangeObserver()
     ) {
-        if let apps {
-            self._apps = apps
-            self.scanner = nil
-            self.changeObserver = nil
-        } else {
-            self.scanner = scanner
-            self.changeObserver = changeObserver
+        self.init(scanner: scanner, changeObserver: changeObserver, refreshOnInit: true)
+    }
+
+    init(
+        apps: [AppEntry],
+        changeObserver: ApplicationChangeObserving? = nil
+    ) {
+        self._apps = apps
+        self.scanner = nil
+        self.changeObserver = nil
+    }
+
+    private init(
+        scanner: ApplicationScanning,
+        changeObserver: ApplicationChangeObserving?,
+        refreshOnInit: Bool
+    ) {
+        self.scanner = scanner
+        self.changeObserver = changeObserver
+        if refreshOnInit {
             refreshApplications()
-            changeObserver?.setChangeHandler { [weak self] in
-                self?.refreshApplications()
-            }
-            changeObserver?.start()
         }
+        changeObserver?.setChangeHandler { [weak self] in
+            self?.refreshApplications()
+        }
+        changeObserver?.start()
     }
 
     deinit {
@@ -58,7 +82,11 @@ final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
 
     func refreshApplications() {
         guard let scanner else { return }
-        apps = scanner.scanApplications()
+        refreshLock.lock()
+        defer { refreshLock.unlock() }
+
+        let refreshedApps = scanner.scanApplications()
+        apps = refreshedApps
     }
 
     func results(for query: String) -> [PaletteCommand] {

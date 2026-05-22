@@ -52,6 +52,38 @@ final class AppLauncherRefreshTests: XCTestCase {
         XCTAssertEqual(provider.results(for: "static").map(\.title), ["Static"])
     }
 
+    func testRefreshApplicationsSerializesScannerExecution() {
+        let scanner = ConcurrentApplicationScanner()
+        let provider = AppLauncherProvider(scanner: scanner, changeObserver: FakeApplicationChangeObserver())
+        let group = DispatchGroup()
+
+        for _ in 0..<5 {
+            group.enter()
+            DispatchQueue.global(qos: .userInitiated).async {
+                provider.refreshApplications()
+                group.leave()
+            }
+        }
+
+        XCTAssertEqual(group.wait(timeout: .now() + 2), .success)
+        XCTAssertEqual(scanner.maxConcurrentScanCount, 1)
+    }
+
+    func testScanningProviderStopsObserverOnDeinit() {
+        let scanner = FakeApplicationScanner(scans: [
+            [AppEntry(name: "Initial", url: url("Initial"))],
+        ])
+        let observer = FakeApplicationChangeObserver()
+        var provider: AppLauncherProvider? = AppLauncherProvider(scanner: scanner, changeObserver: observer)
+
+        XCTAssertNotNil(provider)
+        XCTAssertTrue(observer.didStart)
+
+        provider = nil
+
+        XCTAssertTrue(observer.didStop)
+    }
+
     private func url(_ name: String) -> URL {
         URL(fileURLWithPath: "/Applications/\(name).app")
     }
@@ -91,5 +123,26 @@ private final class FakeApplicationChangeObserver: ApplicationChangeObserving {
 
     func triggerChange() {
         handler?()
+    }
+}
+
+private final class ConcurrentApplicationScanner: ApplicationScanning {
+    private let lock = NSLock()
+    private var activeScanCount = 0
+    private(set) var maxConcurrentScanCount = 0
+
+    func scanApplications() -> [AppEntry] {
+        lock.lock()
+        activeScanCount += 1
+        maxConcurrentScanCount = max(maxConcurrentScanCount, activeScanCount)
+        lock.unlock()
+
+        usleep(10_000)
+
+        lock.lock()
+        activeScanCount -= 1
+        lock.unlock()
+
+        return [AppEntry(name: "Scanned", url: URL(fileURLWithPath: "/Applications/Scanned.app"))]
     }
 }
