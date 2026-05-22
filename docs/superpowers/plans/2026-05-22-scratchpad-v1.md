@@ -63,7 +63,7 @@ currently shows Scratchpad only in roadmap/planning text. Production matches for
 **Modified files:**
 
 - `crates/atlas-core/src/features.rs`
-  - Registers `scratchpad` as disabled by default and updates sorted feature expectations.
+  - Registers `scratchpad` as disabled by default and verifies it is listed.
 - `platforms/macos/Atlas/AtlasModule.swift`
   - Adds `case scratchpad`.
 - `platforms/macos/Atlas/FeatureModels.swift`
@@ -97,21 +97,17 @@ Project membership rule: this repo uses explicit PBX project references. Every n
 
 - [ ] **Step 1: Add the Rust feature name**
 
-In `crates/atlas-core/src/features.rs`, update `FeatureManager::new()`:
+In `crates/atlas-core/src/features.rs`, add `scratchpad` to the existing registrations in `FeatureManager::new()`:
 
 ```rust
-pub fn new() -> Self {
-    let mut features = HashMap::new();
-    // Default feature placeholders
-    features.insert("monitoring".to_string(), FeatureStatus::Disabled);
-    features.insert("scratchpad".to_string(), FeatureStatus::Disabled);
-    features.insert("screenshot".to_string(), FeatureStatus::Disabled);
-    features.insert("window-manager".to_string(), FeatureStatus::Disabled);
-    Self { features }
-}
+features.insert("scratchpad".to_string(), FeatureStatus::Disabled);
 ```
 
-In the same file, update `test_list_features_is_sorted_by_name`:
+Do not replace the existing feature set with a closed list. Insert only the new
+`scratchpad` registration into whatever feature registrations already exist,
+preserving any features added by adjacent plans.
+
+In the same file, update the feature list test additively:
 
 ```rust
 #[test]
@@ -119,7 +115,8 @@ fn test_list_features_is_sorted_by_name() {
     let fm = FeatureManager::new();
     let names: Vec<_> = fm.list_features().into_iter().map(|(name, _)| name).collect();
 
-    assert_eq!(names, ["monitoring", "scratchpad", "screenshot", "window-manager"]);
+    assert!(names.contains(&"scratchpad".to_string()));
+    assert!(names.windows(2).all(|pair| pair[0] <= pair[1]));
 }
 ```
 
@@ -1156,7 +1153,13 @@ final class ScratchpadProviderTests: XCTestCase {
         XCTAssertEqual(results.count, 1)
         XCTAssertEqual(results[0].title, "Open Scratchpad")
         XCTAssertEqual(results[0].category, "Scratchpad")
-        XCTAssertEqual(results[0].action, .push(.scratchpad(noteID: nil)))
+        guard case .push(let destination) = results[0].action else {
+            return XCTFail("Expected push action")
+        }
+        guard case .scratchpad(let noteID) = destination else {
+            return XCTFail("Expected scratchpad destination")
+        }
+        XCTAssertNil(noteID)
     }
 
     func testSearchesNotesWhenEnabled() throws {
@@ -1171,7 +1174,14 @@ final class ScratchpadProviderTests: XCTestCase {
 
         XCTAssertEqual(results.map(\.title), ["Release"])
         XCTAssertEqual(results.first?.category, "Scratchpad")
-        XCTAssertEqual(results.first?.action, .push(.scratchpad(noteID: matching.id)))
+        guard let action = results.first?.action,
+              case .push(let destination) = action else {
+            return XCTFail("Expected push action")
+        }
+        guard case .scratchpad(let noteID) = destination else {
+            return XCTFail("Expected scratchpad destination")
+        }
+        XCTAssertEqual(noteID, matching.id)
     }
 
     func testSetEnabledAllowsResults() {
@@ -1318,7 +1328,8 @@ Run:
 cargo test -p atlas-core test_list_features_is_sorted_by_name
 ```
 
-Expected: The test passes with the sorted feature list including `scratchpad`.
+Expected: The test passes, confirms `scratchpad` is present, and preserves the
+existing sorted-list behavior without asserting the full feature set.
 
 - [ ] **Step 2: Run focused XCTest slices**
 
