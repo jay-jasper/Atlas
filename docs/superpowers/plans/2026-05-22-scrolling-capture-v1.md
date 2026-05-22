@@ -62,7 +62,7 @@ Out of scope for v1:
 - Modify: `platforms/macos/AtlasTests/ScreenshotFeatureSettingsTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Extend settings tests for scrolling capture**
+- [x] **Step 1: Extend settings tests for scrolling capture**
 
 Add these assertions to `platforms/macos/AtlasTests/ScreenshotFeatureSettingsTests.swift`:
 
@@ -108,7 +108,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `ScreenshotSubfeature.scrollingCapture` and `ScreenshotCaptureCapabilities.scrolling` do not exist.
 
-- [ ] **Step 3: Add the scrolling subfeature**
+- [x] **Step 3: Add the scrolling subfeature**
 
 In `platforms/macos/Atlas/ScreenshotFeatureSettings.swift`, update the affected declarations to exactly include the new case and capability:
 
@@ -193,7 +193,7 @@ var captureCapabilities: ScreenshotCaptureCapabilities {
 }
 ```
 
-- [ ] **Step 4: Run settings tests**
+- [x] **Step 4: Run settings tests**
 
 Run:
 
@@ -223,7 +223,7 @@ Expected: Commit succeeds with only the settings/test/project updates.
 - Create: `platforms/macos/AtlasTests/ScreenshotImageStitcherTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write stitcher tests**
+- [x] **Step 1: Write stitcher tests**
 
 Create `platforms/macos/AtlasTests/ScreenshotImageStitcherTests.swift`:
 
@@ -299,7 +299,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `VerticalScreenshotImageStitcher` does not exist or the test file is not in the project.
 
-- [ ] **Step 3: Add the stitcher implementation**
+- [x] **Step 3: Add the stitcher implementation**
 
 Create `platforms/macos/Atlas/ScreenshotImageStitcher.swift`:
 
@@ -373,7 +373,7 @@ struct VerticalScreenshotImageStitcher: ScreenshotImageStitching {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Add:
 
@@ -382,7 +382,7 @@ Add:
 
 Do not reorder unrelated project entries.
 
-- [ ] **Step 5: Run stitcher tests**
+- [x] **Step 5: Run stitcher tests**
 
 Run:
 

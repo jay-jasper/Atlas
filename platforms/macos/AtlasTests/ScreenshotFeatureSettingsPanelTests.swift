@@ -7,7 +7,7 @@ final class ScreenshotFeatureSettingsPanelTests: XCTestCase {
 
         XCTAssertEqual(state.enabledCount, ScreenshotSubfeature.allCases.count)
         XCTAssertEqual(state.totalCount, ScreenshotSubfeature.allCases.count)
-        XCTAssertEqual(state.summaryText, "7 enabled")
+        XCTAssertEqual(state.summaryText, "\(ScreenshotSubfeature.allCases.count) enabled")
         XCTAssertFalse(state.hasDisabledFeatures)
     }
 
@@ -18,9 +18,12 @@ final class ScreenshotFeatureSettingsPanelTests: XCTestCase {
 
         let state = ScreenshotFeatureSettingsPanelState(settings: settings)
 
-        XCTAssertEqual(state.enabledCount, 5)
-        XCTAssertEqual(state.totalCount, 7)
-        XCTAssertEqual(state.summaryText, "5 of 7 enabled")
+        XCTAssertEqual(state.enabledCount, ScreenshotSubfeature.allCases.count - 2)
+        XCTAssertEqual(state.totalCount, ScreenshotSubfeature.allCases.count)
+        XCTAssertEqual(
+            state.summaryText,
+            "\(ScreenshotSubfeature.allCases.count - 2) of \(ScreenshotSubfeature.allCases.count) enabled"
+        )
         XCTAssertTrue(state.hasDisabledFeatures)
     }
 

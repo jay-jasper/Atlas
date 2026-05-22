@@ -64,7 +64,7 @@ Out of scope for v1:
 - Modify: `platforms/macos/AtlasTests/ScreenshotFeatureSettingsTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Extend feature settings tests for GIF recording**
+- [x] **Step 1: Extend feature settings tests for GIF recording**
 
 Add these assertions to `platforms/macos/AtlasTests/ScreenshotFeatureSettingsTests.swift`:
 
@@ -110,7 +110,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `ScreenshotSubfeature.gifRecording` and `ScreenshotCaptureCapabilities.gifRecording` do not exist.
 
-- [ ] **Step 3: Add GIF recording subfeature**
+- [x] **Step 3: Add GIF recording subfeature**
 
 In `platforms/macos/Atlas/ScreenshotFeatureSettings.swift`, update the affected declarations:
 
@@ -195,7 +195,7 @@ var captureCapabilities: ScreenshotCaptureCapabilities {
 }
 ```
 
-- [ ] **Step 4: Run settings tests**
+- [x] **Step 4: Run settings tests**
 
 Run:
 
@@ -225,7 +225,7 @@ Expected: Commit succeeds with only settings/test/project updates.
 - Create: `platforms/macos/AtlasTests/ScreenshotGIFEncoderTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write encoder tests**
+- [x] **Step 1: Write encoder tests**
 
 Create `platforms/macos/AtlasTests/ScreenshotGIFEncoderTests.swift`:
 
@@ -276,7 +276,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because GIF encoder types do not exist or the test file is not in the project.
 
-- [ ] **Step 3: Add ImageIO GIF encoder**
+- [x] **Step 3: Add ImageIO GIF encoder**
 
 Create `platforms/macos/Atlas/ScreenshotGIFEncoder.swift`:
 
@@ -347,14 +347,14 @@ struct ImageIOScreenshotGIFEncoder: ScreenshotGIFEncoding {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Add:
 
 - `ScreenshotGIFEncoder.swift` to the `Atlas` target Sources.
 - `ScreenshotGIFEncoderTests.swift` to the `AtlasTests` target Sources.
 
-- [ ] **Step 5: Run encoder tests**
+- [x] **Step 5: Run encoder tests**
 
 Run:
 

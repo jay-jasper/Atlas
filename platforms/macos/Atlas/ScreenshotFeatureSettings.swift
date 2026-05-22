@@ -4,6 +4,8 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
     case desktopCapture = "desktop-capture"
     case windowCapture = "window-capture"
     case areaCapture = "area-capture"
+    case scrollingCapture = "scrolling-capture"
+    case gifRecording = "gif-recording"
     case annotations
     case pinning
     case ocr
@@ -19,6 +21,10 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "Window Capture"
         case .areaCapture:
             return "Area Capture"
+        case .scrollingCapture:
+            return "Scrolling Capture"
+        case .gifRecording:
+            return "GIF Recording"
         case .annotations:
             return "Annotations"
         case .pinning:
@@ -38,6 +44,10 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "Capture a selected application window."
         case .areaCapture:
             return "Capture a selected screen region."
+        case .scrollingCapture:
+            return "Capture and stitch a scrollable window."
+        case .gifRecording:
+            return "Record a selected region as an animated GIF."
         case .annotations:
             return "Show rectangle, arrow, pen, text, and pixelate tools."
         case .pinning:
@@ -57,6 +67,10 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "macwindow"
         case .areaCapture:
             return "selection.pin.in.out"
+        case .scrollingCapture:
+            return "rectangle.stack.badge.plus"
+        case .gifRecording:
+            return "record.circle"
         case .annotations:
             return "pencil.and.outline"
         case .pinning:
@@ -73,8 +87,16 @@ struct ScreenshotCaptureCapabilities: Equatable {
     var desktop: Bool
     var window: Bool
     var area: Bool
+    var scrolling: Bool
+    var gifRecording: Bool
 
-    static let allEnabled = ScreenshotCaptureCapabilities(desktop: true, window: true, area: true)
+    static let allEnabled = ScreenshotCaptureCapabilities(
+        desktop: true,
+        window: true,
+        area: true,
+        scrolling: true,
+        gifRecording: true
+    )
 }
 
 struct ScreenshotEditorCapabilities: Equatable {
@@ -120,7 +142,9 @@ struct ScreenshotFeatureSettings: Equatable {
         ScreenshotCaptureCapabilities(
             desktop: isEnabled(.desktopCapture),
             window: isEnabled(.windowCapture),
-            area: isEnabled(.areaCapture)
+            area: isEnabled(.areaCapture),
+            scrolling: isEnabled(.scrollingCapture),
+            gifRecording: isEnabled(.gifRecording)
         )
     }
 
