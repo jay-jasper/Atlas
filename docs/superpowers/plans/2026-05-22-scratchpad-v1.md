@@ -73,7 +73,7 @@ currently shows Scratchpad only in roadmap/planning text. Production matches for
 - `platforms/macos/Atlas/AtlasApp.swift`
   - Creates one shared `ScratchpadStore`, wires `ScratchpadProvider`, and exposes `setScratchpadEnabled(_:)`.
 - `platforms/macos/Atlas/CommandPalette/CommandPaletteModels.swift`
-  - Adds `PaletteDestination.scratchpad`.
+  - Adds `PaletteDestination.scratchpad(noteID: UUID?)`.
 - `platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift`
   - Adds `scratchpadViewBuilder`.
 - `platforms/macos/Atlas/CommandPalette/CommandPaletteView.swift`
@@ -125,11 +125,13 @@ fn test_list_features_is_sorted_by_name() {
 
 - [ ] **Step 2: Add the Swift module entry**
 
-Replace `platforms/macos/Atlas/AtlasModule.swift` with:
+In `platforms/macos/Atlas/AtlasModule.swift`, add Scratchpad additively:
 
 ```swift
 enum AtlasModule: String, CaseIterable, Identifiable {
     case scratchpad
+    // Preserve every existing case from the file, including cases added by
+    // other child plans such as custom automation.
     case screenshot
     case monitoring
 
@@ -143,6 +145,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
         switch self {
         case .scratchpad:
             return "Scratchpad"
+        // Preserve every existing switch branch from the file.
         case .screenshot:
             return "Screenshot"
         case .monitoring:
@@ -151,6 +154,10 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     }
 }
 ```
+
+Do not replace the enum with the snippet as a closed list. Keep all existing cases,
+protocol conformances, computed properties, and switch branches, and only add the
+Scratchpad case and title branch where they fit the current file.
 
 - [ ] **Step 3: Add the feature title mapping**
 
@@ -611,6 +618,7 @@ import SwiftUI
 struct ScratchpadPanel: View {
     let store: ScratchpadStoring
     let summarizer: ScratchpadSummarizing
+    let initialSelectedNoteID: UUID? = nil
 
     @State private var notes: [ScratchpadNote] = []
     @State private var selectedID: UUID?
@@ -704,7 +712,10 @@ struct ScratchpadPanel: View {
                     .foregroundColor(.secondary)
             }
         }
-        .onAppear(perform: loadNotes)
+        .onAppear {
+            selectedID = initialSelectedNoteID
+            loadNotes()
+        }
     }
 
     private var selectedNote: ScratchpadNote? {
@@ -869,7 +880,7 @@ final class ScratchpadProvider: CommandProviding {
                     subtitle: "Create and edit Markdown notes",
                     icon: .sfSymbol("note.text"),
                     keywords: ["scratchpad", "note", "markdown"],
-                    action: .push(.scratchpad),
+                    action: .push(.scratchpad(noteID: nil)),
                     category: "Scratchpad"
                 ),
             ]
@@ -885,7 +896,7 @@ final class ScratchpadProvider: CommandProviding {
                     subtitle: Self.subtitle(for: note.markdown),
                     icon: .sfSymbol("note.text"),
                     keywords: ["scratchpad", "note", "markdown", note.title],
-                    action: .push(.scratchpad),
+                    action: .push(.scratchpad(noteID: note.id)),
                     category: "Scratchpad"
                 )
             }
@@ -902,26 +913,36 @@ final class ScratchpadProvider: CommandProviding {
 
 - [ ] **Step 2: Add the command palette destination**
 
-In `platforms/macos/Atlas/CommandPalette/CommandPaletteModels.swift`, update `PaletteDestination`:
+In `platforms/macos/Atlas/CommandPalette/CommandPaletteModels.swift`, add a
+Scratchpad destination that can carry an optional selected note ID:
 
 ```swift
 enum PaletteDestination: Equatable {
-    case scratchpad
+    case scratchpad(noteID: UUID?)
+    // Preserve every existing destination case from the file, including cases
+    // added by other child plans such as custom automation.
     case windowPicker
     case screenshotLibrary
     case portLookup
 }
 ```
 
+Do not replace the enum with this closed list. Add `scratchpad(noteID:)` alongside
+the existing destination cases and keep all adjacent feature destinations intact.
+The empty-query "Open Scratchpad" command should push `.scratchpad(noteID: nil)`;
+note search results must push `.scratchpad(noteID: note.id)` so selecting a
+result opens the matching note.
+
 - [ ] **Step 3: Add a Scratchpad destination builder**
 
 In `platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift`, add the property:
 
 ```swift
-var scratchpadViewBuilder: (() -> AnyView)?
+var scratchpadViewBuilder: ((UUID?) -> AnyView)?
 ```
 
-When constructing `CommandPaletteView` in `show()`, pass the new builder:
+When constructing `CommandPaletteView` in `show()`, pass the new builder
+additively:
 
 ```swift
 let paletteView = CommandPaletteView(
@@ -935,19 +956,25 @@ let paletteView = CommandPaletteView(
     screenshotLibraryViewBuilder: screenshotLibraryViewBuilder,
     portLookupViewBuilder: portLookupViewBuilder,
     windowPickerViewBuilder: windowPickerViewBuilder,
+    // Preserve every existing builder argument already passed here.
     scratchpadViewBuilder: scratchpadViewBuilder
 )
 ```
+
+Do not replace the `CommandPaletteView` initializer call with the snippet as a
+closed list. Keep all existing builder arguments from the file, including builders
+added by other child plans such as custom automation, and append/pass the
+Scratchpad builder in the same style.
 
 - [ ] **Step 4: Render the Scratchpad destination**
 
 In `platforms/macos/Atlas/CommandPalette/CommandPaletteView.swift`, add the stored builder:
 
 ```swift
-let scratchpadViewBuilder: (() -> AnyView)?
+let scratchpadViewBuilder: ((UUID?) -> AnyView)?
 ```
 
-Update the initializer signature and assignment:
+Update the initializer signature and assignment additively:
 
 ```swift
 init(
@@ -957,7 +984,8 @@ init(
     screenshotLibraryViewBuilder: (() -> AnyView)? = nil,
     portLookupViewBuilder: (() -> AnyView)? = nil,
     windowPickerViewBuilder: (() -> AnyView)? = nil,
-    scratchpadViewBuilder: (() -> AnyView)? = nil
+    // Preserve every existing builder parameter already present here.
+    scratchpadViewBuilder: ((UUID?) -> AnyView)? = nil
 ) {
     self.providers = providers
     self.onDismiss = onDismiss
@@ -965,6 +993,7 @@ init(
     self.screenshotLibraryViewBuilder = screenshotLibraryViewBuilder
     self.portLookupViewBuilder = portLookupViewBuilder
     self.windowPickerViewBuilder = windowPickerViewBuilder
+    // Preserve every existing builder assignment already present here.
     self.scratchpadViewBuilder = scratchpadViewBuilder
 }
 ```
@@ -975,8 +1004,9 @@ Update `subView(for:)`:
 @ViewBuilder
 private func subView(for dest: PaletteDestination) -> some View {
     switch dest {
-    case .scratchpad:
-        scratchpadViewBuilder?() ?? AnyView(Text("Scratchpad").padding())
+    case .scratchpad(let noteID):
+        scratchpadViewBuilder?(noteID) ?? AnyView(Text("Scratchpad").padding())
+    // Preserve every existing destination branch already present here.
     case .screenshotLibrary:
         screenshotLibraryViewBuilder?() ?? AnyView(Text("Screenshot Library").padding())
     case .portLookup:
@@ -986,6 +1016,11 @@ private func subView(for dest: PaletteDestination) -> some View {
     }
 }
 ```
+
+Do not replace `subView(for:)` with this closed switch. Add the Scratchpad branch
+and keep every existing branch from the file, including branches added by other
+child plans. If Swift exhaustiveness requires reordering, preserve behavior for
+all non-Scratchpad destinations.
 
 - [ ] **Step 5: Wire the shared provider in app state**
 
@@ -1028,6 +1063,7 @@ final class CommandPaletteState: ObservableObject {
             clipboardHistoryProvider,
             snippetsProvider,
             scratchpadProvider,
+            // Preserve every existing provider already registered here.
             appLauncherProvider,
         ])
 
@@ -1046,7 +1082,13 @@ final class CommandPaletteState: ObservableObject {
 }
 ```
 
-Keep the existing capture callback properties, `setActions`, and `registerHotkey(_:)` methods that already exist in `CommandPaletteState`; the snippet above shows the new stored properties, initialization, provider list insertion, and enablement method.
+Do not replace `CommandPaletteState` or its provider list with this snippet as a
+closed list. Keep the existing capture callback properties, `setActions`, and
+`registerHotkey(_:)` methods that already exist in `CommandPaletteState`; the
+snippet above shows the new stored properties, initialization, provider list
+insertion, and enablement method. Preserve every existing provider already
+registered in the app, including providers added by other child plans such as
+custom automation.
 
 - [ ] **Step 6: Use the shared store and update gating from ContentView**
 
@@ -1077,10 +1119,12 @@ In `startHotkeys()`, after the existing command palette destination builders, ad
 
 ```swift
 controller.scratchpadViewBuilder = {
+    noteID in
     AnyView(
         ScratchpadPanel(
             store: self.scratchpadStore,
-            summarizer: self.scratchpadSummarizer
+            summarizer: self.scratchpadSummarizer,
+            initialSelectedNoteID: noteID
         )
     )
 }
@@ -1112,6 +1156,7 @@ final class ScratchpadProviderTests: XCTestCase {
         XCTAssertEqual(results.count, 1)
         XCTAssertEqual(results[0].title, "Open Scratchpad")
         XCTAssertEqual(results[0].category, "Scratchpad")
+        XCTAssertEqual(results[0].action, .push(.scratchpad(noteID: nil)))
     }
 
     func testSearchesNotesWhenEnabled() throws {
@@ -1126,6 +1171,7 @@ final class ScratchpadProviderTests: XCTestCase {
 
         XCTAssertEqual(results.map(\.title), ["Release"])
         XCTAssertEqual(results.first?.category, "Scratchpad")
+        XCTAssertEqual(results.first?.action, .push(.scratchpad(noteID: matching.id)))
     }
 
     func testSetEnabledAllowsResults() {
@@ -1342,4 +1388,4 @@ Expected: The commit contains only the Scratchpad implementation and tests.
 
 1. **Spec coverage:** Markdown storage is covered by Task 2; create/edit/delete by Tasks 2 and 4; command palette access by Task 5; optional AI summary by Task 3 and Task 4; Feature Center gating by Tasks 1, 4, and 5; XCTest coverage by Tasks 1, 2, 3, and 5; Xcode project membership by Task 6.
 2. **Placeholder scan:** This plan avoids placeholder instructions and provides concrete file paths, code snippets, commands, and expected results.
-3. **Type consistency:** `ScratchpadNote`, `ScratchpadDraft`, `ScratchpadStoring`, `ScratchpadSummarizing`, `ScratchpadProvider`, and `PaletteDestination.scratchpad` are defined before later tasks reference them.
+3. **Type consistency:** `ScratchpadNote`, `ScratchpadDraft`, `ScratchpadStoring`, `ScratchpadSummarizing`, `ScratchpadProvider`, and `PaletteDestination.scratchpad(noteID:)` are defined before later tasks reference them.
