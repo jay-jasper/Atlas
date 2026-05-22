@@ -641,13 +641,13 @@ Expected: The commit contains only the AI Skills child plan and this roadmap Tas
 ### Task 12: Add Packaging and Commercial Feature Boundaries
 
 **Files:**
-- Create later: `docs/superpowers/plans/2026-05-22-packaging-and-editions-v1.md`
+- Created: `docs/superpowers/plans/2026-05-22-packaging-and-editions-v1.md`
 - Create in child execution: `platforms/macos/Atlas/EditionModels.swift`
 - Create in child execution: `platforms/macos/Atlas/EntitlementService.swift`
 - Create in child execution: `platforms/macos/Atlas/EditionPanel.swift`
 - Test in child execution: `platforms/macos/AtlasTests/EntitlementServiceTests.swift`
 
-- [ ] **Step 1: Audit current edition support**
+- [x] **Step 1: Audit current edition support**
 
 Run:
 
@@ -657,20 +657,24 @@ rg -n 'Base Pack|Pro Pack|subscription|license|entitlement|edition|paywall|trial
 
 Expected: The command shows whether commercial feature boundaries exist.
 
-- [ ] **Step 2: Write packaging and editions child plan**
+Execution note, 2026-05-23: The audit command showed Base Pack and Pro Pack language in `docs/superpowers/specs/2026-05-09-atlas-design.md` and roadmap references for this task. It did not show production edition, entitlement, license, paywall, trial, or subscription support in `platforms/macos/Atlas` or `platforms/macos/AtlasTests`.
+
+- [x] **Step 2: Write packaging and editions child plan**
 
 Create `docs/superpowers/plans/2026-05-22-packaging-and-editions-v1.md`. The child plan must cover free/pro/community edition metadata, local entitlement evaluation, feature availability labels, no-network fallback behavior, and tests with injected entitlement state.
 
-- [ ] **Step 3: Commit packaging plan**
+Execution note, 2026-05-23: Created `docs/superpowers/plans/2026-05-22-packaging-and-editions-v1.md` as a child implementation plan only. The plan covers local Free, Pro, and Community edition metadata, injected local entitlement evaluation, Feature Center availability labels, no-network Free fallback behavior, deterministic tests with injected entitlement state, explicit Xcode PBX project membership updates for new Swift app/test files, and additive handling for shared feature enums/providers. No packaging, subscription, payment, network license, or App Store receipt production code was implemented in this task.
+
+- [x] **Step 3: Commit packaging plan**
 
 Run:
 
 ```bash
-git add docs/superpowers/plans/2026-05-22-packaging-and-editions-v1.md
+git add docs/superpowers/plans/2026-05-22-packaging-and-editions-v1.md docs/superpowers/plans/2026-05-22-atlas-all-features-roadmap.md
 git commit -m "docs: plan Atlas editions"
 ```
 
-Expected: The commit contains only the packaging and editions child plan.
+Expected: The commit contains only the packaging and editions child plan and this roadmap Task 12 update.
 
 ---
 
