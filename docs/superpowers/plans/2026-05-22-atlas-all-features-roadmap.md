@@ -388,7 +388,7 @@ Expected: The commit contains only the custom automation child plan and this roa
 ### Task 6: Finish Clipboard History
 
 **Files:**
-- Create later: `docs/superpowers/plans/2026-05-22-clipboard-history-v1.md`
+- Created: `docs/superpowers/plans/2026-05-22-clipboard-history-v1.md`
 - Modify in child execution: `platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.swift`
 - Create in child execution: `platforms/macos/Atlas/ClipboardHistoryStore.swift`
 - Create in child execution: `platforms/macos/Atlas/ClipboardHistoryPanel.swift`
