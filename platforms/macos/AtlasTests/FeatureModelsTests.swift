@@ -75,6 +75,12 @@ final class FeatureModelsTests: XCTestCase {
         XCTAssertEqual(feature.title, "Clipboard History")
     }
 
+    func testMapsSystemUtilitiesTitle() {
+        let feature = AtlasFeature(name: "system-utilities", isEnabled: false)
+
+        XCTAssertEqual(feature.title, "System Utilities")
+    }
+
     func testFeatureAvailabilityDefaultsToAvailable() {
         let feature = AtlasFeature(name: "monitoring", isEnabled: true)
 

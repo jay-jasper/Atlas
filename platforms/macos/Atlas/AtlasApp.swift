@@ -52,6 +52,11 @@ final class CommandPaletteState: ObservableObject {
     private var onCaptureWindow: (() -> Void)?
     private var onSaveCurrentWorkspace: (() -> Void)?
     private var onRestoreWorkspace: ((Workspace) -> Void)?
+    private var isSystemUtilitiesEnabled: (() -> Bool)?
+    private var onToggleKeepAwake: (() -> Void)?
+    private var onTogglePresentationMode: (() -> Void)?
+    private var onOpenHandMirror: (() -> Void)?
+    private var onRefreshDisplays: (() -> Void)?
 
     init(windowManager: WindowManaging = AccessibilityWindowManager()) {
         self.windowManager = windowManager
@@ -71,6 +76,13 @@ final class CommandPaletteState: ObservableObject {
         let windowManagementProvider = WindowManagementProvider(
             windowManager: windowManager,
             isEnabled: { [weak self] in self?.isWindowManagementEnabled == true }
+        )
+        let systemUtilitiesProvider = SystemUtilitiesProvider(
+            isEnabled: { [weak self] in self?.isSystemUtilitiesEnabled?() ?? false },
+            onToggleKeepAwake: { [weak self] in self?.onToggleKeepAwake?() },
+            onTogglePresentationMode: { [weak self] in self?.onTogglePresentationMode?() },
+            onOpenHandMirror: { [weak self] in self?.onOpenHandMirror?() },
+            onRefreshDisplays: { [weak self] in self?.onRefreshDisplays?() }
         )
         let tokenBarProvider = TokenBarCommandProvider(
             isEnabled: Self.isTokenBarFeatureEnabled,
@@ -108,6 +120,7 @@ final class CommandPaletteState: ObservableObject {
             tokenBarProvider,
             developerToolsProvider,
             windowManagementProvider,
+            systemUtilitiesProvider,
             workspaceProvider,
             clipboardHistoryProvider,
             snippetsProvider,
@@ -135,11 +148,21 @@ final class CommandPaletteState: ObservableObject {
     func setActions(
         onCaptureDesktop: @escaping () -> Void,
         onCaptureArea: @escaping () -> Void,
-        onCaptureWindow: @escaping () -> Void
+        onCaptureWindow: @escaping () -> Void,
+        isSystemUtilitiesEnabled: @escaping () -> Bool,
+        onToggleKeepAwake: @escaping () -> Void,
+        onTogglePresentationMode: @escaping () -> Void,
+        onOpenHandMirror: @escaping () -> Void,
+        onRefreshDisplays: @escaping () -> Void
     ) {
         self.onCaptureDesktop = onCaptureDesktop
         self.onCaptureArea = onCaptureArea
         self.onCaptureWindow = onCaptureWindow
+        self.isSystemUtilitiesEnabled = isSystemUtilitiesEnabled
+        self.onToggleKeepAwake = onToggleKeepAwake
+        self.onTogglePresentationMode = onTogglePresentationMode
+        self.onOpenHandMirror = onOpenHandMirror
+        self.onRefreshDisplays = onRefreshDisplays
     }
 
     func setWindowManagementEnabled(_ enabled: Bool) {

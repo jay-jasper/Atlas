@@ -32,6 +32,7 @@ impl FeatureManager {
         features.insert("scratchpad".to_string(), FeatureStatus::Disabled);
         features.insert("screenshot".to_string(), FeatureStatus::Disabled);
         features.insert("skills".to_string(), FeatureStatus::Disabled);
+        features.insert("system-utilities".to_string(), FeatureStatus::Disabled);
         features.insert("tokenbar".to_string(), FeatureStatus::Disabled);
         features.insert("window-manager".to_string(), FeatureStatus::Disabled);
         Self { features }
@@ -110,6 +111,7 @@ mod tests {
                 "scratchpad",
                 "screenshot",
                 "skills",
+                "system-utilities",
                 "tokenbar",
                 "window-manager",
             ]

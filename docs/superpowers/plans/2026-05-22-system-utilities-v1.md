@@ -105,7 +105,7 @@ Project membership rule: this repo uses explicit PBX project references. Every n
 - Modify: `platforms/macos/Atlas/FeatureModels.swift`
 - Test: `platforms/macos/AtlasTests/FeatureModelsTests.swift`
 
-- [ ] **Step 1: Add the Rust feature name**
+- [x] **Step 1: Add the Rust feature name**
 
 In `crates/atlas-core/src/features.rs`, add `system-utilities` to the existing registrations in `FeatureManager::new()`:
 
@@ -128,7 +128,7 @@ fn test_list_features_is_sorted_by_name() {
 }
 ```
 
-- [ ] **Step 2: Add the Swift module case additively**
+- [x] **Step 2: Add the Swift module case additively**
 
 In `platforms/macos/Atlas/AtlasModule.swift`, add the case and title branch without removing adjacent child-plan cases:
 
@@ -159,7 +159,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
 }
 ```
 
-- [ ] **Step 3: Add feature title mapping**
+- [x] **Step 3: Add feature title mapping**
 
 In `platforms/macos/Atlas/FeatureModels.swift`, add this switch branch:
 
@@ -178,7 +178,7 @@ func testMapsSystemUtilitiesTitle() {
 }
 ```
 
-- [ ] **Step 4: Verify the gate**
+- [x] **Step 4: Verify the gate**
 
 Run:
 
@@ -198,7 +198,7 @@ Expected: Rust feature ordering and Swift title tests pass.
 - Create: `platforms/macos/Atlas/SystemCommandRunner.swift`
 - Test: compile through later service tests
 
-- [ ] **Step 1: Add shared models**
+- [x] **Step 1: Add shared models**
 
 Create `platforms/macos/Atlas/SystemUtilitiesModels.swift`:
 
@@ -258,7 +258,7 @@ struct SystemUtilitiesState: Equatable {
 }
 ```
 
-- [ ] **Step 2: Add injected command runner**
+- [x] **Step 2: Add injected command runner**
 
 Create `platforms/macos/Atlas/SystemCommandRunner.swift`:
 
@@ -333,7 +333,7 @@ struct LiveSystemCommandRunner: SystemCommandRunning {
 - Create: `platforms/macos/Atlas/KeepAwakeService.swift`
 - Create: `platforms/macos/AtlasTests/KeepAwakeServiceTests.swift`
 
-- [ ] **Step 1: Add tests first**
+- [x] **Step 1: Add tests first**
 
 Create `platforms/macos/AtlasTests/KeepAwakeServiceTests.swift`:
 
@@ -415,7 +415,7 @@ final class FakeSystemCommandRunner: SystemCommandRunning {
 }
 ```
 
-- [ ] **Step 2: Add service**
+- [x] **Step 2: Add service**
 
 Create `platforms/macos/Atlas/KeepAwakeService.swift`:
 
@@ -455,7 +455,7 @@ final class KeepAwakeService: ObservableObject {
 }
 ```
 
-- [ ] **Step 3: Verify keep-awake tests**
+- [x] **Step 3: Verify keep-awake tests**
 
 Run:
 
@@ -473,7 +473,7 @@ Expected: tests pass without launching real `caffeinate`.
 - Create: `platforms/macos/Atlas/PresentationModeService.swift`
 - Create: `platforms/macos/AtlasTests/PresentationModeServiceTests.swift`
 
-- [ ] **Step 1: Add tests**
+- [x] **Step 1: Add tests**
 
 Create `platforms/macos/AtlasTests/PresentationModeServiceTests.swift`:
 
@@ -556,7 +556,7 @@ final class RecordingCommandRunner: SystemCommandRunning {
 }
 ```
 
-- [ ] **Step 2: Add service**
+- [x] **Step 2: Add service**
 
 Create `platforms/macos/Atlas/PresentationModeService.swift`:
 
@@ -613,7 +613,7 @@ enum PresentationModeError: Error, Equatable {
 
 Notification behavior: the sample `osascript` is a toggle, not a reliable mute or unmute API. Treat it as optional best-effort notification-focus automation and surface status text that does not promise a guaranteed notification state. If Automation permission blocks `osascript` or any presentation setup step fails after keep-awake starts, show the failure message in the panel and leave keep-awake stopped by calling `keepAwakeService.stop()` before throwing.
 
-- [ ] **Step 3: Verify presentation tests**
+- [x] **Step 3: Verify presentation tests**
 
 Run:
 
@@ -632,7 +632,7 @@ Expected: presentation behavior is verified through injected command results onl
 - Create: `platforms/macos/Atlas/CameraPreviewPanel.swift`
 - Create: `platforms/macos/AtlasTests/HandMirrorServiceTests.swift`
 
-- [ ] **Step 1: Add camera permission tests**
+- [x] **Step 1: Add camera permission tests**
 
 Create `platforms/macos/AtlasTests/HandMirrorServiceTests.swift`:
 
@@ -695,7 +695,7 @@ final class FakeCameraPermissionProvider: CameraPermissionProviding {
 }
 ```
 
-- [ ] **Step 2: Add hand mirror service**
+- [x] **Step 2: Add hand mirror service**
 
 Create `platforms/macos/Atlas/HandMirrorService.swift`:
 
@@ -757,7 +757,7 @@ final class HandMirrorService: ObservableObject {
 }
 ```
 
-- [ ] **Step 3: Add preview panel**
+- [x] **Step 3: Add preview panel**
 
 Create `platforms/macos/Atlas/CameraPreviewPanel.swift`:
 
@@ -835,7 +835,7 @@ struct LiveCameraPreview: NSViewRepresentable {
 
 Permission behavior: the UI must never start `AVCaptureSession` unless `CameraPermissionState.authorized` is known. Denied and restricted states show status text only.
 
-- [ ] **Step 4: Verify hand mirror tests**
+- [x] **Step 4: Verify hand mirror tests**
 
 Run:
 
@@ -853,7 +853,7 @@ Expected: permission behavior is tested without accessing real camera hardware.
 - Create: `platforms/macos/Atlas/DisplayControlService.swift`
 - Create: `platforms/macos/AtlasTests/DisplayControlServiceTests.swift`
 
-- [ ] **Step 1: Add display capability tests**
+- [x] **Step 1: Add display capability tests**
 
 Create `platforms/macos/AtlasTests/DisplayControlServiceTests.swift`:
 
@@ -901,7 +901,7 @@ struct FakeDisplayCapabilityProbe: DisplayCapabilityProbing {
 }
 ```
 
-- [ ] **Step 2: Add display service**
+- [x] **Step 2: Add display service**
 
 Create `platforms/macos/Atlas/DisplayControlService.swift`:
 
@@ -989,7 +989,7 @@ enum DisplayControlParser {
 
 Capability behavior: v1 detects and reports DDC/CI availability only. Built-in and non-DDC displays must remain in an honest unsupported state; do not add software brightness probing or brightness writes in this plan unless the user explicitly requests a follow-up implementation plan for brightness control.
 
-- [ ] **Step 3: Verify display tests**
+- [x] **Step 3: Verify display tests**
 
 Run:
 
@@ -1009,7 +1009,7 @@ Expected: tests pass without requiring external displays or `ddcctl`.
 - Modify: `platforms/macos/Atlas/AtlasApp.swift`
 - Create: `platforms/macos/AtlasTests/SystemUtilitiesPanelTests.swift`
 
-- [ ] **Step 1: Add panel tests**
+- [x] **Step 1: Add panel tests**
 
 Create `platforms/macos/AtlasTests/SystemUtilitiesPanelTests.swift`:
 
@@ -1045,7 +1045,7 @@ final class SystemUtilitiesPanelTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Add panel**
+- [x] **Step 2: Add panel**
 
 Create `platforms/macos/Atlas/SystemUtilitiesPanel.swift`:
 
@@ -1100,7 +1100,7 @@ struct SystemUtilitiesPanel: View {
 }
 ```
 
-- [ ] **Step 3: Wire ContentView additively**
+- [x] **Step 3: Wire ContentView additively**
 
 In `platforms/macos/Atlas/ContentView.swift`, add state and services near existing properties:
 
@@ -1202,7 +1202,7 @@ Add the sheet near existing overlay/sheet presentation code:
 }
 ```
 
-- [ ] **Step 4: Verify app build slice**
+- [x] **Step 4: Verify app build slice**
 
 Run:
 
@@ -1221,7 +1221,7 @@ Expected: the app builds with the new panel and services.
 - Modify: `platforms/macos/Atlas/AtlasApp.swift`
 - Create: `platforms/macos/AtlasTests/SystemUtilitiesProviderTests.swift`
 
-- [ ] **Step 1: Add provider tests**
+- [x] **Step 1: Add provider tests**
 
 Create `platforms/macos/AtlasTests/SystemUtilitiesProviderTests.swift`:
 
@@ -1281,7 +1281,7 @@ final class SystemUtilitiesProviderTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Add provider**
+- [x] **Step 2: Add provider**
 
 Create `platforms/macos/Atlas/CommandPalette/SystemUtilitiesProvider.swift`:
 
@@ -1363,7 +1363,7 @@ struct SystemUtilitiesProvider: CommandProviding {
 }
 ```
 
-- [ ] **Step 3: Wire provider additively**
+- [x] **Step 3: Wire provider additively**
 
 In `platforms/macos/Atlas/AtlasApp.swift`, add the provider to `CommandPaletteState` without replacing existing providers:
 
@@ -1440,7 +1440,7 @@ paletteState?.setActions(
 )
 ```
 
-- [ ] **Step 4: Verify provider tests**
+- [x] **Step 4: Verify provider tests**
 
 Run:
 
@@ -1457,7 +1457,7 @@ Expected: disabled gating and command actions pass.
 **Files:**
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Add every new Swift file to the explicit PBX project**
+- [x] **Step 1: Add every new Swift file to the explicit PBX project**
 
 Use Xcode or a deterministic `xcodeproj` script to add these files:
 
@@ -1523,7 +1523,7 @@ If the repo does not have the `xcodeproj` gem available, make the same additions
 - Add app build files to the `Atlas` `PBXSourcesBuildPhase`.
 - Add test build files to the `AtlasTests` `PBXSourcesBuildPhase`.
 
-- [ ] **Step 2: Verify project membership**
+- [x] **Step 2: Verify project membership**
 
 Run:
 
@@ -1540,7 +1540,7 @@ Expected: each new Swift file appears as a file reference and source build file.
 **Files:**
 - No file changes
 
-- [ ] **Step 1: Run focused XCTest slice**
+- [x] **Step 1: Run focused XCTest slice**
 
 Run:
 
@@ -1557,7 +1557,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: the focused system utilities and feature mapping tests pass.
 
-- [ ] **Step 2: Run Rust feature registry test**
+- [x] **Step 2: Run Rust feature registry test**
 
 Run:
 
@@ -1567,7 +1567,7 @@ cargo test -p atlas-core test_list_features_is_sorted_by_name
 
 Expected: the feature registry lists `system-utilities` and remains sorted.
 
-- [ ] **Step 3: Run full app build**
+- [x] **Step 3: Run full app build**
 
 Run:
 

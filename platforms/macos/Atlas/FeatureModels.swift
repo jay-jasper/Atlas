@@ -56,6 +56,8 @@ private enum AtlasFeatureTitles {
             return AtlasModule.screenshot.title
         case AtlasModule.skills.featureName:
             return AtlasModule.skills.title
+        case AtlasModule.systemUtilities.featureName:
+            return AtlasModule.systemUtilities.title
         case AtlasModule.tokenbar.featureName:
             return AtlasModule.tokenbar.title
         case AtlasModule.windowManager.featureName:

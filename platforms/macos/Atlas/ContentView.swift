@@ -40,6 +40,11 @@ struct ContentView: View {
     @State private var tokenBarSummary: TokenBarSummary = .empty
     @State private var localAILoadSnapshot: LocalAILoadSnapshot = .empty
     @State private var entitlementState: LocalEntitlementState = .fallback
+    @StateObject private var keepAwakeService: KeepAwakeService
+    @StateObject private var presentationModeService: PresentationModeService
+    @StateObject private var handMirrorService = HandMirrorService()
+    @StateObject private var displayControlService = DisplayControlService()
+    @State private var isShowingHandMirror = false
     private let screenshotFeatureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigurationStore = ScreenshotTranslationConfigurationStore()
     private let screenshotLibraryStore = ScreenshotLibraryStore()
@@ -71,6 +76,9 @@ struct ContentView: View {
         entitlementService: EntitlementService = EntitlementService(provider: LocalEntitlementProvider()),
         paletteState: CommandPaletteState? = nil
     ) {
+        let keepAwakeService = KeepAwakeService()
+        _keepAwakeService = StateObject(wrappedValue: keepAwakeService)
+        _presentationModeService = StateObject(wrappedValue: PresentationModeService(keepAwakeService: keepAwakeService))
         self.windowManager = windowManager
         self.windowPermissionChecker = windowPermissionChecker
         self.entitlementService = entitlementService
@@ -157,6 +165,25 @@ struct ContentView: View {
                         ScratchpadPanel(
                             store: scratchpadStore,
                             summarizer: scratchpadSummarizer
+                        )
+
+                        Divider()
+                    }
+
+                    if isFeatureEnabled(.systemUtilities) {
+                        SystemUtilitiesPanel(
+                            model: SystemUtilitiesPanelModel(
+                                state: SystemUtilitiesState(
+                                    keepAwake: keepAwakeService.status,
+                                    presentationMode: presentationModeService.status,
+                                    cameraPermission: handMirrorService.permissionState,
+                                    displays: displayControlService.displays
+                                ),
+                                onToggleKeepAwake: toggleKeepAwake,
+                                onTogglePresentationMode: togglePresentationMode,
+                                onOpenHandMirror: openHandMirror,
+                                onRefreshDisplays: refreshDisplays
+                            )
                         )
 
                         Divider()
@@ -260,6 +287,13 @@ struct ContentView: View {
             }
         }
         .frame(minWidth: 360, minHeight: 500)
+        .sheet(isPresented: $isShowingHandMirror) {
+            CameraPreviewPanel(
+                permissionState: handMirrorService.permissionState,
+                onRequestAccess: openHandMirror
+            )
+            .padding()
+        }
         .onAppear(perform: startModules)
         .onDisappear(perform: stopModules)
         .onReceive(NotificationCenter.default.publisher(for: .tokenBarSummaryDidChange)) { notification in
@@ -355,7 +389,12 @@ struct ContentView: View {
         paletteState?.setActions(
             onCaptureDesktop: { self.captureDesktop() },
             onCaptureArea: { self.showSelectionWindow() },
-            onCaptureWindow: { self.showWindowSelection() }
+            onCaptureWindow: { self.showWindowSelection() },
+            isSystemUtilitiesEnabled: { isFeatureEnabled(.systemUtilities) },
+            onToggleKeepAwake: toggleKeepAwake,
+            onTogglePresentationMode: togglePresentationMode,
+            onOpenHandMirror: openHandMirror,
+            onRefreshDisplays: refreshDisplays
         )
 
         if let controller = paletteState?.controller {
@@ -574,6 +613,55 @@ struct ContentView: View {
             return .error
         default:
             return .success
+        }
+    }
+
+    private func toggleKeepAwake() {
+        if keepAwakeService.status == .running {
+            keepAwakeService.stop()
+            showStatus("Keep awake stopped")
+            return
+        }
+
+        do {
+            try keepAwakeService.start()
+            showStatus("Keep awake started")
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
+        }
+    }
+
+    private func togglePresentationMode() {
+        if presentationModeService.status == .running {
+            presentationModeService.stop()
+            showStatus("Presentation mode stopped")
+            return
+        }
+
+        do {
+            try presentationModeService.start()
+            showStatus("Presentation mode started")
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
+        }
+    }
+
+    private func openHandMirror() {
+        Task {
+            if await handMirrorService.prepareForPreview() {
+                isShowingHandMirror = true
+            } else {
+                showStatus("Camera permission is required", kind: .error)
+            }
+        }
+    }
+
+    private func refreshDisplays() {
+        do {
+            try displayControlService.refreshDisplays()
+            showStatus("Display capabilities refreshed")
+        } catch {
+            showStatus(error.localizedDescription, kind: .error)
         }
     }
 
