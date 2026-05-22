@@ -395,7 +395,7 @@ Expected: The commit contains only the custom automation child plan and this roa
 - Test in child execution: `platforms/macos/AtlasTests/ClipboardHistoryProviderTests.swift`
 - Test in child execution: `platforms/macos/AtlasTests/ClipboardHistoryStoreTests.swift`
 
-- [ ] **Step 1: Audit current clipboard behavior**
+- [x] **Step 1: Audit current clipboard behavior**
 
 Run:
 
@@ -405,11 +405,13 @@ sed -n '1,220p' platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.sw
 
 Expected: The file shows in-memory text clipboard capture and command palette results.
 
-- [ ] **Step 2: Write clipboard history child plan**
+- [x] **Step 2: Write clipboard history child plan**
 
 Create `docs/superpowers/plans/2026-05-22-clipboard-history-v1.md`. The child plan must cover persistent text history, image metadata handling, search, delete, clear-all, max retention, Feature Center gating, privacy messaging, and tests with an injected clipboard reader.
 
-- [ ] **Step 3: Commit clipboard plan**
+Execution note, 2026-05-22: `ClipboardHistoryProvider.swift` currently captures non-empty text clipboard contents through the injected `ClipboardReading` abstraction, stores entries in memory, caps history with `maxHistoryCount`, and exposes matching command palette results that copy selected text back to the pasteboard. Created `2026-05-22-clipboard-history-v1.md` as a child implementation plan covering persistent text history, image metadata without image bytes, search, delete, clear-all, max retention, Feature Center gating, privacy messaging, injected-reader tests, and explicit Xcode project membership updates for new Swift app/test files.
+
+- [x] **Step 3: Commit clipboard plan**
 
 Run:
 
@@ -418,7 +420,7 @@ git add docs/superpowers/plans/2026-05-22-clipboard-history-v1.md
 git commit -m "docs: plan persistent clipboard history"
 ```
 
-Expected: The commit contains only the clipboard history child plan.
+Expected: The commit contains only the clipboard history child plan and this roadmap Task 6 execution note.
 
 ---
 
