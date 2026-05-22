@@ -18,7 +18,7 @@
 - Create: `crates/atlas-core/src/capture/engine.rs`
 - Modify: `crates/atlas-core/src/lib.rs`
 
-- [ ] **Step 1: 添加 Rust 截图依赖**
+- [x] **Step 1: 添加 Rust 截图依赖**
 
 ```toml
 # crates/atlas-core/Cargo.toml
@@ -29,7 +29,7 @@ image = "0.24"
 uuid = { version = "1.7", features = ["v4"] }
 ```
 
-- [ ] **Step 2: 实现基础捕获引擎**
+- [x] **Step 2: 实现基础捕获引擎**
 
 ```rust
 // crates/atlas-core/src/capture/engine.rs
@@ -59,14 +59,14 @@ impl CaptureEngine {
 }
 ```
 
-- [ ] **Step 3: 导出模块**
+- [x] **Step 3: 导出模块**
 
 ```rust
 // crates/atlas-core/src/lib.rs
 pub mod capture;
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add crates/atlas-core/Cargo.toml crates/atlas-core/src/capture
@@ -81,7 +81,7 @@ git commit -m "feat: implement basic rust capture engine"
 - Modify: `crates/atlas-ffi/src/atlas.udl`
 - Modify: `crates/atlas-ffi/src/lib.rs`
 
-- [ ] **Step 1: 定义 UDL 截图接口**
+- [x] **Step 1: 定义 UDL 截图接口**
 
 ```udl
 // crates/atlas-ffi/src/atlas.udl
@@ -92,7 +92,7 @@ namespace atlas {
 };
 ```
 
-- [ ] **Step 2: 实现 FFI 导出函数**
+- [x] **Step 2: 实现 FFI 导出函数**
 
 ```rust
 // crates/atlas-ffi/src/lib.rs
@@ -105,7 +105,7 @@ pub fn capture_region(x: i32, y: u32, width: u32, height: u32) -> Vec<u8> {
 }
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add crates/atlas-ffi/src/atlas.udl crates/atlas-ffi/src/lib.rs
@@ -120,7 +120,7 @@ git commit -m "feat: export capture functions via uniffi"
 - Create: `platforms/macos/Atlas/SelectionOverlay.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: 创建确认式选区交互视图**
+- [x] **Step 1: 创建确认式选区交互视图**
 
 需求：
 - 拖拽创建选区，松手后不立即截图。
@@ -150,7 +150,7 @@ struct SelectionOverlay: View {
 }
 ```
 
-- [ ] **Step 2: 在 ContentView 中接入取消与确认回调**
+- [x] **Step 2: 在 ContentView 中接入取消与确认回调**
 
 ```swift
 SelectionOverlay(
@@ -161,7 +161,7 @@ SelectionOverlay(
 )
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add platforms/macos/Atlas/SelectionOverlay.swift
@@ -176,7 +176,7 @@ git commit -m "feat: add adjustable screenshot selection overlay"
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 - Modify: `platforms/macos/Atlas/AtlasApp.swift`
 
-- [ ] **Step 1: 实现复制、保存与状态反馈**
+- [x] **Step 1: 实现复制、保存与状态反馈**
 
 ```swift
 // Logic (Pseudocode):
@@ -187,7 +187,7 @@ git commit -m "feat: add adjustable screenshot selection overlay"
 // 5. 显示短暂成功/失败状态
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add platforms/macos/Atlas
@@ -203,7 +203,7 @@ git commit -m "feat: add screenshot copy and save flow"
 - Modify: `platforms/macos/Atlas/SelectionOverlay.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: 定义标注模型**
+- [x] **Step 1: 定义标注模型**
 
 支持最小标注集合：
 - 矩形
@@ -212,14 +212,14 @@ git commit -m "feat: add screenshot copy and save flow"
 - 文字
 - 马赛克/模糊
 
-- [ ] **Step 2: 在选区工具栏中增加工具入口**
+- [x] **Step 2: 在选区工具栏中增加工具入口**
 
 工具栏行为：
 - 默认显示取消、确认。
 - 进入标注模式后显示工具、颜色、线宽、撤销。
 - 标注完成后确认输出合成后的图片。
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add platforms/macos/Atlas
@@ -235,13 +235,13 @@ git commit -m "feat: add screenshot quick annotation tools"
 - Modify: `platforms/macos/Atlas/SelectionOverlay.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: 实现钉图**
+- [x] **Step 1: 实现钉图**
 
 需求：
 - 截图后可点击 Pin，将截图作为置顶悬浮窗显示。
 - 悬浮窗支持拖动、关闭，后续可支持缩放和透明度。
 
-- [ ] **Step 2: 实现精确选择辅助**
+- [x] **Step 2: 实现精确选择辅助**
 
 需求：
 - 鼠标附近显示像素放大镜。
@@ -249,7 +249,7 @@ git commit -m "feat: add screenshot quick annotation tools"
 - 显示简单标尺/辅助线。
 - 后续支持颜色取样。
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add platforms/macos/Atlas
