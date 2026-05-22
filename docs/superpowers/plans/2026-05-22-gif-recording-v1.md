@@ -435,7 +435,11 @@ final class ScreenshotGIFRecordingTests: XCTestCase {
         )
 
         let result = try recorder.record(
-            request: ScreenshotGIFRecordingRequest(region: .zero, frameDelay: 0.05, maximumFrames: 2),
+            request: ScreenshotGIFRecordingRequest(
+                region: CGRect(x: 0, y: 0, width: 16, height: 16),
+                frameDelay: 0.05,
+                maximumFrames: 2
+            ),
             shouldStop: { false }
         )
 
@@ -893,6 +897,48 @@ struct ScreenshotPanel: View {
                 }
                 if capabilities.area {
                     captureButton(for: .area, action: onCaptureArea, prominent: !capabilities.desktop && !capabilities.window)
+                }
+                if capabilities.gifRecording {
+                    Button(action: onRecordGIF) {
+                        Label("GIF", systemImage: "record.circle")
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+        }
+    }
+}
+```
+
+Compatibility note: this `ScreenshotPanel` change is additive. If `docs/superpowers/plans/2026-05-22-scrolling-capture-v1.md` has already been applied, keep its `onCaptureScrolling` callback and Scrolling button when adding `onRecordGIF`. If both advanced screenshot plans are applied, the final panel shape must include both advanced callbacks:
+
+```swift
+struct ScreenshotPanel: View {
+    let capabilities: ScreenshotCaptureCapabilities
+    let onCaptureDesktop: () -> Void
+    let onCaptureWindow: () -> Void
+    let onCaptureArea: () -> Void
+    let onCaptureScrolling: () -> Void
+    let onRecordGIF: () -> Void
+
+    var body: some View {
+        Group {
+            Text("Screenshot").font(.subheadline).foregroundColor(.secondary)
+            HStack {
+                if capabilities.desktop {
+                    captureButton(for: .desktop, action: onCaptureDesktop, prominent: true)
+                }
+                if capabilities.window {
+                    captureButton(for: .window, action: onCaptureWindow, prominent: !capabilities.desktop)
+                }
+                if capabilities.area {
+                    captureButton(for: .area, action: onCaptureArea, prominent: !capabilities.desktop && !capabilities.window)
+                }
+                if capabilities.scrolling {
+                    Button(action: onCaptureScrolling) {
+                        Label("Scrolling", systemImage: "rectangle.stack.badge.plus")
+                    }
+                    .buttonStyle(.bordered)
                 }
                 if capabilities.gifRecording {
                     Button(action: onRecordGIF) {

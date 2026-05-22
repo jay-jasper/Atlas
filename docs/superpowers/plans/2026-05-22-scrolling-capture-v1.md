@@ -788,6 +788,48 @@ struct ScreenshotPanel: View {
 }
 ```
 
+Compatibility note: this `ScreenshotPanel` change is additive. If `docs/superpowers/plans/2026-05-22-gif-recording-v1.md` has already been applied, keep its `onRecordGIF` callback and GIF button when adding `onCaptureScrolling`. If both advanced screenshot plans are applied, the final panel shape must include both advanced callbacks:
+
+```swift
+struct ScreenshotPanel: View {
+    let capabilities: ScreenshotCaptureCapabilities
+    let onCaptureDesktop: () -> Void
+    let onCaptureWindow: () -> Void
+    let onCaptureArea: () -> Void
+    let onCaptureScrolling: () -> Void
+    let onRecordGIF: () -> Void
+
+    var body: some View {
+        Group {
+            Text("Screenshot").font(.subheadline).foregroundColor(.secondary)
+            HStack {
+                if capabilities.desktop {
+                    captureButton(for: .desktop, action: onCaptureDesktop, prominent: true)
+                }
+                if capabilities.window {
+                    captureButton(for: .window, action: onCaptureWindow, prominent: !capabilities.desktop)
+                }
+                if capabilities.area {
+                    captureButton(for: .area, action: onCaptureArea, prominent: !capabilities.desktop && !capabilities.window)
+                }
+                if capabilities.scrolling {
+                    Button(action: onCaptureScrolling) {
+                        Label("Scrolling", systemImage: "rectangle.stack.badge.plus")
+                    }
+                    .buttonStyle(.bordered)
+                }
+                if capabilities.gifRecording {
+                    Button(action: onRecordGIF) {
+                        Label("GIF", systemImage: "record.circle")
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+        }
+    }
+}
+```
+
 - [ ] **Step 2: Wire `ContentView` to select a window and start scrolling capture**
 
 In `platforms/macos/Atlas/ContentView.swift`, add this property beside the existing screenshot services:
