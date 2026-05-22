@@ -713,3 +713,19 @@ git commit -m "docs: add command palette snippets plan"
 2. **Placeholder scan:** The plan contains concrete paths, exact test code, exact implementation code, commands, expected results, and commit messages. It does not use undefined future types before they are introduced.
 
 3. **Type consistency:** `Snippet`, `SnippetProviding`, `SnippetStore`, and `SnippetsProvider` are introduced before later tasks reference them. Provider tests use the existing `ClipboardReading` and `SystemClipboardReader` types from `ClipboardHistoryProvider.swift`.
+
+## Verification Notes
+
+Completed on 2026-05-22 on branch `codex/command-palette-snippets-v1`.
+
+- Focused provider/store tests:
+  - `SnippetsProviderTests`
+  - `SnippetStoreTests`
+  - `ClipboardHistoryProviderTests`
+  - `WindowManagementProviderTests`
+  - `DeveloperToolsProviderTests`
+  - `AppLauncherProviderTests`
+  - `AtlasCommandProviderTests`
+- Full macOS test suite:
+  - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destination 'platform=macOS'`
+- Manual snippet copy verification was not run; this follows the project preference that unit tests are sufficient unless explicitly requested.
