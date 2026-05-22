@@ -9,8 +9,8 @@ protocol ApplicationChangeObserving: AnyObject {
 
 final class ApplicationDirectoryChangeObserver: ApplicationChangeObserving {
     private let directories: [URL]
+    private let lock = NSLock()
     private var sources: [DispatchSourceFileSystemObject] = []
-    private var fileDescriptors: [Int32] = []
     private var handler: (() -> Void)?
 
     init(directories: [URL] = FileSystemApplicationScanner.defaultDirectories) {
@@ -22,16 +22,23 @@ final class ApplicationDirectoryChangeObserver: ApplicationChangeObserving {
     }
 
     func setChangeHandler(_ handler: @escaping () -> Void) {
+        lock.lock()
+        defer { lock.unlock() }
+
         self.handler = handler
     }
 
     func start() {
-        stop()
+        lock.lock()
+        defer { lock.unlock() }
+
+        cancelSourcesLocked()
 
         for directory in directories {
             let fileDescriptor = open(directory.path, O_EVTONLY)
             guard fileDescriptor >= 0 else { continue }
 
+            // Change handlers run on this background utility queue.
             let source = DispatchSource.makeFileSystemObjectSource(
                 fileDescriptor: fileDescriptor,
                 eventMask: [.write, .delete, .rename],
@@ -39,21 +46,34 @@ final class ApplicationDirectoryChangeObserver: ApplicationChangeObserving {
             )
 
             source.setEventHandler { [weak self] in
-                self?.handler?()
+                let handler = self?.currentHandler()
+                handler?()
             }
             source.setCancelHandler {
                 close(fileDescriptor)
             }
 
-            fileDescriptors.append(fileDescriptor)
             sources.append(source)
             source.resume()
         }
     }
 
     func stop() {
+        lock.lock()
+        defer { lock.unlock() }
+
+        cancelSourcesLocked()
+    }
+
+    private func currentHandler() -> (() -> Void)? {
+        lock.lock()
+        defer { lock.unlock() }
+
+        return handler
+    }
+
+    private func cancelSourcesLocked() {
         sources.forEach { $0.cancel() }
         sources.removeAll()
-        fileDescriptors.removeAll()
     }
 }
