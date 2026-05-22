@@ -440,7 +440,7 @@ final class ScreenshotScrollingCaptureTests: XCTestCase {
         ).capture(
             request: ScrollingCaptureRequest(
                 window: CapturableWindow(id: 42, title: "Document", ownerName: "Preview", bounds: .zero),
-                maxFrames: 5,
+                maxFrames: 3,
                 scrollDelta: -8,
                 overlapPixels: 0
             )
