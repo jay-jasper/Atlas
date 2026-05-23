@@ -25,8 +25,24 @@ final class GlobalHotkeyService {
     private var registrations: [Registration] = []
     private var globalMonitor: Any?
     private var localMonitor: Any?
+    private let accessLogger: PrivacyPulseAccessLogging
+    private let isProcessTrusted: () -> Bool
+    private let requestTrustWithPrompt: () -> Void
 
     var registeredCount: Int { registrations.count }
+
+    init(
+        accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger(),
+        isProcessTrusted: @escaping () -> Bool = AXIsProcessTrusted,
+        requestTrustWithPrompt: @escaping () -> Void = {
+            let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeRetainedValue(): true]
+            AXIsProcessTrustedWithOptions(options)
+        }
+    ) {
+        self.accessLogger = accessLogger
+        self.isProcessTrusted = isProcessTrusted
+        self.requestTrustWithPrompt = requestTrustWithPrompt
+    }
 
     func register(keyCode: Int, modifiers: NSEvent.ModifierFlags, handler: @escaping () -> Void) {
         let normalizedModifiers = modifiers.intersection(.deviceIndependentFlagsMask)
@@ -45,7 +61,7 @@ final class GlobalHotkeyService {
             self?.handle(event) ?? event
         }
 
-        guard AXIsProcessTrusted() else { return }
+        guard isProcessTrusted() else { return }
         globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             self?.handle(event)
         }
@@ -59,9 +75,13 @@ final class GlobalHotkeyService {
     }
 
     func requestAccessibilityIfNeeded() {
-        guard !AXIsProcessTrusted() else { return }
-        let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeRetainedValue(): true]
-        AXIsProcessTrustedWithOptions(options)
+        accessLogger.record(
+            category: .accessibility,
+            title: "Accessibility Check",
+            detail: "Global hotkey trust checked"
+        )
+        guard !isProcessTrusted() else { return }
+        requestTrustWithPrompt()
     }
 
     // Internal for testing: fire the matching handler synchronously

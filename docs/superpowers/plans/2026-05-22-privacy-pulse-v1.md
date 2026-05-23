@@ -1,6 +1,6 @@
 # Privacy Pulse v1 Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Add a Feature Center gated Privacy Pulse panel that shows Atlas privacy access status and recent Atlas-internal privacy access events.
 
@@ -111,7 +111,7 @@ Project membership rule: this repo uses explicit PBX project references. Every n
 - Modify: `platforms/macos/Atlas/FeatureModels.swift`
 - Test: `platforms/macos/AtlasTests/FeatureModelsTests.swift`
 
-- [ ] **Step 1: Add Rust feature registration**
+- [x] **Step 1: Add Rust feature registration**
 
 In `crates/atlas-core/src/features.rs`, add the privacy feature inside `FeatureManager::new()`:
 
@@ -134,7 +134,7 @@ fn test_list_features_is_sorted_by_name() {
 }
 ```
 
-- [ ] **Step 2: Add Swift module case additively**
+- [x] **Step 2: Add Swift module case additively**
 
 In `platforms/macos/Atlas/AtlasModule.swift`, add `privacy` without removing existing or adjacent child-plan cases:
 
@@ -165,7 +165,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
 
 If other child plans have already added cases, keep them in the enum and add only the `privacy` case plus its `switch` branch.
 
-- [ ] **Step 3: Map Privacy Pulse feature title**
+- [x] **Step 3: Map Privacy Pulse feature title**
 
 In `platforms/macos/Atlas/FeatureModels.swift`, add the title branch without changing fallback behavior:
 
@@ -191,7 +191,7 @@ private enum AtlasFeatureTitles {
 }
 ```
 
-- [ ] **Step 4: Add focused feature title test**
+- [x] **Step 4: Add focused feature title test**
 
 In `platforms/macos/AtlasTests/FeatureModelsTests.swift`, add:
 
@@ -203,7 +203,7 @@ func testPrivacyFeatureTitleUsesProductName() {
 }
 ```
 
-- [ ] **Step 5: Verify feature gate**
+- [x] **Step 5: Verify feature gate**
 
 Run:
 
@@ -214,7 +214,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: Both commands pass. The Rust test confirms `privacy` exists and names remain sorted; Swift title tests pass.
 
-- [ ] **Step 6: Commit feature gate**
+- [x] **Step 6: Commit feature gate**
 
 Run:
 
@@ -234,7 +234,7 @@ Expected: The commit contains only feature registration and title-test changes.
 - Create: `platforms/macos/Atlas/PrivacyPulseAccessLogger.swift`
 - Test: `platforms/macos/AtlasTests/PrivacyPulseServiceTests.swift`
 
-- [ ] **Step 1: Create shared models**
+- [x] **Step 1: Create shared models**
 
 Create `platforms/macos/Atlas/PrivacyPulseModels.swift`:
 
@@ -320,7 +320,7 @@ protocol PrivacyPulseStatusProviding {
 }
 ```
 
-- [ ] **Step 2: Create shared Atlas access logger**
+- [x] **Step 2: Create shared Atlas access logger**
 
 Create `platforms/macos/Atlas/PrivacyPulseAccessLogger.swift`:
 
@@ -384,7 +384,7 @@ struct NoopPrivacyPulseAccessLogger: PrivacyPulseAccessLogging {
 }
 ```
 
-- [ ] **Step 3: Add in-memory logger tests**
+- [x] **Step 3: Add in-memory logger tests**
 
 Create `platforms/macos/AtlasTests/PrivacyPulseServiceTests.swift` with the first focused tests:
 
@@ -412,7 +412,7 @@ final class PrivacyPulseServiceTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 4: Verify logger tests fail before project membership**
+- [x] **Step 4: Verify logger tests fail before project membership**
 
 Run:
 
@@ -422,7 +422,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: The command fails because the new Swift files are not yet members of the Xcode project. This confirms the explicit PBX membership step is required.
 
-- [ ] **Step 5: Add Xcode project membership for initial files**
+- [x] **Step 5: Add Xcode project membership for initial files**
 
 Update `platforms/macos/Atlas.xcodeproj/project.pbxproj` so these files are in the correct targets:
 
@@ -437,7 +437,7 @@ AtlasTests target sources:
 
 Use the existing PBX style in the file: one `PBXFileReference`, one `PBXBuildFile`, one group entry, and one `PBXSourcesBuildPhase` entry per Swift source.
 
-- [ ] **Step 6: Verify logger tests pass**
+- [x] **Step 6: Verify logger tests pass**
 
 Run:
 
@@ -447,7 +447,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: `PrivacyPulseServiceTests/testLoggerStoresMostRecentEventsFirstAndTrims` passes without reading the clipboard or touching system permissions.
 
-- [ ] **Step 7: Commit models and logger**
+- [x] **Step 7: Commit models and logger**
 
 Run:
 
@@ -467,7 +467,7 @@ Expected: The commit contains only the shared models, in-memory logger, first te
 - Create/Modify: `platforms/macos/Atlas/PrivacyPulseService.swift`
 - Modify: `platforms/macos/AtlasTests/PrivacyPulseServiceTests.swift`
 
-- [ ] **Step 1: Add public system status provider**
+- [x] **Step 1: Add public system status provider**
 
 Create `platforms/macos/Atlas/PrivacyPulseSystemStatusProvider.swift`:
 
@@ -511,7 +511,7 @@ struct PrivacyPulseSystemStatusProvider: PrivacyPulseStatusProviding {
 
 This provider must not call `AVCaptureDevice.requestAccess`, create `AVCaptureSession`, call `CGRequestScreenCaptureAccess`, or prompt for Accessibility.
 
-- [ ] **Step 2: Add service snapshot composition**
+- [x] **Step 2: Add service snapshot composition**
 
 Create `platforms/macos/Atlas/PrivacyPulseService.swift`:
 
@@ -576,7 +576,7 @@ final class PrivacyPulseService {
 }
 ```
 
-- [ ] **Step 3: Extend service tests with injected fakes**
+- [x] **Step 3: Extend service tests with injected fakes**
 
 Append to `platforms/macos/AtlasTests/PrivacyPulseServiceTests.swift`:
 
@@ -641,7 +641,7 @@ private struct FakePrivacyStatusProvider: PrivacyPulseStatusProviding {
 }
 ```
 
-- [ ] **Step 4: Add PBX membership for service files**
+- [x] **Step 4: Add PBX membership for service files**
 
 Update `platforms/macos/Atlas.xcodeproj/project.pbxproj`:
 
@@ -651,7 +651,7 @@ Atlas target sources:
 - PrivacyPulseService.swift
 ```
 
-- [ ] **Step 5: Verify service tests**
+- [x] **Step 5: Verify service tests**
 
 Run:
 
@@ -661,7 +661,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: All Privacy Pulse service tests pass. The tests use `FakePrivacyStatusProvider` and `PrivacyPulseAccessLogger`; they do not open real camera/microphone sessions, read the real clipboard, call permission request APIs, or change real permissions.
 
-- [ ] **Step 6: Commit status provider and service**
+- [x] **Step 6: Commit status provider and service**
 
 Run:
 
@@ -681,7 +681,7 @@ Expected: The commit contains only Privacy Pulse status provider, service, tests
 - Create: `platforms/macos/AtlasTests/PrivacyPulsePanelTests.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Create SwiftUI panel**
+- [x] **Step 1: Create SwiftUI panel**
 
 Create `platforms/macos/Atlas/PrivacyPulsePanel.swift`:
 
@@ -795,7 +795,7 @@ private struct PrivacyPulseEventRow: View {
 }
 ```
 
-- [ ] **Step 2: Add panel renderer tests**
+- [x] **Step 2: Add panel renderer tests**
 
 Create `platforms/macos/AtlasTests/PrivacyPulsePanelTests.swift`:
 
@@ -838,7 +838,7 @@ final class PrivacyPulsePanelTests: XCTestCase {
 
 This test intentionally validates the model data rendered by `PrivacyPulsePanel` without launching UI automation or touching protected system resources.
 
-- [ ] **Step 3: Wire panel into ContentView behind Feature Center**
+- [x] **Step 3: Wire panel into ContentView behind Feature Center**
 
 In `platforms/macos/Atlas/ContentView.swift`, add state and dependencies:
 
@@ -886,7 +886,7 @@ private func refreshPrivacyPulse(using service: PrivacyPulseService) {
 
 Preserve adjacent child-plan panels and builders already in `ContentView.swift`; add only Privacy Pulse state, panel placement, and refresh logic.
 
-- [ ] **Step 4: Add PBX membership for panel files**
+- [x] **Step 4: Add PBX membership for panel files**
 
 Update `platforms/macos/Atlas.xcodeproj/project.pbxproj`:
 
@@ -898,7 +898,7 @@ AtlasTests target sources:
 - PrivacyPulsePanelTests.swift
 ```
 
-- [ ] **Step 5: Verify panel tests and app build**
+- [x] **Step 5: Verify panel tests and app build**
 
 Run:
 
@@ -909,7 +909,7 @@ xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme Atlas
 
 Expected: The panel test and app build pass. Privacy Pulse is visible only when the `privacy` feature is enabled.
 
-- [ ] **Step 6: Commit panel**
+- [x] **Step 6: Commit panel**
 
 Run:
 
@@ -935,7 +935,7 @@ Expected: The commit contains only the panel, tests, ContentView gating, and PBX
 - Modify: `platforms/macos/AtlasTests/ScreenshotLibraryTests.swift`
 - Add or modify: `platforms/macos/AtlasTests/ContentViewTests.swift`
 
-- [ ] **Step 1: Log clipboard history reads and writes**
+- [x] **Step 1: Log clipboard history reads and writes**
 
 In `platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.swift`, add a logger property and initializer parameter:
 
@@ -979,7 +979,7 @@ action: .execute { [reader, accessLogger] in
 },
 ```
 
-- [ ] **Step 2: Log snippet clipboard writes**
+- [x] **Step 2: Log snippet clipboard writes**
 
 In `platforms/macos/Atlas/CommandPalette/SnippetsProvider.swift`, add an optional logger parameter:
 
@@ -1010,7 +1010,7 @@ action: .execute { [clipboard, accessLogger] in
 }
 ```
 
-- [ ] **Step 3: Log screenshot pasteboard writes**
+- [x] **Step 3: Log screenshot pasteboard writes**
 
 In `platforms/macos/Atlas/ScreenshotOutput.swift`, update `copyPNGToClipboard(_:)` with an optional logger parameter. Preserve the current call sites by defaulting the argument:
 
@@ -1030,7 +1030,7 @@ static func copyPNGToClipboard(
 }
 ```
 
-- [ ] **Step 4: Route ContentView direct pasteboard writes through the logged boundary**
+- [x] **Step 4: Route ContentView direct pasteboard writes through the logged boundary**
 
 `platforms/macos/Atlas/ContentView.swift` currently has direct `NSPasteboard.general` writes for copied OCR text, translated text, and screenshot-library text flows. Do not leave those paths as unlogged direct writes. Prefer one small helper on `ContentView` so every text copy records through the same boundary:
 
@@ -1072,7 +1072,7 @@ private func copyTranslatedText(_ text: String) {
 
 Apply the same helper to screenshot-library text copy actions that currently call `NSPasteboard.general.clearContents()` and `NSPasteboard.general.setString(_:forType:)` inline. If the existing code shape makes the helper awkward, explicitly log immediately before each direct `NSPasteboard.general` write path instead. After this step, an `rg -n 'NSPasteboard\.general' platforms/macos/Atlas/ContentView.swift` audit should show no unlogged text write path.
 
-- [ ] **Step 5: Add fake logger tests**
+- [x] **Step 5: Add fake logger tests**
 
 In `platforms/macos/AtlasTests/ClipboardHistoryProviderTests.swift`, add a fake logger and assertions:
 
@@ -1150,7 +1150,7 @@ If testing private `ContentView` methods would require exposing production UI in
 
 For screenshot-library text copies, add or update `ScreenshotLibraryTests` or `ScreenshotLibraryPanelTests` so a copy-recognized-text and copy-translated-text action records `Clipboard Write`. These tests must cover the screenshot-library copy action path, not only `ClipboardHistoryProvider`, `SnippetsProvider`, or `ScreenshotOutput`.
 
-- [ ] **Step 6: Verify clipboard tests**
+- [x] **Step 6: Verify clipboard tests**
 
 Run:
 
@@ -1160,7 +1160,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: Tests pass using fake clipboard readers, fake loggers, or explicit test pasteboards. They cover `ContentView` copy recognized text, `ContentView` copy translated text, and screenshot-library text copy actions. They do not read the real general pasteboard except where pre-existing `ScreenshotOutputTests` already injects or controls the pasteboard boundary.
 
-- [ ] **Step 7: Commit clipboard logging**
+- [x] **Step 7: Commit clipboard logging**
 
 Run:
 
@@ -1185,7 +1185,7 @@ Expected: The commit contains only Atlas clipboard/pasteboard access logging and
 - Modify: `platforms/macos/AtlasTests/WindowManagementServiceTests.swift`
 - Modify: `platforms/macos/AtlasTests/GlobalHotkeyServiceTests.swift`
 
-- [ ] **Step 1: Log screen capture attempts through injected service dependencies**
+- [x] **Step 1: Log screen capture attempts through injected service dependencies**
 
 `platforms/macos/Atlas/AtlasCaptureService.swift` is closure-based, not bridge-backed. Keep that architecture and wrap the existing closures with logging rather than introducing a `bridge` field:
 
@@ -1216,7 +1216,7 @@ init(
 
 Keep `AtlasCaptureService.live` as the production boundary and pass the same logger when app composition installs the service on `AtlasBridge.captureService`. Before each desktop or region capture operation, record a screen recording event. Do not add window capture to `AtlasCaptureService`; window capture lives in `WindowCaptureService`.
 
-- [ ] **Step 2: Log window capture attempts in WindowCaptureService**
+- [x] **Step 2: Log window capture attempts in WindowCaptureService**
 
 In `platforms/macos/Atlas/WindowCaptureService.swift`, log calls to `WindowCaptureProvider.captureWindow(id:)` / `WindowCaptureProviding.captureWindow(id:)`. Preserve the protocol shape if possible by wrapping the existing provider:
 
@@ -1252,7 +1252,7 @@ Wire the provider at the real boundary by assigning a logged provider to `AtlasB
 
 Do not call `CGRequestScreenCaptureAccess()` from tests or from this logging path.
 
-- [ ] **Step 3: Log Accessibility window actions**
+- [x] **Step 3: Log Accessibility window actions**
 
 In `platforms/macos/Atlas/WindowManagementService.swift`, add a logger to `AccessibilityWindowManager`:
 
@@ -1276,7 +1276,7 @@ accessLogger.record(
 
 Keep the existing `WindowManaging` protocol unchanged so command palette providers and tests remain compatible.
 
-- [ ] **Step 4: Log Accessibility hotkey trust checks**
+- [x] **Step 4: Log Accessibility hotkey trust checks**
 
 In `platforms/macos/Atlas/GlobalHotkeyService.swift`, add:
 
@@ -1300,7 +1300,7 @@ accessLogger.record(
 
 Do not change tests to call real Accessibility prompts.
 
-- [ ] **Step 5: Add injected logging tests**
+- [x] **Step 5: Add injected logging tests**
 
 In service tests, use the fake logger from Task 5 or a shared local fake:
 
@@ -1378,7 +1378,7 @@ func testLoggingWindowManagerRecordsAccessibilityActionWithoutRealAX() {
 }
 ```
 
-- [ ] **Step 6: Verify capture and Accessibility tests**
+- [x] **Step 6: Verify capture and Accessibility tests**
 
 Run:
 
@@ -1388,7 +1388,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: Tests pass. They use injected closure/window capture/window manager/logger fakes and do not require Screen Recording or Accessibility permission.
 
-- [ ] **Step 7: Commit screen and Accessibility logging**
+- [x] **Step 7: Commit screen and Accessibility logging**
 
 Run:
 
@@ -1410,7 +1410,7 @@ Expected: The commit contains only screen capture and Accessibility logging plus
 - Modify if needed: `platforms/macos/Atlas/AtlasCaptureService.swift`
 - Modify if needed: `platforms/macos/Atlas/WindowCaptureService.swift`
 
-- [ ] **Step 1: Own one shared logger and service in AtlasApp**
+- [x] **Step 1: Own one shared logger and service in AtlasApp**
 
 In `platforms/macos/Atlas/AtlasApp.swift`, create the shared logger before constructing `CommandPaletteState`. Do not keep `@StateObject private var paletteState = CommandPaletteState()` with the default no-op logger:
 
@@ -1461,7 +1461,7 @@ final class AtlasAppServices {
 
 Use one `private let services = AtlasAppServices()`, initialize `@StateObject` from `services.paletteState`, and pass `services.privacyAccessLogger` plus `services.privacyPulseService` to `ContentView`.
 
-- [ ] **Step 2: Pass logger to command providers additively**
+- [x] **Step 2: Pass logger to command providers additively**
 
 Update `CommandPaletteState` so it accepts a logger:
 
@@ -1510,7 +1510,7 @@ init(accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()) {
 
 Preserve provider order and any adjacent child-plan providers already inserted by other tasks. Add logger arguments only to providers that support them.
 
-- [ ] **Step 3: Pass logger to hotkey service and AtlasBridge capture boundaries**
+- [x] **Step 3: Pass logger to hotkey service and AtlasBridge capture boundaries**
 
 In `ContentView`, replace local default hotkey construction with injected or logger-backed construction:
 
@@ -1543,7 +1543,7 @@ AtlasBridge.windowCaptureProvider = LoggedWindowCaptureProvider(
 
 Equivalent names are fine if the implementation uses `accessLogger` instead of `logger`, or `LoggingWindowCaptureProvider` instead of `LoggedWindowCaptureProvider`. The important boundary is `AtlasBridge.captureService` and `AtlasBridge.windowCaptureProvider`; do not add fake `captureService` or `windowCaptureProvider` stored properties to `ContentView`. If `AtlasCaptureService.live` is a static value today, convert it to a static factory or add a small `logging(base:logger:)` wrapper so the shared logger wraps the production closures. If `ContentView` already has a custom initializer from another child plan, add `privacyPulseService` and `accessLogger` parameters to that initializer and keep the existing arguments intact.
 
-- [ ] **Step 4: Verify app composition**
+- [x] **Step 4: Verify app composition**
 
 Run:
 
@@ -1553,7 +1553,7 @@ xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme Atlas
 
 Expected: The app builds. There is one shared Privacy Pulse logger wired into command providers, hotkey checks, desktop/region capture, selected-window capture, ContentView clipboard text copies, and the Privacy Pulse panel service. Command providers must not receive the default no-op logger in app composition.
 
-- [ ] **Step 5: Commit app composition**
+- [x] **Step 5: Commit app composition**
 
 Run:
 
@@ -1572,7 +1572,7 @@ Expected: The commit contains only app composition changes.
 - Verify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 - Verify: all Privacy Pulse app and test files
 
-- [ ] **Step 1: Verify all new files have PBX membership**
+- [x] **Step 1: Verify all new files have PBX membership**
 
 Run:
 
@@ -1582,7 +1582,7 @@ rg -n 'PrivacyPulseModels|PrivacyPulseAccessLogger|PrivacyPulseSystemStatusProvi
 
 Expected: Each new Swift app file appears as a file reference and in the Atlas sources build phase. Each new Swift test file appears as a file reference and in the AtlasTests sources build phase.
 
-- [ ] **Step 2: Run focused Privacy Pulse tests**
+- [x] **Step 2: Run focused Privacy Pulse tests**
 
 Run:
 
@@ -1592,7 +1592,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: Privacy Pulse tests pass using injected status providers, injected event stores, and in-memory loggers.
 
-- [ ] **Step 3: Run privacy-adjacent regression tests**
+- [x] **Step 3: Run privacy-adjacent regression tests**
 
 Run:
 
@@ -1602,7 +1602,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-tes
 
 Expected: Clipboard, screenshot output, ContentView copy, screenshot-library copy, capture service, window capture, window management, hotkey, and feature model tests pass. None of the tests open real camera/microphone sessions, read uncontrolled real clipboard contents, or change real permissions.
 
-- [ ] **Step 4: Run Rust feature test**
+- [x] **Step 4: Run Rust feature test**
 
 Run:
 
@@ -1612,7 +1612,7 @@ cargo test -p atlas-core test_list_features_is_sorted_by_name
 
 Expected: The feature list test passes and includes `privacy`.
 
-- [ ] **Step 5: Build the macOS app**
+- [x] **Step 5: Build the macOS app**
 
 Run:
 
@@ -1622,7 +1622,7 @@ xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme Atlas
 
 Expected: The app builds with all new Swift files included in explicit project membership.
 
-- [ ] **Step 6: Review diff for scope**
+- [x] **Step 6: Review diff for scope**
 
 Run:
 
@@ -1633,7 +1633,7 @@ git diff -- crates/atlas-core/src/features.rs platforms/macos/Atlas platforms/ma
 
 Expected: The diff is limited to Privacy Pulse feature gating, models, service, panel, Atlas-internal privacy access logging, tests, and PBX membership. It does not contain unrelated refactors or production code for detecting other apps' privacy usage.
 
-- [ ] **Step 7: Commit verification note if needed**
+- [x] **Step 7: Commit verification note if needed**
 
 If verification documentation is updated, run:
 
@@ -1661,3 +1661,20 @@ Expected: The commit contains only verification notes in this plan.
 1. **Spec coverage:** Visible camera, microphone, clipboard reads, screen recording, and Accessibility status are implemented by Task 3 and Task 4. Atlas-internal logging is implemented by Task 2, Task 5, Task 6, and Task 7. Feature Center gating is implemented by Task 1 and Task 4. Injected event-source tests are implemented by Task 2, Task 3, Task 5, Task 6, and Task 8.
 2. **Placeholder scan:** This plan contains concrete file paths, code snippets, commands, and expected results. It intentionally avoids production global monitoring for other apps because v1 uses public APIs and Atlas-internal logging only.
 3. **Type consistency:** `PrivacyPulseCategory`, `PrivacyPulseStatus`, `PrivacyPulseEvent`, `PrivacyPulseSnapshot`, `PrivacyPulseAccessLogging`, `PrivacyPulseEventStoring`, `PrivacyPulseStatusProviding`, and `PrivacyPulseService` signatures are defined before later tasks use them.
+
+## Execution Notes
+
+- 2026-05-23: Implemented Privacy Pulse v1 as a disabled-by-default `privacy` Feature Center module with SwiftUI status/event panel, injected status provider, and in-memory Atlas-internal event log.
+- 2026-05-23: Wired one shared `PrivacyPulseAccessLogger` through `AtlasApp`, command palette clipboard/snippet providers, screenshot pasteboard output, screen/window capture boundaries, Accessibility window actions, hotkey Accessibility checks, and Privacy Pulse permission status checks.
+- 2026-05-23: Added explicit Xcode PBX membership for `PrivacyPulseModels.swift`, `PrivacyPulseAccessLogger.swift`, `PrivacyPulseService.swift`, `PrivacyPulsePanel.swift`, `PrivacyPulseSystemStatusProvider.swift`, `PrivacyPulseServiceTests.swift`, and `PrivacyPulsePanelTests.swift`.
+- 2026-05-23: Regenerated UniFFI Swift artifacts after adding the Rust `privacy` feature.
+- 2026-05-23 verification:
+  - `swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Atlas/CommandPalette/*.swift platforms/macos/Generated/AtlasFFI/atlas.swift`
+  - `cargo test -p atlas-core test_list_features_is_sorted_by_name`
+  - `./scripts/generate_uniffi_swift.sh`
+  - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/PrivacyPulseServiceTests -only-testing:AtlasTests/PrivacyPulsePanelTests -only-testing:AtlasTests/FeatureModelsTests -only-testing:AtlasTests/ClipboardHistoryProviderTests -only-testing:AtlasTests/SnippetsProviderTests -only-testing:AtlasTests/ScreenshotOutputTests -only-testing:AtlasTests/AtlasCaptureServiceTests -only-testing:AtlasTests/WindowCaptureServiceTests -only-testing:AtlasTests/WindowManagementServiceTests -only-testing:AtlasTests/GlobalHotkeyServiceTests`
+  - `cargo test -p atlas-core -p atlas-ffi`
+  - `xcodebuild -project platforms/macos/Atlas.xcodeproj -scheme Atlas -configuration Debug build`
+  - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas` (416 tests, 0 failures)
+  - `rg -n 'PrivacyPulseModels|PrivacyPulseAccessLogger|PrivacyPulseSystemStatusProvider|PrivacyPulseService|PrivacyPulsePanel|PrivacyPulseServiceTests|PrivacyPulsePanelTests' platforms/macos/Atlas.xcodeproj/project.pbxproj`
+  - `git diff --check`

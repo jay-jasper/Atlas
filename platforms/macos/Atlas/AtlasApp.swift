@@ -5,12 +5,25 @@ struct AtlasApp: App {
     @StateObject private var paletteState: CommandPaletteState
     private let windowManager: AccessibilityWindowManager
     private let windowPermissionChecker = AccessibilityPermissionChecker()
+    private let privacyAccessLogger: PrivacyPulseAccessLogger
+    private let privacyPulseService: PrivacyPulseService
 
     init() {
-        let sharedWindowManager = AccessibilityWindowManager()
+        let logger = PrivacyPulseAccessLogger()
+        let sharedWindowManager = AccessibilityWindowManager(accessLogger: logger)
+        self.privacyAccessLogger = logger
+        self.privacyPulseService = PrivacyPulseService(
+            statusProvider: PrivacyPulseSystemStatusProvider(accessLogger: logger),
+            eventStore: logger
+        )
         self.windowManager = sharedWindowManager
+        AtlasBridge.captureService = AtlasCaptureService.logging(base: .live, accessLogger: logger)
+        AtlasBridge.windowCaptureProvider = LoggingWindowCaptureProvider(accessLogger: logger)
         _paletteState = StateObject(
-            wrappedValue: CommandPaletteState(windowManager: sharedWindowManager)
+            wrappedValue: CommandPaletteState(
+                windowManager: sharedWindowManager,
+                accessLogger: logger
+            )
         )
     }
 
@@ -19,7 +32,9 @@ struct AtlasApp: App {
             ContentView(
                 windowManager: windowManager,
                 windowPermissionChecker: windowPermissionChecker,
-                paletteState: paletteState
+                paletteState: paletteState,
+                privacyPulseService: privacyPulseService,
+                privacyAccessLogger: privacyAccessLogger
             )
         }
         .menuBarExtraStyle(.window)
@@ -33,7 +48,7 @@ struct AtlasApp: App {
 @MainActor
 final class CommandPaletteState: ObservableObject {
     private(set) var controller: CommandPaletteController!
-    private let hotkeyService = GlobalHotkeyService()
+    private let hotkeyService: GlobalHotkeyService
     private let windowManager: WindowManaging
     private let workspaceStore = WorkspaceStore()
     private let scratchpadStore = ScratchpadStore()
@@ -58,10 +73,17 @@ final class CommandPaletteState: ObservableObject {
     private var onOpenHandMirror: (() -> Void)?
     private var onRefreshDisplays: (() -> Void)?
 
-    init(windowManager: WindowManaging = AccessibilityWindowManager()) {
+    init(
+        windowManager: WindowManaging = AccessibilityWindowManager(),
+        accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()
+    ) {
         self.windowManager = windowManager
+        self.hotkeyService = GlobalHotkeyService(accessLogger: accessLogger)
         scratchpadProvider = ScratchpadProvider(store: scratchpadStore)
-        clipboardHistoryProvider = ClipboardHistoryProvider(store: clipboardHistoryStore)
+        clipboardHistoryProvider = ClipboardHistoryProvider(
+            store: clipboardHistoryStore,
+            accessLogger: accessLogger
+        )
 
         let atlasProvider = AtlasCommandProvider(
             onCaptureDesktop: { [weak self] in self?.onCaptureDesktop?() },
@@ -107,7 +129,7 @@ final class CommandPaletteState: ObservableObject {
             onSaveCurrent: { [weak self] in self?.onSaveCurrentWorkspace?() },
             onRestore: { [weak self] workspace in self?.onRestoreWorkspace?(workspace) }
         )
-        let snippetsProvider = SnippetsProvider()
+        let snippetsProvider = SnippetsProvider(accessLogger: accessLogger)
         let customAutomationProvider = CustomAutomationProvider(
             store: CustomAutomationStore(),
             isEnabled: Self.isAutomationFeatureEnabled

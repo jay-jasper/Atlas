@@ -5,13 +5,16 @@ final class SnippetsProvider: CommandProviding {
 
     private let snippetProvider: SnippetProviding
     private let clipboard: ClipboardReading
+    private let accessLogger: PrivacyPulseAccessLogging
 
     init(
         snippetProvider: SnippetProviding = SnippetStore(),
-        clipboard: ClipboardReading = SystemClipboardReader()
+        clipboard: ClipboardReading = SystemClipboardReader(),
+        accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()
     ) {
         self.snippetProvider = snippetProvider
         self.clipboard = clipboard
+        self.accessLogger = accessLogger
     }
 
     func results(for query: String) -> [PaletteCommand] {
@@ -25,7 +28,7 @@ final class SnippetsProvider: CommandProviding {
                     snippet.keywords.contains { $0.localizedCaseInsensitiveContains(q) }
             }
             .prefix(Self.maxResultsCount)
-            .map { [clipboard] snippet in
+            .map { [clipboard, accessLogger] snippet in
                 PaletteCommand(
                     id: UUID(),
                     title: "Copy \(snippet.title)",
@@ -33,6 +36,11 @@ final class SnippetsProvider: CommandProviding {
                     icon: .sfSymbol("text.quote"),
                     keywords: snippet.keywords + [snippet.title],
                     action: .execute {
+                        accessLogger.record(
+                            category: .clipboard,
+                            title: "Clipboard Write",
+                            detail: "Snippet copied text to the pasteboard"
+                        )
                         clipboard.setString(snippet.body)
                     },
                     category: "Snippet"

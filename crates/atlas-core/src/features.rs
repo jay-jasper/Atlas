@@ -29,6 +29,7 @@ impl FeatureManager {
         features.insert("automation".to_string(), FeatureStatus::Disabled);
         features.insert("clipboard".to_string(), FeatureStatus::Disabled);
         features.insert("monitoring".to_string(), FeatureStatus::Disabled);
+        features.insert("privacy".to_string(), FeatureStatus::Disabled);
         features.insert("scratchpad".to_string(), FeatureStatus::Disabled);
         features.insert("screenshot".to_string(), FeatureStatus::Disabled);
         features.insert("skills".to_string(), FeatureStatus::Disabled);
@@ -108,6 +109,7 @@ mod tests {
                 "automation",
                 "clipboard",
                 "monitoring",
+                "privacy",
                 "scratchpad",
                 "screenshot",
                 "skills",

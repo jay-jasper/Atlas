@@ -152,8 +152,19 @@ enum WindowCoordinateConverter {
 }
 
 final class AccessibilityWindowManager: WindowManaging {
+    private let accessLogger: PrivacyPulseAccessLogging
+
+    init(accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()) {
+        self.accessLogger = accessLogger
+    }
+
     @discardableResult
     func perform(_ action: WindowManagementAction) -> Bool {
+        accessLogger.record(
+            category: .accessibility,
+            title: "Accessibility Window Action",
+            detail: action.title
+        )
         guard
             let window = focusedWindow(),
             let currentAXFrame = frame(of: window),

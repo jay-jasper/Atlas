@@ -1,6 +1,13 @@
 import AppKit
 import Foundation
 
+protocol ScreenshotPasteboardWriting {
+    func clearContents() -> Int
+    func setData(_ data: Data?, forType dataType: NSPasteboard.PasteboardType) -> Bool
+}
+
+extension NSPasteboard: ScreenshotPasteboardWriting {}
+
 enum ScreenshotOutput {
     static func filename(for date: Date) -> String {
         let formatter = DateFormatter()
@@ -10,8 +17,16 @@ enum ScreenshotOutput {
         return "Atlas Screenshot \(formatter.string(from: date)).png"
     }
 
-    static func copyPNGToClipboard(_ data: Data) {
-        let pasteboard = NSPasteboard.general
+    static func copyPNGToClipboard(
+        _ data: Data,
+        pasteboard: ScreenshotPasteboardWriting = NSPasteboard.general,
+        accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()
+    ) {
+        accessLogger.record(
+            category: .clipboard,
+            title: "Clipboard Write",
+            detail: "Screenshot copied PNG data to the pasteboard"
+        )
         pasteboard.clearContents()
         pasteboard.setData(data, forType: .png)
     }

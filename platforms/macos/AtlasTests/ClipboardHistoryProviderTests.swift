@@ -7,11 +7,19 @@ final class ClipboardHistoryProviderTests: XCTestCase {
     func testCapturesCurrentClipboardTextIntoStore() {
         let reader = FakeClipboardReader(text: "hello")
         let store = InMemoryClipboardHistoryStore()
-        let provider = ClipboardHistoryProvider(reader: reader, store: store, isEnabled: { true }, dateProvider: { self.now })
+        let logger = FakePrivacyPulseAccessLogger()
+        let provider = ClipboardHistoryProvider(
+            reader: reader,
+            store: store,
+            isEnabled: { true },
+            dateProvider: { self.now },
+            accessLogger: logger
+        )
 
         provider.captureCurrentClipboard()
 
         XCTAssertEqual(store.items().map(\.textValue), ["hello"])
+        XCTAssertEqual(logger.events.map(\.title), ["Clipboard Read"])
     }
 
     func testCapturesImageMetadataWhenNoTextExists() {
@@ -28,12 +36,19 @@ final class ClipboardHistoryProviderTests: XCTestCase {
     func testDisabledFeatureDoesNotReadClipboardOrReturnResults() {
         let reader = FakeClipboardReader(text: "secret")
         let store = InMemoryClipboardHistoryStore()
-        let provider = ClipboardHistoryProvider(reader: reader, store: store, isEnabled: { false })
+        let logger = FakePrivacyPulseAccessLogger()
+        let provider = ClipboardHistoryProvider(
+            reader: reader,
+            store: store,
+            isEnabled: { false },
+            accessLogger: logger
+        )
 
         provider.captureCurrentClipboard()
         let results = provider.results(for: "clip")
 
         XCTAssertEqual(reader.stringReadCount, 0)
+        XCTAssertTrue(logger.events.isEmpty)
         XCTAssertTrue(store.items().isEmpty)
         XCTAssertTrue(results.isEmpty)
     }
@@ -78,7 +93,13 @@ final class ClipboardHistoryProviderTests: XCTestCase {
     func testExecutingTextResultCopiesTextBackToClipboard() {
         let reader = FakeClipboardReader(text: "first")
         let store = InMemoryClipboardHistoryStore()
-        let provider = ClipboardHistoryProvider(reader: reader, store: store, isEnabled: { true })
+        let logger = FakePrivacyPulseAccessLogger()
+        let provider = ClipboardHistoryProvider(
+            reader: reader,
+            store: store,
+            isEnabled: { true },
+            accessLogger: logger
+        )
 
         provider.captureCurrentClipboard()
         reader.bumpChangeCount(text: "second", imageMetadata: nil)
@@ -92,6 +113,7 @@ final class ClipboardHistoryProviderTests: XCTestCase {
         }
 
         XCTAssertEqual(reader.writtenText, "first")
+        XCTAssertEqual(logger.events.map(\.title), ["Clipboard Read", "Clipboard Read", "Clipboard Write"])
     }
 
     func testCaptureNotifiesPanelReloadCallback() {
@@ -110,6 +132,20 @@ final class ClipboardHistoryProviderTests: XCTestCase {
         provider.captureCurrentClipboard()
 
         XCTAssertEqual(panelItems.map(\.textValue), ["visible without restart"])
+    }
+}
+
+private final class FakePrivacyPulseAccessLogger: PrivacyPulseAccessLogging {
+    struct Event: Equatable {
+        let category: PrivacyPulseCategory
+        let title: String
+        let detail: String
+    }
+
+    private(set) var events: [Event] = []
+
+    func record(category: PrivacyPulseCategory, title: String, detail: String) {
+        events.append(Event(category: category, title: title, detail: detail))
     }
 }
 

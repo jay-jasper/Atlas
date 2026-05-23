@@ -58,19 +58,22 @@ final class ClipboardHistoryProvider: CommandProviding {
     private var enabled: Bool
     private var onHistoryChanged: () -> Void
     private var lastChangeCount: Int?
+    private let accessLogger: PrivacyPulseAccessLogging
 
     init(
         reader: ClipboardReading = SystemClipboardReader(),
         store: ClipboardHistoryStoring = ClipboardHistoryStore(),
         isEnabled: @escaping () -> Bool = { false },
         dateProvider: @escaping () -> Date = Date.init,
-        onHistoryChanged: @escaping () -> Void = {}
+        onHistoryChanged: @escaping () -> Void = {},
+        accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()
     ) {
         self.reader = reader
         self.store = store
         self.enabled = isEnabled()
         self.dateProvider = dateProvider
         self.onHistoryChanged = onHistoryChanged
+        self.accessLogger = accessLogger
     }
 
     func setEnabled(_ enabled: Bool) {
@@ -101,6 +104,11 @@ final class ClipboardHistoryProvider: CommandProviding {
         guard lastChangeCount != currentChangeCount else { return }
         lastChangeCount = currentChangeCount
 
+        accessLogger.record(
+            category: .clipboard,
+            title: "Clipboard Read",
+            detail: "Clipboard history checked for text"
+        )
         if let text = reader.string(),
            !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             store.addText(text, capturedAt: dateProvider())
@@ -123,7 +131,12 @@ final class ClipboardHistoryProvider: CommandProviding {
                 subtitle: "Copy from clipboard history",
                 icon: .sfSymbol("doc.on.clipboard"),
                 keywords: ["clipboard", "copy", text],
-                action: .execute { [reader] in
+                action: .execute { [reader, accessLogger] in
+                    accessLogger.record(
+                        category: .clipboard,
+                        title: "Clipboard Write",
+                        detail: "Clipboard history restored text to the pasteboard"
+                    )
                     reader.setString(text)
                 },
                 category: "Clipboard"

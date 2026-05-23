@@ -64,4 +64,34 @@ final class GlobalHotkeyServiceTests: XCTestCase {
         service.simulateKeyEvent(keyCode: 21, modifiers: [.control, .shift])
         XCTAssertTrue(called)
     }
+
+    func testAccessibilityRequestLogsCheckThroughInjectedBoundary() {
+        let logger = FakeHotkeyPrivacyPulseAccessLogger()
+        var promptCount = 0
+        service = GlobalHotkeyService(
+            accessLogger: logger,
+            isProcessTrusted: { false },
+            requestTrustWithPrompt: { promptCount += 1 }
+        )
+
+        service.requestAccessibilityIfNeeded()
+
+        XCTAssertEqual(promptCount, 1)
+        XCTAssertEqual(logger.events.map(\.title), ["Accessibility Check"])
+        XCTAssertEqual(logger.events.first?.category, .accessibility)
+    }
+}
+
+private final class FakeHotkeyPrivacyPulseAccessLogger: PrivacyPulseAccessLogging {
+    struct Event: Equatable {
+        let category: PrivacyPulseCategory
+        let title: String
+        let detail: String
+    }
+
+    private(set) var events: [Event] = []
+
+    func record(category: PrivacyPulseCategory, title: String, detail: String) {
+        events.append(Event(category: category, title: title, detail: detail))
+    }
 }

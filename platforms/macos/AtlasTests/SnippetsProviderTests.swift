@@ -54,9 +54,11 @@ final class SnippetsProviderTests: XCTestCase {
 
     func testExecutingMeetingResultCopiesBody() {
         let clipboard = FakeSnippetClipboard()
+        let logger = FakeSnippetPrivacyPulseAccessLogger()
         let provider = SnippetsProvider(
             snippetProvider: FixtureSnippetProvider(),
-            clipboard: clipboard
+            clipboard: clipboard,
+            accessLogger: logger
         )
 
         let result = provider.results(for: "meeting").first
@@ -67,6 +69,8 @@ final class SnippetsProviderTests: XCTestCase {
         }
 
         XCTAssertEqual(clipboard.writtenText, "Notes:\n- item")
+        XCTAssertEqual(logger.events.map(\.title), ["Clipboard Write"])
+        XCTAssertEqual(logger.events.first?.category, .clipboard)
     }
 
     func testResultsAreCappedToFive() {
@@ -90,6 +94,20 @@ final class SnippetsProviderTests: XCTestCase {
             "Copy Fixture 4",
             "Copy Fixture 5",
         ])
+    }
+}
+
+private final class FakeSnippetPrivacyPulseAccessLogger: PrivacyPulseAccessLogging {
+    struct Event: Equatable {
+        let category: PrivacyPulseCategory
+        let title: String
+        let detail: String
+    }
+
+    private(set) var events: [Event] = []
+
+    func record(category: PrivacyPulseCategory, title: String, detail: String) {
+        events.append(Event(category: category, title: title, detail: detail))
     }
 }
 

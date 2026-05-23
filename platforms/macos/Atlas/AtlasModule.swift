@@ -3,6 +3,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case automation
     case clipboard
     case monitoring
+    case privacy
     case scratchpad
     case screenshot
     case skills
@@ -26,6 +27,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "Clipboard History"
         case .monitoring:
             return "Monitoring"
+        case .privacy:
+            return "Privacy Pulse"
         case .scratchpad:
             return "Scratchpad"
         case .screenshot:

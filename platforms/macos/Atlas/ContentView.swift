@@ -39,6 +39,7 @@ struct ContentView: View {
     @State private var memoryHistory: [Double] = []
     @State private var tokenBarSummary: TokenBarSummary = .empty
     @State private var localAILoadSnapshot: LocalAILoadSnapshot = .empty
+    @State private var privacyPulseSnapshot = PrivacyPulseSnapshot(statuses: [:], events: [])
     @State private var entitlementState: LocalEntitlementState = .fallback
     @StateObject private var keepAwakeService: KeepAwakeService
     @StateObject private var presentationModeService: PresentationModeService
@@ -53,7 +54,7 @@ struct ContentView: View {
     private let scrollingCaptureService = ScreenshotScrollingCaptureService()
     private let gifRecorder = ScreenshotGIFRecorder()
     private let gifOutputStore = ScreenshotGIFOutputStore()
-    private let hotkeyService = GlobalHotkeyService()
+    private let hotkeyService: GlobalHotkeyService
     private let workspaceStore = WorkspaceStore()
     private let workspaceService = WorkspaceWindowService()
     private let tokenBarLedger = TokenBarLedger()
@@ -69,12 +70,19 @@ struct ContentView: View {
     let windowManager: WindowManaging
     let windowPermissionChecker: WindowManagementPermissionChecking
     var paletteState: CommandPaletteState?
+    private let privacyPulseService: PrivacyPulseService
+    private let privacyAccessLogger: PrivacyPulseAccessLogging
 
     init(
         windowManager: WindowManaging = AccessibilityWindowManager(),
         windowPermissionChecker: WindowManagementPermissionChecking = AccessibilityPermissionChecker(),
         entitlementService: EntitlementService = EntitlementService(provider: LocalEntitlementProvider()),
-        paletteState: CommandPaletteState? = nil
+        paletteState: CommandPaletteState? = nil,
+        privacyPulseService: PrivacyPulseService = PrivacyPulseService(
+            statusProvider: PrivacyPulseSystemStatusProvider(),
+            eventStore: PrivacyPulseAccessLogger()
+        ),
+        privacyAccessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()
     ) {
         let keepAwakeService = KeepAwakeService()
         _keepAwakeService = StateObject(wrappedValue: keepAwakeService)
@@ -83,6 +91,9 @@ struct ContentView: View {
         self.windowPermissionChecker = windowPermissionChecker
         self.entitlementService = entitlementService
         self.paletteState = paletteState
+        self.privacyPulseService = privacyPulseService
+        self.privacyAccessLogger = privacyAccessLogger
+        self.hotkeyService = GlobalHotkeyService(accessLogger: privacyAccessLogger)
     }
 
     var body: some View {
@@ -150,6 +161,15 @@ struct ContentView: View {
                             onDelete: deleteClipboardHistoryItem,
                             onClear: clearClipboardHistory,
                             query: $clipboardHistoryQuery
+                        )
+
+                        Divider()
+                    }
+
+                    if isFeatureEnabled(.privacy) {
+                        PrivacyPulsePanel(
+                            snapshot: privacyPulseSnapshot,
+                            onRefresh: refreshPrivacyPulse
                         )
 
                         Divider()
@@ -243,8 +263,7 @@ struct ContentView: View {
                         onRunTranslation: screenshotFeatureSettings.editorCapabilities.translation && isTranslationConfigured ? runBackgroundTranslation : nil,
                         onUpdateTags: updateLibraryItemTags,
                         onCopyText: { text in
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(text, forType: .string)
+                            copyTextToClipboard(text, detail: "Screenshot library copied recognized text to the pasteboard")
                             showStatus("Copied text")
                         },
                         query: $screenshotLibraryQuery
@@ -334,6 +353,9 @@ struct ContentView: View {
             if isFeatureEnabled(.aiLoadMonitor) {
                 startLocalAILoadRefresh()
             }
+            if isFeatureEnabled(.privacy) {
+                refreshPrivacyPulse()
+            }
         } catch {
             statusText = "Atlas feature loading failed"
             showStatus(error.localizedDescription, kind: .error, autoHide: false)
@@ -411,8 +433,7 @@ struct ContentView: View {
                         onRunTranslation: self.screenshotFeatureSettings.editorCapabilities.translation && self.isTranslationConfigured ? { self.runBackgroundTranslation() } : nil,
                         onUpdateTags: { self.updateLibraryItemTags($0, tags: $1) },
                         onCopyText: { text in
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(text, forType: .string)
+                            self.copyTextToClipboard(text, detail: "Command palette screenshot library copied text to the pasteboard")
                             self.showStatus("Copied text")
                         }
                     )
@@ -526,6 +547,16 @@ struct ContentView: View {
         if feature == AtlasModule.clipboard.featureName {
             syncClipboardFeatureGate()
             loadClipboardHistory()
+            refreshPrivacyPulseIfVisible()
+            return
+        }
+
+        if feature == AtlasModule.privacy.featureName {
+            if enabled {
+                refreshPrivacyPulse()
+            } else {
+                privacyPulseSnapshot = PrivacyPulseSnapshot(statuses: [:], events: [])
+            }
             return
         }
 
@@ -670,8 +701,7 @@ struct ContentView: View {
     }
 
     private func copyClipboardHistoryText(_ text: String) {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
+        copyTextToClipboard(text, detail: "Clipboard history copied text to the pasteboard")
         showStatus("Copied clipboard item")
     }
 
@@ -1205,7 +1235,8 @@ struct ContentView: View {
 
     private func copyScreenshot(_ data: Data) {
         annotatedScreenshotData = data
-        ScreenshotOutput.copyPNGToClipboard(data)
+        ScreenshotOutput.copyPNGToClipboard(data, accessLogger: privacyAccessLogger)
+        refreshPrivacyPulseIfVisible()
         showStatus("Copied screenshot")
     }
 
@@ -1287,8 +1318,7 @@ struct ContentView: View {
     }
 
     private func copyRecognizedText(_ text: String) {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
+        copyTextToClipboard(text, detail: "Screenshot OCR copied recognized text to the pasteboard")
         showStatus("Copied recognized text")
     }
 
@@ -1333,9 +1363,29 @@ struct ContentView: View {
     }
 
     private func copyTranslatedText(_ text: String) {
+        copyTextToClipboard(text, detail: "Screenshot translation copied translated text to the pasteboard")
+        showStatus("Copied translated text")
+    }
+
+    private func copyTextToClipboard(_ text: String, detail: String) {
+        privacyAccessLogger.record(
+            category: .clipboard,
+            title: "Clipboard Write",
+            detail: detail
+        )
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
-        showStatus("Copied translated text")
+        refreshPrivacyPulseIfVisible()
+    }
+
+    private func refreshPrivacyPulse() {
+        privacyPulseSnapshot = privacyPulseService.snapshot()
+    }
+
+    private func refreshPrivacyPulseIfVisible() {
+        if isFeatureEnabled(.privacy) {
+            refreshPrivacyPulse()
+        }
     }
 
     private func showStatus(

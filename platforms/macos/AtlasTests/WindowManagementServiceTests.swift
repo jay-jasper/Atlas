@@ -134,4 +134,29 @@ final class WindowManagementServiceTests: XCTestCase {
             "Move Frontmost Window Top Left"
         )
     }
+
+    func testAccessibilityWindowActionIsLoggedBeforeSystemBoundary() {
+        let logger = FakeWindowManagementPrivacyPulseAccessLogger()
+        let manager = AccessibilityWindowManager(accessLogger: logger)
+
+        _ = manager.perform(.center)
+
+        XCTAssertEqual(logger.events.map(\.title), ["Accessibility Window Action"])
+        XCTAssertEqual(logger.events.first?.category, .accessibility)
+        XCTAssertEqual(logger.events.first?.detail, "Center Frontmost Window")
+    }
+}
+
+private final class FakeWindowManagementPrivacyPulseAccessLogger: PrivacyPulseAccessLogging {
+    struct Event: Equatable {
+        let category: PrivacyPulseCategory
+        let title: String
+        let detail: String
+    }
+
+    private(set) var events: [Event] = []
+
+    func record(category: PrivacyPulseCategory, title: String, detail: String) {
+        events.append(Event(category: category, title: title, detail: detail))
+    }
 }

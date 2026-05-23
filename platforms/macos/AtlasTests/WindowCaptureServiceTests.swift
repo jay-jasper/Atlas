@@ -49,6 +49,21 @@ final class WindowCaptureServiceTests: XCTestCase {
         XCTAssertEqual(data, Data([1, 2, 3]))
     }
 
+    func testLoggingProviderRecordsWindowCaptureAttempt() throws {
+        let provider = FakeWindowCaptureProvider()
+        let logger = FakeWindowCapturePrivacyPulseAccessLogger()
+        let loggingProvider = LoggingWindowCaptureProvider(
+            wrapped: provider,
+            accessLogger: logger
+        )
+
+        let data = try loggingProvider.captureWindow(id: 42)
+
+        XCTAssertEqual(data, Data([1, 2, 3]))
+        XCTAssertEqual(logger.events.map(\.title), ["Window Capture"])
+        XCTAssertEqual(logger.events.first?.category, .screenRecording)
+    }
+
     func testCaptureErrorMessageIsLocalized() {
         let error = WindowCaptureError.captureFailed("denied")
 
@@ -83,5 +98,19 @@ final class WindowCaptureServiceTests: XCTestCase {
                 "Height": 200,
             ],
         ]
+    }
+}
+
+private final class FakeWindowCapturePrivacyPulseAccessLogger: PrivacyPulseAccessLogging {
+    struct Event: Equatable {
+        let category: PrivacyPulseCategory
+        let title: String
+        let detail: String
+    }
+
+    private(set) var events: [Event] = []
+
+    func record(category: PrivacyPulseCategory, title: String, detail: String) {
+        events.append(Event(category: category, title: title, detail: detail))
     }
 }

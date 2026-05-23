@@ -29,6 +29,32 @@ protocol WindowCaptureProviding {
     func captureWindow(id: CGWindowID) throws -> Data
 }
 
+struct LoggingWindowCaptureProvider: WindowCaptureProviding {
+    private let wrapped: WindowCaptureProviding
+    private let accessLogger: PrivacyPulseAccessLogging
+
+    init(
+        wrapped: WindowCaptureProviding = CoreGraphicsWindowCaptureProvider(),
+        accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()
+    ) {
+        self.wrapped = wrapped
+        self.accessLogger = accessLogger
+    }
+
+    func listWindows() throws -> [CapturableWindow] {
+        try wrapped.listWindows()
+    }
+
+    func captureWindow(id: CGWindowID) throws -> Data {
+        accessLogger.record(
+            category: .screenRecording,
+            title: "Window Capture",
+            detail: "Atlas requested pixels for a selected window"
+        )
+        return try wrapped.captureWindow(id: id)
+    }
+}
+
 struct CoreGraphicsWindowCaptureProvider: WindowCaptureProviding {
     func listWindows() throws -> [CapturableWindow] {
         guard

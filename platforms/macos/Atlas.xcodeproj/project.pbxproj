@@ -7,12 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		002B1F6FC699DB405F945883 /* PrivacyPulsePanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4D6DCBDB7963D769ABA6304 /* PrivacyPulsePanelTests.swift */; };
 		008285773574BB5FB994656A /* SnippetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD7C45585F2150E8A677140 /* SnippetStore.swift */; };
 		0083856847534888D484E76B /* SnippetStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BD387111C193F6B50B6F113 /* SnippetStoreTests.swift */; };
 		067EF3A35193B3AB2206002B /* WorkspaceModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA8F6938F5D0755BE9AC383 /* WorkspaceModelsTests.swift */; };
 		06D89AA0B777F2FF1145D364 /* DeveloperToolsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2D78BEA0EC18EB51F1C35ED /* DeveloperToolsProvider.swift */; };
 		078E066D641E8A352B05A904 /* KeyRecorderViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A75E6A854484E3D03D8A606F /* KeyRecorderViewTests.swift */; };
 		0A6D803A9CB84221C4E0A647 /* TokenBarPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC45D71022E9032E9D52E38C /* TokenBarPanel.swift */; };
+		0E8AE8AC05F4EB0F65DFDD79 /* PrivacyPulseAccessLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69113C2656E89D075F591F26 /* PrivacyPulseAccessLogger.swift */; };
 		0E8E3D97FF77477E877D507D /* AutomationProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE8C692301948D9A1E44D75 /* AutomationProcessRunner.swift */; };
 		170C8F9A112A3F2EAFDD4D0D /* SystemUtilitiesModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44B19B6431A39218541128C /* SystemUtilitiesModels.swift */; };
 		171727DA28CE91F3432CB677 /* WorkspaceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAD5314FB1D5921ED831F5A /* WorkspaceProvider.swift */; };
@@ -160,12 +162,14 @@
 		94024FC42A48A5F2D890B4E4 /* ClipboardHistoryProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7197E28D112572E9204A1D59 /* ClipboardHistoryProviderTests.swift */; };
 		962254E057A4493AADD41FE8 /* ClipboardHistoryProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2E5198BF1CF97561A125138 /* ClipboardHistoryProvider.swift */; };
 		9669834E3BB700A82EEE0DE6 /* SkillCommandProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146A55EF3D4EF7047C4A9D99 /* SkillCommandProvider.swift */; };
+		97573A4490D8FA499DD54850 /* PrivacyPulsePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EF0A254C1D4D8FD36219677 /* PrivacyPulsePanel.swift */; };
 		9765810440FA5D6AA5D66780 /* WindowManagementProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1596E7DC2BE331F1D35CBCCD /* WindowManagementProviderTests.swift */; };
 		98CEDA338133A11310D0BF01 /* HandMirrorServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B570134E77A910024A872EC /* HandMirrorServiceTests.swift */; };
 		98FD4D714011E0AA1B43B674 /* SystemUtilitiesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698E1D946CD6E02A80422E1 /* SystemUtilitiesProvider.swift */; };
 		9A83368C0C40EE19F12BF636 /* SkillModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A932411008B274E4460FD036 /* SkillModels.swift */; };
 		9AE08327175D897C775BA2DD /* HandMirrorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED789F608A81C0466C6EABE9 /* HandMirrorService.swift */; };
 		9D1956C2F449345483BB413C /* SkillSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49CE70332FCD6E0CA3694604 /* SkillSettingsView.swift */; };
+		A0C31A0AAC2EE8D194983C37 /* PrivacyPulseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA81DA23471236D97627CAB9 /* PrivacyPulseService.swift */; };
 		A0ED9FB67F9193D555C501BB /* TokenBarLedgerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3002E3A9F9BABB5233BAAEF8 /* TokenBarLedgerTests.swift */; };
 		A164A3AA0C0CF4DBA09C8BF7 /* DisplayControlServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5CBCFA676D5920D2B3812C6 /* DisplayControlServiceTests.swift */; };
 		A5D2DFDBF2E5A77B59A4F18A /* CommandPaletteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031B7187C4C806700C9B0708 /* CommandPaletteView.swift */; };
@@ -186,14 +190,17 @@
 		C27EB696CACA4ABC9D34B787 /* ScreenshotGIFRecording.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA6CF520A2524B3899891093 /* ScreenshotGIFRecording.swift */; };
 		C92BC075544EB4DDBC2F639A /* WindowGridPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68EA27610C553B6123DCA781 /* WindowGridPanel.swift */; };
 		C9B92F5D750888F429C608BA /* CommandPaletteRanker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7EEA91FA1432688549E6E78 /* CommandPaletteRanker.swift */; };
+		C9E82B6BCE09BC69BCD40188 /* PrivacyPulseModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57C3B04EA2A5CCFCD1CB5818 /* PrivacyPulseModels.swift */; };
 		CD48A7E0C2BA49236CA834C8 /* SkillStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D899845A8F39B4236736FC37 /* SkillStoreTests.swift */; };
 		D19B378D8366C4333DCC31BC /* TokenBarProviderUsageImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80CE855052479C0A11B77AFA /* TokenBarProviderUsageImporterTests.swift */; };
 		D2E76847838854D23A912C2D /* ScratchpadProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0392F2386EDDBB8CC2746967 /* ScratchpadProviderTests.swift */; };
 		D3533491765740AC1FD3CBC5 /* LocalAILoadModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BFD86394CFAB3EDD737AE7B /* LocalAILoadModels.swift */; };
 		D9C56396B4A864359D1E292A /* WorkspaceWindowService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6272A1B4660F8A43600C61 /* WorkspaceWindowService.swift */; };
+		DA93DC4176302B00973686ED /* PrivacyPulseSystemStatusProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 695EB6123E7FAD9788637111 /* PrivacyPulseSystemStatusProvider.swift */; };
 		DD047C083C87F92AB164B4F0 /* CameraPreviewPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA8CF04F333085B6EAADCE7 /* CameraPreviewPanel.swift */; };
 		DE3D175FCF90A7C5AE5D89BC /* DisplayControlService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A67F9E074DCCD5157064A88 /* DisplayControlService.swift */; };
 		DE8B9BE49CA4DEDEFF88F17D /* ClipboardHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B90FCD93AA77617204F8B01 /* ClipboardHistoryStore.swift */; };
+		DEFAC8A1DE40DBE5A4533325 /* PrivacyPulseServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30C5605EB4D53D56EA16E0DF /* PrivacyPulseServiceTests.swift */; };
 		E3E94B64FA8C8A256AEAFA55 /* SystemUtilitiesPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09ECE0E919001886E4F651DA /* SystemUtilitiesPanel.swift */; };
 		E4F0313DD7A74A1191B7B882 /* CustomAutomationProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 924A14E66E5847B3B953502B /* CustomAutomationProviderTests.swift */; };
 		E62736FE2B7344A697127168 /* CustomAutomationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AE7330D1F8B461D9414D165 /* CustomAutomationProvider.swift */; };
@@ -249,6 +256,7 @@
 		2D915D9445C4D361AEF9BB72 /* TokenBarCommandProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarCommandProvider.swift; sourceTree = "<group>"; };
 		3002E3A9F9BABB5233BAAEF8 /* TokenBarLedgerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarLedgerTests.swift; sourceTree = "<group>"; };
 		3027FA588A5151B97E8311DB /* WorkspacePanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspacePanel.swift; sourceTree = "<group>"; };
+		30C5605EB4D53D56EA16E0DF /* PrivacyPulseServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrivacyPulseServiceTests.swift; path = AtlasTests/PrivacyPulseServiceTests.swift; sourceTree = "<group>"; };
 		314B642DBE2B0B6CA4276880 /* CommandUsageStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommandUsageStoreTests.swift; sourceTree = "<group>"; };
 		38B7331557AC1DD1412B270B /* TokenBarCommandProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarCommandProviderTests.swift; sourceTree = "<group>"; };
 		3B570134E77A910024A872EC /* HandMirrorServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HandMirrorServiceTests.swift; sourceTree = "<group>"; };
@@ -263,6 +271,7 @@
 		5453A88303A4475EACE858BA /* ScreenshotImageStitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotImageStitcher.swift; sourceTree = "<group>"; };
 		5550545030C443C89F26D83B /* AutomationOutputViewTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutomationOutputViewTests.swift; sourceTree = "<group>"; };
 		5698E1D946CD6E02A80422E1 /* SystemUtilitiesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemUtilitiesProvider.swift; sourceTree = "<group>"; };
+		57C3B04EA2A5CCFCD1CB5818 /* PrivacyPulseModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrivacyPulseModels.swift; path = Atlas/PrivacyPulseModels.swift; sourceTree = "<group>"; };
 		5AA19230041F4B8429FA8D7A /* ApplicationScannerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ApplicationScannerTests.swift; sourceTree = "<group>"; };
 		5B699E34BE0CAAC9635CCA60 /* DeveloperToolsProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeveloperToolsProviderTests.swift; sourceTree = "<group>"; };
 		5B909C387B3E7A7D3B8CA0CD /* KeepAwakeServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeepAwakeServiceTests.swift; sourceTree = "<group>"; };
@@ -276,10 +285,13 @@
 		659D6D53C2FA508CBB3A9E44 /* SkillRunnerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SkillRunnerTests.swift; sourceTree = "<group>"; };
 		662E42B3A7AE2F81458EA4B0 /* LocalAILoadRefreshServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocalAILoadRefreshServiceTests.swift; sourceTree = "<group>"; };
 		68EA27610C553B6123DCA781 /* WindowGridPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WindowGridPanel.swift; sourceTree = "<group>"; };
+		69113C2656E89D075F591F26 /* PrivacyPulseAccessLogger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrivacyPulseAccessLogger.swift; path = Atlas/PrivacyPulseAccessLogger.swift; sourceTree = "<group>"; };
+		695EB6123E7FAD9788637111 /* PrivacyPulseSystemStatusProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrivacyPulseSystemStatusProvider.swift; path = Atlas/PrivacyPulseSystemStatusProvider.swift; sourceTree = "<group>"; };
 		6A059410C2A9AEA0A2B33267 /* SkillPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SkillPanel.swift; sourceTree = "<group>"; };
 		6AD19DB4B5A15D548528061C /* SystemCommandRunner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemCommandRunner.swift; sourceTree = "<group>"; };
 		6AE7330D1F8B461D9414D165 /* CustomAutomationProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CustomAutomationProvider.swift; sourceTree = "<group>"; };
 		6E276FD7ABA37B12C6847A63 /* CommandPaletteController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommandPaletteController.swift; sourceTree = "<group>"; };
+		6EF0A254C1D4D8FD36219677 /* PrivacyPulsePanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrivacyPulsePanel.swift; path = Atlas/PrivacyPulsePanel.swift; sourceTree = "<group>"; };
 		7197E28D112572E9204A1D59 /* ClipboardHistoryProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryProviderTests.swift; sourceTree = "<group>"; };
 		729B106765888142D564D0A6 /* WorkspaceModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspaceModels.swift; sourceTree = "<group>"; };
 		7411DC2C854395645637C445 /* WorkspaceProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspaceProviderTests.swift; sourceTree = "<group>"; };
@@ -401,7 +413,9 @@
 		B433C2E38443490FBF109616 /* ScreenshotGIFEncoderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotGIFEncoderTests.swift; sourceTree = "<group>"; };
 		B4369F91C3158EA84ADCD15D /* PresentationModeService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PresentationModeService.swift; sourceTree = "<group>"; };
 		B44B19B6431A39218541128C /* SystemUtilitiesModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemUtilitiesModels.swift; sourceTree = "<group>"; };
+		B4D6DCBDB7963D769ABA6304 /* PrivacyPulsePanelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrivacyPulsePanelTests.swift; path = AtlasTests/PrivacyPulsePanelTests.swift; sourceTree = "<group>"; };
 		B541902B47B612BFED45441B /* AtlasCommandProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasCommandProviderTests.swift; sourceTree = "<group>"; };
+		BA81DA23471236D97627CAB9 /* PrivacyPulseService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrivacyPulseService.swift; path = Atlas/PrivacyPulseService.swift; sourceTree = "<group>"; };
 		BA8A5F47DBA508F58C46E2E6 /* ScratchpadPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ScratchpadPanel.swift; path = ScratchpadPanel.swift; sourceTree = "<group>"; };
 		BBC822B4864798A9A64E87F5 /* EditionModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EditionModels.swift; sourceTree = "<group>"; };
 		C13E0161379495141C4E72FE /* CommandPaletteModelsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommandPaletteModelsTests.swift; sourceTree = "<group>"; };
@@ -453,6 +467,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3DA6BA11BACA17BC32A449CC /* AtlasTests */ = {
+			isa = PBXGroup;
+			children = (
+				30C5605EB4D53D56EA16E0DF /* PrivacyPulseServiceTests.swift */,
+				B4D6DCBDB7963D769ABA6304 /* PrivacyPulsePanelTests.swift */,
+			);
+			name = AtlasTests;
+			sourceTree = "<group>";
+		};
+		518C1DF131FF6414048B3AAA /* macos */ = {
+			isa = PBXGroup;
+			children = (
+				C45F2BC73E48F1476FF23A9E /* Atlas */,
+				3DA6BA11BACA17BC32A449CC /* AtlasTests */,
+			);
+			name = macos;
+			sourceTree = "<group>";
+		};
 		6FADC86DBF6AF3EA16F0D67A /* CommandPalette */ = {
 			isa = PBXGroup;
 			children = (
@@ -492,6 +524,7 @@
 				83CBBA531A601CBA00E9B192 /* AtlasTests */,
 				83CBBA7D1A601CBA00E9B192 /* Generated */,
 				83CBBA511A601CBA00E9B192 /* Products */,
+				518C1DF131FF6414048B3AAA /* macos */,
 			);
 			sourceTree = "<group>";
 		};
@@ -717,6 +750,18 @@
 			path = AtlasFFI;
 			sourceTree = "<group>";
 		};
+		C45F2BC73E48F1476FF23A9E /* Atlas */ = {
+			isa = PBXGroup;
+			children = (
+				57C3B04EA2A5CCFCD1CB5818 /* PrivacyPulseModels.swift */,
+				69113C2656E89D075F591F26 /* PrivacyPulseAccessLogger.swift */,
+				BA81DA23471236D97627CAB9 /* PrivacyPulseService.swift */,
+				6EF0A254C1D4D8FD36219677 /* PrivacyPulsePanel.swift */,
+				695EB6123E7FAD9788637111 /* PrivacyPulseSystemStatusProvider.swift */,
+			);
+			name = Atlas;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -933,6 +978,11 @@
 				DE3D175FCF90A7C5AE5D89BC /* DisplayControlService.swift in Sources */,
 				E3E94B64FA8C8A256AEAFA55 /* SystemUtilitiesPanel.swift in Sources */,
 				98FD4D714011E0AA1B43B674 /* SystemUtilitiesProvider.swift in Sources */,
+				C9E82B6BCE09BC69BCD40188 /* PrivacyPulseModels.swift in Sources */,
+				0E8AE8AC05F4EB0F65DFDD79 /* PrivacyPulseAccessLogger.swift in Sources */,
+				A0C31A0AAC2EE8D194983C37 /* PrivacyPulseService.swift in Sources */,
+				97573A4490D8FA499DD54850 /* PrivacyPulsePanel.swift in Sources */,
+				DA93DC4176302B00973686ED /* PrivacyPulseSystemStatusProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1024,6 +1074,8 @@
 				A164A3AA0C0CF4DBA09C8BF7 /* DisplayControlServiceTests.swift in Sources */,
 				6959543D049768440204C290 /* SystemUtilitiesProviderTests.swift in Sources */,
 				E6A4C078B83AA39213E2E7CC /* SystemUtilitiesPanelTests.swift in Sources */,
+				DEFAC8A1DE40DBE5A4533325 /* PrivacyPulseServiceTests.swift in Sources */,
+				002B1F6FC699DB405F945883 /* PrivacyPulsePanelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1160,8 +1212,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Atlas uses the camera for the hand mirror preview.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSScreenCaptureUsageDescription = "Atlas captures the screen to take screenshots.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1193,8 +1245,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Atlas uses the camera for the hand mirror preview.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSScreenCaptureUsageDescription = "Atlas captures the screen to take screenshots.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
