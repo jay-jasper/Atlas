@@ -24,7 +24,7 @@ impl FeatureManager {
     /// Creates a new FeatureManager with default features.
     pub fn new() -> Self {
         let mut features = HashMap::new();
-        // Default feature placeholders
+        // Default feature registry
         features.insert("ai-load-monitor".to_string(), FeatureStatus::Disabled);
         features.insert("automation".to_string(), FeatureStatus::Disabled);
         features.insert("clipboard".to_string(), FeatureStatus::Disabled);
