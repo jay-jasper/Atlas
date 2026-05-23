@@ -206,10 +206,14 @@ struct FlowInboxPanel: View {
     let screenshotStore: ScreenshotLibraryStore
     let scratchpadStore: ScratchpadStore
     let behaviorRules: SceneBehaviorRules
+    let skillStore: SkillStoring
+    let makeSkillRunner: () -> SkillRunner
+    let onOpenCommandPalette: (FlowInboxItem) -> Void
     let onShowStatus: (String) -> Void
 
     @State private var items: [FlowInboxItem] = []
     @State private var query = ""
+    @State private var skills: [SkillDefinition] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -271,6 +275,18 @@ struct FlowInboxPanel: View {
                                 Button("Scratchpad") {
                                     saveToScratchpad(item)
                                 }
+                                Button("Commands") {
+                                    onOpenCommandPalette(item)
+                                }
+                                if !enabledSkills.isEmpty {
+                                    Menu("Run Skill") {
+                                        ForEach(enabledSkills) { skill in
+                                            Button(skill.title) {
+                                                runSkill(skill, with: item)
+                                            }
+                                        }
+                                    }
+                                }
                                 if let fileURL = item.fileURL {
                                     Button("Open") {
                                         NSWorkspace.shared.open(fileURL)
@@ -291,6 +307,10 @@ struct FlowInboxPanel: View {
             .frame(minHeight: 220)
         }
         .onAppear(perform: reload)
+    }
+
+    private var enabledSkills: [SkillDefinition] {
+        skills.filter(\.isEnabled)
     }
 
     private var filteredItems: [FlowInboxItem] {
@@ -318,6 +338,7 @@ struct FlowInboxPanel: View {
 
     private func reload() {
         items = store.buildItems(clipboardStore: clipboardStore, screenshotStore: screenshotStore)
+        skills = skillStore.skills()
     }
 
     private func addFile() {
@@ -348,6 +369,23 @@ struct FlowInboxPanel: View {
             onShowStatus("Saved inbox item to Scratchpad")
         } catch {
             onShowStatus(error.localizedDescription)
+        }
+    }
+
+    private func runSkill(_ skill: SkillDefinition, with item: FlowInboxItem) {
+        onShowStatus("Running \(skill.title) for \(item.title)")
+        Task {
+            do {
+                let result = try await makeSkillRunner().run(skill)
+                let output = result.output.trimmingCharacters(in: .whitespacesAndNewlines)
+                await MainActor.run {
+                    onShowStatus(output.isEmpty ? "\(skill.title) completed" : output)
+                }
+            } catch {
+                await MainActor.run {
+                    onShowStatus(error.localizedDescription)
+                }
+            }
         }
     }
 

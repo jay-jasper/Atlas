@@ -766,6 +766,8 @@ Execution note, 2026-05-23: After implementing Privacy Pulse, `xcodebuild test -
 
 Execution note, 2026-05-24: Implemented the 2026-05-23 Scene System and Tool Pack design slice and pushed it in `3bdf702 feat(macos): add scene system tool pack`. Static audit showed `scene-system`, `audio-hub`, and `flow-inbox` are registered in the Rust feature registry, Swift `AtlasModule`, title mapping, Feature Center refresh handling, Command Palette destinations/providers, main panel composition, and Xcode project membership. A follow-up static fix ensures Scene System, Audio Hub, Bluetooth quick actions, network trigger monitoring, and scene runtime side-effect closures are started or exposed only when their corresponding Feature Center modules are enabled. No test/build/manual verification command was run in this pass because the active instruction remains to avoid testing for now.
 
+Execution note, 2026-05-24: Static comparison against `docs/superpowers/specs/2026-05-23-scene-system-and-tool-pack-design.md` found that Flow Inbox had copy, favorite, share, quick file, and Scratchpad actions, but did not yet expose the spec-required command palette and AI skill action entry points per inbox item. Added per-item `Commands` and `Run Skill` actions in `FlowInboxPanel`, wiring command palette reopening through `ContentView` and AI skill execution through the existing `SkillStore` and `SkillRuntimeFactory` path. No test/build/manual verification command was run in this pass because the active instruction remains to avoid testing for now.
+
 Expected: The final integration commit contains only changes needed to connect already implemented child features.
 
 ---

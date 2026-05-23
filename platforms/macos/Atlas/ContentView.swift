@@ -583,6 +583,15 @@ struct ContentView: View {
                         screenshotStore: self.screenshotLibraryStore,
                         scratchpadStore: self.scratchpadStore,
                         behaviorRules: self.sceneCoordinator?.resolvedScene?.behaviorRules ?? .default,
+                        skillStore: SkillStore(),
+                        makeSkillRunner: SkillRuntimeFactory.makeDefaultRunner,
+                        onOpenCommandPalette: { item in
+                            self.showStatus("Opening commands for \(item.title)")
+                            controller.hide()
+                            DispatchQueue.main.async {
+                                controller.show()
+                            }
+                        },
                         onShowStatus: { message in self.showStatus(message) }
                     )
                     .padding()
@@ -1251,6 +1260,12 @@ struct ContentView: View {
                     screenshotStore: screenshotLibraryStore,
                     scratchpadStore: scratchpadStore,
                     behaviorRules: sceneCoordinator?.resolvedScene?.behaviorRules ?? .default,
+                    skillStore: SkillStore(),
+                    makeSkillRunner: SkillRuntimeFactory.makeDefaultRunner,
+                    onOpenCommandPalette: { item in
+                        showStatus("Opening commands for \(item.title)")
+                        paletteState?.controller.show()
+                    },
                     onShowStatus: { message in showStatus(message) }
                 )
 
