@@ -57,7 +57,7 @@ Known limitation: the existing Rust `CaptureEngine::capture_full_screen()` still
 - Create: `platforms/macos/AtlasTests/ScreenshotCaptureModeTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write the mode tests**
+- [x] **Step 1: Write the mode tests**
 
 Create `platforms/macos/AtlasTests/ScreenshotCaptureModeTests.swift`:
 
@@ -84,7 +84,7 @@ final class ScreenshotCaptureModeTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run:
 
@@ -94,7 +94,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `ScreenshotCaptureMode` does not exist or the test file is not in the project yet.
 
-- [ ] **Step 3: Add the mode model**
+- [x] **Step 3: Add the mode model**
 
 Create `platforms/macos/Atlas/ScreenshotCaptureMode.swift`:
 
@@ -128,7 +128,7 @@ enum ScreenshotCaptureMode: String, CaseIterable, Equatable {
 }
 ```
 
-- [ ] **Step 4: Add files to the Xcode project**
+- [x] **Step 4: Add files to the Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so:
 
@@ -136,7 +136,7 @@ Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so:
 - `ScreenshotCaptureModeTests.swift` is in the `AtlasTests` target Sources build phase.
 - Use deterministic `83CBBA...` IDs consistent with the existing project.
 
-- [ ] **Step 5: Run the mode tests**
+- [x] **Step 5: Run the mode tests**
 
 Run:
 
@@ -146,7 +146,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 3 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotCaptureMode.swift \
@@ -163,7 +163,7 @@ git commit -m "feat(macos): add screenshot capture modes"
 - Modify: `platforms/macos/Atlas/ScreenshotPanel.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Update `ScreenshotPanel` API**
+- [x] **Step 1: Update `ScreenshotPanel` API**
 
 Replace `platforms/macos/Atlas/ScreenshotPanel.swift` with:
 
@@ -199,7 +199,7 @@ struct ScreenshotPanel: View {
 }
 ```
 
-- [ ] **Step 2: Update `ContentView` call site**
+- [x] **Step 2: Update `ContentView` call site**
 
 In `platforms/macos/Atlas/ContentView.swift`, replace:
 
@@ -240,7 +240,7 @@ private func showWindowSelection() {
 }
 ```
 
-- [ ] **Step 3: Parse Swift files**
+- [x] **Step 3: Parse Swift files**
 
 Run:
 
@@ -250,7 +250,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS.
 
-- [ ] **Step 4: Build app**
+- [x] **Step 4: Build app**
 
 Run:
 
@@ -260,7 +260,7 @@ xcodebuild -project platforms/macos/Atlas.xcodeproj -scheme Atlas -configuration
 
 Expected: BUILD SUCCEEDED.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ScreenshotPanel.swift platforms/macos/Atlas/ContentView.swift
@@ -276,7 +276,7 @@ git commit -m "feat(macos): expose desktop window area screenshot actions"
 - Create: `platforms/macos/AtlasTests/WindowCaptureServiceTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write bridge-injection tests**
+- [x] **Step 1: Write bridge-injection tests**
 
 Create `platforms/macos/AtlasTests/WindowCaptureServiceTests.swift`:
 
@@ -340,7 +340,7 @@ final class WindowCaptureServiceTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -350,7 +350,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `WindowCaptureProviding`, `CapturableWindow`, and bridge methods do not exist.
 
-- [ ] **Step 3: Add window capture service**
+- [x] **Step 3: Add window capture service**
 
 Create `platforms/macos/Atlas/WindowCaptureService.swift`:
 
@@ -438,7 +438,7 @@ struct CoreGraphicsWindowCaptureProvider: WindowCaptureProviding {
 }
 ```
 
-- [ ] **Step 4: Remove force-cast from bounds parsing**
+- [x] **Step 4: Remove force-cast from bounds parsing**
 
 Replace this block in `WindowCaptureService.swift`:
 
@@ -456,7 +456,7 @@ let bounds = CGRect(dictionaryRepresentation: boundsDictionary)
 
 This keeps the service from crashing on malformed system window data.
 
-- [ ] **Step 5: Add bridge methods**
+- [x] **Step 5: Add bridge methods**
 
 In `platforms/macos/Atlas/AtlasBridge.swift`, add this static property next to `captureService`:
 
@@ -476,14 +476,14 @@ static func captureWindow(id: CGWindowID) throws -> Data {
 }
 ```
 
-- [ ] **Step 6: Add files to Xcode project**
+- [x] **Step 6: Add files to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so:
 
 - `WindowCaptureService.swift` is in `Atlas` target Sources.
 - `WindowCaptureServiceTests.swift` is in `AtlasTests` target Sources.
 
-- [ ] **Step 7: Run window service tests**
+- [x] **Step 7: Run window service tests**
 
 Run:
 
@@ -493,7 +493,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 3 tests.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add platforms/macos/Atlas/WindowCaptureService.swift \
@@ -511,7 +511,7 @@ git commit -m "feat(macos): add window capture service"
 - Create: `platforms/macos/Atlas/WindowSelectionWindow.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Add window selection window**
+- [x] **Step 1: Add window selection window**
 
 Create `platforms/macos/Atlas/WindowSelectionWindow.swift`:
 
@@ -643,11 +643,11 @@ private struct WindowSelectionView: View {
 }
 ```
 
-- [ ] **Step 2: Add file to Xcode project**
+- [x] **Step 2: Add file to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `WindowSelectionWindow.swift` is in the `Atlas` target Sources build phase.
 
-- [ ] **Step 3: Parse Swift files**
+- [x] **Step 3: Parse Swift files**
 
 Run:
 
@@ -657,7 +657,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS.
 
-- [ ] **Step 4: Build app**
+- [x] **Step 4: Build app**
 
 Run:
 
@@ -667,7 +667,7 @@ xcodebuild -project platforms/macos/Atlas.xcodeproj -scheme Atlas -configuration
 
 Expected: BUILD SUCCEEDED.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add platforms/macos/Atlas/WindowSelectionWindow.swift platforms/macos/Atlas.xcodeproj/project.pbxproj
@@ -682,7 +682,7 @@ git commit -m "feat(macos): add window selection picker"
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 - Modify: `platforms/macos/AtlasTests/AtlasBridgeCaptureTests.swift`
 
-- [ ] **Step 1: Update `showWindowSelection()`**
+- [x] **Step 1: Update `showWindowSelection()`**
 
 Replace the placeholder `showWindowSelection()` in `platforms/macos/Atlas/ContentView.swift` with:
 
@@ -727,7 +727,7 @@ private func captureWindow(_ window: CapturableWindow) {
 }
 ```
 
-- [ ] **Step 2: Extend bridge capture tests**
+- [x] **Step 2: Extend bridge capture tests**
 
 Append these tests to `platforms/macos/AtlasTests/AtlasBridgeCaptureTests.swift`:
 
@@ -782,7 +782,7 @@ func testBridgeCapturesWindowFromWindowProvider() throws {
 }
 ```
 
-- [ ] **Step 3: Run bridge tests**
+- [x] **Step 3: Run bridge tests**
 
 Run:
 
@@ -792,7 +792,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS.
 
-- [ ] **Step 4: Run focused screenshot tests**
+- [x] **Step 4: Run focused screenshot tests**
 
 Run:
 
@@ -806,7 +806,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ContentView.swift platforms/macos/AtlasTests/AtlasBridgeCaptureTests.swift
@@ -821,7 +821,7 @@ git commit -m "feat(macos): wire selected window capture"
 - Modify: `docs/superpowers/plans/2026-05-10-uniffi-real-capture.md`
 - Modify: `docs/superpowers/plans/2026-05-11-screenshot-capture-modes-v2.md`
 
-- [ ] **Step 1: Run Rust tests**
+- [x] **Step 1: Run Rust tests**
 
 Run:
 
@@ -831,7 +831,7 @@ cargo test -p atlas-core -p atlas-ffi
 
 Expected: PASS.
 
-- [ ] **Step 2: Run Swift parse**
+- [x] **Step 2: Run Swift parse**
 
 Run:
 
@@ -841,7 +841,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS.
 
-- [ ] **Step 3: Run Xcode build**
+- [x] **Step 3: Run Xcode build**
 
 Run:
 
@@ -851,7 +851,7 @@ xcodebuild -project platforms/macos/Atlas.xcodeproj -scheme Atlas -configuration
 
 Expected: BUILD SUCCEEDED.
 
-- [ ] **Step 4: Run full Xcode tests**
+- [x] **Step 4: Run full Xcode tests**
 
 Run:
 
@@ -861,7 +861,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: TEST SUCCEEDED.
 
-- [ ] **Step 5: Append verification notes to this plan**
+- [x] **Step 5: Append verification notes to this plan**
 
 Append this section to `docs/superpowers/plans/2026-05-11-screenshot-capture-modes-v2.md`:
 
@@ -888,7 +888,7 @@ Append this section to `docs/superpowers/plans/2026-05-11-screenshot-capture-mod
   - Window capture is macOS-only through CoreGraphics.
 ```
 
-- [ ] **Step 6: Add follow-up note to the UniFFI plan**
+- [x] **Step 6: Add follow-up note to the UniFFI plan**
 
 Append this section to `docs/superpowers/plans/2026-05-10-uniffi-real-capture.md`:
 
@@ -898,7 +898,7 @@ Append this section to `docs/superpowers/plans/2026-05-10-uniffi-real-capture.md
 The UI now distinguishes desktop, window, and area capture. Desktop capture still uses the existing UniFFI full-screen API and keeps the primary-display limitation until a later multi-display capture plan replaces `CaptureEngine::capture_full_screen()`.
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add docs/superpowers/plans/2026-05-10-uniffi-real-capture.md \
@@ -913,7 +913,7 @@ git commit -m "docs: record screenshot capture mode verification"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-05-11-screenshot-capture-modes-v2.md`
 
-- [ ] **Step 1: Build and launch the app**
+- [x] **Step 1: Build and launch the app**
 
 Run:
 
@@ -924,7 +924,7 @@ open -n /tmp/AtlasDerived/Build/Products/Debug/Atlas.app
 
 Expected: Atlas starts as a menu bar app.
 
-- [ ] **Step 2: Verify desktop capture manually**
+- [x] **Step 2: Verify desktop capture manually**
 
 In the app:
 
@@ -935,7 +935,7 @@ In the app:
 
 Expected: The editor opens with a captured image. If the machine has multiple displays, note whether only the primary display is captured.
 
-- [ ] **Step 3: Verify area capture manually**
+- [x] **Step 3: Verify area capture manually**
 
 In the app:
 
@@ -945,7 +945,7 @@ In the app:
 
 Expected: The editor opens with the selected region and no obvious Retina double-scaling or offset.
 
-- [ ] **Step 4: Verify window capture manually**
+- [x] **Step 4: Verify window capture manually**
 
 In the app:
 
@@ -955,7 +955,7 @@ In the app:
 
 Expected: The editor opens with the selected window contents.
 
-- [ ] **Step 5: Verify output commands manually**
+- [x] **Step 5: Verify output commands manually**
 
 For one captured image:
 
@@ -965,7 +965,7 @@ For one captured image:
 
 Expected: copy/save/pin all use the edited screenshot data.
 
-- [ ] **Step 6: Record manual results**
+- [x] **Step 6: Record manual results**
 
 Append this section to `docs/superpowers/plans/2026-05-11-screenshot-capture-modes-v2.md`:
 
@@ -983,7 +983,7 @@ Append this section to `docs/superpowers/plans/2026-05-11-screenshot-capture-mod
 
 Replace each bracketed entry with the actual observed result before committing. Do not commit bracketed placeholder text.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add docs/superpowers/plans/2026-05-11-screenshot-capture-modes-v2.md
@@ -1012,15 +1012,18 @@ Plan complete and saved to `docs/superpowers/plans/2026-05-11-screenshot-capture
 
 - Rust:
   - `cargo test -p atlas-core -p atlas-ffi`
-  - Result: PASS. `atlas-core` ran 18 tests with 0 failures, `atlas-ffi` ran 4 tests with 0 failures, and `atlas-core` doc-tests ran 0 tests with 0 failures.
+  - Result: PASS on 2026-05-23. `atlas-core` ran 21 tests with 0 failures, `atlas-ffi` ran 4 tests with 0 failures, and `atlas-core` doc-tests ran 0 tests with 0 failures.
 - Swift parse:
   - `swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/atlas.swift`
-  - Result: PASS
+  - Result: PASS on 2026-05-23.
 - Xcode:
   - `xcodebuild -project platforms/macos/Atlas.xcodeproj -scheme Atlas -configuration Debug build`
-  - Result: PASS. Build succeeded; Xcode emitted the standard warning about choosing the first matching macOS destination.
+  - Result: PASS on 2026-05-23. Build succeeded; Xcode emitted the standard CoreSimulator and destination-selection warnings.
   - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destination 'platform=macOS'`
-  - Result: PASS. XCTest ran 30 tests with 0 failures. Xcode emitted the standard destination selection warning and linker warnings about XCTest libraries built for macOS 14.0 while the test target builds for macOS 13.0.
+  - Result: PASS on 2026-05-23. XCTest ran 405 tests with 0 failures. Xcode emitted the standard CoreSimulator, destination-selection, and XCTest deployment-target warnings.
+- Focused screenshot tests:
+  - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destination 'platform=macOS' -only-testing:AtlasTests/AtlasBridgeCaptureTests -only-testing:AtlasTests/WindowCaptureServiceTests -only-testing:AtlasTests/ScreenshotCaptureModeTests -only-testing:AtlasTests/ScreenCaptureCoordinateMapperTests`
+  - Result: PASS on 2026-05-23. The focused slice ran 16 tests with 0 failures.
 - Manual:
   - Desktop capture: Not performed in this automated run.
   - Window capture: Not performed in this automated run.
