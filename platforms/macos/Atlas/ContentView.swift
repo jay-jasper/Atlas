@@ -1,9 +1,181 @@
+import IOKit.ps
+import Network
 import SwiftUI
 import UniformTypeIdentifiers
+
+@MainActor
+private final class SceneNetworkStatusService: ObservableObject {
+    @Published private(set) var triggerTokens: [String] = []
+
+    private var monitor: NWPathMonitor?
+    private let queue = DispatchQueue(label: "ai.atlas.scene.network-monitor")
+    private var isRunning = false
+
+    func start() {
+        guard isRunning == false else { return }
+        let monitor = NWPathMonitor()
+        monitor.pathUpdateHandler = { [weak self] path in
+            let tokens = Self.tokens(for: path)
+            DispatchQueue.main.async {
+                self?.triggerTokens = tokens
+            }
+        }
+        monitor.start(queue: queue)
+        self.monitor = monitor
+        isRunning = true
+    }
+
+    func stop() {
+        guard isRunning else { return }
+        monitor?.cancel()
+        monitor = nil
+        triggerTokens = []
+        isRunning = false
+    }
+
+    deinit {
+        if isRunning {
+            monitor?.cancel()
+        }
+    }
+
+    nonisolated private static func tokens(for path: NWPath) -> [String] {
+        var tokens: [String] = path.status == .satisfied ? ["online"] : ["offline"]
+        let interfaces = path.availableInterfaces
+        tokens.append(contentsOf: interfaces.map(\.name))
+        tokens.append(contentsOf: interfaces.map { interfaceTypeTitle($0.type) })
+        if interfaces.count > 1 {
+            tokens.append("multi-homed")
+        }
+        return Array(Set(tokens)).sorted()
+    }
+
+    nonisolated private static func interfaceTypeTitle(_ type: NWInterface.InterfaceType) -> String {
+        switch type {
+        case .wifi:
+            return "wifi"
+        case .wiredEthernet:
+            return "ethernet"
+        case .cellular:
+            return "cellular"
+        case .loopback:
+            return "loopback"
+        case .other:
+            return "other"
+        @unknown default:
+            return "unknown"
+        }
+    }
+}
 
 private enum CaptureStatusKind {
     case success
     case error
+}
+
+private enum PrimaryPanelSection: Hashable {
+    case sceneCenter
+    case audioHub
+    case flowInbox
+    case screenshot
+    case monitoring
+    case clipboard
+    case privacy
+    case aiLoad
+    case scratchpad
+    case systemUtilities
+    case tokenBar
+    case windowManager
+}
+
+private struct AudioHubSceneModule: SceneControllableModule {
+    let isEnabled: Bool
+    let service: AudioHubService?
+
+    let moduleID: SceneModuleID = .audioHub
+    let isSceneControllable = true
+    let configurableSettings = ["default output", "default input", "panel order", "visibility"]
+    let supportedActions = ["apply-audio-preset"]
+
+    func capabilitySnapshot() -> SceneModuleCapabilitySnapshot {
+        SceneModuleCapabilitySnapshot(
+            moduleID: moduleID,
+            isAvailable: isEnabled && service != nil,
+            stateSummary: service?.statusMessage ?? "Audio Hub unavailable",
+            configurableSettings: configurableSettings,
+            supportedActions: supportedActions
+        )
+    }
+}
+
+private struct FlowInboxSceneModule: SceneControllableModule {
+    let isEnabled: Bool
+
+    let moduleID: SceneModuleID = .flowInbox
+    let isSceneControllable = true
+    let configurableSettings = ["panel order", "visibility", "favorites preference"]
+    let supportedActions = ["save-note"]
+
+    func capabilitySnapshot() -> SceneModuleCapabilitySnapshot {
+        SceneModuleCapabilitySnapshot(
+            moduleID: moduleID,
+            isAvailable: isEnabled,
+            stateSummary: isEnabled ? "Flow Inbox is available for recent content and Quick File Send" : "Flow Inbox is unavailable",
+            configurableSettings: configurableSettings,
+            supportedActions: supportedActions
+        )
+    }
+}
+
+private struct SystemUtilitiesSceneModule: SceneControllableModule {
+    let isEnabled: Bool
+    let keepAwakeStatus: SystemUtilityStatus
+    let presentationStatus: SystemUtilityStatus
+
+    let moduleID: SceneModuleID = .systemUtilities
+    let isSceneControllable = true
+    let configurableSettings = ["panel order", "visibility"]
+    let supportedActions = ["toggle-keep-awake", "toggle-presentation-mode", "open-hand-mirror", "refresh-displays"]
+
+    func capabilitySnapshot() -> SceneModuleCapabilitySnapshot {
+        SceneModuleCapabilitySnapshot(
+            moduleID: moduleID,
+            isAvailable: isEnabled,
+            stateSummary: "Keep Awake: \(statusSummary(for: keepAwakeStatus)) • Presentation: \(statusSummary(for: presentationStatus))",
+            configurableSettings: configurableSettings,
+            supportedActions: supportedActions
+        )
+    }
+
+    private func statusSummary(for status: SystemUtilityStatus) -> String {
+        switch status {
+        case .idle:
+            return "idle"
+        case .running:
+            return "running"
+        case .unavailable(let detail), .failed(let detail):
+            return detail
+        }
+    }
+}
+
+private struct ScratchpadSceneModule: SceneControllableModule {
+    let isEnabled: Bool
+
+    let moduleID: SceneModuleID = .scratchpad
+    let isSceneControllable = true
+    let configurableSettings = ["panel order", "visibility"]
+    let supportedActions = ["save-note"]
+
+    func capabilitySnapshot() -> SceneModuleCapabilitySnapshot {
+        SceneModuleCapabilitySnapshot(
+            moduleID: moduleID,
+            isAvailable: isEnabled,
+            stateSummary: isEnabled ? "Scratchpad storage is available" : "Scratchpad is unavailable",
+            configurableSettings: configurableSettings,
+            supportedActions: supportedActions
+        )
+    }
 }
 
 struct ContentView: View {
@@ -45,7 +217,12 @@ struct ContentView: View {
     @StateObject private var presentationModeService: PresentationModeService
     @StateObject private var handMirrorService = HandMirrorService()
     @StateObject private var displayControlService = DisplayControlService()
+    @StateObject private var sceneNetworkStatusService = SceneNetworkStatusService()
     @State private var isShowingHandMirror = false
+    @State private var isShowingSceneEditor = false
+    @State private var isShowingSceneDiagnostics = false
+    @State private var revealedOnDemandSceneModules = Set<SceneModuleID>()
+    @State private var revealedOnDemandSceneID: UUID?
     private let screenshotFeatureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigurationStore = ScreenshotTranslationConfigurationStore()
     private let screenshotLibraryStore = ScreenshotLibraryStore()
@@ -60,6 +237,18 @@ struct ContentView: View {
     private let tokenBarLedger = TokenBarLedger()
     private let localAILoadRefreshService = LocalAILoadRefreshService()
     private let entitlementService: EntitlementService
+    private var sceneCoordinator: SceneCoordinator? {
+        paletteState?.sceneCoordinator
+    }
+    private var audioHubService: AudioHubService? {
+        paletteState?.audioHubService
+    }
+    private var bluetoothQuickActionsService: BluetoothQuickActionsService? {
+        paletteState?.bluetoothQuickActionsService
+    }
+    private var flowInboxStore: FlowInboxStore {
+        paletteState?.flowInboxStore ?? FlowInboxStore()
+    }
     private var scratchpadStore: ScratchpadStore {
         paletteState?.sharedScratchpadStore ?? ScratchpadStore()
     }
@@ -106,132 +295,8 @@ struct ContentView: View {
                         CaptureStatusBanner(message: captureStatus, kind: captureStatusKind)
                     }
 
-                    Divider()
-
-                    if isFeatureEnabled(.screenshot) {
-                        ScreenshotPanel(
-                            capabilities: screenshotFeatureSettings.captureCapabilities,
-                            onCaptureDesktop: captureDesktop,
-                            onCaptureWindow: showWindowSelection,
-                            onCaptureArea: showSelectionWindow,
-                            onCaptureScrolling: startScrollingWindowCapture,
-                            onRecordGIF: startGIFRegionSelection
-                        )
-
-                        if isRecordingGIF {
-                            HStack {
-                                Label("Recording GIF", systemImage: "record.circle")
-                                Spacer()
-                                Button("Stop") {
-                                    gifRecordingSession?.cancel()
-                                }
-                                .buttonStyle(.borderedProminent)
-                            }
-                        }
-
-                        if let lastGIFOutput, !isRecordingGIF {
-                            HStack {
-                                Label(lastGIFOutput.filename, systemImage: "photo.stack")
-                                    .lineLimit(1)
-                                Spacer()
-                                Button("Copy GIF", action: copyLastGIFRecording)
-                                    .buttonStyle(.bordered)
-                                Button("Save As", action: saveLastGIFRecording)
-                                    .buttonStyle(.borderedProminent)
-                            }
-                        }
-
-                        Divider()
-                    }
-
-                    if isFeatureEnabled(.monitoring) {
-                        MonitoringPanel(
-                            snapshot: snapshot,
-                            cpuHistory: cpuHistory,
-                            memoryHistory: memoryHistory
-                        )
-
-                        Divider()
-                    }
-
-                    if isFeatureEnabled(.clipboard) {
-                        ClipboardHistoryPanel(
-                            items: clipboardHistoryItems,
-                            onCopyText: copyClipboardHistoryText,
-                            onDelete: deleteClipboardHistoryItem,
-                            onClear: clearClipboardHistory,
-                            query: $clipboardHistoryQuery
-                        )
-
-                        Divider()
-                    }
-
-                    if isFeatureEnabled(.privacy) {
-                        PrivacyPulsePanel(
-                            snapshot: privacyPulseSnapshot,
-                            onRefresh: refreshPrivacyPulse
-                        )
-
-                        Divider()
-                    }
-
-                    if isFeatureEnabled(.aiLoadMonitor) {
-                        LocalAILoadPanel(snapshot: localAILoadSnapshot)
-
-                        Divider()
-                    }
-
-                    if isFeatureEnabled(.scratchpad) {
-                        ScratchpadPanel(
-                            store: scratchpadStore,
-                            summarizer: scratchpadSummarizer
-                        )
-
-                        Divider()
-                    }
-
-                    if isFeatureEnabled(.systemUtilities) {
-                        SystemUtilitiesPanel(
-                            model: SystemUtilitiesPanelModel(
-                                state: SystemUtilitiesState(
-                                    keepAwake: keepAwakeService.status,
-                                    presentationMode: presentationModeService.status,
-                                    cameraPermission: handMirrorService.permissionState,
-                                    displays: displayControlService.displays
-                                ),
-                                onToggleKeepAwake: toggleKeepAwake,
-                                onTogglePresentationMode: togglePresentationMode,
-                                onOpenHandMirror: openHandMirror,
-                                onRefreshDisplays: refreshDisplays
-                            )
-                        )
-
-                        Divider()
-                    }
-
-                    if isFeatureEnabled(.tokenbar) {
-                        TokenBarPanel(summary: tokenBarSummary)
-
-                        Divider()
-                    }
-
-                    if isFeatureEnabled(.windowManager) {
-                        WindowGridPanel(
-                            model: WindowGridPanelModel(
-                                windowManager: windowManager,
-                                permissionChecker: windowPermissionChecker,
-                                isFeatureEnabled: { isFeatureEnabled(.windowManager) }
-                            ),
-                            onResult: handleWindowGridResult
-                        )
-
-                        Divider()
-
-                        WorkspacePanel(
-                            model: workspacePanelModel()
-                        )
-
-                        Divider()
+                    ForEach(orderedPrimarySections(), id: \.self) { section in
+                        primaryPanelSection(section)
                     }
 
                     FeatureCenterPanel(
@@ -313,6 +378,16 @@ struct ContentView: View {
             )
             .padding()
         }
+        .sheet(isPresented: $isShowingSceneEditor) {
+            if let sceneCoordinator {
+                SceneEditorView(coordinator: sceneCoordinator)
+            }
+        }
+        .sheet(isPresented: $isShowingSceneDiagnostics) {
+            if let sceneCoordinator {
+                SceneDiagnosticsView(coordinator: sceneCoordinator)
+            }
+        }
         .onAppear(perform: startModules)
         .onDisappear(perform: stopModules)
         .onReceive(NotificationCenter.default.publisher(for: .tokenBarSummaryDidChange)) { notification in
@@ -341,10 +416,19 @@ struct ContentView: View {
             entitlementState = entitlementService.currentState()
             features = entitlementService.applyAvailability(to: loadedFeatures)
             enabledFeatures = FeatureStateReducer.enabledMap(from: loadedFeatures)
+            configureSceneRuntime()
             paletteState?.setWindowManagementEnabled(isFeatureEnabled(.windowManager))
+            paletteState?.setAudioHubEnabled(isFeatureEnabled(.audioHub))
+            paletteState?.setFlowInboxEnabled(isFeatureEnabled(.flowInbox))
+            paletteState?.setSceneSystemEnabled(isFeatureEnabled(.sceneSystem))
             paletteState?.setScratchpadEnabled(isFeatureEnabled(.scratchpad))
             syncClipboardFeatureGate()
             loadClipboardHistory()
+            if isFeatureEnabled(.sceneSystem) {
+                sceneNetworkStatusService.start()
+            } else {
+                sceneNetworkStatusService.stop()
+            }
             tokenBarSummary = isFeatureEnabled(.tokenbar) ? ((try? tokenBarLedger.summary()) ?? .empty) : .empty
             statusText = "Atlas is Ready"
             if isFeatureEnabled(.monitoring) {
@@ -474,6 +558,55 @@ struct ContentView: View {
                 AnyView(TokenBarPanel(summary: tokenBarSummary))
             }
 
+            controller.audioHubViewBuilder = {
+                guard let audioHubService = self.audioHubService,
+                      let bluetoothQuickActionsService = self.bluetoothQuickActionsService else {
+                    return AnyView(Text("Audio Hub").padding())
+                }
+                return AnyView(
+                    AudioHubPanel(
+                        service: audioHubService,
+                        bluetoothService: bluetoothQuickActionsService,
+                        onManualAudioOverride: {
+                            self.sceneCoordinator?.noteManualActionOverride("apply-audio-preset")
+                        }
+                    )
+                    .padding()
+                )
+            }
+
+            controller.flowInboxViewBuilder = {
+                AnyView(
+                    FlowInboxPanel(
+                        store: self.flowInboxStore,
+                        clipboardStore: self.clipboardHistoryStore,
+                        screenshotStore: self.screenshotLibraryStore,
+                        scratchpadStore: self.scratchpadStore,
+                        behaviorRules: self.sceneCoordinator?.resolvedScene?.behaviorRules ?? .default,
+                        onShowStatus: { message in self.showStatus(message) }
+                    )
+                    .padding()
+                )
+            }
+
+            controller.textToolboxViewBuilder = {
+                AnyView(TextToolboxView())
+            }
+
+            controller.sceneEditorViewBuilder = {
+                guard let sceneCoordinator = self.sceneCoordinator else {
+                    return AnyView(Text("Scene Editor").padding())
+                }
+                return AnyView(SceneEditorView(coordinator: sceneCoordinator))
+            }
+
+            controller.sceneDiagnosticsViewBuilder = {
+                guard let sceneCoordinator = self.sceneCoordinator else {
+                    return AnyView(Text("Scene Diagnostics").padding())
+                }
+                return AnyView(SceneDiagnosticsView(coordinator: sceneCoordinator))
+            }
+
             controller.scratchpadViewBuilder = { noteID in
                 AnyView(
                     ScratchpadPanel(
@@ -493,6 +626,8 @@ struct ContentView: View {
 
     private func stopModules() {
         hotkeyService.stop()
+        sceneCoordinator?.stop()
+        sceneNetworkStatusService.stop()
         localAILoadRefreshService.stop()
         do {
             try AtlasBridge.stopMonitoring()
@@ -528,9 +663,42 @@ struct ContentView: View {
         features = entitlementService.applyAvailability(
             to: FeatureStateReducer.refreshedFeatures(features, featureName: feature, enabled: enabled)
         )
+        let affectsSceneRuntime = [
+            AtlasModule.audioHub.featureName,
+            AtlasModule.automation.featureName,
+            AtlasModule.scratchpad.featureName,
+            AtlasModule.skills.featureName,
+            AtlasModule.systemUtilities.featureName,
+        ].contains(feature)
+        defer {
+            if affectsSceneRuntime {
+                configureSceneRuntime()
+            }
+        }
 
         if feature == AtlasModule.windowManager.featureName {
             paletteState?.setWindowManagementEnabled(enabled)
+            return
+        }
+
+        if feature == AtlasModule.audioHub.featureName {
+            paletteState?.setAudioHubEnabled(enabled)
+            return
+        }
+
+        if feature == AtlasModule.flowInbox.featureName {
+            paletteState?.setFlowInboxEnabled(enabled)
+            return
+        }
+
+        if feature == AtlasModule.sceneSystem.featureName {
+            configureSceneRuntime()
+            paletteState?.setSceneSystemEnabled(enabled)
+            if enabled {
+                sceneNetworkStatusService.start()
+            } else {
+                sceneNetworkStatusService.stop()
+            }
             return
         }
 
@@ -648,6 +816,7 @@ struct ContentView: View {
     }
 
     private func toggleKeepAwake() {
+        sceneCoordinator?.noteManualActionOverride("toggle-keep-awake")
         if keepAwakeService.status == .running {
             keepAwakeService.stop()
             showStatus("Keep awake stopped")
@@ -663,6 +832,7 @@ struct ContentView: View {
     }
 
     private func togglePresentationMode() {
+        sceneCoordinator?.noteManualActionOverride("toggle-presentation-mode")
         if presentationModeService.status == .running {
             presentationModeService.stop()
             showStatus("Presentation mode stopped")
@@ -724,6 +894,192 @@ struct ContentView: View {
         }
     }
 
+    private func configureSceneRuntime() {
+        guard let sceneCoordinator else { return }
+        let isSystemUtilitiesEnabled = isFeatureEnabled(.systemUtilities)
+        let isAudioHubEnabled = isFeatureEnabled(.audioHub)
+        let isScratchpadEnabled = isFeatureEnabled(.scratchpad)
+        sceneCoordinator.configure(
+            runtimeContext: SceneRuntimeContext(
+                toggleKeepAwake: isSystemUtilitiesEnabled ? toggleKeepAwakeForScene : nil,
+                togglePresentationMode: isSystemUtilitiesEnabled ? togglePresentationModeForScene : nil,
+                openHandMirror: isSystemUtilitiesEnabled ? openHandMirrorForScene : nil,
+                refreshDisplays: isSystemUtilitiesEnabled ? refreshDisplaysForScene : nil,
+                applyAudioPreset: isAudioHubEnabled ? { title in
+                    audioHubService?.applyPreset(named: title)
+                } : nil,
+                runAutomation: isFeatureEnabled(.automation) ? { command in
+                    await SystemAutomationProcessRunner().run(command)
+                } : nil,
+                runSkillNamed: isFeatureEnabled(.skills) ? { title in
+                    let store = SkillStore()
+                    guard let skill = store.skills().first(where: { $0.title.caseInsensitiveCompare(title) == .orderedSame }) else {
+                        return false
+                    }
+                    do {
+                        _ = try await SkillRuntimeFactory.makeDefaultRunner().run(skill)
+                        return true
+                    } catch {
+                        return false
+                    }
+                } : nil,
+                saveTextToScratchpad: isScratchpadEnabled ? { title, body in
+                    try? scratchpadStore.create(ScratchpadDraft(title: title, markdown: body)).id
+                } : nil,
+                deleteScratchpadNote: isScratchpadEnabled ? { noteID in
+                    try? scratchpadStore.delete(id: noteID)
+                } : nil,
+                registerSceneHotkey: { keyCode, modifiers, handler in
+                    hotkeyService.register(
+                        keyCode: keyCode,
+                        modifiers: NSEvent.ModifierFlags(rawValue: modifiers),
+                        handler: handler
+                    )
+                },
+                unregisterSceneHotkey: { keyCode, modifiers in
+                    hotkeyService.unregister(
+                        keyCode: keyCode,
+                        modifiers: NSEvent.ModifierFlags(rawValue: modifiers)
+                    )
+                },
+                currentAudioDeviceNames: isAudioHubEnabled ? {
+                    audioHubService?.currentDeviceNames ?? []
+                } : nil,
+                currentBluetoothDeviceNames: isAudioHubEnabled ? {
+                    bluetoothQuickActionsService?.connectedDeviceNames ?? []
+                } : nil,
+                currentNetworkTriggerTokens: {
+                    sceneNetworkStatusService.triggerTokens
+                },
+                currentDisplayTriggerTokens: {
+                    currentDisplayTriggerTokens()
+                },
+                currentPowerStateTriggerTokens: {
+                    currentPowerStateTriggerTokens()
+                },
+                currentIdleSeconds: {
+                    CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .null)
+                },
+                currentKeepAwakeActive: {
+                    keepAwakeService.status == .running
+                },
+                currentPresentationModeActive: {
+                    presentationModeService.status == .running
+                },
+                currentAudioRoute: isAudioHubEnabled ? {
+                    SceneAudioRoute(
+                        outputDeviceID: audioHubService?.defaultOutputDeviceID,
+                        inputDeviceID: audioHubService?.defaultInputDeviceID
+                    )
+                } : nil,
+                restoreAudioRoute: isAudioHubEnabled ? { route in
+                    if let outputDeviceID = route.outputDeviceID {
+                        audioHubService?.setDefaultOutputDevice(outputDeviceID)
+                    }
+                    if let inputDeviceID = route.inputDeviceID {
+                        audioHubService?.setDefaultInputDevice(inputDeviceID)
+                    }
+                    audioHubService?.refresh()
+                } : nil,
+                availableAudioPresetTitles: isAudioHubEnabled ? {
+                    audioHubService?.presets.map(\.title) ?? []
+                } : nil,
+                availableSkillTitles: {
+                    SkillStore().skills().map(\.title)
+                },
+                currentCameraPermissionState: {
+                    handMirrorService.permissionState
+                },
+                moduleSnapshots: {
+                    sceneModuleSnapshots()
+                }
+            )
+        )
+    }
+
+    private func sceneModules() -> [AnySceneControllableModule] {
+        [
+            AnySceneControllableModule(
+                AudioHubSceneModule(
+                    isEnabled: isFeatureEnabled(.audioHub),
+                    service: audioHubService
+                )
+            ),
+            AnySceneControllableModule(
+                FlowInboxSceneModule(
+                    isEnabled: isFeatureEnabled(.flowInbox)
+                )
+            ),
+            AnySceneControllableModule(
+                SystemUtilitiesSceneModule(
+                    isEnabled: isFeatureEnabled(.systemUtilities),
+                    keepAwakeStatus: keepAwakeService.status,
+                    presentationStatus: presentationModeService.status
+                )
+            ),
+            AnySceneControllableModule(
+                ScratchpadSceneModule(
+                    isEnabled: isFeatureEnabled(.scratchpad)
+                )
+            ),
+        ]
+    }
+
+    private func sceneModuleSnapshots() -> [SceneModuleCapabilitySnapshot] {
+        sceneModules()
+            .filter(\.isSceneControllable)
+            .map { $0.capabilitySnapshot() }
+    }
+
+    private func currentDisplayTriggerTokens() -> [String] {
+        var tokens = NSScreen.screens.compactMap(\.localizedName)
+        tokens.append(NSScreen.screens.count > 1 ? "multiple-displays" : "single-display")
+        return Array(Set(tokens)).sorted()
+    }
+
+    private func currentPowerStateTriggerTokens() -> [String] {
+        var tokens: [String] = []
+
+        if ProcessInfo.processInfo.isLowPowerModeEnabled {
+            tokens.append("low-power")
+        }
+
+        guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
+              let sources = IOPSCopyPowerSourcesList(info)?.takeRetainedValue() as? [CFTypeRef],
+              let source = sources.first,
+              let description = IOPSGetPowerSourceDescription(info, source)?.takeUnretainedValue() as? [String: Any] else {
+            if tokens.isEmpty {
+                tokens.append("ac")
+            }
+            return Array(Set(tokens)).sorted()
+        }
+
+        let isCharging = description[kIOPSIsChargingKey as String] as? Bool ?? false
+        let powerSourceState = (description[kIOPSPowerSourceStateKey as String] as? String) ?? ""
+        let currentCapacity = description[kIOPSCurrentCapacityKey as String] as? Double
+        let maxCapacity = description[kIOPSMaxCapacityKey as String] as? Double
+
+        if isCharging {
+            tokens.append("charging")
+            tokens.append("ac")
+        } else if powerSourceState == kIOPSBatteryPowerValue {
+            tokens.append("battery")
+        } else {
+            tokens.append("ac")
+        }
+
+        if let currentCapacity, let maxCapacity, maxCapacity > 0, (currentCapacity / maxCapacity) <= 0.2 {
+            tokens.append("low-battery")
+        }
+
+        return Array(Set(tokens)).sorted()
+    }
+
+    private func revealOnDemandSceneModule(_ moduleID: SceneModuleID) {
+        revealedOnDemandSceneID = sceneCoordinator?.activeSceneID
+        revealedOnDemandSceneModules.insert(moduleID)
+    }
+
     private func startMonitoring() {
         do {
             try AtlasBridge.startMonitoring { snapshot in
@@ -740,6 +1096,34 @@ struct ContentView: View {
         }
     }
 
+    private func toggleKeepAwakeForScene() {
+        if keepAwakeService.status == .running {
+            keepAwakeService.stop()
+            return
+        }
+        try? keepAwakeService.start()
+    }
+
+    private func togglePresentationModeForScene() {
+        if presentationModeService.status == .running {
+            presentationModeService.stop()
+            return
+        }
+        try? presentationModeService.start()
+    }
+
+    private func openHandMirrorForScene() {
+        Task {
+            if await handMirrorService.prepareForPreview() {
+                isShowingHandMirror = true
+            }
+        }
+    }
+
+    private func refreshDisplaysForScene() {
+        _ = try? displayControlService.refreshDisplays()
+    }
+
     private func startLocalAILoadRefresh() {
         localAILoadRefreshService.start { snapshot in
             DispatchQueue.main.async {
@@ -750,6 +1134,255 @@ struct ContentView: View {
 
     private func isFeatureEnabled(_ module: AtlasModule) -> Bool {
         featureAvailability(module.featureName).isAvailable && enabledFeatures[module.featureName, default: false]
+    }
+
+    private func orderedPrimarySections() -> [PrimaryPanelSection] {
+        let baseOrder: [PrimaryPanelSection] = [
+            .sceneCenter,
+            .audioHub,
+            .flowInbox,
+            .screenshot,
+            .monitoring,
+            .clipboard,
+            .privacy,
+            .aiLoad,
+            .scratchpad,
+            .systemUtilities,
+            .tokenBar,
+            .windowManager,
+        ]
+
+        guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
+            return baseOrder
+        }
+
+        let defaultIndex = Dictionary(uniqueKeysWithValues: baseOrder.enumerated().map { ($1, $0) })
+        return baseOrder.sorted { lhs, rhs in
+            let lhsPriority = scenePanelOrder(for: lhs, coordinator: sceneCoordinator) ?? (100 + (defaultIndex[lhs] ?? 0))
+            let rhsPriority = scenePanelOrder(for: rhs, coordinator: sceneCoordinator) ?? (100 + (defaultIndex[rhs] ?? 0))
+            if lhsPriority == rhsPriority {
+                return (defaultIndex[lhs] ?? 0) < (defaultIndex[rhs] ?? 0)
+            }
+            return lhsPriority < rhsPriority
+        }
+    }
+
+    private func scenePanelOrder(for section: PrimaryPanelSection, coordinator: SceneCoordinator) -> Int? {
+        switch section {
+        case .sceneCenter:
+            return -1
+        case .audioHub:
+            return coordinator.override(for: .audioHub)?.panelOrder
+        case .flowInbox:
+            return coordinator.override(for: .flowInbox)?.panelOrder
+        case .screenshot:
+            return coordinator.override(for: .screenshot)?.panelOrder
+        case .monitoring:
+            return coordinator.override(for: .monitoring)?.panelOrder
+        case .clipboard:
+            return coordinator.override(for: .clipboard)?.panelOrder
+        case .privacy:
+            return coordinator.override(for: .privacy)?.panelOrder
+        case .aiLoad:
+            return coordinator.override(for: .aiLoadMonitor)?.panelOrder
+        case .scratchpad:
+            return coordinator.override(for: .scratchpad)?.panelOrder
+        case .systemUtilities:
+            return coordinator.override(for: .systemUtilities)?.panelOrder
+        case .tokenBar:
+            return coordinator.override(for: .tokenbar)?.panelOrder
+        case .windowManager:
+            return coordinator.override(for: .windowManager)?.panelOrder
+        }
+    }
+
+    private func isSceneModuleVisible(_ sceneModuleID: SceneModuleID) -> Bool {
+        guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
+            return true
+        }
+        guard let override = sceneCoordinator.override(for: sceneModuleID) else {
+            return true
+        }
+        guard override.visibility != .hidden, override.state != .disabled else {
+            return false
+        }
+        if override.state == .onDemand {
+            let isRevealedForActiveScene = revealedOnDemandSceneID == sceneCoordinator.activeSceneID
+                && revealedOnDemandSceneModules.contains(sceneModuleID)
+            return override.visibility == .promoted || isRevealedForActiveScene
+        }
+        return true
+    }
+
+    @ViewBuilder
+    private func primaryPanelSection(_ section: PrimaryPanelSection) -> some View {
+        switch section {
+        case .sceneCenter:
+            if isFeatureEnabled(.sceneSystem), let sceneCoordinator {
+                SceneCenterPanel(
+                    coordinator: sceneCoordinator,
+                    onOpenEditor: { isShowingSceneEditor = true },
+                    onOpenDiagnostics: { isShowingSceneDiagnostics = true },
+                    onRevealModule: revealOnDemandSceneModule
+                )
+
+                Divider()
+            }
+        case .audioHub:
+            if isFeatureEnabled(.audioHub),
+               isSceneModuleVisible(.audioHub),
+               let audioHubService,
+               let bluetoothQuickActionsService {
+                AudioHubPanel(
+                    service: audioHubService,
+                    bluetoothService: bluetoothQuickActionsService,
+                    onManualAudioOverride: {
+                        sceneCoordinator?.noteManualActionOverride("apply-audio-preset")
+                    }
+                )
+
+                Divider()
+            }
+        case .flowInbox:
+            if isFeatureEnabled(.flowInbox), isSceneModuleVisible(.flowInbox) {
+                FlowInboxPanel(
+                    store: flowInboxStore,
+                    clipboardStore: clipboardHistoryStore,
+                    screenshotStore: screenshotLibraryStore,
+                    scratchpadStore: scratchpadStore,
+                    behaviorRules: sceneCoordinator?.resolvedScene?.behaviorRules ?? .default,
+                    onShowStatus: { message in showStatus(message) }
+                )
+
+                Divider()
+            }
+        case .screenshot:
+            if isFeatureEnabled(.screenshot), isSceneModuleVisible(.screenshot) {
+                ScreenshotPanel(
+                    capabilities: screenshotFeatureSettings.captureCapabilities,
+                    onCaptureDesktop: captureDesktop,
+                    onCaptureWindow: showWindowSelection,
+                    onCaptureArea: showSelectionWindow,
+                    onCaptureScrolling: startScrollingWindowCapture,
+                    onRecordGIF: startGIFRegionSelection
+                )
+
+                if isRecordingGIF {
+                    HStack {
+                        Label("Recording GIF", systemImage: "record.circle")
+                        Spacer()
+                        Button("Stop") {
+                            gifRecordingSession?.cancel()
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                }
+
+                if let lastGIFOutput, !isRecordingGIF {
+                    HStack {
+                        Label(lastGIFOutput.filename, systemImage: "photo.stack")
+                            .lineLimit(1)
+                        Spacer()
+                        Button("Copy GIF", action: copyLastGIFRecording)
+                            .buttonStyle(.bordered)
+                        Button("Save As", action: saveLastGIFRecording)
+                            .buttonStyle(.borderedProminent)
+                    }
+                }
+
+                Divider()
+            }
+        case .monitoring:
+            if isFeatureEnabled(.monitoring), isSceneModuleVisible(.monitoring) {
+                MonitoringPanel(
+                    snapshot: snapshot,
+                    cpuHistory: cpuHistory,
+                    memoryHistory: memoryHistory
+                )
+
+                Divider()
+            }
+        case .clipboard:
+            if isFeatureEnabled(.clipboard), isSceneModuleVisible(.clipboard) {
+                ClipboardHistoryPanel(
+                    items: clipboardHistoryItems,
+                    onCopyText: copyClipboardHistoryText,
+                    onDelete: deleteClipboardHistoryItem,
+                    onClear: clearClipboardHistory,
+                    query: $clipboardHistoryQuery
+                )
+
+                Divider()
+            }
+        case .privacy:
+            if isFeatureEnabled(.privacy), isSceneModuleVisible(.privacy) {
+                PrivacyPulsePanel(
+                    snapshot: privacyPulseSnapshot,
+                    onRefresh: refreshPrivacyPulse
+                )
+
+                Divider()
+            }
+        case .aiLoad:
+            if isFeatureEnabled(.aiLoadMonitor), isSceneModuleVisible(.aiLoadMonitor) {
+                LocalAILoadPanel(snapshot: localAILoadSnapshot)
+
+                Divider()
+            }
+        case .scratchpad:
+            if isFeatureEnabled(.scratchpad), isSceneModuleVisible(.scratchpad) {
+                ScratchpadPanel(
+                    store: scratchpadStore,
+                    summarizer: scratchpadSummarizer
+                )
+
+                Divider()
+            }
+        case .systemUtilities:
+            if isFeatureEnabled(.systemUtilities), isSceneModuleVisible(.systemUtilities) {
+                SystemUtilitiesPanel(
+                    model: SystemUtilitiesPanelModel(
+                        state: SystemUtilitiesState(
+                            keepAwake: keepAwakeService.status,
+                            presentationMode: presentationModeService.status,
+                            cameraPermission: handMirrorService.permissionState,
+                            displays: displayControlService.displays
+                        ),
+                        onToggleKeepAwake: toggleKeepAwake,
+                        onTogglePresentationMode: togglePresentationMode,
+                        onOpenHandMirror: openHandMirror,
+                        onRefreshDisplays: refreshDisplays
+                    )
+                )
+
+                Divider()
+            }
+        case .tokenBar:
+            if isFeatureEnabled(.tokenbar), isSceneModuleVisible(.tokenbar) {
+                TokenBarPanel(summary: tokenBarSummary)
+
+                Divider()
+            }
+        case .windowManager:
+            if isFeatureEnabled(.windowManager), isSceneModuleVisible(.windowManager) {
+                WindowGridPanel(
+                    model: WindowGridPanelModel(
+                        windowManager: windowManager,
+                        permissionChecker: windowPermissionChecker,
+                        isFeatureEnabled: { isFeatureEnabled(.windowManager) }
+                    ),
+                    onResult: handleWindowGridResult
+                )
+
+                Divider()
+
+                WorkspacePanel(
+                    model: workspacePanelModel()
+                )
+
+                Divider()
+            }
+        }
     }
 
     private func featureAvailability(_ featureName: String) -> FeatureAvailability {

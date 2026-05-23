@@ -93,6 +93,9 @@
 		83CBBA2A1A601CBA00E9B192 /* SystemModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3B1A601CBA00E9B192 /* SystemModels.swift */; };
 		83CBBA2B1A601CBA00E9B192 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 83CBBA3C1A601CBA00E9B192 /* Assets.xcassets */; };
 		83CBBA2C1A601CBA00E9B192 /* ScreenshotModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3E1A601CBA00E9B192 /* ScreenshotModels.swift */; };
+		A10000000000000000000001 /* SceneSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* SceneSystem.swift */; };
+		A10000000000000000000002 /* AudioHub.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* AudioHub.swift */; };
+		A10000000000000000000003 /* FlowInbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* FlowInbox.swift */; };
 		83CBBA2D1A601CBA00E9B192 /* ScreenshotModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3F1A601CBA00E9B192 /* ScreenshotModelsTests.swift */; };
 		83CBBA641A601CBA00E9B192 /* ScreenshotOutputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA651A601CBA00E9B192 /* ScreenshotOutputTests.swift */; };
 		83CBBA661A601CBA00E9B192 /* ScreenshotOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA671A601CBA00E9B192 /* ScreenshotOutput.swift */; };
@@ -321,6 +324,9 @@
 		83CBBA3D1A601CBA00E9B192 /* Atlas.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Atlas.entitlements; sourceTree = "<group>"; };
 		83CBBA3E1A601CBA00E9B192 /* ScreenshotModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotModels.swift; sourceTree = "<group>"; };
 		83CBBA3F1A601CBA00E9B192 /* ScreenshotModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotModelsTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000011 /* SceneSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneSystem.swift; sourceTree = "<group>"; };
+		A10000000000000000000012 /* AudioHub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioHub.swift; sourceTree = "<group>"; };
+		A10000000000000000000013 /* FlowInbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowInbox.swift; sourceTree = "<group>"; };
 		83CBBA4A1A601CBA00E9B192 /* AtlasTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AtlasTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		83CBBA651A601CBA00E9B192 /* ScreenshotOutputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotOutputTests.swift; sourceTree = "<group>"; };
 		83CBBA671A601CBA00E9B192 /* ScreenshotOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotOutput.swift; sourceTree = "<group>"; };
@@ -546,6 +552,9 @@
 				83CBBA9C1A601CBA00E9B192 /* AtlasCaptureService.swift */,
 				83CBBAA41A601CBA00E9B192 /* WindowCaptureService.swift */,
 				83CBBA341A601CBA00E9B192 /* AtlasModule.swift */,
+				A10000000000000000000011 /* SceneSystem.swift */,
+				A10000000000000000000012 /* AudioHub.swift */,
+				A10000000000000000000013 /* FlowInbox.swift */,
 				83CBBA311A601CBA00E9B192 /* AppFooter.swift */,
 				83CBBD021A601CBA00E9B192 /* GlobalHotkeyService.swift */,
 				83CBBD001A601CBA00E9B192 /* AtlasSettingsView.swift */,
@@ -870,6 +879,9 @@
 				83CBBA211A601CBA00E9B192 /* AtlasApp.swift in Sources */,
 				83CBBA221A601CBA00E9B192 /* AtlasBridge.swift in Sources */,
 				83CBBA231A601CBA00E9B192 /* AtlasModule.swift in Sources */,
+				A10000000000000000000001 /* SceneSystem.swift in Sources */,
+				A10000000000000000000002 /* AudioHub.swift in Sources */,
+				A10000000000000000000003 /* FlowInbox.swift in Sources */,
 				83CBBA241A601CBA00E9B192 /* ContentView.swift in Sources */,
 				83CBBB0B1A601CBA00E9B192 /* FeatureModels.swift in Sources */,
 				83CBBB151A601CBA00E9B192 /* FeatureState.swift in Sources */,

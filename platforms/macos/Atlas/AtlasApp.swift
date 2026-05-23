@@ -52,10 +52,17 @@ final class CommandPaletteState: ObservableObject {
     private let windowManager: WindowManaging
     private let workspaceStore = WorkspaceStore()
     private let scratchpadStore = ScratchpadStore()
+    let sceneCoordinator = SceneCoordinator()
+    let audioHubService = AudioHubService()
+    let bluetoothQuickActionsService = BluetoothQuickActionsService()
+    let flowInboxStore = FlowInboxStore()
     let clipboardHistoryStore = ClipboardHistoryStore()
     private let scratchpadProvider: ScratchpadProvider
     private let clipboardHistoryProvider: ClipboardHistoryProvider
     private var isWindowManagementEnabled = false
+    private var isAudioHubEnabled = false
+    private var isFlowInboxEnabled = false
+    private var isSceneSystemEnabled = false
 
     var sharedScratchpadStore: ScratchpadStore {
         scratchpadStore
@@ -136,9 +143,23 @@ final class CommandPaletteState: ObservableObject {
         )
         let skillProvider = SkillCommandProvider()
         let appLauncherProvider = AppLauncherProvider()
+        let sceneProvider = SceneCommandProvider(
+            coordinator: sceneCoordinator,
+            isEnabled: { [weak self] in self?.isSceneSystemEnabled == true }
+        )
+        let audioHubProvider = AudioHubCommandProvider(
+            service: audioHubService,
+            isEnabled: { [weak self] in self?.isAudioHubEnabled == true }
+        )
+        let flowInboxProvider = FlowInboxCommandProvider(
+            isEnabled: { [weak self] in self?.isFlowInboxEnabled == true }
+        )
 
         self.controller = CommandPaletteController(providers: [
             atlasProvider,
+            sceneProvider,
+            audioHubProvider,
+            flowInboxProvider,
             tokenBarProvider,
             developerToolsProvider,
             windowManagementProvider,
@@ -189,6 +210,27 @@ final class CommandPaletteState: ObservableObject {
 
     func setWindowManagementEnabled(_ enabled: Bool) {
         isWindowManagementEnabled = enabled
+    }
+
+    func setAudioHubEnabled(_ enabled: Bool) {
+        isAudioHubEnabled = enabled
+        if enabled {
+            audioHubService.refresh()
+            bluetoothQuickActionsService.refresh()
+        }
+    }
+
+    func setFlowInboxEnabled(_ enabled: Bool) {
+        isFlowInboxEnabled = enabled
+    }
+
+    func setSceneSystemEnabled(_ enabled: Bool) {
+        isSceneSystemEnabled = enabled
+        if enabled {
+            sceneCoordinator.start()
+        } else {
+            sceneCoordinator.stop()
+        }
     }
 
     func setScratchpadEnabled(_ enabled: Bool) {

@@ -14,6 +14,11 @@ final class CommandPaletteController {
     var windowPickerViewBuilder: (() -> AnyView)?
     var workspaceViewBuilder: (() -> AnyView)?
     var tokenBarViewBuilder: (() -> AnyView)?
+    var audioHubViewBuilder: (() -> AnyView)?
+    var flowInboxViewBuilder: (() -> AnyView)?
+    var textToolboxViewBuilder: (() -> AnyView)?
+    var sceneEditorViewBuilder: (() -> AnyView)?
+    var sceneDiagnosticsViewBuilder: (() -> AnyView)?
     var scratchpadViewBuilder: ((UUID?) -> AnyView)?
     var skillRunViewBuilder: ((SkillDefinition) -> AnyView)?
 
@@ -63,6 +68,11 @@ final class CommandPaletteController {
             windowPickerViewBuilder: windowPickerViewBuilder,
             workspaceViewBuilder: workspaceViewBuilder,
             tokenBarViewBuilder: tokenBarViewBuilder,
+            audioHubViewBuilder: audioHubViewBuilder,
+            flowInboxViewBuilder: flowInboxViewBuilder,
+            textToolboxViewBuilder: textToolboxViewBuilder,
+            sceneEditorViewBuilder: sceneEditorViewBuilder,
+            sceneDiagnosticsViewBuilder: sceneDiagnosticsViewBuilder,
             scratchpadViewBuilder: scratchpadViewBuilder,
             skillRunViewBuilder: skillRunViewBuilder
         )

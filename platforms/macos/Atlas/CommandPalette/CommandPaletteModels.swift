@@ -27,6 +27,11 @@ enum PaletteDestination: Equatable {
     case portLookup
     case workspaces
     case tokenBar
+    case audioHub
+    case flowInbox
+    case textToolbox
+    case sceneEditor
+    case sceneDiagnostics
     case scratchpad(noteID: UUID?)
     case automationOutput(CustomAutomationCommand)
     case skillRun(SkillDefinition)

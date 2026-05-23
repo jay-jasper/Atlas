@@ -75,6 +75,11 @@ struct CommandPaletteView: View {
     let windowPickerViewBuilder: (() -> AnyView)?
     let workspaceViewBuilder: (() -> AnyView)?
     let tokenBarViewBuilder: (() -> AnyView)?
+    let audioHubViewBuilder: (() -> AnyView)?
+    let flowInboxViewBuilder: (() -> AnyView)?
+    let textToolboxViewBuilder: (() -> AnyView)?
+    let sceneEditorViewBuilder: (() -> AnyView)?
+    let sceneDiagnosticsViewBuilder: (() -> AnyView)?
     let scratchpadViewBuilder: ((UUID?) -> AnyView)?
     let skillRunViewBuilder: ((SkillDefinition) -> AnyView)?
     private let automationRunner: AutomationProcessRunning
@@ -100,6 +105,11 @@ struct CommandPaletteView: View {
         windowPickerViewBuilder: (() -> AnyView)? = nil,
         workspaceViewBuilder: (() -> AnyView)? = nil,
         tokenBarViewBuilder: (() -> AnyView)? = nil,
+        audioHubViewBuilder: (() -> AnyView)? = nil,
+        flowInboxViewBuilder: (() -> AnyView)? = nil,
+        textToolboxViewBuilder: (() -> AnyView)? = nil,
+        sceneEditorViewBuilder: (() -> AnyView)? = nil,
+        sceneDiagnosticsViewBuilder: (() -> AnyView)? = nil,
         scratchpadViewBuilder: ((UUID?) -> AnyView)? = nil,
         skillRunViewBuilder: ((SkillDefinition) -> AnyView)? = nil
     ) {
@@ -112,6 +122,11 @@ struct CommandPaletteView: View {
         self.windowPickerViewBuilder = windowPickerViewBuilder
         self.workspaceViewBuilder = workspaceViewBuilder
         self.tokenBarViewBuilder = tokenBarViewBuilder
+        self.audioHubViewBuilder = audioHubViewBuilder
+        self.flowInboxViewBuilder = flowInboxViewBuilder
+        self.textToolboxViewBuilder = textToolboxViewBuilder
+        self.sceneEditorViewBuilder = sceneEditorViewBuilder
+        self.sceneDiagnosticsViewBuilder = sceneDiagnosticsViewBuilder
         self.scratchpadViewBuilder = scratchpadViewBuilder
         self.skillRunViewBuilder = skillRunViewBuilder
     }
@@ -223,6 +238,16 @@ struct CommandPaletteView: View {
             workspaceViewBuilder?() ?? AnyView(Text("Workspaces").padding())
         case .tokenBar:
             tokenBarViewBuilder?() ?? AnyView(Text("TokenBar").padding())
+        case .audioHub:
+            audioHubViewBuilder?() ?? AnyView(Text("Audio Hub").padding())
+        case .flowInbox:
+            flowInboxViewBuilder?() ?? AnyView(Text("Flow Inbox").padding())
+        case .textToolbox:
+            textToolboxViewBuilder?() ?? AnyView(Text("Text Toolbox").padding())
+        case .sceneEditor:
+            sceneEditorViewBuilder?() ?? AnyView(Text("Scene Editor").padding())
+        case .sceneDiagnostics:
+            sceneDiagnosticsViewBuilder?() ?? AnyView(Text("Scene Diagnostics").padding())
         case .scratchpad(let noteID):
             scratchpadViewBuilder?(noteID) ?? AnyView(Text("Scratchpad").padding())
         case .automationOutput(let command):

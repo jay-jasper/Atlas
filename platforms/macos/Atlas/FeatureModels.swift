@@ -44,14 +44,20 @@ private enum AtlasFeatureTitles {
         switch name {
         case AtlasModule.aiLoadMonitor.featureName:
             return AtlasModule.aiLoadMonitor.title
+        case AtlasModule.audioHub.featureName:
+            return AtlasModule.audioHub.title
         case AtlasModule.automation.featureName:
             return AtlasModule.automation.title
         case AtlasModule.clipboard.featureName:
             return AtlasModule.clipboard.title
+        case AtlasModule.flowInbox.featureName:
+            return AtlasModule.flowInbox.title
         case AtlasModule.monitoring.featureName:
             return AtlasModule.monitoring.title
         case AtlasModule.privacy.featureName:
             return AtlasModule.privacy.title
+        case AtlasModule.sceneSystem.featureName:
+            return AtlasModule.sceneSystem.title
         case AtlasModule.scratchpad.featureName:
             return AtlasModule.scratchpad.title
         case AtlasModule.screenshot.featureName:
