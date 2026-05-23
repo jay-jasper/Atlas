@@ -775,6 +775,11 @@ Plan complete and saved to `docs/superpowers/plans/2026-05-10-uniffi-real-captur
   - Full-screen capture: Not performed in this automated run.
   - Area capture: Not performed in this automated run.
   - Copy/save/pin: Not performed in this automated run.
+- 2026-05-23 GUI attempt:
+  - Ran `open -n /Users/lee/Library/Developer/Xcode/DerivedData/Atlas-halthxojbqwzzlercjspulcsutdk/Build/Products/Debug/Atlas.app`.
+  - Attempted to read the Atlas app state through desktop automation.
+  - Result: desktop automation timed out while waiting for a key window from the menu bar app, so Screen Recording prompt/capture/copy/save behavior remains manually unverified.
+  - Cleanup: `osascript -e 'tell application "Atlas" to quit'`.
 - Remaining limitation:
   - Capture is still primary-display only because `atlas-core::capture::engine::CaptureEngine` currently uses the first `screenshots::Screen`.
 
