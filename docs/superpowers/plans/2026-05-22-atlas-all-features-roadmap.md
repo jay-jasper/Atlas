@@ -21,11 +21,11 @@ Use this file as the master execution map. For each subsystem below, either exec
 - Screenshot capture, annotation, pinning, library, OCR, translation, drag output, feature settings, and translation settings are partially implemented in `crates/atlas-core/src/capture/engine.rs`, exposed through `crates/atlas-ffi/src/atlas.udl`, and bridged through `platforms/macos/Atlas/AtlasCaptureService.swift`, `Screenshot*.swift`, `FloatingScreenshotThumbnailWindow.swift`, `PinnedScreenshotWindow.swift`, `WindowCaptureService.swift`, and `WindowSelectionWindow.swift`.
 - Monitoring and Port Master are partially implemented in `crates/atlas-core/src/monitor/`, `platforms/macos/Atlas/MonitoringService.swift`, `MonitoringPanel.swift`, `MonitoringFFIMapper.swift`, `PortMasterPanel.swift`, and `crates/atlas-ffi/src/atlas.udl`.
 - Enhanced monitoring data models for per-core CPU, process lists, network interfaces, disk, battery, and temperature are implemented in `crates/atlas-core/src/monitor/models.rs`, `collector.rs`, `disk.rs`, `battery.rs`, `sensors.rs`, and exposed through `crates/atlas-ffi/src/atlas.udl`.
-- Feature toggles are partially implemented in `crates/atlas-core/src/features.rs`, `crates/atlas-ffi/src/atlas.udl`, `platforms/macos/Atlas/FeatureService.swift`, `FeatureModels.swift`, `FeatureState.swift`, and `FeatureTogglePanel.swift`.
-- Command Palette is partially implemented in `platforms/macos/Atlas/CommandPalette/`, including app launching, app rescans, Atlas commands, developer tools, snippets, frecency ranking, clipboard history, and window management providers.
-- Window management is partially implemented in `platforms/macos/Atlas/WindowManagementService.swift` and `platforms/macos/Atlas/CommandPalette/WindowManagementProvider.swift`.
-- Clipboard history is partially implemented as an in-memory command provider in `platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.swift`.
-- Scratchpad, advanced system utilities, Privacy Pulse, AI skills, workspaces, scrolling capture, GIF recording, TokenBar, and AI load monitoring remain planned.
+- Feature toggles are implemented in `crates/atlas-core/src/features.rs`, `crates/atlas-ffi/src/atlas.udl`, `platforms/macos/Atlas/FeatureService.swift`, `FeatureModels.swift`, `FeatureState.swift`, and `FeatureTogglePanel.swift`.
+- Command Palette is implemented in `platforms/macos/Atlas/CommandPalette/`, including app launching, app rescans, Atlas commands, developer tools, snippets, frecency ranking, clipboard history, custom automation, TokenBar, Scratchpad, Workspace, system utility, skill, and window management providers.
+- Window management and workspaces are implemented in `platforms/macos/Atlas/WindowManagementService.swift`, `WindowGridPanel.swift`, `Workspace*.swift`, and `platforms/macos/Atlas/CommandPalette/WindowManagementProvider.swift`.
+- Clipboard history is implemented in `platforms/macos/Atlas/ClipboardHistoryStore.swift`, `ClipboardHistoryPanel.swift`, and `platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.swift`.
+- Scratchpad, advanced system utilities, Privacy Pulse, AI skills, workspaces, scrolling capture, GIF recording, TokenBar, and AI load monitoring now have production Swift surfaces under `platforms/macos/Atlas/` and Feature Center integration; final manual verification remains tracked below.
 
 ## File Structure Map
 
@@ -62,12 +62,12 @@ Use this file as the master execution map. For each subsystem below, either exec
 - Screenshot/OCR/translation: `platforms/macos/Atlas/Screenshot*.swift`
 - Monitoring and Port Master: `crates/atlas-core/src/monitor/`, `platforms/macos/Atlas/Monitoring*.swift`, `platforms/macos/Atlas/PortMasterPanel.swift`
 - Command Palette: `platforms/macos/Atlas/CommandPalette/*.swift`
-- Clipboard: `platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.swift`, future `platforms/macos/Atlas/Clipboard*.swift`
-- Scratchpad: future `platforms/macos/Atlas/Scratchpad*.swift`
-- Window/workspace management: `platforms/macos/Atlas/Window*.swift`, future `platforms/macos/Atlas/Workspace*.swift`
-- System utilities: future `platforms/macos/Atlas/SystemUtilities*.swift`
-- Privacy Pulse: future `platforms/macos/Atlas/PrivacyPulse*.swift`
-- AI skills and automation: future `platforms/macos/Atlas/Automation*.swift`, `platforms/macos/Atlas/Skills*.swift`
+- Clipboard: `platforms/macos/Atlas/ClipboardHistory*.swift`, `platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.swift`
+- Scratchpad: `platforms/macos/Atlas/Scratchpad*.swift`, `platforms/macos/Atlas/CommandPalette/ScratchpadProvider.swift`
+- Window/workspace management: `platforms/macos/Atlas/Window*.swift`, `platforms/macos/Atlas/Workspace*.swift`, `platforms/macos/Atlas/CommandPalette/WorkspaceProvider.swift`
+- System utilities: `platforms/macos/Atlas/SystemUtilities*.swift`, `KeepAwakeService.swift`, `PresentationModeService.swift`, `HandMirrorService.swift`, `DisplayControlService.swift`, `platforms/macos/Atlas/CommandPalette/SystemUtilitiesProvider.swift`
+- Privacy Pulse: `platforms/macos/Atlas/PrivacyPulse*.swift`
+- AI skills and automation: `platforms/macos/Atlas/Skill*.swift`, `platforms/macos/Atlas/AutomationSettingsView.swift`, `platforms/macos/Atlas/CommandPalette/CustomAutomation*.swift`, `platforms/macos/Atlas/CommandPalette/Automation*.swift`
 
 ## Execution Gates
 
@@ -374,7 +374,7 @@ Expected: The command shows existing shell command plan coverage and any current
 
 Execute any existing command palette plan whose acceptance criteria are not yet represented by tests or code. Commit each child plan separately.
 
-Execution note, 2026-05-22: The required command palette XCTest slice passed with 57 tests and 0 failures. The automation audit command showed existing shell command coverage in `2026-05-21-command-palette-shell-v1.md`, monitoring process-kill paths, and plan text, but no current custom automation `Process(` implementation in `platforms/macos/Atlas` or `platforms/macos/AtlasTests`. Existing command palette plans for shell UI, developer tools, app rescans, frecency, snippets, and window management are represented by current providers/tests, so no production code was changed for this task. Custom user-defined shell/Python automation is still missing and is covered by the new child plan.
+Execution note, 2026-05-22: The required command palette XCTest slice passed with 57 tests and 0 failures. The automation audit command showed existing shell command coverage in `2026-05-21-command-palette-shell-v1.md`, monitoring process-kill paths, and plan text, but no current custom automation `Process(` implementation in `platforms/macos/Atlas` or `platforms/macos/AtlasTests`. Existing command palette plans for shell UI, developer tools, app rescans, frecency, snippets, and window management are represented by current providers/tests, so no production code was changed for this task. Custom user-defined shell/Python automation was covered by the new child plan and is now implemented through `CustomAutomation*.swift`, `AutomationProcessRunner.swift`, `AutomationOutputView.swift`, and `AutomationSettingsView.swift`.
 
 - [x] **Step 4: Write custom automation child plan**
 
@@ -513,7 +513,7 @@ git commit -m "docs: plan window grid and workspaces"
 
 Expected: The commit contains only the window grid child plan, workspaces child plan, and this roadmap update.
 
-Execution note, 2026-05-22: The required `xcodebuild test` command passed with 17 selected window management tests and 0 failures. Created `2026-05-22-window-grid-v1.md` covering 3x3 grid UI, active frontmost window targeting, Accessibility permission handling, multi-display coordinate mapping, Feature Center gating, injected-state tests, and explicit Xcode project membership updates. Created `2026-05-22-workspaces-v1.md` covering current layout capture, named workspace save, restore, missing app/window reporting, command palette actions, Feature Center gating, injected window snapshot tests, and explicit Xcode project membership updates. No window grid or workspace production code was implemented in this task.
+Execution note, 2026-05-22: The required `xcodebuild test` command passed with 17 selected window management tests and 0 failures. Created `2026-05-22-window-grid-v1.md` covering 3x3 grid UI, active frontmost window targeting, Accessibility permission handling, multi-display coordinate mapping, Feature Center gating, injected-state tests, and explicit Xcode project membership updates. Created `2026-05-22-workspaces-v1.md` covering current layout capture, named workspace save, restore, missing app/window reporting, command palette actions, Feature Center gating, injected window snapshot tests, and explicit Xcode project membership updates. Window grid and workspace production code is now implemented through `WindowGridPanel.swift`, `Workspace*.swift`, and command palette workspace integration.
 
 ---
 
@@ -554,7 +554,7 @@ git commit -m "docs: plan Atlas system utilities"
 
 Expected: The commit contains only the system utilities child plan and this roadmap status update.
 
-Execution note, 2026-05-23: The audit command showed no production implementation for keep-awake, presentation mode, hand mirror, or DDC/CI display control. Existing matches were screenshot/display references, command palette camera icon fixtures, and roadmap/planning text. Created `2026-05-22-system-utilities-v1.md` using the writing-plans format. The plan covers keep-awake, presentation mode, hand mirror camera permission behavior, DDC/CI capability detection, Feature Center gating, injected system command adapters, tests, and explicit Xcode project membership updates. No system utilities production code was implemented in this task.
+Execution note, 2026-05-23: The audit command showed no production implementation for keep-awake, presentation mode, hand mirror, or DDC/CI display control. Existing matches were screenshot/display references, command palette camera icon fixtures, and roadmap/planning text. Created `2026-05-22-system-utilities-v1.md` using the writing-plans format. The plan covers keep-awake, presentation mode, hand mirror camera permission behavior, DDC/CI capability detection, Feature Center gating, injected system command adapters, tests, and explicit Xcode project membership updates. System utilities production code is now implemented through `SystemUtilities*.swift`, `KeepAwakeService.swift`, `PresentationModeService.swift`, `HandMirrorService.swift`, `DisplayControlService.swift`, and command palette integration.
 
 ---
 
@@ -592,7 +592,7 @@ git commit -m "docs: plan Privacy Pulse"
 
 Expected: The commit contains only the Privacy Pulse child plan.
 
-Execution note, 2026-05-23: The audit command showed current Accessibility handling in `GlobalHotkeyService.swift`, `ContentView.swift`, and `WindowManagementService.swift`, current pasteboard reads/writes in `ClipboardHistoryProvider.swift`, `SnippetsProvider.swift`, `ScreenshotOutput.swift`, and screenshot text copy flows, plus existing planning references for Screen Recording, Accessibility, camera, microphone, and clipboard behavior. No production Privacy Pulse surface or centralized privacy event tracking exists. Created `2026-05-22-privacy-pulse-v1.md` using the writing-plans format. The child plan covers visible status for camera, microphone, clipboard reads, screen recording, and Accessibility use; Atlas-internal access logging; Feature Center gating; injected event-source tests that avoid real camera/microphone sessions, real clipboard reads, and permission changes; additive shared enum/provider updates; and explicit Xcode project membership updates. No Privacy Pulse production code was implemented in this task.
+Execution note, 2026-05-23: The audit command showed current Accessibility handling in `GlobalHotkeyService.swift`, `ContentView.swift`, and `WindowManagementService.swift`, current pasteboard reads/writes in `ClipboardHistoryProvider.swift`, `SnippetsProvider.swift`, `ScreenshotOutput.swift`, and screenshot text copy flows, plus existing planning references for Screen Recording, Accessibility, camera, microphone, and clipboard behavior. Created `2026-05-22-privacy-pulse-v1.md` using the writing-plans format. The child plan covers visible status for camera, microphone, clipboard reads, screen recording, and Accessibility use; Atlas-internal access logging; Feature Center gating; injected event-source tests that avoid real camera/microphone sessions, real clipboard reads, and permission changes; additive shared enum/provider updates; and explicit Xcode project membership updates. Privacy Pulse production code is now implemented through `PrivacyPulse*.swift`, shared access logging, and Feature Center-gated UI composition.
 
 ---
 
@@ -623,7 +623,7 @@ Execution note, 2026-05-23: The audit command showed existing command palette su
 
 Create `docs/superpowers/plans/2026-05-22-ai-skills-v1.md`. The child plan must cover skill metadata, trigger types, screenshot-to-summary example, shell/Python execution reuse, permissions, local storage, command palette integration, Feature Center gating, and tests with injected runners.
 
-Execution note, 2026-05-23: Created `docs/superpowers/plans/2026-05-22-ai-skills-v1.md` as a child implementation plan only. The plan covers skill metadata, trigger types, screenshot-to-summary, reuse of the custom automation process runner/store concepts, permissions, local JSON storage, command palette integration, Feature Center gating, Xcode project membership for new Swift app/test files, and deterministic tests with injected runners/providers. No AI Skills production code was implemented in this task.
+Execution note, 2026-05-23: Created `docs/superpowers/plans/2026-05-22-ai-skills-v1.md` as a child implementation plan. The plan covers skill metadata, trigger types, screenshot-to-summary, reuse of the custom automation process runner/store concepts, permissions, local JSON storage, command palette integration, Feature Center gating, Xcode project membership for new Swift app/test files, and deterministic tests with injected runners/providers. AI Skills production code is now implemented through `SkillModels.swift`, `SkillStore.swift`, `SkillRunner.swift`, `SkillPanel.swift`, `SkillSettingsView.swift`, and command palette integration.
 
 - [x] **Step 3: Commit AI Skills plan**
 
@@ -663,7 +663,7 @@ Execution note, 2026-05-23: The audit command showed Base Pack and Pro Pack lang
 
 Create `docs/superpowers/plans/2026-05-22-packaging-and-editions-v1.md`. The child plan must cover free/pro/community edition metadata, local entitlement evaluation, feature availability labels, no-network fallback behavior, and tests with injected entitlement state.
 
-Execution note, 2026-05-23: Created `docs/superpowers/plans/2026-05-22-packaging-and-editions-v1.md` as a child implementation plan only. The plan covers local Free, Pro, and Community edition metadata, injected local entitlement evaluation, Feature Center availability labels, no-network Free fallback behavior, deterministic tests with injected entitlement state, explicit Xcode PBX project membership updates for new Swift app/test files, and additive handling for shared feature enums/providers. No packaging, subscription, payment, network license, or App Store receipt production code was implemented in this task.
+Execution note, 2026-05-23: Created `docs/superpowers/plans/2026-05-22-packaging-and-editions-v1.md` as a child implementation plan. The plan covers local Free, Pro, and Community edition metadata, injected local entitlement evaluation, Feature Center availability labels, no-network Free fallback behavior, deterministic tests with injected entitlement state, explicit Xcode PBX project membership updates for new Swift app/test files, and additive handling for shared feature enums/providers. Packaging and edition boundaries are now represented by `EditionModels.swift`, `EditionPanel.swift`, and `EntitlementService.swift`. Payment, network license, and App Store receipt integration remain intentionally out of scope for this local edition boundary plan.
 
 - [x] **Step 3: Commit packaging plan**
 
