@@ -56,7 +56,7 @@ This plan does not implement alerts, historical charts, thresholds, notification
 **Files:**
 - Modify: `platforms/macos/Atlas/SystemModels.swift`
 
-- [ ] **Step 1: Make monitoring models equatable and add port model**
+- [x] **Step 1: Make monitoring models equatable and add port model**
 
 Replace `platforms/macos/Atlas/SystemModels.swift` with:
 
@@ -146,7 +146,7 @@ enum Formatters {
 }
 ```
 
-- [ ] **Step 2: Parse Swift files**
+- [x] **Step 2: Parse Swift files**
 
 Run:
 
@@ -156,7 +156,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS.
 
-- [ ] **Step 3: Run existing macOS tests**
+- [x] **Step 3: Run existing macOS tests**
 
 Run:
 
@@ -166,7 +166,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: TEST SUCCEEDED.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add platforms/macos/Atlas/SystemModels.swift
@@ -182,7 +182,7 @@ git commit -m "refactor(macos): make monitoring models equatable"
 - Create: `platforms/macos/AtlasTests/MonitoringFFIMapperTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write mapper tests**
+- [x] **Step 1: Write mapper tests**
 
 Create `platforms/macos/AtlasTests/MonitoringFFIMapperTests.swift`:
 
@@ -270,7 +270,7 @@ final class MonitoringFFIMapperTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -280,7 +280,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `MonitoringFFIMapper` does not exist or the test file is not in the project yet.
 
-- [ ] **Step 3: Add mapper implementation**
+- [x] **Step 3: Add mapper implementation**
 
 Create `platforms/macos/Atlas/MonitoringFFIMapper.swift`:
 
@@ -344,14 +344,14 @@ enum MonitoringFFIMapper {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so:
 
 - `MonitoringFFIMapper.swift` is in `Atlas` target Sources.
 - `MonitoringFFIMapperTests.swift` is in `AtlasTests` target Sources.
 
-- [ ] **Step 5: Run mapper tests**
+- [x] **Step 5: Run mapper tests**
 
 Run:
 
@@ -361,7 +361,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 2 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add platforms/macos/Atlas/MonitoringFFIMapper.swift \
@@ -379,7 +379,7 @@ git commit -m "feat(macos): map uniffi monitoring models"
 - Create: `platforms/macos/AtlasTests/MonitoringServiceTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write service tests**
+- [x] **Step 1: Write service tests**
 
 Create `platforms/macos/AtlasTests/MonitoringServiceTests.swift`:
 
@@ -477,7 +477,7 @@ private extension MonitoringSystemSnapshot {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -487,7 +487,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `MonitoringService` does not exist or the test file is not in the project yet.
 
-- [ ] **Step 3: Add service implementation**
+- [x] **Step 3: Add service implementation**
 
 Create `platforms/macos/Atlas/MonitoringService.swift`:
 
@@ -554,14 +554,14 @@ extension MonitoringService {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so:
 
 - `MonitoringService.swift` is in `Atlas` target Sources.
 - `MonitoringServiceTests.swift` is in `AtlasTests` target Sources.
 
-- [ ] **Step 5: Run service tests**
+- [x] **Step 5: Run service tests**
 
 Run:
 
@@ -571,7 +571,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 3 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add platforms/macos/Atlas/MonitoringService.swift \
@@ -589,7 +589,7 @@ git commit -m "feat(macos): add monitoring service boundary"
 - Create: `platforms/macos/AtlasTests/AtlasBridgeMonitoringTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write bridge tests**
+- [x] **Step 1: Write bridge tests**
 
 Create `platforms/macos/AtlasTests/AtlasBridgeMonitoringTests.swift`:
 
@@ -693,7 +693,7 @@ private extension MonitoringSystemSnapshot {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -703,7 +703,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `AtlasBridge.monitoringService` and throwing bridge methods do not exist.
 
-- [ ] **Step 3: Replace monitoring mock in `AtlasBridge`**
+- [x] **Step 3: Replace monitoring mock in `AtlasBridge`**
 
 In `platforms/macos/Atlas/AtlasBridge.swift`, remove:
 
@@ -739,11 +739,11 @@ static func killPortProcess(pid: UInt32) throws -> Bool {
 
 Do not change screenshot or window capture methods in this task.
 
-- [ ] **Step 4: Add test file to Xcode project**
+- [x] **Step 4: Add test file to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `AtlasBridgeMonitoringTests.swift` is in `AtlasTests` target Sources.
 
-- [ ] **Step 5: Run bridge monitoring tests**
+- [x] **Step 5: Run bridge monitoring tests**
 
 Run:
 
@@ -753,7 +753,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 3 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add platforms/macos/Atlas/AtlasBridge.swift \
@@ -769,7 +769,7 @@ git commit -m "feat(macos): route monitoring through service"
 **Files:**
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Update stop handling**
+- [x] **Step 1: Update stop handling**
 
 In `platforms/macos/Atlas/ContentView.swift`, replace:
 
@@ -791,7 +791,7 @@ private func stopModules() {
 }
 ```
 
-- [ ] **Step 2: Update feature disable handling**
+- [x] **Step 2: Update feature disable handling**
 
 In `handleFeatureChange(_:enabled:)`, replace:
 
@@ -811,7 +811,7 @@ do {
 }
 ```
 
-- [ ] **Step 3: Update `startMonitoring()`**
+- [x] **Step 3: Update `startMonitoring()`**
 
 Replace the existing `startMonitoring()` method with:
 
@@ -829,7 +829,7 @@ private func startMonitoring() {
 }
 ```
 
-- [ ] **Step 4: Parse Swift files**
+- [x] **Step 4: Parse Swift files**
 
 Run:
 
@@ -839,7 +839,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS.
 
-- [ ] **Step 5: Build app**
+- [x] **Step 5: Build app**
 
 Run:
 
@@ -849,7 +849,7 @@ xcodebuild -project platforms/macos/Atlas.xcodeproj -scheme Atlas -configuration
 
 Expected: BUILD SUCCEEDED.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ContentView.swift
@@ -865,7 +865,7 @@ git commit -m "fix(macos): handle monitoring service errors"
 - Modify: `platforms/macos/Atlas/MonitoringPanel.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Replace Port Master UI with Monitoring Ports section**
+- [x] **Step 1: Replace Port Master UI with Monitoring Ports section**
 
 Replace `platforms/macos/Atlas/PortMasterPanel.swift` with:
 
@@ -959,7 +959,7 @@ struct MonitoringPortsPanel: View {
 }
 ```
 
-- [ ] **Step 2: Add ports section to MonitoringPanel**
+- [x] **Step 2: Add ports section to MonitoringPanel**
 
 In `platforms/macos/Atlas/MonitoringPanel.swift`, add a ports section after `processSection(snapshot)`:
 
@@ -977,7 +977,7 @@ Divider()
 MonitoringPortsPanel()
 ```
 
-- [ ] **Step 3: Remove standalone Port Master from ContentView**
+- [x] **Step 3: Remove standalone Port Master from ContentView**
 
 In `platforms/macos/Atlas/ContentView.swift`, remove this block:
 
@@ -991,7 +991,7 @@ Divider()
 
 Monitoring should now contain the Ports section internally.
 
-- [ ] **Step 4: Parse Swift files**
+- [x] **Step 4: Parse Swift files**
 
 Run:
 
@@ -1001,7 +1001,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS.
 
-- [ ] **Step 5: Run relevant tests**
+- [x] **Step 5: Run relevant tests**
 
 Run:
 
@@ -1014,7 +1014,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add platforms/macos/Atlas/PortMasterPanel.swift \
@@ -1030,7 +1030,7 @@ git commit -m "feat(macos): move port master into monitoring"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-05-11-monitoring-v2-port-master.md`
 
-- [ ] **Step 1: Run Rust tests**
+- [x] **Step 1: Run Rust tests**
 
 Run:
 
@@ -1040,7 +1040,7 @@ cargo test -p atlas-core -p atlas-ffi
 
 Expected: PASS.
 
-- [ ] **Step 2: Run Swift parse**
+- [x] **Step 2: Run Swift parse**
 
 Run:
 
@@ -1050,7 +1050,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS.
 
-- [ ] **Step 3: Run Xcode build**
+- [x] **Step 3: Run Xcode build**
 
 Run:
 
@@ -1060,7 +1060,7 @@ xcodebuild -project platforms/macos/Atlas.xcodeproj -scheme Atlas -configuration
 
 Expected: BUILD SUCCEEDED.
 
-- [ ] **Step 4: Run full Xcode tests**
+- [x] **Step 4: Run full Xcode tests**
 
 Run:
 
@@ -1070,7 +1070,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: TEST SUCCEEDED.
 
-- [ ] **Step 5: Append verification notes**
+- [x] **Step 5: Append verification notes**
 
 Append this section to `docs/superpowers/plans/2026-05-11-monitoring-v2-port-master.md`:
 
@@ -1095,7 +1095,7 @@ Append this section to `docs/superpowers/plans/2026-05-11-monitoring-v2-port-mas
   - Monitoring callback delivery depends on the UniFFI callback thread and dispatches to the main queue in `ContentView`.
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add docs/superpowers/plans/2026-05-11-monitoring-v2-port-master.md
@@ -1125,17 +1125,20 @@ Plan complete and saved to `docs/superpowers/plans/2026-05-11-monitoring-v2-port
 - Rust:
   - `cargo test -p atlas-core -p atlas-ffi`
   - Result: PASS
-  - Summary: `atlas-core` ran 18 tests, `atlas-ffi` ran 4 tests, and doc tests ran with 0 failures.
+  - Summary: Passed on 2026-05-23. `atlas-core` ran 21 tests, `atlas-ffi` ran 4 tests, and doc tests ran with 0 failures.
 - Swift parse:
   - `swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/atlas.swift`
-  - Result: PASS
+  - Result: PASS on 2026-05-23.
 - Xcode:
   - `xcodebuild -project platforms/macos/Atlas.xcodeproj -scheme Atlas -configuration Debug build`
-  - Result: PASS
+  - Result: PASS on 2026-05-23.
   - Summary: `** BUILD SUCCEEDED **`
   - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destination 'platform=macOS'`
-  - Result: PASS
-  - Summary: `AtlasTests.xctest` ran 38 tests with 0 failures; `** TEST SUCCEEDED **`
+  - Result: PASS on 2026-05-23.
+  - Summary: `AtlasTests.xctest` ran 405 tests with 0 failures; `** TEST SUCCEEDED **`
+- Focused monitoring tests:
+  - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destination 'platform=macOS' -only-testing:AtlasTests/AtlasBridgeMonitoringTests -only-testing:AtlasTests/MonitoringServiceTests -only-testing:AtlasTests/MonitoringFFIMapperTests`
+  - Result: PASS on 2026-05-23. The focused slice ran 8 tests with 0 failures.
 - Manual:
   - Manual monitoring and port kill verification was not performed. On 2026-05-11, user acceptance criteria for these task plans is automated/unit tests passing.
 - Remaining limitations:
