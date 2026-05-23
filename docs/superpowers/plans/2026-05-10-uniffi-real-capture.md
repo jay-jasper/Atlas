@@ -63,7 +63,7 @@ This plan does not implement OCR, translation, scrolling capture, multi-display 
 - Create: `tools/uniffi-swift-bindgen/Cargo.toml`
 - Create: `tools/uniffi-swift-bindgen/src/main.rs`
 
-- [ ] **Step 1: Add the bindgen runner crate to the workspace**
+- [x] **Step 1: Add the bindgen runner crate to the workspace**
 
 Update the root `Cargo.toml`:
 
@@ -77,7 +77,7 @@ members = [
 resolver = "2"
 ```
 
-- [ ] **Step 2: Add the bindgen runner manifest**
+- [x] **Step 2: Add the bindgen runner manifest**
 
 Create `tools/uniffi-swift-bindgen/Cargo.toml`:
 
@@ -93,7 +93,7 @@ camino = "1.1"
 uniffi_bindgen = { version = "0.28.3", features = ["cargo-metadata"] }
 ```
 
-- [ ] **Step 3: Add the bindgen runner implementation**
+- [x] **Step 3: Add the bindgen runner implementation**
 
 Create `tools/uniffi-swift-bindgen/src/main.rs`:
 
@@ -133,7 +133,7 @@ fn main() -> Result<()> {
 }
 ```
 
-- [ ] **Step 4: Verify the runner builds**
+- [x] **Step 4: Verify the runner builds**
 
 Run:
 
@@ -143,7 +143,7 @@ cargo check -p uniffi-swift-bindgen
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add Cargo.toml tools/uniffi-swift-bindgen
@@ -161,7 +161,7 @@ git commit -m "build(uniffi): add swift bindgen runner"
 - Create/Update: `platforms/macos/Generated/AtlasFFI/atlas_ffi.modulemap`
 - Create/Update: `platforms/macos/Generated/AtlasFFI/libatlas_ffi.a`
 
-- [ ] **Step 1: Add the generation script**
+- [x] **Step 1: Add the generation script**
 
 Create `scripts/generate_uniffi_swift.sh`:
 
@@ -190,7 +190,7 @@ test -f "$OUT_DIR/libatlas_ffi.a"
 echo "Generated UniFFI Swift artifacts in $OUT_DIR"
 ```
 
-- [ ] **Step 2: Make the script executable**
+- [x] **Step 2: Make the script executable**
 
 Run:
 
@@ -200,7 +200,7 @@ chmod +x scripts/generate_uniffi_swift.sh
 
 Expected: command exits 0.
 
-- [ ] **Step 3: Generate artifacts**
+- [x] **Step 3: Generate artifacts**
 
 Run:
 
@@ -214,7 +214,7 @@ Expected:
 Generated UniFFI Swift artifacts in /Users/lee/workspaces/ai/Atlas/platforms/macos/Generated/AtlasFFI
 ```
 
-- [ ] **Step 4: Inspect the generated Swift API names**
+- [x] **Step 4: Inspect the generated Swift API names**
 
 Run:
 
@@ -224,7 +224,7 @@ rg -n "func capture|enum AtlasError|struct FeatureEntry" platforms/macos/Generat
 
 Expected: output includes generated throwing functions for `captureFullScreen()` and `captureRegion(x:y:width:height:)`, plus generated model/error types.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/generate_uniffi_swift.sh platforms/macos/Generated/AtlasFFI
@@ -238,7 +238,7 @@ git commit -m "build(uniffi): generate swift bindings for atlas ffi"
 **Files:**
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Add generated files to Xcode project**
+- [x] **Step 1: Add generated files to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so:
 
@@ -248,7 +248,7 @@ Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so:
 
 Use the same object style already present in the project. Add deterministic new IDs with the existing `83CBBA...` prefix pattern.
 
-- [ ] **Step 2: Add Swift include and library paths**
+- [x] **Step 2: Add Swift include and library paths**
 
 In the `Atlas` target Debug and Release build settings in `project.pbxproj`, set or append:
 
@@ -263,7 +263,7 @@ OTHER_LDFLAGS = (
 
 Keep existing settings intact. If `OTHER_LDFLAGS` already exists, append `-lresolv` rather than replacing existing flags.
 
-- [ ] **Step 3: Build the app**
+- [x] **Step 3: Build the app**
 
 Run:
 
@@ -273,7 +273,7 @@ xcodebuild -project platforms/macos/Atlas.xcodeproj -scheme Atlas -configuration
 
 Expected: BUILD SUCCEEDED.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add platforms/macos/Atlas.xcodeproj/project.pbxproj
@@ -289,7 +289,7 @@ git commit -m "build(macos): link atlas uniffi artifacts"
 - Create: `platforms/macos/AtlasTests/ScreenCaptureCoordinateMapperTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `platforms/macos/AtlasTests/ScreenCaptureCoordinateMapperTests.swift`:
 
@@ -320,7 +320,7 @@ final class ScreenCaptureCoordinateMapperTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 
@@ -330,7 +330,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `ScreenCaptureCoordinateMapper` does not exist.
 
-- [ ] **Step 3: Add mapper implementation**
+- [x] **Step 3: Add mapper implementation**
 
 Create `platforms/macos/Atlas/ScreenCaptureCoordinateMapper.swift`:
 
@@ -362,11 +362,11 @@ enum ScreenCaptureCoordinateMapper {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Add `ScreenCaptureCoordinateMapper.swift` to the `Atlas` Sources build phase and `ScreenCaptureCoordinateMapperTests.swift` to the `AtlasTests` Sources build phase.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run:
 
@@ -376,7 +376,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 2 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add platforms/macos/Atlas/ScreenCaptureCoordinateMapper.swift platforms/macos/AtlasTests/ScreenCaptureCoordinateMapperTests.swift platforms/macos/Atlas.xcodeproj/project.pbxproj
@@ -392,7 +392,7 @@ git commit -m "feat(macos): add screen capture coordinate mapper"
 - Create: `platforms/macos/AtlasTests/AtlasCaptureServiceTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write service tests with injected functions**
+- [x] **Step 1: Write service tests with injected functions**
 
 Create `platforms/macos/AtlasTests/AtlasCaptureServiceTests.swift`:
 
@@ -432,7 +432,7 @@ final class AtlasCaptureServiceTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -442,7 +442,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `AtlasCaptureService` does not exist.
 
-- [ ] **Step 3: Add service implementation**
+- [x] **Step 3: Add service implementation**
 
 Create `platforms/macos/Atlas/AtlasCaptureService.swift`:
 
@@ -489,11 +489,11 @@ extension AtlasCaptureService {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Add `AtlasCaptureService.swift` to the `Atlas` Sources build phase and `AtlasCaptureServiceTests.swift` to the `AtlasTests` Sources build phase.
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run:
 
@@ -503,7 +503,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 2 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add platforms/macos/Atlas/AtlasCaptureService.swift platforms/macos/AtlasTests/AtlasCaptureServiceTests.swift platforms/macos/Atlas.xcodeproj/project.pbxproj
@@ -519,7 +519,7 @@ git commit -m "feat(macos): add atlas capture service"
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 - Modify: `platforms/macos/AtlasTests/AtlasBridgeCaptureTests.swift`
 
-- [ ] **Step 1: Update `AtlasBridge` screenshot functions**
+- [x] **Step 1: Update `AtlasBridge` screenshot functions**
 
 In `platforms/macos/Atlas/AtlasBridge.swift`, remove the private `NSImage.atlasMockScreenshot` extension and replace screenshot methods with throwing live calls:
 
@@ -537,7 +537,7 @@ static func captureFullScreen() throws -> Data {
 
 Keep monitoring and port mock behavior unchanged.
 
-- [ ] **Step 2: Update `ContentView.captureSelection`**
+- [x] **Step 2: Update `ContentView.captureSelection`**
 
 In `ContentView.captureSelection(_:)`, map the selection rect to pixels and handle errors:
 
@@ -566,7 +566,7 @@ private func captureSelection(_ rect: CGRect) {
 }
 ```
 
-- [ ] **Step 3: Update `ContentView.captureFullScreen`**
+- [x] **Step 3: Update `ContentView.captureFullScreen`**
 
 Replace optional capture with throwing capture:
 
@@ -592,7 +592,7 @@ private func captureFullScreen() {
 }
 ```
 
-- [ ] **Step 4: Update bridge tests to inject mock service**
+- [x] **Step 4: Update bridge tests to inject mock service**
 
 Replace `platforms/macos/AtlasTests/AtlasBridgeCaptureTests.swift` with:
 
@@ -637,7 +637,7 @@ final class AtlasBridgeCaptureTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run:
 
@@ -647,7 +647,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add platforms/macos/Atlas/AtlasBridge.swift platforms/macos/Atlas/ContentView.swift platforms/macos/AtlasTests/AtlasBridgeCaptureTests.swift
@@ -661,7 +661,7 @@ git commit -m "feat(macos): route screenshot capture through uniffi"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-05-10-uniffi-real-capture.md`
 
-- [ ] **Step 1: Run Rust tests**
+- [x] **Step 1: Run Rust tests**
 
 Run:
 
@@ -671,7 +671,7 @@ cargo test -p atlas-core -p atlas-ffi
 
 Expected: PASS. Headless/screen-permission capture tests may return errors internally, but existing tests should not panic.
 
-- [ ] **Step 2: Run Swift parse, build, and tests**
+- [x] **Step 2: Run Swift parse, build, and tests**
 
 Run:
 
@@ -703,7 +703,7 @@ Run the Atlas app from Xcode:
 10. Draw a pixelate annotation, click Save, open the saved file.
 11. Expected: saved file contains the pixelated area, not the unredacted original.
 
-- [ ] **Step 4: Document final verification notes**
+- [x] **Step 4: Document final verification notes**
 
 Append this section to `docs/superpowers/plans/2026-05-10-uniffi-real-capture.md`:
 
@@ -726,7 +726,7 @@ Append this section to `docs/superpowers/plans/2026-05-10-uniffi-real-capture.md
   - Capture is still primary-display only because `atlas-core::capture::engine::CaptureEngine` currently uses the first `screenshots::Screen`.
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add docs/superpowers/plans/2026-05-10-uniffi-real-capture.md
@@ -755,14 +755,22 @@ Plan complete and saved to `docs/superpowers/plans/2026-05-10-uniffi-real-captur
 
 - Rust tests:
   - `cargo test -p atlas-core -p atlas-ffi`
-  - Result: Passed. `atlas-core` ran 18 tests with 0 failures, `atlas-ffi` ran 4 tests with 0 failures, and `atlas-core` doc-tests ran 0 tests with 0 failures.
+  - Result: Passed on 2026-05-23. `atlas-core` ran 21 tests with 0 failures, `atlas-ffi` ran 4 tests with 0 failures, and `atlas-core` doc-tests ran 0 tests with 0 failures.
 - Swift/Xcode:
   - `swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/atlas.swift`
-  - Result: Passed.
+  - Result: Passed on 2026-05-23.
   - `xcodebuild -project platforms/macos/Atlas.xcodeproj -scheme Atlas -configuration Debug build`
-  - Result: Passed. Build succeeded; Xcode emitted the standard warning about choosing the first matching macOS destination.
+  - Result: Passed on 2026-05-23. Build succeeded; Xcode emitted the standard CoreSimulator and destination-selection warnings.
   - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destination 'platform=macOS'`
-  - Result: Passed. XCTest ran 20 tests with 0 failures. Xcode emitted the standard destination selection warning and linker warnings about XCTest libraries built for macOS 14.0 while the test target builds for macOS 13.0.
+  - Result: Passed on 2026-05-23. XCTest ran 405 tests with 0 failures. Xcode emitted the standard CoreSimulator and destination-selection warnings.
+- UniFFI generation:
+  - `cargo check -p uniffi-swift-bindgen`
+  - Result: Passed on 2026-05-23.
+  - `./scripts/generate_uniffi_swift.sh`
+  - Result: Passed on 2026-05-23. Regenerated `platforms/macos/Generated/AtlasFFI/libatlas_ffi.a` as a universal `x86_64 arm64` static library.
+- Focused capture tests:
+  - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destination 'platform=macOS' -only-testing:AtlasTests/AtlasBridgeCaptureTests -only-testing:AtlasTests/AtlasCaptureServiceTests -only-testing:AtlasTests/ScreenCaptureCoordinateMapperTests`
+  - Result: Passed on 2026-05-23. The focused slice ran 10 tests with 0 failures.
 - Manual capture:
   - Full-screen capture: Not performed in this automated run.
   - Area capture: Not performed in this automated run.
