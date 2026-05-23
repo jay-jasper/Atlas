@@ -27,6 +27,7 @@ Use this file as the master execution map. For each subsystem below, either exec
 - Clipboard history is implemented in `platforms/macos/Atlas/ClipboardHistoryStore.swift`, `ClipboardHistoryPanel.swift`, and `platforms/macos/Atlas/CommandPalette/ClipboardHistoryProvider.swift`.
 - Scratchpad, advanced system utilities, Privacy Pulse, AI skills, workspaces, scrolling capture, GIF recording, TokenBar, and AI load monitoring now have production Swift surfaces under `platforms/macos/Atlas/` and Feature Center integration; final manual verification remains tracked below.
 - Scene System, Audio Hub, Flow Inbox, and Text Toolbox from `docs/superpowers/specs/2026-05-23-scene-system-and-tool-pack-design.md` are implemented through `SceneSystem.swift`, `AudioHub.swift`, `FlowInbox.swift`, `ContentView.swift`, `AtlasApp.swift`, Command Palette destinations/providers, Feature Center keys, and Xcode project membership.
+- Atlas logo direction from `docs/superpowers/specs/2026-05-23-atlas-logo-design.md` is represented by monochrome SVG concept assets and notes under `docs/branding/atlas-logo-concepts/`.
 
 ## File Structure Map
 
@@ -70,6 +71,7 @@ Use this file as the master execution map. For each subsystem below, either exec
 - Privacy Pulse: `platforms/macos/Atlas/PrivacyPulse*.swift`
 - AI skills and automation: `platforms/macos/Atlas/Skill*.swift`, `platforms/macos/Atlas/AutomationSettingsView.swift`, `platforms/macos/Atlas/CommandPalette/CustomAutomation*.swift`, `platforms/macos/Atlas/CommandPalette/Automation*.swift`
 - Scene System and tool pack: `platforms/macos/Atlas/SceneSystem.swift`, `AudioHub.swift`, `FlowInbox.swift`
+- Branding: `docs/superpowers/specs/2026-05-23-atlas-logo-design.md`, `docs/branding/atlas-logo-concepts/`
 
 ## Execution Gates
 
@@ -767,6 +769,8 @@ Execution note, 2026-05-23: After implementing Privacy Pulse, `xcodebuild test -
 Execution note, 2026-05-24: Implemented the 2026-05-23 Scene System and Tool Pack design slice and pushed it in `3bdf702 feat(macos): add scene system tool pack`. Static audit showed `scene-system`, `audio-hub`, and `flow-inbox` are registered in the Rust feature registry, Swift `AtlasModule`, title mapping, Feature Center refresh handling, Command Palette destinations/providers, main panel composition, and Xcode project membership. A follow-up static fix ensures Scene System, Audio Hub, Bluetooth quick actions, network trigger monitoring, and scene runtime side-effect closures are started or exposed only when their corresponding Feature Center modules are enabled. No test/build/manual verification command was run in this pass because the active instruction remains to avoid testing for now.
 
 Execution note, 2026-05-24: Static comparison against `docs/superpowers/specs/2026-05-23-scene-system-and-tool-pack-design.md` found that Flow Inbox had copy, favorite, share, quick file, and Scratchpad actions, but did not yet expose the spec-required command palette and AI skill action entry points per inbox item. Added per-item `Commands` and `Run Skill` actions in `FlowInboxPanel`, wiring command palette reopening through `ContentView` and AI skill execution through the existing `SkillStore` and `SkillRuntimeFactory` path. No test/build/manual verification command was run in this pass because the active instruction remains to avoid testing for now.
+
+Execution note, 2026-05-24: Current spec inventory also includes `docs/superpowers/specs/2026-05-23-atlas-logo-design.md`. The approved direction is represented by `docs/branding/atlas-logo-concepts/README.md` and three monochrome SVG concept files, with the balanced offset concept identified as the recommended baseline. No test/build/manual verification command was run in this pass because this is documentation/design evidence only.
 
 Expected: The final integration commit contains only changes needed to connect already implemented child features.
 
