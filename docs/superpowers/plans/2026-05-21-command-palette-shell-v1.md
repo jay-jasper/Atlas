@@ -71,7 +71,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 - Create: `platforms/macos/Atlas/CommandPalette/CommandProviding.swift`
 - Create: `platforms/macos/AtlasTests/CommandPaletteModelsTests.swift`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `platforms/macos/AtlasTests/CommandPaletteModelsTests.swift`:
 
@@ -128,7 +128,7 @@ final class CommandPaletteModelsTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Add test file to Xcode project**
+- [x] **Step 2: Add test file to Xcode project**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && ruby -e "
@@ -142,7 +142,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Run test to verify it fails**
+- [x] **Step 3: Run test to verify it fails**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -152,13 +152,13 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: compile error — `PaletteCommand`, `PaletteIcon`, `PaletteAction`, `PaletteDestination` not found.
 
-- [ ] **Step 4: Create the CommandPalette group directory**
+- [x] **Step 4: Create the CommandPalette group directory**
 
 ```bash
 mkdir -p /Users/lee/workspaces/ai/Atlas/platforms/macos/Atlas/CommandPalette
 ```
 
-- [ ] **Step 5: Write CommandProviding.swift**
+- [x] **Step 5: Write CommandProviding.swift**
 
 Create `platforms/macos/Atlas/CommandPalette/CommandProviding.swift`:
 
@@ -170,7 +170,7 @@ protocol CommandProviding {
 }
 ```
 
-- [ ] **Step 6: Write CommandPaletteModels.swift**
+- [x] **Step 6: Write CommandPaletteModels.swift**
 
 Create `platforms/macos/Atlas/CommandPalette/CommandPaletteModels.swift`:
 
@@ -205,7 +205,7 @@ enum PaletteDestination: Equatable {
 }
 ```
 
-- [ ] **Step 7: Add both source files to Xcode project**
+- [x] **Step 7: Add both source files to Xcode project**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && ruby -e "
@@ -223,7 +223,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 8: Run tests to verify they pass**
+- [x] **Step 8: Run tests to verify they pass**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -233,7 +233,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: `CommandPaletteModelsTests` passes, all other tests pass.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -252,7 +252,7 @@ git commit -m "feat(macos): add command palette data models and CommandProviding
 - Create: `platforms/macos/Atlas/CommandPalette/AtlasCommandProvider.swift`
 - Create: `platforms/macos/AtlasTests/AtlasCommandProviderTests.swift`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `platforms/macos/AtlasTests/AtlasCommandProviderTests.swift`:
 
@@ -358,7 +358,7 @@ final class AtlasCommandProviderTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Add test file to Xcode project**
+- [x] **Step 2: Add test file to Xcode project**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && ruby -e "
@@ -372,7 +372,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Run to verify compile failure**
+- [x] **Step 3: Run to verify compile failure**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -382,7 +382,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: compile error — `AtlasCommandProvider` not found.
 
-- [ ] **Step 4: Write AtlasCommandProvider.swift**
+- [x] **Step 4: Write AtlasCommandProvider.swift**
 
 Create `platforms/macos/Atlas/CommandPalette/AtlasCommandProvider.swift`:
 
@@ -469,7 +469,7 @@ final class AtlasCommandProvider: CommandProviding {
 }
 ```
 
-- [ ] **Step 5: Add source file to Xcode project**
+- [x] **Step 5: Add source file to Xcode project**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && ruby -e "
@@ -483,7 +483,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -493,7 +493,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: all `AtlasCommandProviderTests` pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -511,7 +511,7 @@ git commit -m "feat(macos): add AtlasCommandProvider with fixed command list"
 - Create: `platforms/macos/Atlas/CommandPalette/AppLauncherProvider.swift`
 - Create: `platforms/macos/AtlasTests/AppLauncherProviderTests.swift`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `platforms/macos/AtlasTests/AppLauncherProviderTests.swift`:
 
@@ -607,7 +607,7 @@ final class AppLauncherProviderTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Add test file to Xcode project**
+- [x] **Step 2: Add test file to Xcode project**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && ruby -e "
@@ -621,7 +621,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Run to verify compile failure**
+- [x] **Step 3: Run to verify compile failure**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -631,7 +631,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: compile error — `AppLauncherProvider`, `AppEntry` not found.
 
-- [ ] **Step 4: Write AppLauncherProvider.swift**
+- [x] **Step 4: Write AppLauncherProvider.swift**
 
 Create `platforms/macos/Atlas/CommandPalette/AppLauncherProvider.swift`:
 
@@ -734,7 +734,7 @@ final class AppLauncherProvider: CommandProviding {
 }
 ```
 
-- [ ] **Step 5: Add source file to Xcode project**
+- [x] **Step 5: Add source file to Xcode project**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && ruby -e "
@@ -748,7 +748,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -758,7 +758,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: all `AppLauncherProviderTests` pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -776,7 +776,7 @@ git commit -m "feat(macos): add AppLauncherProvider with fuzzy app search"
 - Modify: `platforms/macos/Atlas/GlobalHotkeyService.swift`
 - Create: `platforms/macos/AtlasTests/GlobalHotkeyServiceTests.swift`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `platforms/macos/AtlasTests/GlobalHotkeyServiceTests.swift`:
 
@@ -843,7 +843,7 @@ final class GlobalHotkeyServiceTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Add test file to Xcode project**
+- [x] **Step 2: Add test file to Xcode project**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && ruby -e "
@@ -857,7 +857,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Run to verify compile failure**
+- [x] **Step 3: Run to verify compile failure**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -867,7 +867,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: compile errors — `register(keyCode:modifiers:)`, `registeredCount`, `simulateKeyEvent` not found.
 
-- [ ] **Step 4: Rewrite GlobalHotkeyService.swift**
+- [x] **Step 4: Rewrite GlobalHotkeyService.swift**
 
 Replace the full contents of `platforms/macos/Atlas/GlobalHotkeyService.swift`:
 
@@ -954,7 +954,7 @@ final class GlobalHotkeyService {
 }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -964,7 +964,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: all `GlobalHotkeyServiceTests` pass, all existing tests pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -982,7 +982,7 @@ git commit -m "refactor(macos): GlobalHotkeyService supports multiple hotkey reg
 - Create: `platforms/macos/Atlas/CommandPalette/KeyRecorderView.swift`
 - Create: `platforms/macos/AtlasTests/KeyRecorderViewTests.swift`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `platforms/macos/AtlasTests/KeyRecorderViewTests.swift`:
 
@@ -1049,7 +1049,7 @@ final class KeyRecorderViewTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Add test file to Xcode project**
+- [x] **Step 2: Add test file to Xcode project**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && ruby -e "
@@ -1063,7 +1063,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Run to verify compile failure**
+- [x] **Step 3: Run to verify compile failure**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -1073,7 +1073,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: compile error — `HotkeyConfig` not found.
 
-- [ ] **Step 4: Write KeyRecorderView.swift**
+- [x] **Step 4: Write KeyRecorderView.swift**
 
 Create `platforms/macos/Atlas/CommandPalette/KeyRecorderView.swift`:
 
@@ -1234,7 +1234,7 @@ private final class KeyCaptureNSView: NSView {
 }
 ```
 
-- [ ] **Step 5: Add source file to Xcode project**
+- [x] **Step 5: Add source file to Xcode project**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && ruby -e "
@@ -1248,7 +1248,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -1258,7 +1258,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: all `KeyRecorderViewTests` pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -1277,7 +1277,7 @@ git commit -m "feat(macos): add KeyRecorderView and HotkeyConfig for palette sho
 
 No unit tests for this task — panel navigation and animations are verified manually.
 
-- [ ] **Step 1: Write CommandPaletteView.swift**
+- [x] **Step 1: Write CommandPaletteView.swift**
 
 Create `platforms/macos/Atlas/CommandPalette/CommandPaletteView.swift`:
 
@@ -1500,7 +1500,7 @@ private struct AppIconView: View {
 }
 ```
 
-- [ ] **Step 2: Add source file to Xcode project**
+- [x] **Step 2: Add source file to Xcode project**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && ruby -e "
@@ -1514,7 +1514,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Build to verify no compile errors**
+- [x] **Step 3: Build to verify no compile errors**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -1524,7 +1524,7 @@ xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: `BUILD SUCCEEDED`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -1542,7 +1542,7 @@ git commit -m "feat(macos): add CommandPaletteView with search bar and navigatio
 
 No unit tests — NSPanel lifecycle is verified manually.
 
-- [ ] **Step 1: Write CommandPaletteController.swift**
+- [x] **Step 1: Write CommandPaletteController.swift**
 
 Create `platforms/macos/Atlas/CommandPalette/CommandPaletteController.swift`:
 
@@ -1632,7 +1632,7 @@ final class CommandPaletteController {
 }
 ```
 
-- [ ] **Step 2: Add source file to Xcode project**
+- [x] **Step 2: Add source file to Xcode project**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && ruby -e "
@@ -1646,7 +1646,7 @@ proj.save
 "
 ```
 
-- [ ] **Step 3: Build to verify no compile errors**
+- [x] **Step 3: Build to verify no compile errors**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -1656,7 +1656,7 @@ xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: `BUILD SUCCEEDED`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -1672,7 +1672,7 @@ git commit -m "feat(macos): add CommandPaletteController NSPanel lifecycle"
 **Files:**
 - Modify: `platforms/macos/Atlas/AtlasSettingsView.swift`
 
-- [ ] **Step 1: Add Command Palette section to AtlasSettingsView**
+- [x] **Step 1: Add Command Palette section to AtlasSettingsView**
 
 Read the current file first (already read above), then edit `platforms/macos/Atlas/AtlasSettingsView.swift` — add `KeyRecorderView` and a `paletteController` dependency.
 
@@ -1774,7 +1774,7 @@ func updateHotkey(_ config: HotkeyConfig) {
 }
 ```
 
-- [ ] **Step 2: Build to verify no compile errors**
+- [x] **Step 2: Build to verify no compile errors**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -1784,7 +1784,7 @@ xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: `BUILD SUCCEEDED`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -1801,7 +1801,7 @@ git commit -m "feat(macos): add Command Palette settings section with KeyRecorde
 - Modify: `platforms/macos/Atlas/AtlasApp.swift`
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 
-- [ ] **Step 1: Update AtlasApp.swift**
+- [x] **Step 1: Update AtlasApp.swift**
 
 Read `ContentView.swift` to understand what closures to pass. Then replace `AtlasApp.swift` with:
 
@@ -1883,7 +1883,7 @@ final class CommandPaletteState: ObservableObject {
 }
 ```
 
-- [ ] **Step 2: Update ContentView.swift to accept paletteState and wire closures**
+- [x] **Step 2: Update ContentView.swift to accept paletteState and wire closures**
 
 Read `ContentView.swift` to find the current `startHotkeys()` and capture action methods (from the summary: `showSelectionWindow()`, `captureDesktop()`, etc.), then add:
 
@@ -1906,7 +1906,7 @@ For the `paletteState` init default value (so existing previews and tests don't 
 var paletteState: CommandPaletteState? = nil
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -1916,7 +1916,7 @@ xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: `BUILD SUCCEEDED`.
 
-- [ ] **Step 4: Run full test suite**
+- [x] **Step 4: Run full test suite**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -1926,7 +1926,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas \
 
 Expected: all tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /Users/lee/workspaces/ai/Atlas && \
@@ -1987,3 +1987,12 @@ Completed on 2026-05-21 on branch `codex/command-palette-shell-v1`.
 - Full macOS tests: `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destination 'platform=macOS'` passed with 177 tests and 0 failures.
 - Non-blocking environment warnings: Xcode reported CoreSimulator out of date and multiple matching macOS destinations, then used the first macOS destination and completed successfully.
 - Manual app verification was not run; this follows the project preference that unit tests are sufficient unless explicitly requested.
+
+## 2026-05-23 Verification Update
+
+- Re-audited the current implementation against this older shell plan. The planned Command Palette source files and tests exist in `platforms/macos/Atlas/CommandPalette` and `platforms/macos/AtlasTests`, and they are present in explicit Xcode PBX file references and source build phases.
+- Verified command palette model/provider/app launcher/ranker/hotkey/key recorder coverage with:
+  - `rg -n 'CommandPaletteModels|CommandProviding|AtlasCommandProvider|AppLauncherProvider|CommandPaletteView|CommandPaletteController|KeyRecorderView|CommandPaletteModelsTests|AppLauncherProviderTests|AtlasCommandProviderTests|GlobalHotkeyServiceTests|KeyRecorderViewTests' platforms/macos/Atlas.xcodeproj/project.pbxproj`
+  - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -only-testing:AtlasTests/CommandPaletteModelsTests -only-testing:AtlasTests/AtlasCommandProviderTests -only-testing:AtlasTests/AppLauncherProviderTests -only-testing:AtlasTests/AppLauncherRefreshTests -only-testing:AtlasTests/CommandPaletteRankerTests -only-testing:AtlasTests/GlobalHotkeyServiceTests -only-testing:AtlasTests/KeyRecorderViewTests` (47 tests, 0 failures)
+  - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas` (416 tests, 0 failures; run during the 2026-05-23 Privacy Pulse verification pass)
+- The manual GUI smoke checklist remains intentionally unchecked because it requires interacting with the running menu bar app and global hotkey behavior in a desktop session.
