@@ -65,7 +65,7 @@ This plan does not implement persisted user preferences, launch-at-login, a deta
 - Create: `platforms/macos/AtlasTests/FeatureModelsTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write feature model tests**
+- [x] **Step 1: Write feature model tests**
 
 Create `platforms/macos/AtlasTests/FeatureModelsTests.swift`:
 
@@ -101,7 +101,7 @@ final class FeatureModelsTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run model tests to verify they fail**
+- [x] **Step 2: Run model tests to verify they fail**
 
 Run:
 
@@ -111,7 +111,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `FeatureModelsTests.swift` is not in the Xcode project yet or `AtlasFeature` does not exist.
 
-- [ ] **Step 3: Add feature model implementation**
+- [x] **Step 3: Add feature model implementation**
 
 Create `platforms/macos/Atlas/FeatureModels.swift`:
 
@@ -157,14 +157,14 @@ private enum AtlasFeatureTitles {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so:
 
 - `FeatureModels.swift` is in the `Atlas` target Sources.
 - `FeatureModelsTests.swift` is in the `AtlasTests` target Sources.
 
-- [ ] **Step 5: Run model tests**
+- [x] **Step 5: Run model tests**
 
 Run:
 
@@ -174,7 +174,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 3 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add platforms/macos/Atlas/FeatureModels.swift \
@@ -192,7 +192,7 @@ git commit -m "feat(macos): add feature ui models"
 - Create: `platforms/macos/AtlasTests/FeatureServiceTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write service tests**
+- [x] **Step 1: Write service tests**
 
 Create `platforms/macos/AtlasTests/FeatureServiceTests.swift`:
 
@@ -257,7 +257,7 @@ private enum FeatureServiceTestError: LocalizedError {
 }
 ```
 
-- [ ] **Step 2: Run service tests to verify they fail**
+- [x] **Step 2: Run service tests to verify they fail**
 
 Run:
 
@@ -267,7 +267,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `FeatureService` does not exist or the test file is not in the Xcode project yet.
 
-- [ ] **Step 3: Add service implementation**
+- [x] **Step 3: Add service implementation**
 
 Create `platforms/macos/Atlas/FeatureService.swift`:
 
@@ -312,14 +312,14 @@ extension FeatureService {
 }
 ```
 
-- [ ] **Step 4: Add files to Xcode project**
+- [x] **Step 4: Add files to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so:
 
 - `FeatureService.swift` is in the `Atlas` target Sources.
 - `FeatureServiceTests.swift` is in the `AtlasTests` target Sources.
 
-- [ ] **Step 5: Run service tests**
+- [x] **Step 5: Run service tests**
 
 Run:
 
@@ -329,7 +329,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 3 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add platforms/macos/Atlas/FeatureService.swift \
@@ -347,7 +347,7 @@ git commit -m "feat(macos): add feature service boundary"
 - Create: `platforms/macos/AtlasTests/AtlasBridgeFeatureTests.swift`
 - Modify: `platforms/macos/Atlas.xcodeproj/project.pbxproj`
 
-- [ ] **Step 1: Write bridge tests**
+- [x] **Step 1: Write bridge tests**
 
 Create `platforms/macos/AtlasTests/AtlasBridgeFeatureTests.swift`:
 
@@ -421,7 +421,7 @@ final class AtlasBridgeFeatureTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 2: Run bridge tests to verify they fail**
+- [x] **Step 2: Run bridge tests to verify they fail**
 
 Run:
 
@@ -431,7 +431,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: FAIL because `AtlasBridge.featureService` and throwing feature methods do not exist or the test file is not in the project yet.
 
-- [ ] **Step 3: Replace feature mock in AtlasBridge**
+- [x] **Step 3: Replace feature mock in AtlasBridge**
 
 In `platforms/macos/Atlas/AtlasBridge.swift`, add this static property near `captureService` and `monitoringService`:
 
@@ -465,11 +465,11 @@ static func toggleFeature(name: String, enabled: Bool) throws -> Bool {
 
 Do not change screenshot, window capture, or monitoring methods in this task.
 
-- [ ] **Step 4: Add test file to Xcode project**
+- [x] **Step 4: Add test file to Xcode project**
 
 Edit `platforms/macos/Atlas.xcodeproj/project.pbxproj` so `AtlasBridgeFeatureTests.swift` is in the `AtlasTests` target Sources.
 
-- [ ] **Step 5: Run bridge tests**
+- [x] **Step 5: Run bridge tests**
 
 Run:
 
@@ -479,7 +479,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 3 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add platforms/macos/Atlas/AtlasBridge.swift \
@@ -495,7 +495,7 @@ git commit -m "feat(macos): route features through service"
 **Files:**
 - Modify: `platforms/macos/Atlas/FeatureTogglePanel.swift`
 
-- [ ] **Step 1: Replace the feature toggle panel UI**
+- [x] **Step 1: Replace the feature toggle panel UI**
 
 Replace `platforms/macos/Atlas/FeatureTogglePanel.swift` with:
 
@@ -551,7 +551,7 @@ struct FeatureCenterPanel: View {
 }
 ```
 
-- [ ] **Step 2: Parse Swift files to verify expected failure**
+- [x] **Step 2: Parse Swift files to verify expected failure**
 
 Run:
 
@@ -561,7 +561,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: FAIL because `ContentView` still references `FeatureTogglePanel`.
 
-- [ ] **Step 3: Commit is intentionally deferred**
+- [x] **Step 3: Commit is intentionally deferred**
 
 Do not commit this task by itself if parse fails. Continue directly to Task 5 in the same working tree, then commit Task 4 and Task 5 together after `ContentView` is updated.
 
@@ -573,7 +573,7 @@ Do not commit this task by itself if parse fails. Continue directly to Task 5 in
 - Modify: `platforms/macos/Atlas/ContentView.swift`
 - Modify: `platforms/macos/Atlas/FeatureTogglePanel.swift`
 
-- [ ] **Step 1: Update ContentView feature state properties**
+- [x] **Step 1: Update ContentView feature state properties**
 
 In `platforms/macos/Atlas/ContentView.swift`, replace:
 
@@ -589,7 +589,7 @@ with:
 @State private var enabledFeatures: [String: Bool] = [:]
 ```
 
-- [ ] **Step 2: Replace FeatureTogglePanel usage**
+- [x] **Step 2: Replace FeatureTogglePanel usage**
 
 In `body`, replace:
 
@@ -611,7 +611,7 @@ FeatureCenterPanel(
 )
 ```
 
-- [ ] **Step 3: Replace startModules**
+- [x] **Step 3: Replace startModules**
 
 Replace the existing `startModules()` method with:
 
@@ -635,7 +635,7 @@ private func startModules() {
 }
 ```
 
-- [ ] **Step 4: Replace handleFeatureChange**
+- [x] **Step 4: Replace handleFeatureChange**
 
 Replace the existing `handleFeatureChange(_:enabled:)` method with:
 
@@ -657,7 +657,7 @@ private func handleFeatureChange(_ feature: String, enabled: Bool) {
 }
 ```
 
-- [ ] **Step 5: Add refreshFeature helper**
+- [x] **Step 5: Add refreshFeature helper**
 
 Add this helper below `handleFeatureChange(_:enabled:)`:
 
@@ -684,7 +684,7 @@ private func refreshFeature(_ feature: String, enabled: Bool) {
 }
 ```
 
-- [ ] **Step 6: Keep isFeatureEnabled unchanged**
+- [x] **Step 6: Keep isFeatureEnabled unchanged**
 
 Confirm `isFeatureEnabled(_:)` still reads from `enabledFeatures`:
 
@@ -694,7 +694,7 @@ private func isFeatureEnabled(_ module: AtlasModule) -> Bool {
 }
 ```
 
-- [ ] **Step 7: Parse Swift files**
+- [x] **Step 7: Parse Swift files**
 
 Run:
 
@@ -704,7 +704,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS.
 
-- [ ] **Step 8: Run feature-related tests**
+- [x] **Step 8: Run feature-related tests**
 
 Run:
 
@@ -717,7 +717,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: PASS, 9 tests.
 
-- [ ] **Step 9: Build app**
+- [x] **Step 9: Build app**
 
 Run:
 
@@ -727,7 +727,7 @@ xcodebuild -project platforms/macos/Atlas.xcodeproj -scheme Atlas -configuration
 
 Expected: BUILD SUCCEEDED.
 
-- [ ] **Step 10: Commit Task 4 and Task 5 together**
+- [x] **Step 10: Commit Task 4 and Task 5 together**
 
 ```bash
 git add platforms/macos/Atlas/FeatureTogglePanel.swift \
@@ -743,7 +743,7 @@ git commit -m "feat(macos): add feature center panel"
 - Modify: `crates/atlas-core/src/features.rs`
 - Modify: `crates/atlas-ffi/src/lib.rs`
 
-- [ ] **Step 1: Add deterministic feature ordering test**
+- [x] **Step 1: Add deterministic feature ordering test**
 
 In `crates/atlas-core/src/features.rs`, add this test inside the existing `#[cfg(test)] mod tests` block:
 
@@ -768,7 +768,7 @@ fn test_list_features_is_sorted_by_name() {
 }
 ```
 
-- [ ] **Step 2: Run the new Rust test to verify it fails**
+- [x] **Step 2: Run the new Rust test to verify it fails**
 
 Run:
 
@@ -778,7 +778,7 @@ cargo test -p atlas-core test_list_features_is_sorted_by_name
 
 Expected: FAIL because `HashMap` iteration order is not guaranteed.
 
-- [ ] **Step 3: Make `list_features` deterministic**
+- [x] **Step 3: Make `list_features` deterministic**
 
 In `crates/atlas-core/src/features.rs`, replace:
 
@@ -802,7 +802,7 @@ pub fn list_features(&self) -> Vec<(String, FeatureStatus)> {
 }
 ```
 
-- [ ] **Step 4: Strengthen FFI feature management test**
+- [x] **Step 4: Strengthen FFI feature management test**
 
 In `crates/atlas-ffi/src/lib.rs`, replace the existing `test_feature_management` test with:
 
@@ -837,7 +837,7 @@ fn test_feature_management() {
 }
 ```
 
-- [ ] **Step 5: Run Rust feature tests**
+- [x] **Step 5: Run Rust feature tests**
 
 Run:
 
@@ -848,7 +848,7 @@ cargo test -p atlas-ffi test_feature_management
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add crates/atlas-core/src/features.rs crates/atlas-ffi/src/lib.rs
@@ -862,7 +862,7 @@ git commit -m "test: stabilize feature manager ordering"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-05-11-feature-center-v1.md`
 
-- [ ] **Step 1: Run Rust tests**
+- [x] **Step 1: Run Rust tests**
 
 Run:
 
@@ -872,7 +872,7 @@ cargo test -p atlas-core -p atlas-ffi
 
 Expected: PASS.
 
-- [ ] **Step 2: Run Swift parse**
+- [x] **Step 2: Run Swift parse**
 
 Run:
 
@@ -882,7 +882,7 @@ swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/a
 
 Expected: PASS.
 
-- [ ] **Step 3: Run Xcode build**
+- [x] **Step 3: Run Xcode build**
 
 Run:
 
@@ -892,7 +892,7 @@ xcodebuild -project platforms/macos/Atlas.xcodeproj -scheme Atlas -configuration
 
 Expected: BUILD SUCCEEDED.
 
-- [ ] **Step 4: Run full Xcode tests**
+- [x] **Step 4: Run full Xcode tests**
 
 Run:
 
@@ -902,7 +902,7 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destinat
 
 Expected: TEST SUCCEEDED.
 
-- [ ] **Step 5: Append verification notes**
+- [x] **Step 5: Append verification notes**
 
 Append this section to `docs/superpowers/plans/2026-05-11-feature-center-v1.md`:
 
@@ -928,7 +928,7 @@ Append this section to `docs/superpowers/plans/2026-05-11-feature-center-v1.md`:
   - This plan keeps Feature Center inside the menu bar panel rather than opening a detached Settings window.
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add docs/superpowers/plans/2026-05-11-feature-center-v1.md
@@ -957,16 +957,23 @@ Plan complete and saved to `docs/superpowers/plans/2026-05-11-feature-center-v1.
 
 - Rust:
   - `cargo test -p atlas-core -p atlas-ffi`
-  - Result: PASS
+  - Result: PASS on 2026-05-23. `atlas-core` ran 21 tests and `atlas-ffi` ran 4 tests with 0 failures.
 - Swift parse:
   - `swiftc -parse platforms/macos/Atlas/*.swift platforms/macos/Generated/AtlasFFI/atlas.swift`
-  - Result: PASS
+  - Result: PASS on 2026-05-23.
 - Xcode build:
   - `xcodebuild -project platforms/macos/Atlas.xcodeproj -scheme Atlas -configuration Debug build`
-  - Result: PASS
+  - Result: PASS on 2026-05-23.
 - Xcode tests:
   - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destination 'platform=macOS'`
-  - Result: PASS
+  - Result: PASS on 2026-05-23. The full suite ran 405 tests with 0 failures.
+- Focused feature tests:
+  - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destination 'platform=macOS' -only-testing:AtlasTests/FeatureModelsTests -only-testing:AtlasTests/FeatureServiceTests -only-testing:AtlasTests/AtlasBridgeFeatureTests -only-testing:AtlasTests/FeatureStateTests`
+  - Result: PASS on 2026-05-23. The focused slice ran 22 tests with 0 failures.
+- Rust feature regressions:
+  - `cargo test -p atlas-core test_list_features_is_sorted_by_name`
+  - `cargo test -p atlas-ffi test_feature_management`
+  - Result: PASS on 2026-05-23.
 - Manual:
   - Manual feature center verification was not performed. On 2026-05-11, user acceptance criteria is automated/unit tests passing.
 - Remaining limitations:
@@ -987,9 +994,9 @@ Plan complete and saved to `docs/superpowers/plans/2026-05-11-feature-center-v1.
   - Result: PASS, 3 tests.
 - Rust:
   - `cargo test -p atlas-core -p atlas-ffi`
-  - Result: PASS, 19 atlas-core tests and 4 atlas-ffi tests.
+  - Result: PASS on 2026-05-23, 21 atlas-core tests and 4 atlas-ffi tests.
 - Full Xcode tests:
   - `xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme Atlas -destination 'platform=macOS'`
-  - Result: PASS, 50 tests.
+  - Result: PASS on 2026-05-23, 405 tests.
 - Manual:
   - Manual feature center verification was not performed. User acceptance for this final review fix is automated/unit tests only.
