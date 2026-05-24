@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-24  
 **Status:** Approved  
-**Scope:** 44 planned feature items grouped into 3 phases, plus inspirations from open source projects (Sol, RustCast, Cap, Boring Notch, Pearcleaner, Espanso, AltTab, Velja, Plash, Sniffnet, MOS, LinearMouse, Klack, Yoink, Hammerspoon, awesome-mac).
+**Scope:** 55 planned feature items grouped into 3 phases, plus inspirations from open source projects (Sol, RustCast, Cap, Boring Notch, Pearcleaner, Espanso, AltTab, Velja, Plash, Sniffnet, MOS, LinearMouse, Klack, Yoink, Hammerspoon, Parrot Teleprompter, RNNoise, OBS Studio, Aegisub, awesome-mac).
 
 ---
 
@@ -68,16 +68,34 @@ Each becomes a new `AtlasModule` enum case with its own service + panel.
 | 39 | **Drag Shelf** | Yoink | Edge-drop file staging area, batch transfer to final destination |
 | 40 | **System Sound Feedback** | SoundDeck | Audio feedback for app switch / volume changes |
 
+### Media Creator Toolkit
+
+Standalone modules targeted at video creators, podcasters, streamers, and journalists.
+
+| # | Module | Inspiration | Core Tech |
+|---|--------|-------------|-----------|
+| 41 | **Teleprompter** | Parrot Teleprompter | Floating transparent window, adjustable scroll speed / font / mirror, hotkey controls |
+| 42 | **Live Caption Overlay** | macOS Live Captions, Whisper | On-screen real-time subtitles during recording, powered by Whisper.cpp (shares model with #47) |
+| 43 | **Recording Indicator** | OBS, QuickTime | Persistent global bar when mic/screen/camera in use, prevents forgotten recordings |
+| 44 | **Audio Level Meter** | Mic Drop, Audio Hijack | Menu bar VU / LUFS meter for real-time mic input monitoring |
+| 45 | **Aspect Ratio Guide** | Final Cut safe area | Floating overlay frames for 9:16 / 1:1 / 4:5 / 16:9 during recording |
+| 46 | **Chapter Marker** | Podcast tools | One-tap markers during recording, exports YouTube chapters / SRT / Podcast chapters |
+| 47 | **Watermark Toolkit** | — | Drag-drop batch watermark (logo / text / QR), preset presets |
+| 48 | **Subtitle Tools** | Aegisub (lightweight) | SRT/VTT/ASS converter, time-shift, merge / split utilities |
+| 49 | **OBS Control** | OBS Studio, Stream Deck | OBS WebSocket integration, scene switching, source toggle, stream status |
+| 50 | **Video Color Sampler** | Color Picker module extension | Sample colors from paused video frames / stream preview |
+| 51 | **Mic Noise Gate** | RNNoise, Krisp open-source | Real-time mic denoising routed through BlackHole for clean stream audio |
+
 ---
 
 ## Phase 3 — Complex Features
 
 | # | Feature | Inspiration | Why complex |
 |---|---------|-------------|-------------|
-| 41 | **Local Whisper Transcription** | buzz | whisper.cpp integration, model download UI, GPU acceleration |
-| 42 | **Studio Recording Editor** | Cap | Post-recording trim, zoom effects, backgrounds, AI captions, share links |
-| 43 | **Notch Dynamic Island** | Boring Notch | NSWindow positioning over MacBook notch, NowPlaying + AirDrop + notification rendering |
-| 44 | **Hammerspoon Lua Bridge** | Hammerspoon | Expose Atlas API to Lua scripts, allow user automation across all Atlas modules |
+| 52 | **Local Whisper Transcription** | buzz | whisper.cpp integration, model download UI, GPU acceleration. Shared by Live Caption Overlay (#42) |
+| 53 | **Studio Recording Editor** | Cap | Post-recording trim, zoom effects, backgrounds, AI captions, share links |
+| 54 | **Notch Dynamic Island** | Boring Notch | NSWindow positioning over MacBook notch, NowPlaying + AirDrop + notification rendering |
+| 55 | **Hammerspoon Lua Bridge** | Hammerspoon | Expose Atlas API to Lua scripts, allow user automation across all Atlas modules |
 
 ---
 
@@ -134,4 +152,8 @@ Will reconsider if requested.
 - MOS: <https://github.com/Caldis/Mos>
 - LinearMouse: <https://github.com/linearmouse/linearmouse>
 - Hammerspoon: <https://github.com/Hammerspoon/hammerspoon>
+- Parrot Teleprompter: <https://github.com/Aerobird98/parrot-teleprompter>
+- RNNoise: <https://github.com/xiph/rnnoise>
+- OBS Studio: <https://github.com/obsproject/obs-studio>
+- Aegisub: <https://github.com/Aegisub/Aegisub>
 - awesome-mac: <https://github.com/jaywcjlove/awesome-mac>
