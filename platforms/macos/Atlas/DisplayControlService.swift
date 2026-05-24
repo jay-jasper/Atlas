@@ -19,11 +19,17 @@ struct LiveDisplayCapabilityProbe: DisplayCapabilityProbing {
 final class DisplayControlService: ObservableObject {
     @Published private(set) var displays: [DisplayDevice] = []
     @Published private(set) var status: SystemUtilityStatus = .idle
+    @Published var brightnessLevels: [String: Int] = [:]
 
     private let probe: DisplayCapabilityProbing
+    private let commandRunner: SystemCommandRunning
 
-    init(probe: DisplayCapabilityProbing = LiveDisplayCapabilityProbe()) {
+    init(
+        probe: DisplayCapabilityProbing = LiveDisplayCapabilityProbe(),
+        commandRunner: SystemCommandRunning = LiveSystemCommandRunner()
+    ) {
         self.probe = probe
+        self.commandRunner = commandRunner
     }
 
     @discardableResult
@@ -40,6 +46,20 @@ final class DisplayControlService: ObservableObject {
         status = displays.isEmpty ? .unavailable("No controllable displays detected") : .idle
         return displays
     }
+
+    func setBrightness(for display: DisplayDevice, to value: Int) {
+        let clamped = max(0, min(100, value))
+        brightnessLevels[display.id] = clamped
+        let args = ["ddcctl", "-d", "\(display.ddcIndex)", "-b", "\(clamped)"]
+        _ = try? commandRunner.run("/usr/bin/env", arguments: args)
+    }
+
+    func refreshBrightness(for display: DisplayDevice) {
+        let args = ["ddcctl", "-d", "\(display.ddcIndex)", "-b", "?"]
+        guard let result = try? commandRunner.run("/usr/bin/env", arguments: args),
+              let value = DisplayControlParser.parseBrightness(result.standardOutput) else { return }
+        brightnessLevels[display.id] = value
+    }
 }
 
 enum DisplayControlError: Error, Equatable {
@@ -53,14 +73,10 @@ enum DisplayControlParser {
             .enumerated()
             .compactMap { index, line in
                 let text = String(line)
-                guard text.hasPrefix("Display ") else {
-                    return nil
-                }
+                guard text.hasPrefix("Display ") else { return nil }
 
                 let components = text.split(separator: ":", maxSplits: 1).map(String.init)
-                guard components.count == 2 else {
-                    return nil
-                }
+                guard components.count == 2 else { return nil }
 
                 let rawName = components[1]
                     .replacingOccurrences(of: "DDC/CI supported", with: "")
@@ -72,8 +88,27 @@ enum DisplayControlParser {
                     id: "display-\(index + 1)",
                     name: rawName,
                     isBuiltin: isBuiltin,
-                    supportsDDC: supportsDDC
+                    supportsDDC: supportsDDC,
+                    ddcIndex: index + 1
                 )
             }
+    }
+
+    // Parses brightness from ddcctl output, e.g. "D: [10] brightness: 75" or "current=75"
+    static func parseBrightness(_ output: String) -> Int? {
+        let patterns = [
+            #"brightness:\s*(\d+)"#,
+            #"current=(\d+)"#,
+            #"\bcurrent:\s*(\d+)"#,
+        ]
+        for pattern in patterns {
+            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
+               let match = regex.firstMatch(in: output, range: NSRange(output.startIndex..., in: output)),
+               let range = Range(match.range(at: 1), in: output),
+               let value = Int(output[range]) {
+                return value
+            }
+        }
+        return nil
     }
 }

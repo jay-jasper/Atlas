@@ -86,6 +86,12 @@ private enum PrimaryPanelSection: Hashable {
     case systemUtilities
     case tokenBar
     case windowManager
+    case colorPicker
+    case ddcControl
+    case calendar
+    case networkMonitor
+    case appAudio
+    case fnKey
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -218,6 +224,11 @@ struct ContentView: View {
     @StateObject private var handMirrorService = HandMirrorService()
     @StateObject private var displayControlService = DisplayControlService()
     @StateObject private var sceneNetworkStatusService = SceneNetworkStatusService()
+    @StateObject private var colorPickerService = ColorPickerService()
+    @StateObject private var calendarService = CalendarService()
+    @StateObject private var networkMonitorService = NetworkMonitorService()
+    @StateObject private var appAudioService = AppAudioService()
+    @StateObject private var fnKeyService = FnKeyService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -747,6 +758,26 @@ struct ContentView: View {
             return
         }
 
+        if feature == AtlasModule.networkMonitor.featureName {
+            if enabled { networkMonitorService.startAutoRefresh() } else { networkMonitorService.stopAutoRefresh() }
+            return
+        }
+
+        if feature == AtlasModule.appAudio.featureName {
+            if enabled { appAudioService.refresh() }
+            return
+        }
+
+        if feature == AtlasModule.fnKey.featureName {
+            if enabled { fnKeyService.refresh() }
+            return
+        }
+
+        if feature == AtlasModule.calendar.featureName {
+            if enabled { calendarService.requestAccessIfNeeded() }
+            return
+        }
+
         guard feature == AtlasModule.monitoring.featureName else { return }
 
         if enabled {
@@ -1159,6 +1190,12 @@ struct ContentView: View {
             .systemUtilities,
             .tokenBar,
             .windowManager,
+            .colorPicker,
+            .ddcControl,
+            .calendar,
+            .networkMonitor,
+            .appAudio,
+            .fnKey,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1202,6 +1239,8 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey:
+            return nil
         }
     }
 
@@ -1395,6 +1434,36 @@ struct ContentView: View {
                     model: workspacePanelModel()
                 )
 
+                Divider()
+            }
+        case .colorPicker:
+            if isFeatureEnabled(.colorPicker) {
+                ColorPickerPanel(service: colorPickerService)
+                Divider()
+            }
+        case .ddcControl:
+            if isFeatureEnabled(.ddcControl) {
+                DDCPanel(service: displayControlService)
+                Divider()
+            }
+        case .calendar:
+            if isFeatureEnabled(.calendar) {
+                CalendarPanel(service: calendarService)
+                Divider()
+            }
+        case .networkMonitor:
+            if isFeatureEnabled(.networkMonitor) {
+                NetworkMonitorPanel(service: networkMonitorService)
+                Divider()
+            }
+        case .appAudio:
+            if isFeatureEnabled(.appAudio) {
+                AppAudioPanel(service: appAudioService)
+                Divider()
+            }
+        case .fnKey:
+            if isFeatureEnabled(.fnKey) {
+                FnKeyPanel(service: fnKeyService)
                 Divider()
             }
         }

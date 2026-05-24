@@ -29,6 +29,15 @@ struct DisplayDevice: Identifiable, Equatable {
     let name: String
     let isBuiltin: Bool
     let supportsDDC: Bool
+    let ddcIndex: Int
+
+    init(id: String, name: String, isBuiltin: Bool, supportsDDC: Bool, ddcIndex: Int = 1) {
+        self.id = id
+        self.name = name
+        self.isBuiltin = isBuiltin
+        self.supportsDDC = supportsDDC
+        self.ddcIndex = ddcIndex
+    }
 
     var capabilitySummary: String {
         supportsDDC ? "DDC/CI available" : "Brightness control unavailable"

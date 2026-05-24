@@ -26,11 +26,17 @@ impl FeatureManager {
         let mut features = HashMap::new();
         // Default feature registry
         features.insert("ai-load-monitor".to_string(), FeatureStatus::Disabled);
+        features.insert("app-audio".to_string(), FeatureStatus::Disabled);
         features.insert("audio-hub".to_string(), FeatureStatus::Disabled);
         features.insert("automation".to_string(), FeatureStatus::Disabled);
+        features.insert("calendar".to_string(), FeatureStatus::Disabled);
         features.insert("clipboard".to_string(), FeatureStatus::Disabled);
+        features.insert("color-picker".to_string(), FeatureStatus::Disabled);
+        features.insert("ddc-control".to_string(), FeatureStatus::Disabled);
         features.insert("flow-inbox".to_string(), FeatureStatus::Disabled);
+        features.insert("fn-key".to_string(), FeatureStatus::Disabled);
         features.insert("monitoring".to_string(), FeatureStatus::Disabled);
+        features.insert("network-monitor".to_string(), FeatureStatus::Disabled);
         features.insert("privacy".to_string(), FeatureStatus::Disabled);
         features.insert("scratchpad".to_string(), FeatureStatus::Disabled);
         features.insert("scene-system".to_string(), FeatureStatus::Disabled);
@@ -109,11 +115,17 @@ mod tests {
             names,
             vec![
                 "ai-load-monitor",
+                "app-audio",
                 "audio-hub",
                 "automation",
+                "calendar",
                 "clipboard",
+                "color-picker",
+                "ddc-control",
                 "flow-inbox",
+                "fn-key",
                 "monitoring",
+                "network-monitor",
                 "privacy",
                 "scene-system",
                 "scratchpad",
