@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-24  
 **Status:** Approved  
-**Scope:** 55 planned feature items grouped into 3 phases, plus inspirations from open source projects (Sol, RustCast, Cap, Boring Notch, Pearcleaner, Espanso, AltTab, Velja, Plash, Sniffnet, MOS, LinearMouse, Klack, Yoink, Hammerspoon, Parrot Teleprompter, RNNoise, OBS Studio, Aegisub, awesome-mac).
+**Scope:** 55 planned feature items grouped into 3 phases + a major Phase 4 plugin platform (see [`2026-05-24-plugin-system-design.md`](./2026-05-24-plugin-system-design.md)). Inspirations from open source projects (Sol, RustCast, Cap, Boring Notch, Pearcleaner, Espanso, AltTab, Velja, Plash, Sniffnet, MOS, LinearMouse, Klack, Yoink, Hammerspoon, Parrot Teleprompter, RNNoise, OBS Studio, Aegisub, wasmtime, MCP, awesome-mac).
 
 ---
 
@@ -96,6 +96,50 @@ Standalone modules targeted at video creators, podcasters, streamers, and journa
 | 53 | **Studio Recording Editor** | Cap | Post-recording trim, zoom effects, backgrounds, AI captions, share links |
 | 54 | **Notch Dynamic Island** | Boring Notch | NSWindow positioning over MacBook notch, NowPlaying + AirDrop + notification rendering |
 | 55 | **Hammerspoon Lua Bridge** | Hammerspoon | Expose Atlas API to Lua scripts, allow user automation across all Atlas modules |
+
+---
+
+## Phase 4 — Plugin Platform (Major Initiative)
+
+A full third-party extensibility system. See dedicated design doc: [`2026-05-24-plugin-system-design.md`](./2026-05-24-plugin-system-design.md)
+
+### Dual-track architecture
+
+| Track | Tech | Use Case |
+|-------|------|----------|
+| **Track A: WASM** | wasmtime + WIT Component Model | Lightweight palette providers, format converters, custom calculators |
+| **Track B: MCP** | Model Context Protocol (subprocess) | Service integrations (GitHub, Notion, Linear), AI workflows |
+
+### Sub-phases
+
+| # | Sub-phase | Estimate |
+|---|-----------|----------|
+| 56 | Phase α — Foundation: wasmtime host, WIT bindings, manifest parsing, capabilities | 4-6 weeks |
+| 57 | Phase β — UI Rendering: Block Kit schema, SwiftUI renderer, event dispatch | 3-4 weeks |
+| 58 | Phase γ — Atlas integration: palette providers, panels, Scene System override | 2-3 weeks |
+| 59 | Phase δ — MCP track: subprocess host, Tools/Resources/Prompts | 3-4 weeks |
+| 60 | Phase ε — Distribution: install CLI, signing, update checker | 2-3 weeks |
+| 61 | Phase ζ — Atlas Hub: official registry website (separate spec) | TBD |
+
+### UI Solution for Plugins
+
+```
+Tier 1: Block Kit declarative UI  (95% of plugins)
+        Plugin emits JSON UI tree → SwiftUI renders natively
+Tier 2: Host-provided rich components  (4%)
+        Video player, rich text editor, charts pre-built by Atlas
+Tier 3: WebView escape hatch  (1%)
+        For canvas / 3D / custom visualization only
+```
+
+Cross-platform implication: the same WASM plugin runs on macOS / iOS / future Linux+Windows Atlas builds by emitting platform-neutral UI descriptions.
+
+### Languages Supported (Track A — WASM)
+
+| Tier | Language | Maintained by |
+|------|----------|---------------|
+| 1st-class | Rust, AssemblyScript | Atlas team |
+| Community | TinyGo, Python, Zig, C/C++ | Users |
 
 ---
 
