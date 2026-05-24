@@ -450,6 +450,42 @@ enum TextToolboxMode: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    func transform(_ input: String) -> String {
+        switch self {
+        case .uppercase:
+            return input.uppercased()
+        case .lowercase:
+            return input.lowercased()
+        case .trimmed:
+            return input.trimmingCharacters(in: .whitespacesAndNewlines)
+        case .jsonPretty:
+            guard let data = input.data(using: .utf8),
+                  let object = try? JSONSerialization.jsonObject(with: data),
+                  let formattedData = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys]),
+                  let string = String(data: formattedData, encoding: .utf8) else {
+                return "Invalid JSON"
+            }
+            return string
+        case .base64Encode:
+            return Data(input.utf8).base64EncodedString()
+        case .base64Decode:
+            guard let data = Data(base64Encoded: input),
+                  let string = String(data: data, encoding: .utf8) else {
+                return "Invalid Base64"
+            }
+            return string
+        case .urlEncode:
+            return input.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? input
+        case .urlDecode:
+            return input.removingPercentEncoding ?? "Invalid URL encoding"
+        case .timestampISO:
+            guard let timestamp = Double(input.trimmingCharacters(in: .whitespacesAndNewlines)) else {
+                return "Invalid timestamp"
+            }
+            return ISO8601DateFormatter().string(from: Date(timeIntervalSince1970: timestamp))
+        }
+    }
+
     var title: String {
         switch self {
         case .uppercase:
@@ -525,38 +561,6 @@ struct TextToolboxView: View {
     }
 
     private var output: String {
-        switch mode {
-        case .uppercase:
-            return input.uppercased()
-        case .lowercase:
-            return input.lowercased()
-        case .trimmed:
-            return input.trimmingCharacters(in: .whitespacesAndNewlines)
-        case .jsonPretty:
-            guard let data = input.data(using: .utf8),
-                  let object = try? JSONSerialization.jsonObject(with: data),
-                  let formattedData = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys]),
-                  let string = String(data: formattedData, encoding: .utf8) else {
-                return "Invalid JSON"
-            }
-            return string
-        case .base64Encode:
-            return Data(input.utf8).base64EncodedString()
-        case .base64Decode:
-            guard let data = Data(base64Encoded: input),
-                  let string = String(data: data, encoding: .utf8) else {
-                return "Invalid Base64"
-            }
-            return string
-        case .urlEncode:
-            return input.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? input
-        case .urlDecode:
-            return input.removingPercentEncoding ?? "Invalid URL encoding"
-        case .timestampISO:
-            guard let timestamp = Double(input.trimmingCharacters(in: .whitespacesAndNewlines)) else {
-                return "Invalid timestamp"
-            }
-            return ISO8601DateFormatter().string(from: Date(timeIntervalSince1970: timestamp))
-        }
+        mode.transform(input)
     }
 }

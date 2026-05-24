@@ -381,7 +381,7 @@ final class BluetoothQuickActionsService: ObservableObject {
         }
     }
 
-    private func parseSystemProfiler(_ output: String) -> [Device] {
+    func parseSystemProfiler(_ output: String) -> [Device] {
         var parsed: [Device] = []
         var currentName: String?
         var currentAddress: String?
