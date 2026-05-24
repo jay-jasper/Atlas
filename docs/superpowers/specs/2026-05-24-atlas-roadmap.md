@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-24  
 **Status:** Approved  
-**Scope:** 28 feature items grouped into 3 phases, plus inspirations from open source projects (Sol, RustCast, Cap, Boring Notch, Pearcleaner, awesome-mac).
+**Scope:** 44 planned feature items grouped into 3 phases, plus inspirations from open source projects (Sol, RustCast, Cap, Boring Notch, Pearcleaner, Espanso, AltTab, Velja, Plash, Sniffnet, MOS, LinearMouse, Klack, Yoink, Hammerspoon, awesome-mac).
 
 ---
 
@@ -55,6 +55,18 @@ Each becomes a new `AtlasModule` enum case with its own service + panel.
 | 26 | **Battery Health** | coconutBattery | Cycle count, health %, temperature, design vs actual capacity |
 | 27 | **RSS Reader** | NetNewsWire | Lightweight subscription manager, unread count badge |
 | 28 | **App Cleaner** | Pearcleaner, AppCleaner | Drag app → scan associated files (~/Library/Application Support/Caches/Preferences) → remove |
+| 29 | **Text Expansion** | Espanso | Global text snippets (`:email` → expansion), per-app rules, YAML config |
+| 30 | **Alt-Tab Window Switcher** | AltTab | Windows-style task switcher with previews, multi-desktop aware, global hotkey |
+| 31 | **Mouse Scroll Smoothing** | MOS, LinearMouse | Smooth scroll for non-Apple mice, per-app sensitivity, menu bar toggle |
+| 32 | **Browser Router** | Velja | URL pattern → browser routing (Slack links → Safari, work → Arc) |
+| 33 | **System Quick Switches** | One Switch | Aggregate dark mode / DND / hide desktop / AirPods connect / mic mute toggles |
+| 34 | **Packet-level Network Monitor** | Sniffnet | Per-packet traffic visualization, complements connection-level Network Monitor |
+| 35 | **Now Playing + Lyrics** | LyricsX, SpotMenu | Menu bar now-playing widget with synced lyrics (Apple Music / Spotify) |
+| 36 | **Proxy Profile Switcher** | — | Toggle between SOCKS/HTTP proxy configs, does not bundle V2Ray/Clash |
+| 37 | **Web Wallpaper** | Plash | Set any URL (ChatGPT, dashboards, Bilibili) as live desktop wallpaper |
+| 38 | **Keyboard Sound FX** | Klack | Mechanical keyboard sound effects, configurable sound packs |
+| 39 | **Drag Shelf** | Yoink | Edge-drop file staging area, batch transfer to final destination |
+| 40 | **System Sound Feedback** | SoundDeck | Audio feedback for app switch / volume changes |
 
 ---
 
@@ -62,9 +74,10 @@ Each becomes a new `AtlasModule` enum case with its own service + panel.
 
 | # | Feature | Inspiration | Why complex |
 |---|---------|-------------|-------------|
-| 29 | **Local Whisper Transcription** | buzz | whisper.cpp integration, model download UI, GPU acceleration |
-| 30 | **Studio Recording Editor** | Cap | Post-recording trim, zoom effects, backgrounds, AI captions, share links |
-| 31 | **Notch Dynamic Island** | Boring Notch | NSWindow positioning over MacBook notch, NowPlaying + AirDrop + notification rendering |
+| 41 | **Local Whisper Transcription** | buzz | whisper.cpp integration, model download UI, GPU acceleration |
+| 42 | **Studio Recording Editor** | Cap | Post-recording trim, zoom effects, backgrounds, AI captions, share links |
+| 43 | **Notch Dynamic Island** | Boring Notch | NSWindow positioning over MacBook notch, NowPlaying + AirDrop + notification rendering |
+| 44 | **Hammerspoon Lua Bridge** | Hammerspoon | Expose Atlas API to Lua scripts, allow user automation across all Atlas modules |
 
 ---
 
@@ -113,4 +126,12 @@ Will reconsider if requested.
 - Cap: <https://github.com/CapSoftware/Cap>
 - Boring Notch: search "BoringNotch" on GitHub
 - Pearcleaner: <https://github.com/alienator88/Pearcleaner>
+- Espanso: <https://github.com/espanso/espanso>
+- AltTab: <https://github.com/lwouis/alt-tab-macos>
+- Velja: <https://github.com/sindresorhus/Velja>
+- Plash: <https://github.com/sindresorhus/Plash>
+- Sniffnet: <https://github.com/GyulyVGC/sniffnet>
+- MOS: <https://github.com/Caldis/Mos>
+- LinearMouse: <https://github.com/linearmouse/linearmouse>
+- Hammerspoon: <https://github.com/Hammerspoon/hammerspoon>
 - awesome-mac: <https://github.com/jaywcjlove/awesome-mac>
