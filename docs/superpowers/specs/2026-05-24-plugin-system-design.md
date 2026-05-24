@@ -67,18 +67,53 @@ The core challenge: **WASM has no UI primitives, MCP plugins are headless.** Sol
 ### 3.1 Three rendering tiers
 
 ```
-Tier 1: Atlas Block Kit (95% of plugins)
+Tier 1: Atlas Block Kit (recommended default, ~95% of plugins)
         Plugin emits JSON UI tree → SwiftUI renders natively
         Cross-platform by design (same JSON → GTK/WinUI/React)
 
-Tier 2: Host-Provided Rich Components (4%)
+Tier 2: Host-Provided Rich Components (~4%)
         Atlas pre-defines complex widgets: video player, rich text editor,
         charts, code editor. Plugin references by node type.
 
-Tier 3: WebView Escape Hatch (1%)
-        Plugin ships HTML/CSS/JS bundle, Atlas embeds WKWebView
-        Used only for: canvas drawing, 3D, custom visualization
+Tier 3: WebView Escape Hatch (opt-in, ~1%)
+        Plugin ships HTML/CSS/JS bundle, Atlas embeds WKWebView.
+        Officially supported as an opt-in escape hatch for the rare cases
+        Block Kit can't express. Developer decides when to use it.
 ```
+
+**Tier choice is the plugin author's call.** Atlas does not prevent WebView use; it simply documents the trade-offs so developers pick the right tier for their plugin.
+
+### 3.1.1 When to choose WebView (Tier 3)
+
+Use WebView when Block Kit genuinely cannot express the UI:
+
+| Justified WebView use | Examples |
+|----------------------|----------|
+| Canvas / pixel-level drawing | Image annotation tool, color palette painter |
+| 3D rendering | Model viewer, 3D scene editor |
+| Custom interactive visualization | Network graph, dependency tree, mind map |
+| Rich text editor with custom toolbar | Markdown WYSIWYG with custom blocks |
+| Embedded third-party widgets | Stripe payment form, OAuth login flow |
+| Existing web app integration | Wrapping a hosted dashboard |
+
+**Discouraged WebView use** (Block Kit is the better fit):
+- Simple forms, settings panels — use `text-field`, `toggle`, `slider`
+- Lists with actions — use `list` with `on-select`
+- Charts with standard types — use `chart` (bar/line/pie)
+- File browsers — use Atlas's built-in file picker bridge
+
+### 3.1.2 WebView trade-offs (informational)
+
+| Aspect | Block Kit | WebView |
+|--------|-----------|---------|
+| Performance | Native (60fps) | 200ms+ first load, higher memory |
+| Style consistency | Matches host HIG automatically | Plugin author maintains styling |
+| Cross-platform | Same JSON works everywhere | Works everywhere WebView exists |
+| Security surface | Limited to declared events | XSS / bridge attack surface |
+| Iteration speed | Hot-reload friendly | Standard web dev cycle |
+| Bundle size | Tiny (logic only) | Includes HTML+CSS+JS+assets |
+
+Plugin authors should default to Block Kit and reach for WebView only when the UI genuinely cannot be expressed declaratively. Both are equally first-class in Atlas's plugin runtime.
 
 ### 3.2 Data flow
 
@@ -213,6 +248,18 @@ variant ui-node {
     chart(chart-props),
     code(code-props),
     spacer,
+    // Tier 3 escape hatch — embed a WebView with plugin-provided assets
+    webview(webview-props),
+}
+
+record webview-props {
+    /// Plugin-relative path to HTML entry (resolved within plugin bundle)
+    entry: string,
+    /// Initial size hint (host may override based on container)
+    width: option<f32>,
+    height: option<f32>,
+    /// Whether to allow JS-to-host bridge calls (requires `webview-bridge` capability)
+    enable-bridge: bool,
 }
 
 variant ui-event {
@@ -417,9 +464,11 @@ Plugins declare required capabilities in `plugin.toml`. Atlas enforces at the ho
 | Tier | Examples | Consent Model |
 |------|----------|---------------|
 | **Harmless** | clipboard read, storage, log | Auto-allowed on install |
-| **Sensitive** | network (specific hosts), file read (sandboxed dir), notifications | Confirmed at install time |
-| **Dangerous** | full file system, system commands, accessibility | Per-use confirmation prompt |
+| **Sensitive** | network (specific hosts), file read (sandboxed dir), notifications, `webview` (embed WebView) | Confirmed at install time |
+| **Dangerous** | full file system, system commands, accessibility, `webview-bridge` (JS↔host RPC) | Per-use confirmation prompt |
 | **Forbidden** | Process spawn (for WASM), keychain | Not exposed to plugins |
+
+The `webview` capability lets the plugin render a WebView node. The separate `webview-bridge` capability is needed if the plugin wants the embedded JS to call back into the WASM/MCP plugin code (bidirectional communication). Plugins that just show static HTML/CSS visuals do not need `webview-bridge`.
 
 ### 7.2 Network capability granularity
 
@@ -473,8 +522,15 @@ my-plugin.atlasplugin/   (zip file with .atlasplugin extension)
 ├── server.js + ...      # MCP server files (for Track B)
 ├── icon.png             # 64x64 plugin icon
 ├── README.md            # Description shown in UI
-└── LICENSE              # Required
+├── LICENSE              # Required
+└── web/                 # Optional: WebView assets (Tier 3 only)
+    ├── index.html
+    ├── styles.css
+    ├── app.js
+    └── assets/
 ```
+
+The optional `web/` directory holds HTML/CSS/JS bundles referenced by `webview` UI nodes. Atlas serves these from a sandboxed `atlas-plugin://` URL scheme — plugins cannot reach the host filesystem via WebView fetches.
 
 ### 8.3 Signing & verification (future)
 
@@ -514,6 +570,7 @@ The plugin system integrates with all existing Atlas modules:
 - Block Kit node-to-SwiftUI mapping (vstack, hstack, button, text-field, slider, etc.)
 - Event dispatch from SwiftUI back to WASM
 - Patch-based incremental updates
+- WebView escape hatch (Tier 3): `WKWebView` wrapper, `atlas-plugin://` URL scheme, optional JS↔host bridge gated by `webview-bridge` capability
 
 ### Phase γ — Palette + Module Integration (2-3 weeks)
 - Plugin palette provider registration
