@@ -106,6 +106,7 @@ private enum PrimaryPanelSection: Hashable {
     case chapterMarker
     case appCleaner
     case aspectGuide
+    case dragShelf
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -257,6 +258,7 @@ struct ContentView: View {
     @StateObject private var chapterService = ChapterService()
     @StateObject private var appCleanerService = AppCleanerService()
     @StateObject private var aspectGuideService = AspectGuideService()
+    @StateObject private var dragShelfService = DragShelfService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1258,6 +1260,7 @@ struct ContentView: View {
             .chapterMarker,
             .appCleaner,
             .aspectGuide,
+            .dragShelf,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1301,7 +1304,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf:
             return nil
         }
     }
@@ -1596,6 +1599,11 @@ struct ContentView: View {
         case .aspectGuide:
             if isFeatureEnabled(.aspectGuide) {
                 AspectGuidePanel(service: aspectGuideService)
+                Divider()
+            }
+        case .dragShelf:
+            if isFeatureEnabled(.dragShelf) {
+                DragShelfPanel(service: dragShelfService)
                 Divider()
             }
         }
