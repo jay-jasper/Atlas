@@ -62,6 +62,7 @@ impl FeatureManager {
         features.insert("screenshot".to_string(), FeatureStatus::Disabled);
         features.insert("scroll-smoothing".to_string(), FeatureStatus::Disabled);
         features.insert("skills".to_string(), FeatureStatus::Disabled);
+        features.insert("sound-feedback".to_string(), FeatureStatus::Disabled);
         features.insert("subtitles".to_string(), FeatureStatus::Disabled);
         features.insert("system-utilities".to_string(), FeatureStatus::Disabled);
         features.insert("teleprompter".to_string(), FeatureStatus::Disabled);
@@ -177,6 +178,7 @@ mod tests {
                 "screenshot",
                 "scroll-smoothing",
                 "skills",
+                "sound-feedback",
                 "subtitles",
                 "system-utilities",
                 "teleprompter",

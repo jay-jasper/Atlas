@@ -36,6 +36,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case screenshot
     case scrollSmoothing = "scroll-smoothing"
     case skills
+    case soundFeedback = "sound-feedback"
     case subtitles
     case systemUtilities = "system-utilities"
     case teleprompter
@@ -128,6 +129,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "Scroll Smoothing"
         case .skills:
             return "AI Skills"
+        case .soundFeedback:
+            return "Sound Feedback"
         case .subtitles:
             return "Subtitle Tools"
         case .systemUtilities:
