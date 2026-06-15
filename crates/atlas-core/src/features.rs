@@ -56,6 +56,7 @@ impl FeatureManager {
         features.insert("scratchpad".to_string(), FeatureStatus::Disabled);
         features.insert("scene-system".to_string(), FeatureStatus::Disabled);
         features.insert("screenshot".to_string(), FeatureStatus::Disabled);
+        features.insert("scroll-smoothing".to_string(), FeatureStatus::Disabled);
         features.insert("skills".to_string(), FeatureStatus::Disabled);
         features.insert("subtitles".to_string(), FeatureStatus::Disabled);
         features.insert("system-utilities".to_string(), FeatureStatus::Disabled);
@@ -166,6 +167,7 @@ mod tests {
                 "scene-system",
                 "scratchpad",
                 "screenshot",
+                "scroll-smoothing",
                 "skills",
                 "subtitles",
                 "system-utilities",
