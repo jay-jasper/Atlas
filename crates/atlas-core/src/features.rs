@@ -28,6 +28,7 @@ impl FeatureManager {
         features.insert("ai-load-monitor".to_string(), FeatureStatus::Disabled);
         features.insert("app-audio".to_string(), FeatureStatus::Disabled);
         features.insert("app-cleaner".to_string(), FeatureStatus::Disabled);
+        features.insert("aspect-guide".to_string(), FeatureStatus::Disabled);
         features.insert("audio-hub".to_string(), FeatureStatus::Disabled);
         features.insert("automation".to_string(), FeatureStatus::Disabled);
         features.insert("browser-router".to_string(), FeatureStatus::Disabled);
@@ -130,6 +131,7 @@ mod tests {
                 "ai-load-monitor",
                 "app-audio",
                 "app-cleaner",
+                "aspect-guide",
                 "audio-hub",
                 "automation",
                 "browser-router",

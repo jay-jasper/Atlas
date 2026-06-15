@@ -105,6 +105,7 @@ private enum PrimaryPanelSection: Hashable {
     case quickSwitches
     case chapterMarker
     case appCleaner
+    case aspectGuide
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -255,6 +256,7 @@ struct ContentView: View {
     @StateObject private var quickSwitchService = QuickSwitchService()
     @StateObject private var chapterService = ChapterService()
     @StateObject private var appCleanerService = AppCleanerService()
+    @StateObject private var aspectGuideService = AspectGuideService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1255,6 +1257,7 @@ struct ContentView: View {
             .quickSwitches,
             .chapterMarker,
             .appCleaner,
+            .aspectGuide,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1298,7 +1301,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide:
             return nil
         }
     }
@@ -1588,6 +1591,11 @@ struct ContentView: View {
         case .appCleaner:
             if isFeatureEnabled(.appCleaner) {
                 AppCleanerPanel(service: appCleanerService)
+                Divider()
+            }
+        case .aspectGuide:
+            if isFeatureEnabled(.aspectGuide) {
+                AspectGuidePanel(service: aspectGuideService)
                 Divider()
             }
         }

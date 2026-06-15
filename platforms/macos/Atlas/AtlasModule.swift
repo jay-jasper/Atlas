@@ -2,6 +2,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case aiLoadMonitor = "ai-load-monitor"
     case appAudio = "app-audio"
     case appCleaner = "app-cleaner"
+    case aspectGuide = "aspect-guide"
     case audioHub = "audio-hub"
     case automation
     case browserRouter = "browser-router"
@@ -47,6 +48,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "App Audio"
         case .appCleaner:
             return "App Cleaner"
+        case .aspectGuide:
+            return "Aspect Ratio Guide"
         case .audioHub:
             return "Audio Hub"
         case .automation:
