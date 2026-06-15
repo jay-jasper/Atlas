@@ -126,6 +126,7 @@ private enum PrimaryPanelSection: Hashable {
     case translation
     case bluetoothBattery
     case noiseGate
+    case packetMonitor
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -297,6 +298,7 @@ struct ContentView: View {
     @StateObject private var translationPopupService = TranslationPopupService()
     @StateObject private var bluetoothBatteryService = BluetoothBatteryService()
     @StateObject private var noiseGateService = NoiseGateService()
+    @StateObject private var packetMonitorService = PacketMonitorService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1318,6 +1320,7 @@ struct ContentView: View {
             .translation,
             .bluetoothBattery,
             .noiseGate,
+            .packetMonitor,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1361,7 +1364,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing, .altTab, .colorSampler, .recordingIndicator, .soundFeedback, .keyboardSounds, .audioMeter, .audioRecording, .lanTransfer, .translation, .bluetoothBattery, .noiseGate:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing, .altTab, .colorSampler, .recordingIndicator, .soundFeedback, .keyboardSounds, .audioMeter, .audioRecording, .lanTransfer, .translation, .bluetoothBattery, .noiseGate, .packetMonitor:
             return nil
         }
     }
@@ -1756,6 +1759,11 @@ struct ContentView: View {
         case .noiseGate:
             if isFeatureEnabled(.noiseGate) {
                 NoiseGatePanel(service: noiseGateService)
+                Divider()
+            }
+        case .packetMonitor:
+            if isFeatureEnabled(.packetMonitor) {
+                PacketMonitorPanel(service: packetMonitorService)
                 Divider()
             }
         }
