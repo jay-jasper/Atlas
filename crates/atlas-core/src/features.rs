@@ -43,6 +43,7 @@ impl FeatureManager {
         features.insert("scene-system".to_string(), FeatureStatus::Disabled);
         features.insert("screenshot".to_string(), FeatureStatus::Disabled);
         features.insert("skills".to_string(), FeatureStatus::Disabled);
+        features.insert("subtitles".to_string(), FeatureStatus::Disabled);
         features.insert("system-utilities".to_string(), FeatureStatus::Disabled);
         features.insert("tokenbar".to_string(), FeatureStatus::Disabled);
         features.insert("totp".to_string(), FeatureStatus::Disabled);
@@ -134,6 +135,7 @@ mod tests {
                 "scratchpad",
                 "screenshot",
                 "skills",
+                "subtitles",
                 "system-utilities",
                 "tokenbar",
                 "totp",

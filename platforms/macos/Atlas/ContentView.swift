@@ -94,6 +94,7 @@ private enum PrimaryPanelSection: Hashable {
     case fnKey
     case totp
     case pomodoro
+    case subtitles
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -233,6 +234,7 @@ struct ContentView: View {
     @StateObject private var fnKeyService = FnKeyService()
     @StateObject private var totpService = TOTPService()
     @StateObject private var pomodoroService = PomodoroService()
+    @StateObject private var subtitleService = SubtitleService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1212,6 +1214,7 @@ struct ContentView: View {
             .fnKey,
             .totp,
             .pomodoro,
+            .subtitles,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1255,7 +1258,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles:
             return nil
         }
     }
@@ -1490,6 +1493,11 @@ struct ContentView: View {
         case .pomodoro:
             if isFeatureEnabled(.pomodoro) {
                 PomodoroPanel(service: pomodoroService)
+                Divider()
+            }
+        case .subtitles:
+            if isFeatureEnabled(.subtitles) {
+                SubtitlePanel(service: subtitleService)
                 Divider()
             }
         }
