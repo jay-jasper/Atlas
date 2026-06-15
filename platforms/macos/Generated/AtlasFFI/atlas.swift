@@ -1683,6 +1683,30 @@ fileprivate struct FfiConverterOptionInt64: FfiConverterRustBuffer {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
+    typealias SwiftType = String?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterString.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterString.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeBatterySnapshot: FfiConverterRustBuffer {
     typealias SwiftType = BatterySnapshot?
 
@@ -1919,6 +1943,17 @@ public func captureRegion(x: Int32, y: Int32, width: UInt32, height: UInt32)thro
 })
 }
 /**
+ * Evaluates a mathematical expression, returning a formatted result string,
+ * or null when the input does not evaluate to a finite number.
+ */
+public func evaluateExpression(input: String) -> String? {
+    return try!  FfiConverterOptionString.lift(try! rustCall() {
+    uniffi_atlas_ffi_fn_func_evaluate_expression(
+        FfiConverterString.lower(input),$0
+    )
+})
+}
+/**
  * Returns the current status of the Atlas core as a string.
  */
 public func getCoreStatus()throws  -> String {
@@ -1992,6 +2027,9 @@ private var initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_capture_region() != 38160) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_evaluate_expression() != 32376) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_get_core_status() != 12365) {
