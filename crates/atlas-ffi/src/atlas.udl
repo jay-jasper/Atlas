@@ -120,4 +120,8 @@ namespace atlas {
     
     [Throws=AtlasError]
     sequence<u8> capture_region(i32 x, i32 y, u32 width, u32 height);
+
+    /// Evaluates a mathematical expression, returning a formatted result string,
+    /// or null when the input does not evaluate to a finite number.
+    string? evaluate_expression(string input);
 };

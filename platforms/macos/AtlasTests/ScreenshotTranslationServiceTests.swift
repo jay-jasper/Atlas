@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotTranslationServiceTests: XCTestCase {
     override func tearDown() {
         AtlasBridge.translationService = ScreenshotTranslationServiceFactory.live()

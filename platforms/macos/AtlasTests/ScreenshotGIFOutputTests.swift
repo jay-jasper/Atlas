@@ -2,6 +2,7 @@ import AppKit
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotGIFOutputTests: XCTestCase {
     func testWritesTemporaryGIFFileWithStableExtension() throws {
         let root = FileManager.default.temporaryDirectory

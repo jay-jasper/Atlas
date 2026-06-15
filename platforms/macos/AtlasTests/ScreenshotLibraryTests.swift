@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotLibraryTests: XCTestCase {
     private var rootDirectory: URL!
     private var store: ScreenshotLibraryStore!

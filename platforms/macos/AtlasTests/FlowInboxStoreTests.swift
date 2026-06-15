@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class FlowInboxStoreTests: XCTestCase {
     private var tempDir: URL!
 

@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScratchpadProviderTests: XCTestCase {
     func testReturnsNoResultsWhenDisabled() {
         let store = InMemoryScratchpadStore(notes: [

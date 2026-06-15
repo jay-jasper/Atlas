@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class TextToolboxTests: XCTestCase {
     func testUppercase() {
         XCTAssertEqual(TextToolboxMode.uppercase.transform("hello World"), "HELLO WORLD")

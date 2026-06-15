@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class SkillStoreTests: XCTestCase {
     func testEmptyStoreReturnsScreenshotSummaryExample() {
         let store = SkillStore(fileURL: temporaryFileURL())

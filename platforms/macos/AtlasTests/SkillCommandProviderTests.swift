@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class SkillCommandProviderTests: XCTestCase {
     func testReturnsNoResultsWhenFeatureDisabled() {
         let provider = SkillCommandProvider(

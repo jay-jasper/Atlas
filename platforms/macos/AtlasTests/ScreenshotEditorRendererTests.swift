@@ -2,6 +2,7 @@ import AppKit
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotEditorRendererTests: XCTestCase {
     func testRenderedPNGIncludesAnnotations() throws {
         let data = try Self.deterministicPNGData(width: 120, height: 80)

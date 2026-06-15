@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class KeepAwakeServiceTests: XCTestCase {
     func testStartLaunchesCaffeinateOnce() throws {
         let runner = FakeSystemCommandRunner()

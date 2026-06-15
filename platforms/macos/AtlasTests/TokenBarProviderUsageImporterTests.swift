@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class TokenBarProviderUsageImporterTests: XCTestCase {
     func testImportFetchesProviderUsageAppendsLedgerAndReturnsUpdatedSummary() throws {
         let defaults = UserDefaults(suiteName: "TokenBarProviderUsageImporterTests.import")!

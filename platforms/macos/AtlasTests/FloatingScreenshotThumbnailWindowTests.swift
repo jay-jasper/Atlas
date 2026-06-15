@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class FloatingScreenshotThumbnailWindowTests: XCTestCase {
     func testThumbnailSizePreservesAspectRatioWithinMaximumSize() {
         let layout = FloatingScreenshotThumbnailLayout(

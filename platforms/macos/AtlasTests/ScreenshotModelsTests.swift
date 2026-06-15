@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotModelsTests: XCTestCase {
     func testAnnotationDefaults() {
         let annotation = ScreenshotAnnotation.rectangle(

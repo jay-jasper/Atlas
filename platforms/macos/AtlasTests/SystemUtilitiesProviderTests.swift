@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class SystemUtilitiesProviderTests: XCTestCase {
     func testDisabledFeatureReturnsNoCommands() {
         let provider = SystemUtilitiesProvider(

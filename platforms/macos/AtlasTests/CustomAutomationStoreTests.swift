@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class CustomAutomationStoreTests: XCTestCase {
     private var temporaryDirectory: URL!
     private var fileURL: URL!

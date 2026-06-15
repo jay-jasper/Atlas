@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class MonitoringServiceTests: XCTestCase {
     func testStartMonitoringReceivesCallbackAndPassesSnapshotThrough() throws {
         let expected = MonitoringSystemSnapshot.testFixture()

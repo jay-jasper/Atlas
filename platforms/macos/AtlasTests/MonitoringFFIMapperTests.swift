@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class MonitoringFFIMapperTests: XCTestCase {
     func testMapsSystemSnapshot() {
         let ffiSnapshot = SystemSnapshot(

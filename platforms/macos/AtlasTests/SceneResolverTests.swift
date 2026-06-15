@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class SceneResolverTests: XCTestCase {
     func testResolveReturnsNilForUnknownID() {
         XCTAssertNil(SceneResolver.resolve(sceneID: UUID(), scenes: []))

@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class SelectionGeometryTests: XCTestCase {
     func testNormalizedRectStandardizesAndIntegralizes() {
         let rect = SelectionGeometry.normalizedRect(

@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ClipboardHistoryProviderTests: XCTestCase {
     private var now = Date(timeIntervalSince1970: 100)
 

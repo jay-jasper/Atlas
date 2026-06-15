@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class BluetoothQuickActionsServiceTests: XCTestCase {
     private let service = BluetoothQuickActionsService()
 

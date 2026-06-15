@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenCaptureCoordinateMapperTests: XCTestCase {
     func testMapsPointRectToPixelRect() {
         let rect = CGRect(x: 10.25, y: 20.5, width: 30.25, height: 40.5)

@@ -34,6 +34,7 @@ private final class FakeMonitoringProvider: MonitoringProviding {
     }
 }
 
+@MainActor
 final class AtlasBridgeMonitoringTests: XCTestCase {
     override func tearDown() {
         AtlasBridge.monitoringService = .live

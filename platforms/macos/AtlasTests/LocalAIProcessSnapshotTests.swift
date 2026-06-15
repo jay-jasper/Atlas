@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class LocalAIProcessSnapshotTests: XCTestCase {
     func testParsesProcessSnapshotRows() throws {
         let output = """

@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class TokenBarConfigurationTests: XCTestCase {
     func testSaveLoadAndClearConfigurationWithoutExposingKeyInDefaults() {
         let defaults = UserDefaults(suiteName: "TokenBarConfigurationTests.save")!

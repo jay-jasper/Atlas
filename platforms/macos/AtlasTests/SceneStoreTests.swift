@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class SceneStoreTests: XCTestCase {
     private var tempDir: URL!
 

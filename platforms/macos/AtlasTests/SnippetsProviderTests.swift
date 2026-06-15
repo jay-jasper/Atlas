@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class SnippetsProviderTests: XCTestCase {
     func testEmptyQueryReturnsNoResults() {
         let provider = SnippetsProvider(snippetProvider: FixtureSnippetProvider())

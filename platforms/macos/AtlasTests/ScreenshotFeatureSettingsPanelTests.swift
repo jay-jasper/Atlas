@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotFeatureSettingsPanelTests: XCTestCase {
     func testStateSummaryForAllEnabledSettings() {
         let state = ScreenshotFeatureSettingsPanelState(settings: .defaultEnabled)

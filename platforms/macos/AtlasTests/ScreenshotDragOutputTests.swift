@@ -2,6 +2,7 @@ import XCTest
 import UniformTypeIdentifiers
 @testable import Atlas
 
+@MainActor
 final class ScreenshotDragOutputTests: XCTestCase {
     private var rootDirectory: URL!
     private var store: ScreenshotDragOutputStore!

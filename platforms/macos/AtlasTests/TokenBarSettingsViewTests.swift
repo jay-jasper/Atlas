@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class TokenBarSettingsViewTests: XCTestCase {
     func testSettingsSaveStoresSecretOnlyInInjectedKeyStore() throws {
         let defaults = UserDefaults(suiteName: "TokenBarSettingsViewTests.save")!

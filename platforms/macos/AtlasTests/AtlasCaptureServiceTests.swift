@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class AtlasCaptureServiceTests: XCTestCase {
     func testCaptureRegionUsesInjectedFunction() throws {
         let expected = Data([1, 2, 3])

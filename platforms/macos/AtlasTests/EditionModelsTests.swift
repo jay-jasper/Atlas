@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class EditionModelsTests: XCTestCase {
     func testEditionMetadataIsStable() {
         XCTAssertEqual(AtlasEdition.free.title, "Free")

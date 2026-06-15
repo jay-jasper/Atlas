@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class PrivacyPulsePanelTests: XCTestCase {
     func testPanelStateIncludesAllStatusRowsInStableOrder() {
         let date = Date(timeIntervalSince1970: 100)

@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class CommandPaletteModelsTests: XCTestCase {
     func testPaletteCommandHasStableIdentity() {
         let id = UUID()

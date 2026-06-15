@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class FeatureStateTests: XCTestCase {
     func testEnabledMapUsesActualFeatureStates() {
         let features = [

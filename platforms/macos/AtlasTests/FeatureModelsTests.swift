@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class FeatureModelsTests: XCTestCase {
     func testMapsAutomationFeatureTitle() {
         let entry = FeatureEntry(name: "automation", status: .disabled)

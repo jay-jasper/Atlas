@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class WorkspaceWindowServiceTests: XCTestCase {
     func testCaptureCreatesNamedWorkspaceFromInjectedSnapshots() throws {
         let service = WorkspaceWindowService(

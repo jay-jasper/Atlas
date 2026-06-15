@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class NetworkMonitorParserTests: XCTestCase {
     func testParseEmptyOutputReturnsEmpty() {
         XCTAssertTrue(NetworkMonitorParser.parse("").isEmpty)

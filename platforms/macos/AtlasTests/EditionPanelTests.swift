@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class EditionPanelTests: XCTestCase {
     func testStateLabelsBundledEdition() {
         let state = EditionPanelState(entitlement: LocalEntitlementState(

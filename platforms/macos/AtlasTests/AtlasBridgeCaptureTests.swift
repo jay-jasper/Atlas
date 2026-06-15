@@ -2,6 +2,7 @@ import AppKit
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class AtlasBridgeCaptureTests: XCTestCase {
     override func tearDown() {
         AtlasBridge.captureService = .live

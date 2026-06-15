@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class CommandPaletteRankerTests: XCTestCase {
     func testHigherExecutionCountRanksFirst() {
         let lowUsage = makeCommand(title: "Low Usage")

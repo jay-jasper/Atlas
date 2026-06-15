@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class TokenBarLedgerTests: XCTestCase {
     func testAppendLoadAndSummarizeEntries() throws {
         let url = FileManager.default.temporaryDirectory

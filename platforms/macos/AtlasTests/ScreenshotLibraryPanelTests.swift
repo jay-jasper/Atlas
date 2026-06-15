@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotLibraryPanelTests: XCTestCase {
     func testEmptyStateShowsNoScreenshotsSavedYet() {
         let state = ScreenshotLibraryPanelState(items: [], query: "")

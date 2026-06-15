@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class LocalAILoadRefreshServiceTests: XCTestCase {
     func testStartRefreshesImmediatelyAndOnScheduledTicks() throws {
         let scheduler = ManualLocalAILoadScheduler()

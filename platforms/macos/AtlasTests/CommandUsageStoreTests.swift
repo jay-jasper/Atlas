@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class CommandUsageStoreTests: XCTestCase {
     private var defaults: UserDefaults!
     private let suiteName = "CommandUsageStoreTests"

@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotCaptureModeTests: XCTestCase {
     func testModesHaveStableOrder() {
         XCTAssertEqual(ScreenshotCaptureMode.allCases, [.desktop, .window, .area])

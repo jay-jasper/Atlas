@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotFeatureSettingsTests: XCTestCase {
     private var defaults: UserDefaults!
     private var suiteName: String!

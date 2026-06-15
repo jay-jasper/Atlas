@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class WorkspaceProviderTests: XCTestCase {
     func testDisabledProviderReturnsNoResults() {
         let provider = WorkspaceProvider(store: FakeWorkspaceProviderStore(), isEnabled: { false })

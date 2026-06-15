@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class TranslationSettingsPanelTests: XCTestCase {
     func testEmptyDraftStatusIsNotConfigured() {
         let state = TranslationSettingsPanelState(

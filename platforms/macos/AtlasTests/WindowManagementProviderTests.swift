@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class WindowManagementProviderTests: XCTestCase {
     func testEmptyQueryReturnsNoResults() {
         let provider = makeProvider()

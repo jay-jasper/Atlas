@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class TokenBarCommandProviderTests: XCTestCase {
     func testImportCommandCallsImporterRefreshesSummaryAndSurfacesSuccess() {
         var openedSettings = false

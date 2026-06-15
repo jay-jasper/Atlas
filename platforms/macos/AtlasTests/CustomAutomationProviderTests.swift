@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class CustomAutomationProviderTests: XCTestCase {
     func testDisabledFeatureGateReturnsNoResults() {
         let provider = CustomAutomationProvider(store: StubAutomationStore(commands: [deployCommand()]), isEnabled: { false })

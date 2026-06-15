@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class TokenBarProviderClientTests: XCTestCase {
     func testFetchOpenAIUsageUsesInjectedTransportAndAuthorizationHeader() throws {
         let response = HTTPURLResponse(

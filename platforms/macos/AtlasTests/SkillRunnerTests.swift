@@ -2,6 +2,7 @@ import Foundation
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class SkillRunnerTests: XCTestCase {
     func testScreenshotToSummaryUsesInjectedProviders() async throws {
         let runner = SkillRunner(

@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class LocalAILoadMonitorTests: XCTestCase {
     func testDetectsOllamaAndLMStudioAndAggregatesCPUAndMemory() throws {
         let source = StaticLocalAIProcessSnapshotter(snapshots: [

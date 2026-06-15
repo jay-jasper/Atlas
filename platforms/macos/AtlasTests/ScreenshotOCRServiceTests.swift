@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotOCRServiceTests: XCTestCase {
     override func tearDown() {
         AtlasBridge.ocrService = VisionScreenshotOCRService()

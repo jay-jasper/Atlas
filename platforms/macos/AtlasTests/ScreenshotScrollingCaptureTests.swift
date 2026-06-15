@@ -2,6 +2,7 @@ import AppKit
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotScrollingCaptureTests: XCTestCase {
     func testCapturesFramesScrollsBetweenFramesAndPersistsLibraryItem() throws {
         let frame = try png(width: 8, height: 4, color: .red)

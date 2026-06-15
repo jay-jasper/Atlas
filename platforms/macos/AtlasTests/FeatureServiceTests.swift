@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class FeatureServiceTests: XCTestCase {
     func testListFeaturesReturnsInjectedFeatures() throws {
         let expected = [

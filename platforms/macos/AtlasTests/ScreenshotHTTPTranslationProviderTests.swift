@@ -2,6 +2,7 @@ import Foundation
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotHTTPTranslationProviderTests: XCTestCase {
     func testBuildsPostRequestWithJsonBodyAndAuthorizationHeader() throws {
         let endpoint = URL(string: "https://translation.example.test/v1/translate")!

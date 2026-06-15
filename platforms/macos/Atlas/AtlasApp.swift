@@ -154,8 +154,10 @@ final class CommandPaletteState: ObservableObject {
         let flowInboxProvider = FlowInboxCommandProvider(
             isEnabled: { [weak self] in self?.isFlowInboxEnabled == true }
         )
+        let calculatorProvider = CalculatorCommandProvider()
 
         self.controller = CommandPaletteController(providers: [
+            calculatorProvider,
             atlasProvider,
             sceneProvider,
             audioHubProvider,

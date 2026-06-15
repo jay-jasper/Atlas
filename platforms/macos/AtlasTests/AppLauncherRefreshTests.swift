@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class AppLauncherRefreshTests: XCTestCase {
     func testProviderScansOnInitWhenScannerIsInjected() {
         let scanner = FakeApplicationScanner(scans: [

@@ -2,6 +2,7 @@ import CoreGraphics
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class WindowManagementServiceTests: XCTestCase {
     private let screen = CGRect(x: 0, y: 0, width: 1_440, height: 900)
 

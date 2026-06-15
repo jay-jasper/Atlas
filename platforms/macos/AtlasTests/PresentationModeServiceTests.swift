@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class PresentationModeServiceTests: XCTestCase {
     func testStartKeepsAwakeAndRunsNotificationFocusToggle() throws {
         let runner = RecordingCommandRunner()

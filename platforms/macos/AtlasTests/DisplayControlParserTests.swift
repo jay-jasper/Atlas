@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class DisplayControlParserTests: XCTestCase {
     func testParseSingleDDCDisplay() {
         let displays = DisplayControlParser.parse("Display 1: LG UltraFine DDC/CI supported\n")
@@ -95,4 +96,15 @@ final class SpySystemCommandRunner: SystemCommandRunning {
         lastArguments = arguments
         return SystemCommandResult(terminationStatus: 0, standardOutput: "", standardError: "")
     }
+
+    func start(_ executable: String, arguments: [String]) throws -> SystemCommandProcess {
+        lastExecutable = executable
+        lastArguments = arguments
+        return SpySystemCommandProcess()
+    }
+}
+
+final class SpySystemCommandProcess: SystemCommandProcess {
+    private(set) var isRunning = false
+    func terminate() { isRunning = false }
 }

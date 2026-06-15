@@ -1,6 +1,4 @@
 import Foundation
-import IOKit
-import IOKit.hid
 
 enum FnKeyMode: Int, CaseIterable, Identifiable {
     case fnKeys = 0       // F1-F12 send hardware function keys
@@ -69,43 +67,39 @@ final class FnKeyService: ObservableObject {
     }
 }
 
+/// Reads and writes the macOS "Use F1, F2, etc. as standard function keys"
+/// preference, which is backed by the `com.apple.keyboard.fnState` key in the
+/// global preferences domain (`-g`). `fnState == true` means the F-keys act as
+/// standard function keys (`.fnKeys`); otherwise they default to media keys.
+///
+/// Changes persist immediately but the HID system applies them on next login.
 struct LiveFnKeyController: FnKeyControlling {
-    private static let hidKeyboardUsagePage: UInt32 = 0xFF00
-    private static let hidFKeyMode: UInt32 = 0x0003
+    private static let domain = "com.apple.keyboard.fnState"
+    private let commandRunner: SystemCommandRunning
+
+    init(commandRunner: SystemCommandRunning = LiveSystemCommandRunner()) {
+        self.commandRunner = commandRunner
+    }
 
     func readMode() -> FnKeyMode? {
-        guard let service = openKeyboardService() else { return nil }
-        defer { IOObjectRelease(service) }
-
-        var value: UInt32 = 0
-        let kr = IOHIDServiceGetIntegerProperty(
-            service,
-            kIOHIDFKeyModeKey as CFString,
-            &value
-        )
-        guard kr == kIOReturnSuccess else { return nil }
-        return FnKeyMode(rawValue: Int(value))
+        guard let result = try? commandRunner.run(
+            "/usr/bin/defaults",
+            arguments: ["read", "-g", Self.domain]
+        ) else {
+            // The key is unset until the user changes it; default is media keys.
+            return .mediaKeys
+        }
+        let output = result.standardOutput.trimmingCharacters(in: .whitespacesAndNewlines)
+        return output == "1" ? .fnKeys : .mediaKeys
     }
 
     func setMode(_ mode: FnKeyMode) -> Bool {
-        guard let service = openKeyboardService() else { return false }
-        defer { IOObjectRelease(service) }
-
-        let kr = IOHIDServiceSetIntegerProperty(
-            service,
-            kIOHIDFKeyModeKey as CFString,
-            UInt32(mode.rawValue)
-        )
-        return kr == kIOReturnSuccess
-    }
-
-    private func openKeyboardService() -> io_service_t? {
-        let matching = IOServiceMatching("AppleHIDKeyboardEventDriverV2") as CFMutableDictionary?
-            ?? IOServiceMatching("IOHIDKeyboard") as CFMutableDictionary?
-        guard let matching else { return nil }
-
-        let service = IOServiceGetMatchingService(kIOMainPortDefault, matching)
-        return service == IO_OBJECT_NULL ? nil : service
+        let enabled = (mode == .fnKeys) ? "true" : "false"
+        guard let result = try? commandRunner.run(
+            "/usr/bin/defaults",
+            arguments: ["write", "-g", Self.domain, "-bool", enabled]
+        ) else { return false }
+        return result.succeeded
     }
 }
 

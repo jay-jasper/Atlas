@@ -89,7 +89,10 @@ enum NetworkMonitorParser {
 
             let local = endpoints[0].trimmingCharacters(in: .whitespaces)
             let remote = endpoints[1].trimmingCharacters(in: .whitespaces)
-            let stateField = parts.count > 9 ? parts[9] : "ESTABLISHED"
+            // lsof renders the state in parentheses, e.g. "(ESTABLISHED)".
+            let stateField = parts.count > 9
+                ? parts[9].trimmingCharacters(in: CharacterSet(charactersIn: "()"))
+                : "ESTABLISHED"
             let idKey = "\(pid)-\(local)-\(remote)"
             guard !seen.contains(idKey) else { return nil }
             seen.insert(idKey)

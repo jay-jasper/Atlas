@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class FnKeyServiceTests: XCTestCase {
     func testReadModeReturnsNilOnFailure() {
         let controller = StubFnKeyController(readResult: nil, setResult: false)

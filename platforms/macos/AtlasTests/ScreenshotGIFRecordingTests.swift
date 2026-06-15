@@ -2,6 +2,7 @@ import AppKit
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotGIFRecordingTests: XCTestCase {
     func testRecorderCapturesUntilStopRequested() throws {
         let frameSource = StubGIFFrameSource(frame: try image(width: 4, height: 4, color: .red))

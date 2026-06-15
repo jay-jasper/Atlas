@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class WorkspaceStoreTests: XCTestCase {
     private var fileURL: URL!
 

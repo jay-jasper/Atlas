@@ -24,6 +24,7 @@ private final class FakeWindowCaptureProvider: WindowCaptureProviding {
     }
 }
 
+@MainActor
 final class WindowCaptureServiceTests: XCTestCase {
     override func tearDown() {
         AtlasBridge.windowCaptureProvider = CoreGraphicsWindowCaptureProvider()

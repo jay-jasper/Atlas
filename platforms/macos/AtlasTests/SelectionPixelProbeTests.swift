@@ -2,6 +2,7 @@ import AppKit
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class SelectionPixelProbeTests: XCTestCase {
     func testHexColorFormatsRGBComponents() {
         XCTAssertEqual(SelectionPixelProbe.hexColor(red: 255, green: 8, blue: 16), "#FF0810")

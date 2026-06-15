@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class AtlasCommandProviderTests: XCTestCase {
     private var provider: AtlasCommandProvider!
 

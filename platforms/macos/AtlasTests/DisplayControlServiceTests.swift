@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class DisplayControlServiceTests: XCTestCase {
     func testDetectsDDCSupportFromProbeOutput() throws {
         let probe = FakeDisplayCapabilityProbe(result: SystemCommandResult(
@@ -13,8 +14,8 @@ final class DisplayControlServiceTests: XCTestCase {
         let displays = try service.refreshDisplays()
 
         XCTAssertEqual(displays, [
-            DisplayDevice(id: "display-1", name: "Built-in Retina", isBuiltin: true, supportsDDC: false),
-            DisplayDevice(id: "display-2", name: "LG UltraFine", isBuiltin: false, supportsDDC: true),
+            DisplayDevice(id: "display-1", name: "Built-in Retina", isBuiltin: true, supportsDDC: false, ddcIndex: 1),
+            DisplayDevice(id: "display-2", name: "LG UltraFine", isBuiltin: false, supportsDDC: true, ddcIndex: 2),
         ])
     }
 

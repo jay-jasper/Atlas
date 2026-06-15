@@ -2,6 +2,7 @@ import AppKit
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotOutputTests: XCTestCase {
     func testPngFilenameUsesTimestamp() {
         let date = Date(timeIntervalSince1970: 1_704_067_200)

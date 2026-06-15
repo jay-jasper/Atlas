@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ClipboardHistoryStoreTests: XCTestCase {
     private var defaults: UserDefaults!
     private let suiteName = "ClipboardHistoryStoreTests"

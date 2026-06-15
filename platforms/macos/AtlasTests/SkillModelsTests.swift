@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class SkillModelsTests: XCTestCase {
     func testScreenshotSummaryExampleContainsExpectedMetadata() {
         let skill = SkillDefinition.screenshotSummaryExample(now: Date(timeIntervalSince1970: 100))

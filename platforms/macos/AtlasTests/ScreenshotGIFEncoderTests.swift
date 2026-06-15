@@ -3,6 +3,7 @@ import ImageIO
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotGIFEncoderTests: XCTestCase {
     func testEncodesAnimatedGIFWithFrameCount() throws {
         let frames = [

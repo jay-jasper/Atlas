@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class PrivacyPulseServiceTests: XCTestCase {
     func testSnapshotIncludesInjectedPermissionStatusesAndRecentEvents() {
         let now = Date(timeIntervalSince1970: 1_000)

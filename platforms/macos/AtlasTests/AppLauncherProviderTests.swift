@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class AppLauncherProviderTests: XCTestCase {
     func testEmptyQueryReturnsNoResults() {
         let provider = AppLauncherProvider(apps: fakeApps())

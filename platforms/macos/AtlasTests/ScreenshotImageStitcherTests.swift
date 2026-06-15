@@ -2,6 +2,7 @@ import AppKit
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScreenshotImageStitcherTests: XCTestCase {
     func testStitchesFramesVerticallyWithoutOverlap() throws {
         let red = try png(width: 8, height: 5, color: .red)

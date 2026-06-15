@@ -27,6 +27,7 @@ private final class FakeFeatureProvider: FeatureProviding {
     }
 }
 
+@MainActor
 final class AtlasBridgeFeatureTests: XCTestCase {
     override func tearDown() {
         AtlasBridge.featureService = .live

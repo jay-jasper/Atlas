@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScratchpadSummaryServiceTests: XCTestCase {
     func testDisabledSummarizerReturnsNil() async throws {
         let note = ScratchpadNote(title: "Design", markdown: "# Design\nDetails")

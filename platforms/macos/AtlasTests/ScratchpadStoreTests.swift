@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ScratchpadStoreTests: XCTestCase {
     private var tempDirectory: URL!
 

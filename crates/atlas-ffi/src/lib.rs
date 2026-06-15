@@ -307,6 +307,12 @@ pub fn capture_region(x: i32, y: i32, width: u32, height: u32) -> Result<Vec<u8>
         .map_err(|e| AtlasError::CaptureError(e.to_string()))
 }
 
+/// Evaluates a mathematical expression, returning a formatted result string,
+/// or `None` when the input does not evaluate to a finite number.
+pub fn evaluate_expression(input: String) -> Option<String> {
+    atlas_core::calculator::evaluate_expression(&input)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

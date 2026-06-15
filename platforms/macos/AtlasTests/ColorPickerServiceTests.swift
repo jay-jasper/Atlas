@@ -1,6 +1,7 @@
 import XCTest
 @testable import Atlas
 
+@MainActor
 final class ColorPickerServiceTests: XCTestCase {
     private var tempDir: URL!
 
@@ -58,8 +59,7 @@ final class ColorPickerServiceTests: XCTestCase {
         let store = makeStore()
         let service = ColorPickerService(store: store)
         let colors = (0..<25).map { i in PickedColor(red: Double(i) / 100, green: 0, blue: 0) }
-        colors.forEach { _ = { service }() }
-        // Add via the internal addToHistory path by injecting directly
+        _ = service
         // We test the cap via store save+load
         let toSave = Array(colors.prefix(25))
         store.save(toSave)
