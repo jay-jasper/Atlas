@@ -34,6 +34,7 @@ impl FeatureManager {
         features.insert("clipboard".to_string(), FeatureStatus::Disabled);
         features.insert("color-picker".to_string(), FeatureStatus::Disabled);
         features.insert("ddc-control".to_string(), FeatureStatus::Disabled);
+        features.insert("disk-usage".to_string(), FeatureStatus::Disabled);
         features.insert("env-manager".to_string(), FeatureStatus::Disabled);
         features.insert("flow-inbox".to_string(), FeatureStatus::Disabled);
         features.insert("fn-key".to_string(), FeatureStatus::Disabled);
@@ -130,6 +131,7 @@ mod tests {
                 "clipboard",
                 "color-picker",
                 "ddc-control",
+                "disk-usage",
                 "env-manager",
                 "flow-inbox",
                 "fn-key",

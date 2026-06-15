@@ -8,6 +8,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case clipboard
     case colorPicker = "color-picker"
     case ddcControl = "ddc-control"
+    case diskUsage = "disk-usage"
     case envManager = "env-manager"
     case flowInbox = "flow-inbox"
     case fnKey = "fn-key"
@@ -53,6 +54,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "Color Picker"
         case .ddcControl:
             return "DDC Monitor Control"
+        case .diskUsage:
+            return "Disk Usage"
         case .envManager:
             return "Env Variables"
         case .flowInbox:
