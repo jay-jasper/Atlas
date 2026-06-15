@@ -110,6 +110,7 @@ private enum PrimaryPanelSection: Hashable {
     case batteryHealth
     case watermark
     case obsControl
+    case teleprompter
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -265,6 +266,7 @@ struct ContentView: View {
     @StateObject private var batteryHealthService = BatteryHealthService()
     @StateObject private var watermarkService = WatermarkService()
     @StateObject private var obsService = OBSService()
+    @StateObject private var teleprompterService = TeleprompterService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1270,6 +1272,7 @@ struct ContentView: View {
             .batteryHealth,
             .watermark,
             .obsControl,
+            .teleprompter,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1313,7 +1316,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter:
             return nil
         }
     }
@@ -1628,6 +1631,11 @@ struct ContentView: View {
         case .obsControl:
             if isFeatureEnabled(.obsControl) {
                 OBSPanel(service: obsService)
+                Divider()
+            }
+        case .teleprompter:
+            if isFeatureEnabled(.teleprompter) {
+                TeleprompterPanel(service: teleprompterService)
                 Divider()
             }
         }

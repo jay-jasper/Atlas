@@ -32,6 +32,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case skills
     case subtitles
     case systemUtilities = "system-utilities"
+    case teleprompter
     case textExpansion = "text-expansion"
     case tokenbar
     case totp
@@ -112,6 +113,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "Subtitle Tools"
         case .systemUtilities:
             return "System Utilities"
+        case .teleprompter:
+            return "Teleprompter"
         case .textExpansion:
             return "Text Expansion"
         case .tokenbar:

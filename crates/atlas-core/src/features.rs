@@ -58,6 +58,7 @@ impl FeatureManager {
         features.insert("skills".to_string(), FeatureStatus::Disabled);
         features.insert("subtitles".to_string(), FeatureStatus::Disabled);
         features.insert("system-utilities".to_string(), FeatureStatus::Disabled);
+        features.insert("teleprompter".to_string(), FeatureStatus::Disabled);
         features.insert("text-expansion".to_string(), FeatureStatus::Disabled);
         features.insert("tokenbar".to_string(), FeatureStatus::Disabled);
         features.insert("totp".to_string(), FeatureStatus::Disabled);
@@ -165,6 +166,7 @@ mod tests {
                 "skills",
                 "subtitles",
                 "system-utilities",
+                "teleprompter",
                 "text-expansion",
                 "tokenbar",
                 "totp",
