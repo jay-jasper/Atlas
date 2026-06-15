@@ -35,19 +35,18 @@ Chapter Markers (#46) · Watermark (#47) · Subtitle Tools (#48) · OBS Control 
 Plus a password-strength estimator wired into the palette generator (#7), and a
 one-shot `current_battery()` FFI surface.
 
-Also shipped: Keyboard Display (#16), GIF Post-Processing (#20), Alt-Tab (#30),
-Scroll Smoothing (#31), Recording Indicator (#43), Video Color Sampler (#50)
-→ **26/37 Phase 2 modules done (40/61 roadmap items overall).**
+Also shipped: Audio Recording (#17), Keyboard Display (#16), GIF Post-Processing
+(#20), Alt-Tab (#30), Scroll Smoothing (#31), Keyboard SFX (#38), Sound Feedback
+(#40), Recording Indicator (#43), Audio Level Meter (#44), Video Color Sampler
+(#50) → **30/37 Phase 2 modules done (44/61 roadmap items overall).**
 
-Remaining Phase 2 (11): Audio Recording (#17), LAN Transfer (#19), Bluetooth
-Battery (#21), Translation Popup (#22), Packet Monitor (#34), Now Playing (#35),
-Keyboard SFX (#38), Sound Feedback (#40), Live Caption (#42), Audio Level Meter
-(#44), Mic Noise Gate (#51). These are predominantly thin wrappers over audio
-engines (AVAudioEngine recording/metering/denoise), private frameworks
-(MediaRemote now-playing, IOBluetooth battery), or privileged capture (packet
-sniffing) — little pure logic to unit-test, and Live Caption depends on Phase 3
-Whisper. Phase 3 (#52–55) and Phase 4 (plugin platform, #56–61) each warrant
-their own design spec per this roadmap's own guidance.
+Remaining Phase 2 (7): LAN Transfer (#19), Bluetooth Battery (#21), Translation
+Popup (#22), Packet Monitor (#34), Now Playing (#35), Live Caption (#42), Mic
+Noise Gate (#51) — each needs a private framework (MediaRemote now-playing,
+IOBluetooth battery), privileged/packet capture, a network protocol stack
+(Bonjour transfer), or a heavy DSP/ML dependency (RNNoise denoise, Whisper live
+caption — the latter blocked on Phase 3). Phase 3 (#52–55) and Phase 4 (plugin
+platform, #56–61) each warrant their own design spec per this roadmap's guidance.
 
 Each shipped as a complete vertical slice: pure testable core + service +
 SwiftUI panel + Rust `FeatureManager` registration (FFI lib regenerated) +

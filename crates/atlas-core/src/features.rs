@@ -32,6 +32,7 @@ impl FeatureManager {
         features.insert("aspect-guide".to_string(), FeatureStatus::Disabled);
         features.insert("audio-hub".to_string(), FeatureStatus::Disabled);
         features.insert("audio-meter".to_string(), FeatureStatus::Disabled);
+        features.insert("audio-recording".to_string(), FeatureStatus::Disabled);
         features.insert("automation".to_string(), FeatureStatus::Disabled);
         features.insert("battery-health".to_string(), FeatureStatus::Disabled);
         features.insert("browser-router".to_string(), FeatureStatus::Disabled);
@@ -150,6 +151,7 @@ mod tests {
                 "aspect-guide",
                 "audio-hub",
                 "audio-meter",
+                "audio-recording",
                 "automation",
                 "battery-health",
                 "browser-router",
