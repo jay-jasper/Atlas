@@ -124,6 +124,7 @@ private enum PrimaryPanelSection: Hashable {
     case audioRecording
     case lanTransfer
     case translation
+    case bluetoothBattery
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -293,6 +294,7 @@ struct ContentView: View {
     @StateObject private var audioRecordingService = AudioRecordingService()
     @StateObject private var lanTransferService = LANTransferService()
     @StateObject private var translationPopupService = TranslationPopupService()
+    @StateObject private var bluetoothBatteryService = BluetoothBatteryService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1312,6 +1314,7 @@ struct ContentView: View {
             .audioRecording,
             .lanTransfer,
             .translation,
+            .bluetoothBattery,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1355,7 +1358,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing, .altTab, .colorSampler, .recordingIndicator, .soundFeedback, .keyboardSounds, .audioMeter, .audioRecording, .lanTransfer, .translation:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing, .altTab, .colorSampler, .recordingIndicator, .soundFeedback, .keyboardSounds, .audioMeter, .audioRecording, .lanTransfer, .translation, .bluetoothBattery:
             return nil
         }
     }
@@ -1740,6 +1743,11 @@ struct ContentView: View {
         case .translation:
             if isFeatureEnabled(.translation) {
                 TranslationPopupPanel(service: translationPopupService)
+                Divider()
+            }
+        case .bluetoothBattery:
+            if isFeatureEnabled(.bluetoothBattery) {
+                BluetoothBatteryPanel(service: bluetoothBatteryService)
                 Divider()
             }
         }
