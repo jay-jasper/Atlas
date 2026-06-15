@@ -44,6 +44,7 @@ impl FeatureManager {
         features.insert("pomodoro".to_string(), FeatureStatus::Disabled);
         features.insert("privacy".to_string(), FeatureStatus::Disabled);
         features.insert("proxy".to_string(), FeatureStatus::Disabled);
+        features.insert("quick-switches".to_string(), FeatureStatus::Disabled);
         features.insert("rss".to_string(), FeatureStatus::Disabled);
         features.insert("scratchpad".to_string(), FeatureStatus::Disabled);
         features.insert("scene-system".to_string(), FeatureStatus::Disabled);
@@ -143,6 +144,7 @@ mod tests {
                 "pomodoro",
                 "privacy",
                 "proxy",
+                "quick-switches",
                 "rss",
                 "scene-system",
                 "scratchpad",

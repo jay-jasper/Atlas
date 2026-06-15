@@ -18,6 +18,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case pomodoro
     case privacy
     case proxy
+    case quickSwitches = "quick-switches"
     case rss
     case sceneSystem = "scene-system"
     case scratchpad
@@ -76,6 +77,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "Privacy Pulse"
         case .proxy:
             return "Proxy Switcher"
+        case .quickSwitches:
+            return "Quick Switches"
         case .rss:
             return "RSS Reader"
         case .sceneSystem:
