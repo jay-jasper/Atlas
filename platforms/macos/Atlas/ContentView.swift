@@ -316,6 +316,7 @@ struct ContentView: View {
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
+    @State private var showsHome = true
     @State private var revealedOnDemandSceneModules = Set<SceneModuleID>()
     @State private var revealedOnDemandSceneID: UUID?
     private let screenshotFeatureSettingsStore = ScreenshotFeatureSettingsStore()
@@ -382,8 +383,139 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
+            if showsHome {
+                homeView
+            } else {
+                fullPanelView
+            }
+
+            if let capturedScreenshot {
+                ScreenshotEditorView(
+                    screenshot: capturedScreenshot,
+                    capabilities: screenshotFeatureSettings.editorCapabilities,
+                    onCopy: copyScreenshot,
+                    onSave: saveScreenshot,
+                    onPin: pinScreenshot,
+                    recognizedText: recognizedScreenshotText,
+                    isRecognizingText: isRecognizingScreenshotText,
+                    translatedText: translatedScreenshotText,
+                    isTranslatingText: isTranslatingScreenshotText,
+                    onRecognizeText: recognizeScreenshotText,
+                    onCopyRecognizedText: copyRecognizedText,
+                    onTranslateRecognizedText: translateRecognizedScreenshotText,
+                    onCopyTranslatedText: copyTranslatedText,
+                    onClose: closeScreenshotEditor
+                )
+            }
+        }
+        .frame(minWidth: 360, minHeight: 500)
+        .sheet(isPresented: $isShowingHandMirror) {
+            CameraPreviewPanel(
+                permissionState: handMirrorService.permissionState,
+                onRequestAccess: openHandMirror
+            )
+            .padding()
+        }
+        .sheet(isPresented: $isShowingSceneEditor) {
+            if let sceneCoordinator {
+                SceneEditorView(coordinator: sceneCoordinator)
+            }
+        }
+        .sheet(isPresented: $isShowingSceneDiagnostics) {
+            if let sceneCoordinator {
+                SceneDiagnosticsView(coordinator: sceneCoordinator)
+            }
+        }
+        .onAppear(perform: startModules)
+        .onDisappear(perform: stopModules)
+        .onReceive(NotificationCenter.default.publisher(for: .tokenBarSummaryDidChange)) { notification in
+            if let summary = notification.object as? TokenBarSummary {
+                tokenBarSummary = summary
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .tokenBarCommandStatusDidChange)) { notification in
+            if let status = notification.object as? TokenBarCommandStatus {
+                showStatus(status.message, kind: status.kind == .success ? .success : .error)
+            }
+        }
+    }
+
+    /// The designed Shell (`Atlas Shell.dc.html`) as the menu bar home, backed by
+    /// real monitoring/feature/scene data and wired to real actions.
+    private var homeView: some View {
+        AtlasShellView(
+            live: shellLiveData,
+            onOpenPalette: { paletteState?.controller.show() },
+            onOpenPreferences: { Self.openPreferencesWindow() },
+            onOpenScene: { isShowingSceneEditor = true },
+            onOpenToggles: { showsHome = false },
+            onOpenMore: { showsHome = false }
+        )
+    }
+
+    private var shellLiveData: AtlasShellLiveData {
+        let gib = 1_073_741_824.0
+        let snap = snapshot
+        let procs = (snap?.topCpuProcesses ?? []).prefix(3).map { p in
+            AtlasShellLiveData.Process(
+                badge: String(p.name.prefix(2)),
+                name: p.name,
+                detail: "pid \(p.pid)",
+                cpu: "\(Int(p.cpuUsage.rounded()))%"
+            )
+        }
+        let total = features.count
+        let enabled = features.filter { enabledFeatures[$0.name, default: $0.isEnabled] }.count
+        let sceneName = sceneCoordinator.flatMap { c in
+            c.scenes.first { $0.id == c.activeSceneID }?.name
+        }
+        return AtlasShellLiveData(
+            cpuPercent: Int((snap?.cpuUsage ?? 0).rounded()),
+            memUsedGB: Double(snap?.memUsedBytes ?? 0) / gib,
+            memTotalGB: Double(snap?.memTotalBytes ?? 0) / gib,
+            netDownText: Self.shortRate(snap?.netDownloadBps ?? 0),
+            netDownUnit: "下行 · 上行 /s",
+            netUpText: Self.shortRate(snap?.netUploadBps ?? 0),
+            cores: (snap?.cpuCores ?? []).map { min(max(Double($0.usage) / 100, 0), 1) },
+            processes: Array(procs),
+            sceneName: sceneName,
+            enabledCount: enabled,
+            totalCount: max(total, enabled),
+            activeModuleCount: enabled,
+            nowPlayingSource: nil
+        )
+    }
+
+    private static func shortRate(_ bps: UInt64) -> String {
+        let v = Double(bps)
+        if v >= 1_000_000 { return String(format: "%.1fM", v / 1_000_000) }
+        if v >= 1_000 { return String(format: "%.0fK", v / 1_000) }
+        return "\(bps)"
+    }
+
+    private static func openPreferencesWindow() {
+        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private var fullPanelView: some View {
+        ZStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
+                    HStack(spacing: 8) {
+                        Button {
+                            showsHome = true
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "chevron.left")
+                                Text("主页")
+                            }
+                            .font(.system(size: 12, weight: .medium))
+                        }
+                        .buttonStyle(.plain)
+                        Spacer()
+                    }
+
                     Text(statusText).font(.headline)
 
                     if showCaptureStatus {
@@ -444,55 +576,6 @@ struct ContentView: View {
                     AppFooter()
                 }
                 .padding()
-            }
-
-            if let capturedScreenshot {
-                ScreenshotEditorView(
-                    screenshot: capturedScreenshot,
-                    capabilities: screenshotFeatureSettings.editorCapabilities,
-                    onCopy: copyScreenshot,
-                    onSave: saveScreenshot,
-                    onPin: pinScreenshot,
-                    recognizedText: recognizedScreenshotText,
-                    isRecognizingText: isRecognizingScreenshotText,
-                    translatedText: translatedScreenshotText,
-                    isTranslatingText: isTranslatingScreenshotText,
-                    onRecognizeText: recognizeScreenshotText,
-                    onCopyRecognizedText: copyRecognizedText,
-                    onTranslateRecognizedText: translateRecognizedScreenshotText,
-                    onCopyTranslatedText: copyTranslatedText,
-                    onClose: closeScreenshotEditor
-                )
-            }
-        }
-        .frame(minWidth: 360, minHeight: 500)
-        .sheet(isPresented: $isShowingHandMirror) {
-            CameraPreviewPanel(
-                permissionState: handMirrorService.permissionState,
-                onRequestAccess: openHandMirror
-            )
-            .padding()
-        }
-        .sheet(isPresented: $isShowingSceneEditor) {
-            if let sceneCoordinator {
-                SceneEditorView(coordinator: sceneCoordinator)
-            }
-        }
-        .sheet(isPresented: $isShowingSceneDiagnostics) {
-            if let sceneCoordinator {
-                SceneDiagnosticsView(coordinator: sceneCoordinator)
-            }
-        }
-        .onAppear(perform: startModules)
-        .onDisappear(perform: stopModules)
-        .onReceive(NotificationCenter.default.publisher(for: .tokenBarSummaryDidChange)) { notification in
-            if let summary = notification.object as? TokenBarSummary {
-                tokenBarSummary = summary
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .tokenBarCommandStatusDidChange)) { notification in
-            if let status = notification.object as? TokenBarCommandStatus {
-                showStatus(status.message, kind: status.kind == .success ? .success : .error)
             }
         }
     }

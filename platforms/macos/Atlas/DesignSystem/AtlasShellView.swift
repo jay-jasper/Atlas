@@ -1,5 +1,29 @@
 import SwiftUI
 
+/// Live data the Shell renders when wired to real services. Any field left at its
+/// default keeps the prototype's mock value, so the view degrades gracefully.
+struct AtlasShellLiveData: Equatable {
+    struct Process: Equatable {
+        var badge: String
+        var name: String
+        var detail: String
+        var cpu: String
+    }
+    var cpuPercent: Int
+    var memUsedGB: Double
+    var memTotalGB: Double
+    var netDownText: String
+    var netDownUnit: String
+    var netUpText: String
+    var cores: [Double]
+    var processes: [Process]
+    var sceneName: String?
+    var enabledCount: Int
+    var totalCount: Int
+    var activeModuleCount: Int
+    var nowPlayingSource: String?
+}
+
 /// A faithful SwiftUI implementation of the approved design prototype's main
 /// Shell popup (`Atlas Shell.dc.html`): brand header, Scene Center card, the
 /// live monitoring section, and footer — built on AtlasTheme + components.
@@ -7,11 +31,15 @@ import SwiftUI
 struct AtlasShellView: View {
     @Environment(\.colorScheme) private var scheme
 
+    // Real data (nil → prototype mock values).
+    var live: AtlasShellLiveData? = nil
+
     // Hooks (no-ops by default; wire to real navigation/services when adopted).
     var onOpenPalette: () -> Void = {}
     var onOpenPreferences: () -> Void = {}
     var onOpenScene: () -> Void = {}
     var onOpenToggles: () -> Void = {}
+    var onOpenMore: () -> Void = {}
 
     var body: some View {
         let theme = AtlasTheme.resolve(for: scheme)
@@ -19,7 +47,7 @@ struct AtlasShellView: View {
             VStack(spacing: 0) {
                 header(theme)
                 AtlasSceneCenterCard(
-                    sceneName: "Focus",
+                    sceneName: live?.sceneName ?? "Focus",
                     reason: reasonText(theme),
                     activatedAgo: "激活 23 分钟前",
                     modules: ["监控", "Pomodoro", "剪贴板", "TOTP"],
@@ -68,14 +96,14 @@ struct AtlasShellView: View {
                     iconButton("magnifyingglass", theme, action: onOpenPalette)
                     iconButton("shield.lefthalf.filled", theme) {}
                     iconButton("gearshape", theme, action: onOpenPreferences)
-                    iconButton("ellipsis", theme) {}
+                    iconButton("ellipsis", theme, action: onOpenMore)
                 }
             }
             HStack(spacing: 8) {
                 Circle().fill(theme.green).frame(width: 6, height: 6)
                     .overlay(Circle().stroke(theme.greenSoft, lineWidth: 3))
                 (Text("Local").foregroundColor(theme.text1).fontWeight(.medium)
-                    + Text(" · 6 modules active · 14 后台服务在线").foregroundColor(theme.text2))
+                    + Text(" · \(live?.activeModuleCount ?? 6) modules active · 14 后台服务在线").foregroundColor(theme.text2))
                     .font(.system(size: 11.5))
                 Spacer(minLength: 0)
                 Text("⌘K").font(.system(size: 10.5, design: .monospaced)).foregroundStyle(theme.text3)
@@ -108,8 +136,8 @@ struct AtlasShellView: View {
             }
             VStack(spacing: 9) {
                 HStack(spacing: 8) {
-                    AtlasMetricTile(value: "37", unit: "% CPU", fraction: 0.37, barColor: theme.accent)
-                    AtlasMetricTile(value: "12.4", unit: "/ 16 GB", fraction: 0.775, barColor: theme.blue)
+                    cpuTile(theme)
+                    memTile(theme)
                     netTile(theme)
                 }
                 coresBar(theme)
@@ -120,13 +148,28 @@ struct AtlasShellView: View {
         }
     }
 
+    private func cpuTile(_ theme: AtlasTheme) -> some View {
+        let pct = live?.cpuPercent ?? 37
+        return AtlasMetricTile(value: "\(pct)", unit: "% CPU", fraction: Double(pct) / 100, barColor: theme.accent)
+    }
+
+    private func memTile(_ theme: AtlasTheme) -> some View {
+        let used = live?.memUsedGB ?? 12.4
+        let total = live?.memTotalGB ?? 16
+        let value = String(format: used >= 10 ? "%.1f" : "%.2f", used)
+        return AtlasMetricTile(value: value, unit: "/ \(Int(total.rounded())) GB",
+                               fraction: total > 0 ? used / total : 0, barColor: theme.blue)
+    }
+
     private func netTile(_ theme: AtlasTheme) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        let down = live.map { "↓\($0.netDownText)" } ?? "↓2.1"
+        let up = live.map { "↑\($0.netUpText)" } ?? "↑180K"
+        return VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text("↓2.1").font(.system(size: 12, weight: .semibold, design: .monospaced)).foregroundStyle(theme.green)
-                Text("↑180K").font(.system(size: 11, design: .monospaced)).foregroundStyle(theme.text2)
+                Text(down).font(.system(size: 12, weight: .semibold, design: .monospaced)).foregroundStyle(theme.green)
+                Text(up).font(.system(size: 11, design: .monospaced)).foregroundStyle(theme.text2)
             }
-            Text("MB/s · KB/s").font(.system(size: 10)).foregroundStyle(theme.text3)
+            Text(live?.netDownUnit ?? "MB/s · KB/s").font(.system(size: 10)).foregroundStyle(theme.text3)
         }
         .padding(.horizontal, 9).padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -135,11 +178,12 @@ struct AtlasShellView: View {
     }
 
     private func coresBar(_ theme: AtlasTheme) -> some View {
-        let cores: [(Double, Color)] = [
-            (0.62, theme.accent), (0.28, theme.accent), (0.81, theme.orange), (0.44, theme.accent),
-            (0.22, theme.accent), (0.92, theme.red), (0.36, theme.accent), (0.18, theme.accent),
-            (0.51, theme.accent), (0.33, theme.accent),
-        ]
+        let mockUsages: [Double] = [0.62, 0.28, 0.81, 0.44, 0.22, 0.92, 0.36, 0.18, 0.51, 0.33]
+        let usages = (live?.cores).flatMap { $0.isEmpty ? nil : $0 } ?? mockUsages
+        let cores: [(Double, Color)] = usages.map { u in
+            let color: Color = u >= 0.9 ? theme.red : (u >= 0.75 ? theme.orange : theme.accent)
+            return (min(max(u, 0), 1), color)
+        }
         return HStack(spacing: 6) {
             Text("Cores").font(.system(size: 10, weight: .medium)).foregroundStyle(theme.text3)
             HStack(spacing: 3) {
@@ -157,14 +201,28 @@ struct AtlasShellView: View {
         }
     }
 
+    @ViewBuilder
     private func processRows(_ theme: AtlasTheme) -> some View {
-        VStack(spacing: 4) {
-            processRow(theme, badge: "Xc", badgeColor: theme.red, badgeBg: theme.redSoft,
-                       name: "Xcode", detail: "build · 8123", cpu: "82%", cpuColor: theme.red, mem: "3.4 GB")
-            processRow(theme, badge: "Ar", badgeColor: theme.blue, badgeBg: theme.blueSoft,
-                       name: "Arc", detail: "helper · 412", cpu: "21%", cpuColor: theme.orange, mem: "1.8 GB")
-            processRow(theme, badge: "ol", badgeColor: theme.text2, badgeBg: theme.input,
-                       name: "ollama-serve", detail: "9213", cpu: "14%", cpuColor: theme.text2, mem: "2.1 GB")
+        if let procs = live?.processes, !procs.isEmpty {
+            let palette: [(Color, Color)] = [(theme.red, theme.redSoft), (theme.blue, theme.blueSoft), (theme.text2, theme.input)]
+            VStack(spacing: 4) {
+                ForEach(Array(procs.prefix(3).enumerated()), id: \.offset) { idx, p in
+                    let pair = palette[idx % palette.count]
+                    let pctValue = Int(p.cpu.filter { $0.isNumber }) ?? 0
+                    let cpuColor: Color = pctValue >= 80 ? theme.red : (pctValue >= 30 ? theme.orange : theme.text2)
+                    processRow(theme, badge: p.badge, badgeColor: pair.0, badgeBg: pair.1,
+                               name: p.name, detail: p.detail, cpu: p.cpu, cpuColor: cpuColor, mem: "")
+                }
+            }
+        } else {
+            VStack(spacing: 4) {
+                processRow(theme, badge: "Xc", badgeColor: theme.red, badgeBg: theme.redSoft,
+                           name: "Xcode", detail: "build · 8123", cpu: "82%", cpuColor: theme.red, mem: "3.4 GB")
+                processRow(theme, badge: "Ar", badgeColor: theme.blue, badgeBg: theme.blueSoft,
+                           name: "Arc", detail: "helper · 412", cpu: "21%", cpuColor: theme.orange, mem: "1.8 GB")
+                processRow(theme, badge: "ol", badgeColor: theme.text2, badgeBg: theme.input,
+                           name: "ollama-serve", detail: "9213", cpu: "14%", cpuColor: theme.text2, mem: "2.1 GB")
+            }
         }
     }
 
@@ -187,7 +245,7 @@ struct AtlasShellView: View {
 
     private func nowPlayingHeader(_ theme: AtlasTheme) -> some View {
         AtlasSectionHeader(systemImage: "music.note", title: "Now Playing") {
-            Text("Apple Music").font(.system(size: 10, design: .monospaced)).foregroundStyle(theme.text3)
+            Text(live?.nowPlayingSource ?? "Apple Music").font(.system(size: 10, design: .monospaced)).foregroundStyle(theme.text3)
         }
     }
 
@@ -202,7 +260,7 @@ struct AtlasShellView: View {
             (Text("Atlas ") + Text("0.8.2-beta").font(.system(size: 11, design: .monospaced)))
                 .foregroundStyle(theme.text3)
             Text("·").foregroundStyle(theme.borderStrong)
-            (Text("已启用 ") + Text("23").foregroundColor(theme.text1).fontWeight(.medium) + Text(" / 64 模块"))
+            (Text("已启用 ") + Text("\(live?.enabledCount ?? 23)").foregroundColor(theme.text1).fontWeight(.medium) + Text(" / \(live?.totalCount ?? 64) 模块"))
                 .foregroundStyle(theme.text3)
             Spacer(minLength: 0)
             Text("Pro").foregroundStyle(theme.text3)
