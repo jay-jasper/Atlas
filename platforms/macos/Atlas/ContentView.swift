@@ -129,6 +129,7 @@ private enum PrimaryPanelSection: Hashable {
     case packetMonitor
     case nowPlaying
     case liveCaption
+    case plugins
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -303,6 +304,7 @@ struct ContentView: View {
     @StateObject private var packetMonitorService = PacketMonitorService()
     @StateObject private var nowPlayingService = NowPlayingService()
     @StateObject private var liveCaptionService = LiveCaptionService()
+    @StateObject private var pluginsService = PluginsService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1327,6 +1329,7 @@ struct ContentView: View {
             .packetMonitor,
             .nowPlaying,
             .liveCaption,
+            .plugins,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1370,7 +1373,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing, .altTab, .colorSampler, .recordingIndicator, .soundFeedback, .keyboardSounds, .audioMeter, .audioRecording, .lanTransfer, .translation, .bluetoothBattery, .noiseGate, .packetMonitor, .nowPlaying, .liveCaption:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing, .altTab, .colorSampler, .recordingIndicator, .soundFeedback, .keyboardSounds, .audioMeter, .audioRecording, .lanTransfer, .translation, .bluetoothBattery, .noiseGate, .packetMonitor, .nowPlaying, .liveCaption, .plugins:
             return nil
         }
     }
@@ -1780,6 +1783,11 @@ struct ContentView: View {
         case .liveCaption:
             if isFeatureEnabled(.liveCaption) {
                 LiveCaptionPanel(service: liveCaptionService)
+                Divider()
+            }
+        case .plugins:
+            if isFeatureEnabled(.plugins) {
+                PluginsPanel(service: pluginsService)
                 Divider()
             }
         }

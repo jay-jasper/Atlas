@@ -60,6 +60,7 @@ impl FeatureManager {
         features.insert("now-playing".to_string(), FeatureStatus::Disabled);
         features.insert("obs-control".to_string(), FeatureStatus::Disabled);
         features.insert("packet-monitor".to_string(), FeatureStatus::Disabled);
+        features.insert("plugins".to_string(), FeatureStatus::Disabled);
         features.insert("pomodoro".to_string(), FeatureStatus::Disabled);
         features.insert("privacy".to_string(), FeatureStatus::Disabled);
         features.insert("proxy".to_string(), FeatureStatus::Disabled);
@@ -186,6 +187,7 @@ mod tests {
                 "now-playing",
                 "obs-control",
                 "packet-monitor",
+                "plugins",
                 "pomodoro",
                 "privacy",
                 "proxy",

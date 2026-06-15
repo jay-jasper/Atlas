@@ -34,6 +34,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case nowPlaying = "now-playing"
     case obsControl = "obs-control"
     case packetMonitor = "packet-monitor"
+    case plugins
     case pomodoro
     case privacy
     case proxy
@@ -135,6 +136,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "OBS Control"
         case .packetMonitor:
             return "Packet Monitor"
+        case .plugins:
+            return "Plugins"
         case .pomodoro:
             return "Pomodoro"
         case .privacy:

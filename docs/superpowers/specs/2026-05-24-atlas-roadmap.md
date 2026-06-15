@@ -43,10 +43,20 @@ waiting on Phase 3 Whisper; private-framework reads (MediaRemote now-playing) si
 behind injectable providers so the models/UI are complete and tested while the
 live data source can be swapped in.
 
-**Phases 1 + 2 = 51/61 roadmap items complete.** Remaining: Phase 3 complex
-features (#52–55: Whisper transcription, recording editor, notch UI, Lua bridge)
-and Phase 4 (the WASM + MCP plugin platform, #56–61) — each warrants its own
-design spec.
+**Phases 1 + 2 = 51/61 roadmap items complete.**
+
+**Phase 4 — plugin platform underway.** New `crates/atlas-plugin-host` provides
+the runtime-agnostic foundation: manifest parsing + capability gating + registry
+(Phase α core, #56), the Block Kit UI schema (Phase β, #57), the MCP client
+protocol (Phase δ, #59), and distribution/versioning (Phase ε, #60). On the app
+side, a `plugins` module decodes the Block Kit schema and **renders it natively
+in SwiftUI** with event routing (Phase γ slice, #58). What remains for Phase 4 is
+the heavy native glue: the actual wasmtime/WIT execution host, the MCP stdio
+subprocess transport, signed-package download, and the Atlas Hub registry (#61).
+
+Remaining: Phase 3 complex features (#52–55: Whisper transcription, recording
+editor, notch UI, Lua bridge) and the Phase 4 native runtime glue above — each a
+heavy native dependency (wasmtime, whisper.cpp, Lua) warranting its own spec.
 
 Each shipped as a complete vertical slice: pure testable core + service +
 SwiftUI panel + Rust `FeatureManager` registration (FFI lib regenerated) +
