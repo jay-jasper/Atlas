@@ -35,6 +35,7 @@ impl FeatureManager {
         features.insert("ddc-control".to_string(), FeatureStatus::Disabled);
         features.insert("flow-inbox".to_string(), FeatureStatus::Disabled);
         features.insert("fn-key".to_string(), FeatureStatus::Disabled);
+        features.insert("hosts".to_string(), FeatureStatus::Disabled);
         features.insert("monitoring".to_string(), FeatureStatus::Disabled);
         features.insert("network-monitor".to_string(), FeatureStatus::Disabled);
         features.insert("pomodoro".to_string(), FeatureStatus::Disabled);
@@ -128,6 +129,7 @@ mod tests {
                 "ddc-control",
                 "flow-inbox",
                 "fn-key",
+                "hosts",
                 "monitoring",
                 "network-monitor",
                 "pomodoro",
