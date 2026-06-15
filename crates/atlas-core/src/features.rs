@@ -57,6 +57,7 @@ impl FeatureManager {
         features.insert("monitoring".to_string(), FeatureStatus::Disabled);
         features.insert("network-monitor".to_string(), FeatureStatus::Disabled);
         features.insert("noise-gate".to_string(), FeatureStatus::Disabled);
+        features.insert("notch".to_string(), FeatureStatus::Disabled);
         features.insert("now-playing".to_string(), FeatureStatus::Disabled);
         features.insert("obs-control".to_string(), FeatureStatus::Disabled);
         features.insert("packet-monitor".to_string(), FeatureStatus::Disabled);
@@ -184,6 +185,7 @@ mod tests {
                 "monitoring",
                 "network-monitor",
                 "noise-gate",
+                "notch",
                 "now-playing",
                 "obs-control",
                 "packet-monitor",

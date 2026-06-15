@@ -31,6 +31,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case monitoring
     case networkMonitor = "network-monitor"
     case noiseGate = "noise-gate"
+    case notch
     case nowPlaying = "now-playing"
     case obsControl = "obs-control"
     case packetMonitor = "packet-monitor"
@@ -130,6 +131,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "Network Monitor"
         case .noiseGate:
             return "Mic Noise Gate"
+        case .notch:
+            return "Notch Island"
         case .nowPlaying:
             return "Now Playing"
         case .obsControl:
