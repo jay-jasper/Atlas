@@ -17,6 +17,7 @@ pub mod capabilities;
 pub mod dist;
 pub mod manifest;
 pub mod mcp;
+pub mod mcp_transport;
 pub mod registry;
 pub mod ui;
 pub mod wasm_host;
