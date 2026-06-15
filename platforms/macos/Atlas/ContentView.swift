@@ -101,6 +101,7 @@ private enum PrimaryPanelSection: Hashable {
     case envManager
     case diskUsage
     case proxy
+    case rss
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -247,6 +248,7 @@ struct ContentView: View {
     @StateObject private var envService = EnvService()
     @StateObject private var diskUsageService = DiskUsageService()
     @StateObject private var proxyService = ProxyService()
+    @StateObject private var rssService = RSSService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1243,6 +1245,7 @@ struct ContentView: View {
             .envManager,
             .diskUsage,
             .proxy,
+            .rss,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1286,7 +1289,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss:
             return nil
         }
     }
@@ -1556,6 +1559,11 @@ struct ContentView: View {
         case .proxy:
             if isFeatureEnabled(.proxy) {
                 ProxyPanel(service: proxyService)
+                Divider()
+            }
+        case .rss:
+            if isFeatureEnabled(.rss) {
+                RSSPanel(service: rssService)
                 Divider()
             }
         }
