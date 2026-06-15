@@ -165,6 +165,9 @@ final class CommandPaletteState: ObservableObject {
         let regexProvider = RegexTesterProvider()
         let timezoneProvider = TimezoneProvider()
         let emojiProvider = EmojiProvider()
+        let fileSearchProvider = FileSearchProvider()
+        let bookmarkProvider = BookmarkProvider()
+        let shellScriptProvider = ShellScriptProvider()
 
         self.controller = CommandPaletteController(providers: [
             calculatorProvider,
@@ -178,6 +181,9 @@ final class CommandPaletteState: ObservableObject {
             regexProvider,
             timezoneProvider,
             emojiProvider,
+            fileSearchProvider,
+            bookmarkProvider,
+            shellScriptProvider,
             atlasProvider,
             sceneProvider,
             audioHubProvider,
