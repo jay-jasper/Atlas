@@ -35,18 +35,18 @@ Chapter Markers (#46) · Watermark (#47) · Subtitle Tools (#48) · OBS Control 
 Plus a password-strength estimator wired into the palette generator (#7), and a
 one-shot `current_battery()` FFI surface.
 
-Also shipped: Audio Recording (#17), Keyboard Display (#16), GIF Post-Processing
-(#20), Alt-Tab (#30), Scroll Smoothing (#31), Keyboard SFX (#38), Sound Feedback
-(#40), Recording Indicator (#43), Audio Level Meter (#44), Video Color Sampler
-(#50) → **30/37 Phase 2 modules done (44/61 roadmap items overall).**
+**Phase 2 — COMPLETE (37/37).** All standalone modules #15–51 shipped, each a
+full vertical slice (pure testable core + service + SwiftUI panel + Rust
+`FeatureManager` registration with FFI regen + `AtlasModule` case + ContentView
+wiring + unit tests). Live Caption (#42) uses the Speech framework rather than
+waiting on Phase 3 Whisper; private-framework reads (MediaRemote now-playing) sit
+behind injectable providers so the models/UI are complete and tested while the
+live data source can be swapped in.
 
-Remaining Phase 2 (7): LAN Transfer (#19), Bluetooth Battery (#21), Translation
-Popup (#22), Packet Monitor (#34), Now Playing (#35), Live Caption (#42), Mic
-Noise Gate (#51) — each needs a private framework (MediaRemote now-playing,
-IOBluetooth battery), privileged/packet capture, a network protocol stack
-(Bonjour transfer), or a heavy DSP/ML dependency (RNNoise denoise, Whisper live
-caption — the latter blocked on Phase 3). Phase 3 (#52–55) and Phase 4 (plugin
-platform, #56–61) each warrant their own design spec per this roadmap's guidance.
+**Phases 1 + 2 = 51/61 roadmap items complete.** Remaining: Phase 3 complex
+features (#52–55: Whisper transcription, recording editor, notch UI, Lua bridge)
+and Phase 4 (the WASM + MCP plugin platform, #56–61) — each warrants its own
+design spec.
 
 Each shipped as a complete vertical slice: pure testable core + service +
 SwiftUI panel + Rust `FeatureManager` registration (FFI lib regenerated) +

@@ -53,6 +53,7 @@ impl FeatureManager {
         features.insert("keyboard-display".to_string(), FeatureStatus::Disabled);
         features.insert("keyboard-sounds".to_string(), FeatureStatus::Disabled);
         features.insert("lan-transfer".to_string(), FeatureStatus::Disabled);
+        features.insert("live-caption".to_string(), FeatureStatus::Disabled);
         features.insert("monitoring".to_string(), FeatureStatus::Disabled);
         features.insert("network-monitor".to_string(), FeatureStatus::Disabled);
         features.insert("noise-gate".to_string(), FeatureStatus::Disabled);
@@ -178,6 +179,7 @@ mod tests {
                 "keyboard-display",
                 "keyboard-sounds",
                 "lan-transfer",
+                "live-caption",
                 "monitoring",
                 "network-monitor",
                 "noise-gate",
