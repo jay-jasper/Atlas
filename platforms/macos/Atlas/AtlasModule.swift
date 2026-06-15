@@ -18,6 +18,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case skills
     case systemUtilities = "system-utilities"
     case tokenbar
+    case totp
     case windowManager = "window-manager"
 
     var id: String { rawValue }
@@ -66,6 +67,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "System Utilities"
         case .tokenbar:
             return "TokenBar"
+        case .totp:
+            return "TOTP 2FA"
         case .windowManager:
             return "Window Manager"
         }
