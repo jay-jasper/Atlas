@@ -111,6 +111,7 @@
 		623C71C7A8920C5D6F9823ED /* EntitlementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCF7BCE17C8EFF052AC6FE57 /* EntitlementService.swift */; };
 		623EE146338EB4DA208CADA3 /* EntitlementServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 259D88C38BA42701724C996B /* EntitlementServiceTests.swift */; };
 		62D5983818FEFD6F2177CDB0 /* AspectRatioGuideTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FF982118B4EE79428280AAE /* AspectRatioGuideTests.swift */; };
+		630554BA9800ABD72BBD06E0 /* WebWallpaperPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15B65EF97498D929F2B995AB /* WebWallpaperPanel.swift */; };
 		6363CC6CE9B33B04F768758F /* TokenBarSettingsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB99C5DE281831C1326A52B /* TokenBarSettingsPanel.swift */; };
 		63B33A63560345C4B6F97C64 /* AutomationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93BB86D86DEB40FBB383E872 /* AutomationSettingsView.swift */; };
 		6503D80833D61647E8262941 /* WindowManagementProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C7CD54ACF496511BC13CD65 /* WindowManagementProvider.swift */; };
@@ -124,6 +125,7 @@
 		6B718FB974601B73D1480830 /* SubtitlePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32F8029E5C710A15F17AB943 /* SubtitlePanel.swift */; };
 		6BCBDDE8D5B17464F993E4E3 /* UnitConverterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93D94815D4EEB7F3AC815A1 /* UnitConverterTests.swift */; };
 		6BF31C4AA2E6656F26B8464B /* ProxyPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50273B41746CFCA0BFA7ED10 /* ProxyPanel.swift */; };
+		6C81E5E077CC8D7C5A8D0539 /* WebWallpaperURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1E9E9962C840FF54057B0A6 /* WebWallpaperURLTests.swift */; };
 		6F2C2324BB44B07A6739D437 /* ClipboardHistoryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920B22C57AF5F1BF6EF6666E /* ClipboardHistoryStoreTests.swift */; };
 		73147BE47DD27414AC920184 /* TeleprompterPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B280A5900057715DC5F40572 /* TeleprompterPanel.swift */; };
 		73C9E12D6E75FB1A3F80AB00 /* SubtitleDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FA1FBC43960A6D118919AD7 /* SubtitleDocumentTests.swift */; };
@@ -274,6 +276,7 @@
 		AD5065F56668AF18FD7D126A /* ApplicationScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AA19230041F4B8429FA8D7A /* ApplicationScannerTests.swift */; };
 		AD8BD6BD72331F065EA64579 /* WorkspaceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 729B106765888142D564D0A6 /* WorkspaceModels.swift */; };
 		AE9465A9AD2EF740A048643E /* LocalAIProcessSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 227FB8773DCC103E01BBA767 /* LocalAIProcessSnapshotTests.swift */; };
+		AF0FD8439709FCA293518C82 /* WebWallpaperURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B6FAFFD2C3ECD25EBA282CB /* WebWallpaperURL.swift */; };
 		AF3C2EEECAE11C4A5BCB3FCD /* ExpressionDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 554A78437C8E78953A4C510F /* ExpressionDetector.swift */; };
 		AF8B10ADF22620F7C382673C /* BrowserRouterPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D478E157E12D434B81E8F75 /* BrowserRouterPanel.swift */; };
 		AFB06AD03955485F0750B8B6 /* PomodoroEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D99B5E13AA39F1180913BB /* PomodoroEngine.swift */; };
@@ -328,6 +331,7 @@
 		E7DBF19029AE19FA2AFB30A7 /* WindowManagementPermissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 608EF2D7E52BB01FE4FE5041 /* WindowManagementPermissions.swift */; };
 		E87B6C533370DF95AC470BBC /* TokenBarCommandProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B7331557AC1DD1412B270B /* TokenBarCommandProviderTests.swift */; };
 		E8B7D0340311E60AA168F092 /* TOTPModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCA4D8F5DB95B41DD7BB0377 /* TOTPModels.swift */; };
+		EBAA2A38043834BAD8878D1D /* WebWallpaperService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AFF786F679A9F63B08D7F4E /* WebWallpaperService.swift */; };
 		EC62DFCBD33BA703BBFFFC82 /* PomodoroTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25E21AD165F60BB926426E55 /* PomodoroTests.swift */; };
 		ED23773DE6646B7523CAD04F /* ScratchpadProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C2A69A0B900980927DCF55A /* ScratchpadProvider.swift */; };
 		ED4F3E5EBEE795EB403E4880 /* SnippetsProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6ED5C58191AF87FA22B4409 /* SnippetsProviderTests.swift */; };
@@ -388,6 +392,7 @@
 		14B205105241F1953D68620F /* DiskUsageScannerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DiskUsageScannerTests.swift; sourceTree = "<group>"; };
 		14D04A39076EB41DED65B96A /* ProxyProfile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProxyProfile.swift; sourceTree = "<group>"; };
 		1596E7DC2BE331F1D35CBCCD /* WindowManagementProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WindowManagementProviderTests.swift; sourceTree = "<group>"; };
+		15B65EF97498D929F2B995AB /* WebWallpaperPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WebWallpaperPanel.swift; sourceTree = "<group>"; };
 		1779CC7DAAF4B4BD451488EB /* TOTPPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TOTPPanel.swift; sourceTree = "<group>"; };
 		1B98D69D7B30401BB40B4D23 /* CalendarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
 		1DF3E2E0E1C351BFCB30A352 /* ChapterPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChapterPanel.swift; sourceTree = "<group>"; };
@@ -471,6 +476,7 @@
 		6A749F07B8C648ACB1F9C381 /* FnKeyServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FnKeyServiceTests.swift; sourceTree = "<group>"; };
 		6AD19DB4B5A15D548528061C /* SystemCommandRunner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemCommandRunner.swift; sourceTree = "<group>"; };
 		6AE7330D1F8B461D9414D165 /* CustomAutomationProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CustomAutomationProvider.swift; sourceTree = "<group>"; };
+		6AFF786F679A9F63B08D7F4E /* WebWallpaperService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WebWallpaperService.swift; sourceTree = "<group>"; };
 		6DD923DBE2696C567A15B066 /* PasswordGeneratorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PasswordGeneratorProvider.swift; sourceTree = "<group>"; };
 		6E276FD7ABA37B12C6847A63 /* CommandPaletteController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommandPaletteController.swift; sourceTree = "<group>"; };
 		6EF0A254C1D4D8FD36219677 /* PrivacyPulsePanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrivacyPulsePanel.swift; path = Atlas/PrivacyPulsePanel.swift; sourceTree = "<group>"; };
@@ -486,6 +492,7 @@
 		76DB93057467DE54021D3D23 /* EnvPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EnvPanel.swift; sourceTree = "<group>"; };
 		76DC3B08BCC2D9D30829606D /* TokenBarImportService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarImportService.swift; sourceTree = "<group>"; };
 		7B5B219B548735265B480D6F /* WorkspaceStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspaceStore.swift; sourceTree = "<group>"; };
+		7B6FAFFD2C3ECD25EBA282CB /* WebWallpaperURL.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WebWallpaperURL.swift; sourceTree = "<group>"; };
 		7BD387111C193F6B50B6F113 /* SnippetStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnippetStoreTests.swift; sourceTree = "<group>"; };
 		7E4B44C9DA748AF33BC04266 /* ScratchpadStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ScratchpadStore.swift; path = ScratchpadStore.swift; sourceTree = "<group>"; };
 		7E5B23543BB68282DC30726C /* BookmarkProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BookmarkProvider.swift; sourceTree = "<group>"; };
@@ -628,6 +635,7 @@
 		AE9F25E36695F37BAF365B73 /* SystemUtilitiesPanelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemUtilitiesPanelTests.swift; sourceTree = "<group>"; };
 		AFFDF4687D80F83AFD13B685 /* AppLauncherRefreshTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppLauncherRefreshTests.swift; sourceTree = "<group>"; };
 		B15575A30F31473EB643093C /* ScreenshotImageStitcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotImageStitcherTests.swift; sourceTree = "<group>"; };
+		B1E9E9962C840FF54057B0A6 /* WebWallpaperURLTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WebWallpaperURLTests.swift; sourceTree = "<group>"; };
 		B22D68B568E94FC7864B9ED5 /* CustomAutomationModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CustomAutomationModels.swift; sourceTree = "<group>"; };
 		B280A5900057715DC5F40572 /* TeleprompterPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TeleprompterPanel.swift; sourceTree = "<group>"; };
 		B28DAF3D78A864FA74A75932 /* CalculatorCommandProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalculatorCommandProvider.swift; sourceTree = "<group>"; };
@@ -877,6 +885,17 @@
 			path = OBS;
 			sourceTree = "<group>";
 		};
+		667FF0F03BDCA8DD3D2BB3FC /* WebWallpaper */ = {
+			isa = PBXGroup;
+			children = (
+				7B6FAFFD2C3ECD25EBA282CB /* WebWallpaperURL.swift */,
+				6AFF786F679A9F63B08D7F4E /* WebWallpaperService.swift */,
+				15B65EF97498D929F2B995AB /* WebWallpaperPanel.swift */,
+			);
+			name = WebWallpaper;
+			path = WebWallpaper;
+			sourceTree = "<group>";
+		};
 		6FADC86DBF6AF3EA16F0D67A /* CommandPalette */ = {
 			isa = PBXGroup;
 			children = (
@@ -1092,6 +1111,7 @@
 				C688924BEED17E7A2FDA6A8B /* Watermark */,
 				64808A0843E05C6B86E37FD6 /* OBS */,
 				B636CA5A149F2163DB832E5A /* Teleprompter */,
+				667FF0F03BDCA8DD3D2BB3FC /* WebWallpaper */,
 			);
 			path = Atlas;
 			sourceTree = "<group>";
@@ -1221,6 +1241,7 @@
 				E591D057E3ECDC105B72B64A /* WatermarkLayoutTests.swift */,
 				640A2ECFEF8C9217A1376D33 /* OBSMessageTests.swift */,
 				A320FD04B2E23200BCAF7837 /* TeleprompterTests.swift */,
+				B1E9E9962C840FF54057B0A6 /* WebWallpaperURLTests.swift */,
 			);
 			path = AtlasTests;
 			sourceTree = "<group>";
@@ -1665,6 +1686,9 @@
 				FC5B1A4D0F1AE5AE640F6223 /* TeleprompterEngine.swift in Sources */,
 				DF42659882655A19E8550454 /* TeleprompterService.swift in Sources */,
 				73147BE47DD27414AC920184 /* TeleprompterPanel.swift in Sources */,
+				AF0FD8439709FCA293518C82 /* WebWallpaperURL.swift in Sources */,
+				EBAA2A38043834BAD8878D1D /* WebWallpaperService.swift in Sources */,
+				630554BA9800ABD72BBD06E0 /* WebWallpaperPanel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1796,6 +1820,7 @@
 				0B8F17E0AF074A890862E674 /* WatermarkLayoutTests.swift in Sources */,
 				EDFABA4AFB0B45985F34F0DD /* OBSMessageTests.swift in Sources */,
 				91B4235F05628F9458D06DDE /* TeleprompterTests.swift in Sources */,
+				6C81E5E077CC8D7C5A8D0539 /* WebWallpaperURLTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

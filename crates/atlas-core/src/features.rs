@@ -63,6 +63,7 @@ impl FeatureManager {
         features.insert("tokenbar".to_string(), FeatureStatus::Disabled);
         features.insert("totp".to_string(), FeatureStatus::Disabled);
         features.insert("watermark".to_string(), FeatureStatus::Disabled);
+        features.insert("web-wallpaper".to_string(), FeatureStatus::Disabled);
         features.insert("window-manager".to_string(), FeatureStatus::Disabled);
         Self { features }
     }
@@ -171,6 +172,7 @@ mod tests {
                 "tokenbar",
                 "totp",
                 "watermark",
+                "web-wallpaper",
                 "window-manager",
             ]
         );

@@ -26,14 +26,21 @@ FFI + native evaluator), Emoji (#2), UUID/NanoID (#3), Shell Runner (#4),
 Bookmarks (#5), File Search (#6), Password (#7), JSON (#8), Hash (#9),
 Base64/URL (#10), Timezone (#11), Regex (#12), Lorem (#13), Color Convert (#14).
 
-**Phase 2 — in progress (17/37):** Hosts Editor (#15) · Env Variables (#18) ·
+**Phase 2 — in progress (20/37):** Hosts Editor (#15) · Env Variables (#18) ·
 TOTP 2FA (#23) · Pomodoro (#24) · Disk Usage (#25) · Battery Health (#26) ·
 RSS Reader (#27) · App Cleaner (#28) · Text Expansion (#29) · Browser Router (#32) ·
-Quick Switches (#33) · Proxy Switcher (#36) · Drag Shelf (#39) ·
-Aspect Ratio Guide (#45) · Chapter Markers (#46) · Watermark (#47) ·
-Subtitle Tools (#48).
+Quick Switches (#33) · Proxy Switcher (#36) · Web Wallpaper (#37) ·
+Drag Shelf (#39) · Teleprompter (#41) · Aspect Ratio Guide (#45) ·
+Chapter Markers (#46) · Watermark (#47) · Subtitle Tools (#48) · OBS Control (#49).
 Plus a password-strength estimator wired into the palette generator (#7), and a
 one-shot `current_battery()` FFI surface.
+
+Remaining Phase 2 (17): Keyboard Display (#16), Audio Recording (#17), LAN
+Transfer (#19), GIF Post-Processing (#20), Bluetooth Battery (#21), Translation
+Popup (#22), Alt-Tab (#30), Scroll Smoothing (#31), Packet Monitor (#34), Now
+Playing (#35), Keyboard SFX (#38), Sound Feedback (#40), Live Caption (#42),
+Recording Indicator (#43), Audio Level Meter (#44), Video Color Sampler (#50),
+Mic Noise Gate (#51).
 
 Each shipped as a complete vertical slice: pure testable core + service +
 SwiftUI panel + Rust `FeatureManager` registration (FFI lib regenerated) +
