@@ -104,6 +104,7 @@ private enum PrimaryPanelSection: Hashable {
     case rss
     case quickSwitches
     case chapterMarker
+    case appCleaner
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -253,6 +254,7 @@ struct ContentView: View {
     @StateObject private var rssService = RSSService()
     @StateObject private var quickSwitchService = QuickSwitchService()
     @StateObject private var chapterService = ChapterService()
+    @StateObject private var appCleanerService = AppCleanerService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1252,6 +1254,7 @@ struct ContentView: View {
             .rss,
             .quickSwitches,
             .chapterMarker,
+            .appCleaner,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1295,7 +1298,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner:
             return nil
         }
     }
@@ -1580,6 +1583,11 @@ struct ContentView: View {
         case .chapterMarker:
             if isFeatureEnabled(.chapterMarker) {
                 ChapterPanel(service: chapterService)
+                Divider()
+            }
+        case .appCleaner:
+            if isFeatureEnabled(.appCleaner) {
+                AppCleanerPanel(service: appCleanerService)
                 Divider()
             }
         }
