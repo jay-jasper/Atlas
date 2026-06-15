@@ -117,6 +117,7 @@ private enum PrimaryPanelSection: Hashable {
     case gifProcessing
     case altTab
     case colorSampler
+    case recordingIndicator
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -279,6 +280,7 @@ struct ContentView: View {
     @StateObject private var gifProcessingService = GIFProcessingService()
     @StateObject private var altTabService = AltTabService()
     @StateObject private var colorSamplerService = ColorSamplerService()
+    @StateObject private var recordingIndicatorService = RecordingIndicatorService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1291,6 +1293,7 @@ struct ContentView: View {
             .gifProcessing,
             .altTab,
             .colorSampler,
+            .recordingIndicator,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1334,7 +1337,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing, .altTab, .colorSampler:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing, .altTab, .colorSampler, .recordingIndicator:
             return nil
         }
     }
@@ -1684,6 +1687,11 @@ struct ContentView: View {
         case .colorSampler:
             if isFeatureEnabled(.colorSampler) {
                 ColorSamplerPanel(service: colorSamplerService)
+                Divider()
+            }
+        case .recordingIndicator:
+            if isFeatureEnabled(.recordingIndicator) {
+                RecordingIndicatorPanel(service: recordingIndicatorService)
                 Divider()
             }
         }

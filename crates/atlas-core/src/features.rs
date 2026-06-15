@@ -55,6 +55,7 @@ impl FeatureManager {
         features.insert("privacy".to_string(), FeatureStatus::Disabled);
         features.insert("proxy".to_string(), FeatureStatus::Disabled);
         features.insert("quick-switches".to_string(), FeatureStatus::Disabled);
+        features.insert("recording-indicator".to_string(), FeatureStatus::Disabled);
         features.insert("rss".to_string(), FeatureStatus::Disabled);
         features.insert("scratchpad".to_string(), FeatureStatus::Disabled);
         features.insert("scene-system".to_string(), FeatureStatus::Disabled);
@@ -169,6 +170,7 @@ mod tests {
                 "privacy",
                 "proxy",
                 "quick-switches",
+                "recording-indicator",
                 "rss",
                 "scene-system",
                 "scratchpad",
