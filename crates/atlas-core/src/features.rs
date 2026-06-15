@@ -43,6 +43,7 @@ impl FeatureManager {
         features.insert("env-manager".to_string(), FeatureStatus::Disabled);
         features.insert("flow-inbox".to_string(), FeatureStatus::Disabled);
         features.insert("fn-key".to_string(), FeatureStatus::Disabled);
+        features.insert("gif-processing".to_string(), FeatureStatus::Disabled);
         features.insert("hosts".to_string(), FeatureStatus::Disabled);
         features.insert("keyboard-display".to_string(), FeatureStatus::Disabled);
         features.insert("monitoring".to_string(), FeatureStatus::Disabled);
@@ -154,6 +155,7 @@ mod tests {
                 "env-manager",
                 "flow-inbox",
                 "fn-key",
+                "gif-processing",
                 "hosts",
                 "keyboard-display",
                 "monitoring",

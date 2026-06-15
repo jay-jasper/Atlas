@@ -114,6 +114,7 @@ private enum PrimaryPanelSection: Hashable {
     case webWallpaper
     case keyboardDisplay
     case scrollSmoothing
+    case gifProcessing
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -273,6 +274,7 @@ struct ContentView: View {
     @StateObject private var webWallpaperService = WebWallpaperService()
     @StateObject private var keyboardDisplayService = KeyboardDisplayService()
     @StateObject private var scrollSmoothingService = ScrollSmoothingService()
+    @StateObject private var gifProcessingService = GIFProcessingService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1282,6 +1284,7 @@ struct ContentView: View {
             .webWallpaper,
             .keyboardDisplay,
             .scrollSmoothing,
+            .gifProcessing,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1325,7 +1328,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing:
             return nil
         }
     }
@@ -1660,6 +1663,11 @@ struct ContentView: View {
         case .scrollSmoothing:
             if isFeatureEnabled(.scrollSmoothing) {
                 ScrollSmoothingPanel(service: scrollSmoothingService)
+                Divider()
+            }
+        case .gifProcessing:
+            if isFeatureEnabled(.gifProcessing) {
+                GIFProcessingPanel(service: gifProcessingService)
                 Divider()
             }
         }
