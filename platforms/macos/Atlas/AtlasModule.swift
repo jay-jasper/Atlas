@@ -40,6 +40,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case privacy
     case proxy
     case quickSwitches = "quick-switches"
+    case recordingEditor = "recording-editor"
     case recordingIndicator = "recording-indicator"
     case rss
     case sceneSystem = "scene-system"
@@ -150,6 +151,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "Proxy Switcher"
         case .quickSwitches:
             return "Quick Switches"
+        case .recordingEditor:
+            return "Recording Editor"
         case .recordingIndicator:
             return "Recording Indicator"
         case .rss:

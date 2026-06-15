@@ -132,6 +132,7 @@ private enum PrimaryPanelSection: Hashable {
     case plugins
     case notch
     case transcription
+    case recordingEditor
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -309,6 +310,7 @@ struct ContentView: View {
     @StateObject private var pluginsService = PluginsService()
     @StateObject private var notchService = NotchService()
     @StateObject private var transcriptionService = TranscriptionService()
+    @StateObject private var recordingEditorService = RecordingEditorService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1336,6 +1338,7 @@ struct ContentView: View {
             .plugins,
             .notch,
             .transcription,
+            .recordingEditor,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1379,7 +1382,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing, .altTab, .colorSampler, .recordingIndicator, .soundFeedback, .keyboardSounds, .audioMeter, .audioRecording, .lanTransfer, .translation, .bluetoothBattery, .noiseGate, .packetMonitor, .nowPlaying, .liveCaption, .plugins, .notch, .transcription:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing, .altTab, .colorSampler, .recordingIndicator, .soundFeedback, .keyboardSounds, .audioMeter, .audioRecording, .lanTransfer, .translation, .bluetoothBattery, .noiseGate, .packetMonitor, .nowPlaying, .liveCaption, .plugins, .notch, .transcription, .recordingEditor:
             return nil
         }
     }
@@ -1804,6 +1807,11 @@ struct ContentView: View {
         case .transcription:
             if isFeatureEnabled(.transcription) {
                 TranscriptionPanel(service: transcriptionService)
+                Divider()
+            }
+        case .recordingEditor:
+            if isFeatureEnabled(.recordingEditor) {
+                RecordingEditorPanel(service: recordingEditorService)
                 Divider()
             }
         }
