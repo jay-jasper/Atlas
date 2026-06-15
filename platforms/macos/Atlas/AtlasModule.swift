@@ -18,6 +18,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case flowInbox = "flow-inbox"
     case fnKey = "fn-key"
     case hosts
+    case keyboardDisplay = "keyboard-display"
     case monitoring
     case networkMonitor = "network-monitor"
     case obsControl = "obs-control"
@@ -86,6 +87,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "Fn Key Switcher"
         case .hosts:
             return "Hosts Editor"
+        case .keyboardDisplay:
+            return "Keyboard Display"
         case .monitoring:
             return "Monitoring"
         case .networkMonitor:
