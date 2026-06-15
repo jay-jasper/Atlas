@@ -19,6 +19,7 @@ pub mod manifest;
 pub mod mcp;
 pub mod registry;
 pub mod ui;
+pub mod wasm_host;
 
 pub use capabilities::{CapabilityError, CapabilityGuard};
 pub use manifest::{Capabilities, ManifestError, PluginManifest, Runtime, RuntimeKind};
