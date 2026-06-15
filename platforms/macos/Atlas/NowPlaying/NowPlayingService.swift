@@ -8,7 +8,7 @@ final class NowPlayingService: ObservableObject {
 
     private let provider: NowPlayingProviding
 
-    init(provider: NowPlayingProviding = UnavailableNowPlayingProvider()) {
+    init(provider: NowPlayingProviding = MediaRemoteNowPlayingProvider()) {
         self.provider = provider
         refresh()
     }
