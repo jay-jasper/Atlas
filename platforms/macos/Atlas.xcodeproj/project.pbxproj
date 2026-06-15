@@ -21,6 +21,8 @@
 		06F3E73C2B27D47C2214098C /* EmojiProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E2871FEEE64F42C8DEC50A7 /* EmojiProvider.swift */; };
 		078E066D641E8A352B05A904 /* KeyRecorderViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A75E6A854484E3D03D8A606F /* KeyRecorderViewTests.swift */; };
 		08022EB460806C44882B6C1F /* QuickSwitchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9C104CCF6D0F133A7DB822 /* QuickSwitchService.swift */; };
+		0878DE5BFF2731CF40296C67 /* TransferProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2722BDC76ED76C085A6E1889 /* TransferProtocol.swift */; };
+		08BC05CC733841794946D4D4 /* TransferFramingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2CCEF9C239168A1C47E6873 /* TransferFramingTests.swift */; };
 		08DD2326DB74736A36D71D24 /* QuickSwitchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D466692EA2AF53349704946 /* QuickSwitchTests.swift */; };
 		0A6D803A9CB84221C4E0A647 /* TokenBarPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC45D71022E9032E9D52E38C /* TokenBarPanel.swift */; };
 		0AA14FE406AB4FC6B472B744 /* ColorPickerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F270156DB68B4328B055EA54 /* ColorPickerPanel.swift */; };
@@ -94,6 +96,7 @@
 		4BF63C910E8B30F8E55B5624 /* ShellScriptProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8B0F60EA23E674D7AD5130A /* ShellScriptProvider.swift */; };
 		4C70087DE0850020E1CB6498 /* AppLauncherRefreshTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFFDF4687D80F83AFD13B685 /* AppLauncherRefreshTests.swift */; };
 		4C9917DFBDC8E75DD939842E /* TokenBarLedger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41B30006624DEEC95D3B5DF /* TokenBarLedger.swift */; };
+		4D39F0CE6FF8B6B3E9BA78B4 /* LANTransferService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE1B7DF4B3697E72D1AFCBF2 /* LANTransferService.swift */; };
 		4DF4C8167865018B5FF81EE3 /* TokenBarImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DC3B08BCC2D9D30829606D /* TokenBarImportService.swift */; };
 		4E33C3ADD66D4E5B8AE180DF /* NetworkMonitorPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4742EB74C004AC68B04AA33 /* NetworkMonitorPanel.swift */; };
 		50F4ECA080184A9EA61B06F2 /* ScreenshotGIFOutputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1408CAF605184C5F990E7F9C /* ScreenshotGIFOutputTests.swift */; };
@@ -273,6 +276,7 @@
 		9D1956C2F449345483BB413C /* SkillSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49CE70332FCD6E0CA3694604 /* SkillSettingsView.swift */; };
 		9FBFEA29C44144A9C2998188 /* IdentifierProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2CCF2EC95D1C8A8A7E181FC /* IdentifierProvider.swift */; };
 		9FC3357A4DF6EA53756657F9 /* WindowSwitcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24CBC7B224EC0A0BB1539D46 /* WindowSwitcherTests.swift */; };
+		A065F1CD333905B707BBF702 /* LANTransferPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3373013D35AB67465C377E8 /* LANTransferPanel.swift */; };
 		A06C923F373CF82A3A6413C5 /* FileSearchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E432DB161183383E5722684F /* FileSearchProvider.swift */; };
 		A0C31A0AAC2EE8D194983C37 /* PrivacyPulseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA81DA23471236D97627CAB9 /* PrivacyPulseService.swift */; };
 		A0ED587B2DA05EE1E1FDCFAB /* DiskUsageScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92409F2ED0AF8A50BF6CCB56 /* DiskUsageScanner.swift */; };
@@ -448,6 +452,7 @@
 		259D88C38BA42701724C996B /* EntitlementServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EntitlementServiceTests.swift; sourceTree = "<group>"; };
 		25E21AD165F60BB926426E55 /* PomodoroTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomodoroTests.swift; sourceTree = "<group>"; };
 		264F248E7006074F679F654A /* WorkspaceWindowServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspaceWindowServiceTests.swift; sourceTree = "<group>"; };
+		2722BDC76ED76C085A6E1889 /* TransferProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TransferProtocol.swift; sourceTree = "<group>"; };
 		280174B495DA4E699AB9EDD4 /* NetworkMonitorService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NetworkMonitorService.swift; sourceTree = "<group>"; };
 		2A1449ABE48B9D44215380D6 /* AppLauncherProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppLauncherProvider.swift; sourceTree = "<group>"; };
 		2C7CD54ACF496511BC13CD65 /* WindowManagementProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WindowManagementProvider.swift; sourceTree = "<group>"; };
@@ -677,6 +682,7 @@
 		A10000000000000000000013 /* FlowInbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowInbox.swift; sourceTree = "<group>"; };
 		A1D7D807FB5DEF648E4581B1 /* ScratchpadSummaryService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ScratchpadSummaryService.swift; path = ScratchpadSummaryService.swift; sourceTree = "<group>"; };
 		A24E8707B23A8AC9918F81A5 /* SnippetsProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnippetsProvider.swift; sourceTree = "<group>"; };
+		A2CCEF9C239168A1C47E6873 /* TransferFramingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TransferFramingTests.swift; sourceTree = "<group>"; };
 		A320FD04B2E23200BCAF7837 /* TeleprompterTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TeleprompterTests.swift; sourceTree = "<group>"; };
 		A3B6E761DA0438F74267525F /* PixelSampler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PixelSampler.swift; sourceTree = "<group>"; };
 		A3E4FA9DA7E6707AEC2CAFB8 /* BatteryHealthService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BatteryHealthService.swift; sourceTree = "<group>"; };
@@ -720,6 +726,7 @@
 		BA8A5F47DBA508F58C46E2E6 /* ScratchpadPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ScratchpadPanel.swift; path = ScratchpadPanel.swift; sourceTree = "<group>"; };
 		BB8FE8BD2953E1E6936808BD /* ScrollSmoothingPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScrollSmoothingPanel.swift; sourceTree = "<group>"; };
 		BBC822B4864798A9A64E87F5 /* EditionModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EditionModels.swift; sourceTree = "<group>"; };
+		BE1B7DF4B3697E72D1AFCBF2 /* LANTransferService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LANTransferService.swift; sourceTree = "<group>"; };
 		BFD109CDC208DBAB7AD34845 /* TextExpansionService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TextExpansionService.swift; sourceTree = "<group>"; };
 		C02A53A2344988BE3377B734 /* AudioMeterPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AudioMeterPanel.swift; sourceTree = "<group>"; };
 		C0A83976208D43FD85FA74EB /* AppAudioPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppAudioPanel.swift; sourceTree = "<group>"; };
@@ -753,6 +760,7 @@
 		D007A761892B41AA925213D8 /* NetworkMonitorParserTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NetworkMonitorParserTests.swift; sourceTree = "<group>"; };
 		D063FCA20E28DBA150981535 /* EnvService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EnvService.swift; sourceTree = "<group>"; };
 		D13CB23AEEF1DA71D5904B40 /* TokenBarProviderClientTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarProviderClientTests.swift; sourceTree = "<group>"; };
+		D3373013D35AB67465C377E8 /* LANTransferPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LANTransferPanel.swift; sourceTree = "<group>"; };
 		D5420A681CFDE8B5375B3EE6 /* TextExpansionMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TextExpansionMonitor.swift; sourceTree = "<group>"; };
 		D548220FD3DA27217EAF5486 /* DragShelfStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DragShelfStore.swift; sourceTree = "<group>"; };
 		D5C1625818A6D6AA24F40EA2 /* CommandProviding.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommandProviding.swift; sourceTree = "<group>"; };
@@ -1257,6 +1265,7 @@
 				4AF8F646D5BE402D724CBFF9 /* KeyboardSounds */,
 				33492D83E3AD35EFAA55A7AC /* AudioMeter */,
 				B37455AA5E107322C7E2BF9E /* AudioRecording */,
+				E82EBE7CF1E902D630317AAC /* LANTransfer */,
 			);
 			path = Atlas;
 			sourceTree = "<group>";
@@ -1397,6 +1406,7 @@
 				1383C584255EE54D8095230E /* KeyboardSoundTests.swift */,
 				0C264B2017E4048C4A0F5CC9 /* AudioLevelMeterTests.swift */,
 				A802A208C74A756048815FB7 /* AudioRecordingConfigTests.swift */,
+				A2CCEF9C239168A1C47E6873 /* TransferFramingTests.swift */,
 			);
 			path = AtlasTests;
 			sourceTree = "<group>";
@@ -1554,6 +1564,17 @@
 			);
 			name = QuickSwitches;
 			path = QuickSwitches;
+			sourceTree = "<group>";
+		};
+		E82EBE7CF1E902D630317AAC /* LANTransfer */ = {
+			isa = PBXGroup;
+			children = (
+				2722BDC76ED76C085A6E1889 /* TransferProtocol.swift */,
+				BE1B7DF4B3697E72D1AFCBF2 /* LANTransferService.swift */,
+				D3373013D35AB67465C377E8 /* LANTransferPanel.swift */,
+			);
+			name = LANTransfer;
+			path = LANTransfer;
 			sourceTree = "<group>";
 		};
 		F7D7DFB56F9C938C1379946E /* RSS */ = {
@@ -1929,6 +1950,9 @@
 				AAC8F90EC8056F1B5BE8D8C4 /* AudioRecordingConfig.swift in Sources */,
 				768F3AB0514ABF776FE65E5B /* AudioRecordingService.swift in Sources */,
 				203C596BD6B511A83D5426C0 /* AudioRecordingPanel.swift in Sources */,
+				0878DE5BFF2731CF40296C67 /* TransferProtocol.swift in Sources */,
+				4D39F0CE6FF8B6B3E9BA78B4 /* LANTransferService.swift in Sources */,
+				A065F1CD333905B707BBF702 /* LANTransferPanel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2071,6 +2095,7 @@
 				2510A2DC3B97507E56351E3B /* KeyboardSoundTests.swift in Sources */,
 				C0AAF43412D8DBE261D564DC /* AudioLevelMeterTests.swift in Sources */,
 				23ECED45002C2C1E26253F87 /* AudioRecordingConfigTests.swift in Sources */,
+				08BC05CC733841794946D4D4 /* TransferFramingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

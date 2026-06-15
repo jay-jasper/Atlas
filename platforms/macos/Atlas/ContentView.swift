@@ -122,6 +122,7 @@ private enum PrimaryPanelSection: Hashable {
     case keyboardSounds
     case audioMeter
     case audioRecording
+    case lanTransfer
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -289,6 +290,7 @@ struct ContentView: View {
     @StateObject private var keyboardSoundService = KeyboardSoundService()
     @StateObject private var audioMeterService = AudioMeterService()
     @StateObject private var audioRecordingService = AudioRecordingService()
+    @StateObject private var lanTransferService = LANTransferService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1306,6 +1308,7 @@ struct ContentView: View {
             .keyboardSounds,
             .audioMeter,
             .audioRecording,
+            .lanTransfer,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1349,7 +1352,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing, .altTab, .colorSampler, .recordingIndicator, .soundFeedback, .keyboardSounds, .audioMeter, .audioRecording:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing, .altTab, .colorSampler, .recordingIndicator, .soundFeedback, .keyboardSounds, .audioMeter, .audioRecording, .lanTransfer:
             return nil
         }
     }
@@ -1724,6 +1727,11 @@ struct ContentView: View {
         case .audioRecording:
             if isFeatureEnabled(.audioRecording) {
                 AudioRecordingPanel(service: audioRecordingService)
+                Divider()
+            }
+        case .lanTransfer:
+            if isFeatureEnabled(.lanTransfer) {
+                LANTransferPanel(service: lanTransferService)
                 Divider()
             }
         }
