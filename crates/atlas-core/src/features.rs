@@ -43,6 +43,7 @@ impl FeatureManager {
         features.insert("network-monitor".to_string(), FeatureStatus::Disabled);
         features.insert("pomodoro".to_string(), FeatureStatus::Disabled);
         features.insert("privacy".to_string(), FeatureStatus::Disabled);
+        features.insert("proxy".to_string(), FeatureStatus::Disabled);
         features.insert("scratchpad".to_string(), FeatureStatus::Disabled);
         features.insert("scene-system".to_string(), FeatureStatus::Disabled);
         features.insert("screenshot".to_string(), FeatureStatus::Disabled);
@@ -140,6 +141,7 @@ mod tests {
                 "network-monitor",
                 "pomodoro",
                 "privacy",
+                "proxy",
                 "scene-system",
                 "scratchpad",
                 "screenshot",

@@ -100,6 +100,7 @@ private enum PrimaryPanelSection: Hashable {
     case browserRouter
     case envManager
     case diskUsage
+    case proxy
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -245,6 +246,7 @@ struct ContentView: View {
     @StateObject private var browserRouterService = BrowserRouterService()
     @StateObject private var envService = EnvService()
     @StateObject private var diskUsageService = DiskUsageService()
+    @StateObject private var proxyService = ProxyService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1240,6 +1242,7 @@ struct ContentView: View {
             .browserRouter,
             .envManager,
             .diskUsage,
+            .proxy,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1283,7 +1286,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy:
             return nil
         }
     }
@@ -1548,6 +1551,11 @@ struct ContentView: View {
         case .diskUsage:
             if isFeatureEnabled(.diskUsage) {
                 DiskUsagePanel(service: diskUsageService)
+                Divider()
+            }
+        case .proxy:
+            if isFeatureEnabled(.proxy) {
+                ProxyPanel(service: proxyService)
                 Divider()
             }
         }
