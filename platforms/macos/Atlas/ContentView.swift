@@ -97,6 +97,7 @@ private enum PrimaryPanelSection: Hashable {
     case subtitles
     case textExpansion
     case hosts
+    case browserRouter
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -239,6 +240,7 @@ struct ContentView: View {
     @StateObject private var subtitleService = SubtitleService()
     @StateObject private var textExpansionService = TextExpansionService()
     @StateObject private var hostsService = HostsService()
+    @StateObject private var browserRouterService = BrowserRouterService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1231,6 +1233,7 @@ struct ContentView: View {
             .subtitles,
             .textExpansion,
             .hosts,
+            .browserRouter,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1274,7 +1277,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter:
             return nil
         }
     }
@@ -1524,6 +1527,11 @@ struct ContentView: View {
         case .hosts:
             if isFeatureEnabled(.hosts) {
                 HostsPanel(service: hostsService)
+                Divider()
+            }
+        case .browserRouter:
+            if isFeatureEnabled(.browserRouter) {
+                BrowserRouterPanel(service: browserRouterService)
                 Divider()
             }
         }

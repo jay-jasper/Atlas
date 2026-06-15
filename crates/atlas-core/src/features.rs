@@ -29,6 +29,7 @@ impl FeatureManager {
         features.insert("app-audio".to_string(), FeatureStatus::Disabled);
         features.insert("audio-hub".to_string(), FeatureStatus::Disabled);
         features.insert("automation".to_string(), FeatureStatus::Disabled);
+        features.insert("browser-router".to_string(), FeatureStatus::Disabled);
         features.insert("calendar".to_string(), FeatureStatus::Disabled);
         features.insert("clipboard".to_string(), FeatureStatus::Disabled);
         features.insert("color-picker".to_string(), FeatureStatus::Disabled);
@@ -123,6 +124,7 @@ mod tests {
                 "app-audio",
                 "audio-hub",
                 "automation",
+                "browser-router",
                 "calendar",
                 "clipboard",
                 "color-picker",
