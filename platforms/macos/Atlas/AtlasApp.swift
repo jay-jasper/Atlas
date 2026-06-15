@@ -28,7 +28,7 @@ struct AtlasApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra("Atlas", systemImage: "square.stack.3d.up.fill") {
+        MenuBarExtra("Atlas", image: "MenuBarIcon") {
             ContentView(
                 windowManager: windowManager,
                 windowPermissionChecker: windowPermissionChecker,
