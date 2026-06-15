@@ -299,68 +299,85 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text(statusText).font(.headline)
+                VStack(alignment: .leading, spacing: AtlasUI.gutter) {
+                    AtlasDashboardHeader(status: statusText, isHealthy: captureStatusKind != .error || !showCaptureStatus)
 
                     if showCaptureStatus {
                         CaptureStatusBanner(message: captureStatus, kind: captureStatusKind)
                     }
 
+                    AtlasOverviewGrid(
+                        snapshot: snapshot,
+                        cpuHistory: cpuHistory,
+                        memoryHistory: memoryHistory
+                    )
+
                     ForEach(orderedPrimarySections(), id: \.self) { section in
-                        primaryPanelSection(section)
+                        VStack(alignment: .leading, spacing: 10) {
+                            primaryPanelSection(section)
+                        }
+                        .glassCard()
                     }
 
-                    FeatureCenterPanel(
-                        features: features,
-                        enabledFeatures: $enabledFeatures,
-                        onFeatureChanged: handleFeatureChange
-                    )
+                    VStack(alignment: .leading, spacing: 10) {
+                        FeatureCenterPanel(
+                            features: features,
+                            enabledFeatures: $enabledFeatures,
+                            onFeatureChanged: handleFeatureChange
+                        )
+                    }
+                    .glassCard()
 
-                    Divider()
+                    VStack(alignment: .leading, spacing: 10) {
+                        EditionPanel(state: EditionPanelState(entitlement: entitlementState))
+                    }
+                    .glassCard()
 
-                    EditionPanel(state: EditionPanelState(entitlement: entitlementState))
+                    VStack(alignment: .leading, spacing: 10) {
+                        ScreenshotFeatureSettingsPanel(
+                            settings: screenshotFeatureSettings,
+                            onSave: saveScreenshotFeatureSettings
+                        )
+                        .id(screenshotFeatureSettingsIdentity)
+                    }
+                    .glassCard()
 
-                    Divider()
+                    VStack(alignment: .leading, spacing: 10) {
+                        ScreenshotLibraryPanel(
+                            items: screenshotLibraryItems,
+                            onOpen: openLibraryItem,
+                            onDelete: deleteLibraryItem,
+                            pngURL: { screenshotLibraryStore.pngURL(for: $0) },
+                            onRunOCR: screenshotFeatureSettings.editorCapabilities.ocr ? runBackgroundOCR : nil,
+                            onRunTranslation: screenshotFeatureSettings.editorCapabilities.translation && isTranslationConfigured ? runBackgroundTranslation : nil,
+                            onUpdateTags: updateLibraryItemTags,
+                            onCopyText: { text in
+                                copyTextToClipboard(text, detail: "Screenshot library copied recognized text to the pasteboard")
+                                showStatus("Copied text")
+                            },
+                            query: $screenshotLibraryQuery
+                        )
+                    }
+                    .glassCard()
 
-                    ScreenshotFeatureSettingsPanel(
-                        settings: screenshotFeatureSettings,
-                        onSave: saveScreenshotFeatureSettings
-                    )
-                    .id(screenshotFeatureSettingsIdentity)
-
-                    Divider()
-
-                    ScreenshotLibraryPanel(
-                        items: screenshotLibraryItems,
-                        onOpen: openLibraryItem,
-                        onDelete: deleteLibraryItem,
-                        pngURL: { screenshotLibraryStore.pngURL(for: $0) },
-                        onRunOCR: screenshotFeatureSettings.editorCapabilities.ocr ? runBackgroundOCR : nil,
-                        onRunTranslation: screenshotFeatureSettings.editorCapabilities.translation && isTranslationConfigured ? runBackgroundTranslation : nil,
-                        onUpdateTags: updateLibraryItemTags,
-                        onCopyText: { text in
-                            copyTextToClipboard(text, detail: "Screenshot library copied recognized text to the pasteboard")
-                            showStatus("Copied text")
-                        },
-                        query: $screenshotLibraryQuery
-                    )
-
-                    Divider()
-
-                    TranslationSettingsPanel(
-                        draft: translationSettingsDraft,
-                        isConfigured: isTranslationConfigured,
-                        onSave: saveTranslationSettings,
-                        onClear: clearTranslationSettings
-                    )
-                    .id(translationSettingsPanelIdentity)
-
-                    Divider()
+                    VStack(alignment: .leading, spacing: 10) {
+                        TranslationSettingsPanel(
+                            draft: translationSettingsDraft,
+                            isConfigured: isTranslationConfigured,
+                            onSave: saveTranslationSettings,
+                            onClear: clearTranslationSettings
+                        )
+                        .id(translationSettingsPanelIdentity)
+                    }
+                    .glassCard()
 
                     AppFooter()
+                        .padding(.horizontal, 4)
+                        .padding(.top, 2)
                 }
-                .padding()
+                .padding(AtlasUI.pagePadding)
             }
+            .atlasDashboardBackground()
 
             if let capturedScreenshot {
                 ScreenshotEditorView(
@@ -381,7 +398,8 @@ struct ContentView: View {
                 )
             }
         }
-        .frame(minWidth: 360, minHeight: 500)
+        .frame(minWidth: 440, idealWidth: 460, minHeight: 540)
+        .preferredColorScheme(.dark)
         .sheet(isPresented: $isShowingHandMirror) {
             CameraPreviewPanel(
                 permissionState: handMirrorService.permissionState,
@@ -1274,7 +1292,6 @@ struct ContentView: View {
                     onRevealModule: revealOnDemandSceneModule
                 )
 
-                Divider()
             }
         case .audioHub:
             if isFeatureEnabled(.audioHub),
@@ -1289,7 +1306,6 @@ struct ContentView: View {
                     }
                 )
 
-                Divider()
             }
         case .flowInbox:
             if isFeatureEnabled(.flowInbox), isSceneModuleVisible(.flowInbox) {
@@ -1308,7 +1324,6 @@ struct ContentView: View {
                     onShowStatus: { message in showStatus(message) }
                 )
 
-                Divider()
             }
         case .screenshot:
             if isFeatureEnabled(.screenshot), isSceneModuleVisible(.screenshot) {
@@ -1344,7 +1359,6 @@ struct ContentView: View {
                     }
                 }
 
-                Divider()
             }
         case .monitoring:
             if isFeatureEnabled(.monitoring), isSceneModuleVisible(.monitoring) {
@@ -1354,7 +1368,6 @@ struct ContentView: View {
                     memoryHistory: memoryHistory
                 )
 
-                Divider()
             }
         case .clipboard:
             if isFeatureEnabled(.clipboard), isSceneModuleVisible(.clipboard) {
@@ -1366,7 +1379,6 @@ struct ContentView: View {
                     query: $clipboardHistoryQuery
                 )
 
-                Divider()
             }
         case .privacy:
             if isFeatureEnabled(.privacy), isSceneModuleVisible(.privacy) {
@@ -1375,13 +1387,11 @@ struct ContentView: View {
                     onRefresh: refreshPrivacyPulse
                 )
 
-                Divider()
             }
         case .aiLoad:
             if isFeatureEnabled(.aiLoadMonitor), isSceneModuleVisible(.aiLoadMonitor) {
                 LocalAILoadPanel(snapshot: localAILoadSnapshot)
 
-                Divider()
             }
         case .scratchpad:
             if isFeatureEnabled(.scratchpad), isSceneModuleVisible(.scratchpad) {
@@ -1390,7 +1400,6 @@ struct ContentView: View {
                     summarizer: scratchpadSummarizer
                 )
 
-                Divider()
             }
         case .systemUtilities:
             if isFeatureEnabled(.systemUtilities), isSceneModuleVisible(.systemUtilities) {
@@ -1409,13 +1418,11 @@ struct ContentView: View {
                     )
                 )
 
-                Divider()
             }
         case .tokenBar:
             if isFeatureEnabled(.tokenbar), isSceneModuleVisible(.tokenbar) {
                 TokenBarPanel(summary: tokenBarSummary)
 
-                Divider()
             }
         case .windowManager:
             if isFeatureEnabled(.windowManager), isSceneModuleVisible(.windowManager) {
@@ -1434,37 +1441,30 @@ struct ContentView: View {
                     model: workspacePanelModel()
                 )
 
-                Divider()
             }
         case .colorPicker:
             if isFeatureEnabled(.colorPicker) {
                 ColorPickerPanel(service: colorPickerService)
-                Divider()
             }
         case .ddcControl:
             if isFeatureEnabled(.ddcControl) {
                 DDCPanel(service: displayControlService)
-                Divider()
             }
         case .calendar:
             if isFeatureEnabled(.calendar) {
                 CalendarPanel(service: calendarService)
-                Divider()
             }
         case .networkMonitor:
             if isFeatureEnabled(.networkMonitor) {
                 NetworkMonitorPanel(service: networkMonitorService)
-                Divider()
             }
         case .appAudio:
             if isFeatureEnabled(.appAudio) {
                 AppAudioPanel(service: appAudioService)
-                Divider()
             }
         case .fnKey:
             if isFeatureEnabled(.fnKey) {
                 FnKeyPanel(service: fnKeyService)
-                Divider()
             }
         }
     }
