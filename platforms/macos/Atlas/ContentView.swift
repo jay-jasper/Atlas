@@ -499,12 +499,25 @@ struct ContentView: View {
 
     private static let historyMaxCount = 60
 
+    /// Connects the Pomodoro timer to the Scene System: starting a focus session
+    /// activates the "Focus" scene (auto-DND), per the roadmap's cross-cutting
+    /// Scene integration.
+    private func wirePomodoroToSceneSystem() {
+        let paletteStateRef = paletteState
+        pomodoroService.onFocusStarted = {
+            guard let coordinator = paletteStateRef?.sceneCoordinator else { return }
+            guard let focus = coordinator.scenes.first(where: { $0.name == "Focus" }) else { return }
+            coordinator.activateScene(id: focus.id, reason: "Pomodoro focus session started")
+        }
+    }
+
     private func startModules() {
         loadScreenshotFeatureSettings()
         loadTranslationSettings()
         loadScreenshotLibrary()
         cleanupScreenshotDragOutput()
         startHotkeys()
+        wirePomodoroToSceneSystem()
 
         do {
             let loadedFeatures = try AtlasBridge.listFeatures()
