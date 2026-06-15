@@ -1,0 +1,10 @@
+[package]
+name = "atlas-plugin-host"
+version = "0.1.0"
+edition = "2021"
+description = "Host runtime for Atlas plugins (WASM Track A + MCP Track B): manifest parsing, capability gating, and registry."
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+thiserror = "1.0"
