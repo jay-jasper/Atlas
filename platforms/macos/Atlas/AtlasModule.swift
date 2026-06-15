@@ -46,6 +46,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case sceneSystem = "scene-system"
     case scratchpad
     case screenshot
+    case scripting
     case scrollSmoothing = "scroll-smoothing"
     case skills
     case soundFeedback = "sound-feedback"
@@ -163,6 +164,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "Scratchpad"
         case .screenshot:
             return "Screenshot"
+        case .scripting:
+            return "Scripting"
         case .scrollSmoothing:
             return "Scroll Smoothing"
         case .skills:
