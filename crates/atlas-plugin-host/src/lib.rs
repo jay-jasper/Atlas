@@ -14,6 +14,7 @@
 //! top of this manifest + capability layer.
 
 pub mod capabilities;
+pub mod dist;
 pub mod manifest;
 pub mod mcp;
 pub mod registry;
