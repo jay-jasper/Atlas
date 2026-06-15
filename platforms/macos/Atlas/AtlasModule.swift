@@ -29,6 +29,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case lanTransfer = "lan-transfer"
     case monitoring
     case networkMonitor = "network-monitor"
+    case noiseGate = "noise-gate"
     case obsControl = "obs-control"
     case pomodoro
     case privacy
@@ -121,6 +122,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "Monitoring"
         case .networkMonitor:
             return "Network Monitor"
+        case .noiseGate:
+            return "Mic Noise Gate"
         case .obsControl:
             return "OBS Control"
         case .pomodoro:

@@ -55,6 +55,7 @@ impl FeatureManager {
         features.insert("lan-transfer".to_string(), FeatureStatus::Disabled);
         features.insert("monitoring".to_string(), FeatureStatus::Disabled);
         features.insert("network-monitor".to_string(), FeatureStatus::Disabled);
+        features.insert("noise-gate".to_string(), FeatureStatus::Disabled);
         features.insert("obs-control".to_string(), FeatureStatus::Disabled);
         features.insert("pomodoro".to_string(), FeatureStatus::Disabled);
         features.insert("privacy".to_string(), FeatureStatus::Disabled);
@@ -177,6 +178,7 @@ mod tests {
                 "lan-transfer",
                 "monitoring",
                 "network-monitor",
+                "noise-gate",
                 "obs-control",
                 "pomodoro",
                 "privacy",
