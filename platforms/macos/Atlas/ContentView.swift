@@ -119,6 +119,7 @@ private enum PrimaryPanelSection: Hashable {
     case colorSampler
     case recordingIndicator
     case soundFeedback
+    case keyboardSounds
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -283,6 +284,7 @@ struct ContentView: View {
     @StateObject private var colorSamplerService = ColorSamplerService()
     @StateObject private var recordingIndicatorService = RecordingIndicatorService()
     @StateObject private var soundFeedbackService = SoundFeedbackService()
+    @StateObject private var keyboardSoundService = KeyboardSoundService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1297,6 +1299,7 @@ struct ContentView: View {
             .colorSampler,
             .recordingIndicator,
             .soundFeedback,
+            .keyboardSounds,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1340,7 +1343,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing, .altTab, .colorSampler, .recordingIndicator, .soundFeedback:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing, .altTab, .colorSampler, .recordingIndicator, .soundFeedback, .keyboardSounds:
             return nil
         }
     }
@@ -1700,6 +1703,11 @@ struct ContentView: View {
         case .soundFeedback:
             if isFeatureEnabled(.soundFeedback) {
                 SoundFeedbackPanel(service: soundFeedbackService)
+                Divider()
+            }
+        case .keyboardSounds:
+            if isFeatureEnabled(.keyboardSounds) {
+                KeyboardSoundPanel(service: keyboardSoundService)
                 Divider()
             }
         }

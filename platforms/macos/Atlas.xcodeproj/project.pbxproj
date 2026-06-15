@@ -29,6 +29,7 @@
 		0BCAB5A749CEC83E6D2382F0 /* CurrencyServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB5BDF21A5C4D63E003AAA1A /* CurrencyServiceTests.swift */; };
 		0D278D3752E1E26EA774C05A /* TOTPGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E712287847C2334A1C1A926 /* TOTPGenerator.swift */; };
 		0D3CE5851184C4455087868D /* HostsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DBC7951DAAC5DFDF80FE375 /* HostsService.swift */; };
+		0DFA856AA1E6E6FDA161C2F7 /* KeyboardSoundPack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 586048E8720BCBF903039A49 /* KeyboardSoundPack.swift */; };
 		0E8AE8AC05F4EB0F65DFDD79 /* PrivacyPulseAccessLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69113C2656E89D075F591F26 /* PrivacyPulseAccessLogger.swift */; };
 		0E8E3D97FF77477E877D507D /* AutomationProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE8C692301948D9A1E44D75 /* AutomationProcessRunner.swift */; };
 		11E014429FD8F2B8C6C910C4 /* TextExpansionMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5420A681CFDE8B5375B3EE6 /* TextExpansionMonitor.swift */; };
@@ -45,6 +46,7 @@
 		20DE8383A265CE01C727540D /* OBSService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E6E86504382BC8F89FE5F5 /* OBSService.swift */; };
 		216F42ED2A9754B2F686EA7D /* QuickSwitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41317EDDF5BE2876075BC179 /* QuickSwitch.swift */; };
 		22F365EB0D1D4E8F8F45B728 /* ScreenshotImageStitcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15575A30F31473EB643093C /* ScreenshotImageStitcherTests.swift */; };
+		2510A2DC3B97507E56351E3B /* KeyboardSoundTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1383C584255EE54D8095230E /* KeyboardSoundTests.swift */; };
 		251D1C9994CD4882B70BB210 /* AppAudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B3F4116F0147CEBEEAB1B5 /* AppAudioService.swift */; };
 		253571B97F64E1A4283BF37D /* ExpressionDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 952C4F259979B23F91F1A16E /* ExpressionDetectorTests.swift */; };
 		272BB15DC4617ABB9E1AE8FD /* AppCleanerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4C4C8543B63537288CA2F0 /* AppCleanerService.swift */; };
@@ -276,6 +278,7 @@
 		A10000000000000000000003 /* FlowInbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* FlowInbox.swift */; };
 		A15016A2CE47024850C3708B /* PixelSamplerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 465DD81721E6E0F2ED49F604 /* PixelSamplerTests.swift */; };
 		A164A3AA0C0CF4DBA09C8BF7 /* DisplayControlServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5CBCFA676D5920D2B3812C6 /* DisplayControlServiceTests.swift */; };
+		A21E6F513EC3904C33C73AF9 /* KeyboardSoundPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD897E28739C85D3ABA5FA1 /* KeyboardSoundPanel.swift */; };
 		A5D2DFDBF2E5A77B59A4F18A /* CommandPaletteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031B7187C4C806700C9B0708 /* CommandPaletteView.swift */; };
 		A61308D1B9E4F4F49BB1C0C1 /* PasswordGeneratorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DD923DBE2696C567A15B066 /* PasswordGeneratorProvider.swift */; };
 		A657CEC47A8932C946A24176 /* KeyEventFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A4CD63B258EFE45CF1ADA9 /* KeyEventFormatter.swift */; };
@@ -336,6 +339,7 @@
 		DB47C7413C3B2F754D12D2E9 /* AppLeftoverFinderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7086CC0E3369BACBE71D148 /* AppLeftoverFinderTests.swift */; };
 		DC8D98F5D9232FDA203FB093 /* OBSPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634F7ABB069879C297BF6189 /* OBSPanel.swift */; };
 		DD047C083C87F92AB164B4F0 /* CameraPreviewPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA8CF04F333085B6EAADCE7 /* CameraPreviewPanel.swift */; };
+		DDCCC4F2FAF58631F960501A /* KeyboardSoundService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52016DB9F829FEB9541F6A71 /* KeyboardSoundService.swift */; };
 		DE3D175FCF90A7C5AE5D89BC /* DisplayControlService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A67F9E074DCCD5157064A88 /* DisplayControlService.swift */; };
 		DE8B9BE49CA4DEDEFF88F17D /* ClipboardHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B90FCD93AA77617204F8B01 /* ClipboardHistoryStore.swift */; };
 		DEFAC8A1DE40DBE5A4533325 /* PrivacyPulseServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30C5605EB4D53D56EA16E0DF /* PrivacyPulseServiceTests.swift */; };
@@ -416,6 +420,7 @@
 		0F80E94F059345D9BF695AF2 /* AudioPresetStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AudioPresetStoreTests.swift; sourceTree = "<group>"; };
 		105405C851D84CDEF407FE4B /* ApplicationChangeObserver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ApplicationChangeObserver.swift; sourceTree = "<group>"; };
 		1358C89A52C1529335E38C52 /* SoundFeedback.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SoundFeedback.swift; sourceTree = "<group>"; };
+		1383C584255EE54D8095230E /* KeyboardSoundTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeyboardSoundTests.swift; sourceTree = "<group>"; };
 		13E38E475BE1516A8DB5D468 /* LocalAILoadMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocalAILoadMonitor.swift; sourceTree = "<group>"; };
 		1408CAF605184C5F990E7F9C /* ScreenshotGIFOutputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotGIFOutputTests.swift; sourceTree = "<group>"; };
 		146A55EF3D4EF7047C4A9D99 /* SkillCommandProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SkillCommandProvider.swift; sourceTree = "<group>"; };
@@ -477,12 +482,14 @@
 		4F151482BD6B2365247E6691 /* RecordingStatus.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RecordingStatus.swift; sourceTree = "<group>"; };
 		4FFFE98768F02206D081FF01 /* ExpressionEvaluator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExpressionEvaluator.swift; sourceTree = "<group>"; };
 		50273B41746CFCA0BFA7ED10 /* ProxyPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProxyPanel.swift; sourceTree = "<group>"; };
+		52016DB9F829FEB9541F6A71 /* KeyboardSoundService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeyboardSoundService.swift; sourceTree = "<group>"; };
 		5453A88303A4475EACE858BA /* ScreenshotImageStitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotImageStitcher.swift; sourceTree = "<group>"; };
 		554A78437C8E78953A4C510F /* ExpressionDetector.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExpressionDetector.swift; sourceTree = "<group>"; };
 		5550545030C443C89F26D83B /* AutomationOutputViewTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutomationOutputViewTests.swift; sourceTree = "<group>"; };
 		5698E1D946CD6E02A80422E1 /* SystemUtilitiesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemUtilitiesProvider.swift; sourceTree = "<group>"; };
 		578B58DE601BFD1CE6AA0136 /* TimezoneProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimezoneProvider.swift; sourceTree = "<group>"; };
 		57C3B04EA2A5CCFCD1CB5818 /* PrivacyPulseModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrivacyPulseModels.swift; path = Atlas/PrivacyPulseModels.swift; sourceTree = "<group>"; };
+		586048E8720BCBF903039A49 /* KeyboardSoundPack.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeyboardSoundPack.swift; sourceTree = "<group>"; };
 		5AA19230041F4B8429FA8D7A /* ApplicationScannerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ApplicationScannerTests.swift; sourceTree = "<group>"; };
 		5B699E34BE0CAAC9635CCA60 /* DeveloperToolsProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeveloperToolsProviderTests.swift; sourceTree = "<group>"; };
 		5B909C387B3E7A7D3B8CA0CD /* KeepAwakeServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeepAwakeServiceTests.swift; sourceTree = "<group>"; };
@@ -674,6 +681,7 @@
 		AA6C6223F77206E54276A45C /* ProxyService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProxyService.swift; sourceTree = "<group>"; };
 		AAB99C5DE281831C1326A52B /* TokenBarSettingsPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarSettingsPanel.swift; sourceTree = "<group>"; };
 		AAD7C45585F2150E8A677140 /* SnippetStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnippetStore.swift; sourceTree = "<group>"; };
+		AAD897E28739C85D3ABA5FA1 /* KeyboardSoundPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeyboardSoundPanel.swift; sourceTree = "<group>"; };
 		AB92A48034B568C54D96A2AD /* WatermarkLayout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatermarkLayout.swift; sourceTree = "<group>"; };
 		ADEF7D6BECF645CAAF622417 /* ColorPickerServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ColorPickerServiceTests.swift; sourceTree = "<group>"; };
 		AE9F25E36695F37BAF365B73 /* SystemUtilitiesPanelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemUtilitiesPanelTests.swift; sourceTree = "<group>"; };
@@ -896,6 +904,17 @@
 			);
 			name = Passwords;
 			path = Passwords;
+			sourceTree = "<group>";
+		};
+		4AF8F646D5BE402D724CBFF9 /* KeyboardSounds */ = {
+			isa = PBXGroup;
+			children = (
+				586048E8720BCBF903039A49 /* KeyboardSoundPack.swift */,
+				52016DB9F829FEB9541F6A71 /* KeyboardSoundService.swift */,
+				AAD897E28739C85D3ABA5FA1 /* KeyboardSoundPanel.swift */,
+			);
+			name = KeyboardSounds;
+			path = KeyboardSounds;
 			sourceTree = "<group>";
 		};
 		4EF1BF4AFD1D39B6130F832B /* ScrollSmoothing */ = {
@@ -1208,6 +1227,7 @@
 				68FD320D1554DDEE5AEE5703 /* ColorSampler */,
 				E12E093F99E3B49E4EC99953 /* RecordingIndicator */,
 				FC9166BFFA7ED0BF1AF9A45D /* SoundFeedback */,
+				4AF8F646D5BE402D724CBFF9 /* KeyboardSounds */,
 			);
 			path = Atlas;
 			sourceTree = "<group>";
@@ -1345,6 +1365,7 @@
 				465DD81721E6E0F2ED49F604 /* PixelSamplerTests.swift */,
 				F1959D34A6B5417FBA162E9F /* RecordingStatusTests.swift */,
 				B172183EDDF0C9D382B69DF5 /* SoundFeedbackTests.swift */,
+				1383C584255EE54D8095230E /* KeyboardSoundTests.swift */,
 			);
 			path = AtlasTests;
 			sourceTree = "<group>";
@@ -1857,6 +1878,9 @@
 				8E58ADA6407A806641CD1428 /* SoundFeedback.swift in Sources */,
 				B5609DB0657808A5DC08F16C /* SoundFeedbackService.swift in Sources */,
 				B93D408DB8EBD17EC28D1A8B /* SoundFeedbackPanel.swift in Sources */,
+				0DFA856AA1E6E6FDA161C2F7 /* KeyboardSoundPack.swift in Sources */,
+				DDCCC4F2FAF58631F960501A /* KeyboardSoundService.swift in Sources */,
+				A21E6F513EC3904C33C73AF9 /* KeyboardSoundPanel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1996,6 +2020,7 @@
 				A15016A2CE47024850C3708B /* PixelSamplerTests.swift in Sources */,
 				2F1CBE225954A8A25427A6D8 /* RecordingStatusTests.swift in Sources */,
 				C1FB2BABC96E10A4C9F15EE8 /* SoundFeedbackTests.swift in Sources */,
+				2510A2DC3B97507E56351E3B /* KeyboardSoundTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

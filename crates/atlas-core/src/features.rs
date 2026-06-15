@@ -48,6 +48,7 @@ impl FeatureManager {
         features.insert("gif-processing".to_string(), FeatureStatus::Disabled);
         features.insert("hosts".to_string(), FeatureStatus::Disabled);
         features.insert("keyboard-display".to_string(), FeatureStatus::Disabled);
+        features.insert("keyboard-sounds".to_string(), FeatureStatus::Disabled);
         features.insert("monitoring".to_string(), FeatureStatus::Disabled);
         features.insert("network-monitor".to_string(), FeatureStatus::Disabled);
         features.insert("obs-control".to_string(), FeatureStatus::Disabled);
@@ -164,6 +165,7 @@ mod tests {
                 "gif-processing",
                 "hosts",
                 "keyboard-display",
+                "keyboard-sounds",
                 "monitoring",
                 "network-monitor",
                 "obs-control",
