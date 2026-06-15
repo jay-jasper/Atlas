@@ -47,6 +47,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case textExpansion = "text-expansion"
     case tokenbar
     case totp
+    case translation
     case watermark
     case webWallpaper = "web-wallpaper"
     case windowManager = "window-manager"
@@ -155,6 +156,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "TokenBar"
         case .totp:
             return "TOTP 2FA"
+        case .translation:
+            return "Translation"
         case .watermark:
             return "Watermark"
         case .webWallpaper:
