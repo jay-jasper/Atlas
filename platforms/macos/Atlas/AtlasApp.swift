@@ -155,9 +155,29 @@ final class CommandPaletteState: ObservableObject {
             isEnabled: { [weak self] in self?.isFlowInboxEnabled == true }
         )
         let calculatorProvider = CalculatorCommandProvider()
+        let identifierProvider = IdentifierProvider()
+        let passwordProvider = PasswordGeneratorProvider()
+        let hashProvider = HashGeneratorProvider()
+        let encodingProvider = EncodingProvider()
+        let jsonProvider = JSONFormatProvider()
+        let loremProvider = LoremIpsumProvider()
+        let colorFormatProvider = ColorFormatProvider()
+        let regexProvider = RegexTesterProvider()
+        let timezoneProvider = TimezoneProvider()
+        let emojiProvider = EmojiProvider()
 
         self.controller = CommandPaletteController(providers: [
             calculatorProvider,
+            identifierProvider,
+            passwordProvider,
+            hashProvider,
+            encodingProvider,
+            jsonProvider,
+            loremProvider,
+            colorFormatProvider,
+            regexProvider,
+            timezoneProvider,
+            emojiProvider,
             atlasProvider,
             sceneProvider,
             audioHubProvider,
