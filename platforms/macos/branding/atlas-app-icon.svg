@@ -1,0 +1,41 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Brand teal gradient: bright top-left -> deep bottom-right -->
+    <linearGradient id="teal" x1="120" y1="120" x2="904" y2="904" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5FE0CB"/>
+      <stop offset="0.45" stop-color="#3FC4AF"/>
+      <stop offset="1" stop-color="#147062"/>
+    </linearGradient>
+    <!-- Soft top highlight for gloss -->
+    <radialGradient id="gloss" cx="0.32" cy="0.24" r="0.85">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.04"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Node glow -->
+    <radialGradient id="nodeGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="squircle">
+      <rect x="100" y="100" width="824" height="824" rx="185" ry="185"/>
+    </clipPath>
+  </defs>
+
+  <!-- Squircle body -->
+  <rect x="100" y="100" width="824" height="824" rx="185" ry="185" fill="url(#teal)"/>
+  <g clip-path="url(#squircle)">
+    <rect x="100" y="100" width="824" height="824" fill="url(#gloss)"/>
+    <!-- faint orbit ring (convergence motif) -->
+    <circle cx="512" cy="512" r="320" fill="none" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="10"/>
+    <!-- node glow -->
+    <circle cx="512" cy="512" r="250" fill="url(#nodeGlow)"/>
+  </g>
+
+  <!-- Concentric node mark (brand glyph) -->
+  <circle cx="512" cy="512" r="196" fill="none" stroke="#FFFFFF" stroke-width="44"/>
+  <circle cx="512" cy="512" r="62" fill="#FFFFFF"/>
+
+  <!-- inner top edge sheen on the squircle -->
+  <rect x="100" y="100" width="824" height="824" rx="185" ry="185" fill="none" stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="3"/>
+</svg>

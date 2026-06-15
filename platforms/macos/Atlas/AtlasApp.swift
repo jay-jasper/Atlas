@@ -29,7 +29,7 @@ struct AtlasApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra("Atlas", systemImage: "square.stack.3d.up.fill") {
+        MenuBarExtra {
             ContentView(
                 windowManager: windowManager,
                 windowPermissionChecker: windowPermissionChecker,
@@ -37,6 +37,10 @@ struct AtlasApp: App {
                 privacyPulseService: privacyPulseService,
                 privacyAccessLogger: privacyAccessLogger
             )
+        } label: {
+            // Custom brand glyph (template image → adapts to light/dark menu bar).
+            Image("MenuBarIcon")
+                .renderingMode(.template)
         }
         .menuBarExtraStyle(.window)
 
