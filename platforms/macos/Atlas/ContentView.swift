@@ -108,6 +108,7 @@ private enum PrimaryPanelSection: Hashable {
     case aspectGuide
     case dragShelf
     case batteryHealth
+    case watermark
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -261,6 +262,7 @@ struct ContentView: View {
     @StateObject private var aspectGuideService = AspectGuideService()
     @StateObject private var dragShelfService = DragShelfService()
     @StateObject private var batteryHealthService = BatteryHealthService()
+    @StateObject private var watermarkService = WatermarkService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1264,6 +1266,7 @@ struct ContentView: View {
             .aspectGuide,
             .dragShelf,
             .batteryHealth,
+            .watermark,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1307,7 +1310,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark:
             return nil
         }
     }
@@ -1612,6 +1615,11 @@ struct ContentView: View {
         case .batteryHealth:
             if isFeatureEnabled(.batteryHealth) {
                 BatteryHealthPanel(service: batteryHealthService)
+                Divider()
+            }
+        case .watermark:
+            if isFeatureEnabled(.watermark) {
+                WatermarkPanel(service: watermarkService)
                 Divider()
             }
         }

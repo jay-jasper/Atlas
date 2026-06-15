@@ -26,12 +26,14 @@ FFI + native evaluator), Emoji (#2), UUID/NanoID (#3), Shell Runner (#4),
 Bookmarks (#5), File Search (#6), Password (#7), JSON (#8), Hash (#9),
 Base64/URL (#10), Timezone (#11), Regex (#12), Lorem (#13), Color Convert (#14).
 
-**Phase 2 — in progress (14/37):** Hosts Editor (#15) · Env Variables (#18) ·
-TOTP 2FA (#23) · Pomodoro (#24) · Disk Usage (#25) · App Cleaner (#28) ·
-RSS Reader (#27) · Text Expansion (#29) · Browser Router (#32) ·
-Quick Switches (#33) · Proxy Switcher (#36) · Aspect Ratio Guide (#45) ·
-Chapter Markers (#46) · Subtitle Tools (#48).
-Plus a password-strength estimator wired into the palette generator (#7).
+**Phase 2 — in progress (17/37):** Hosts Editor (#15) · Env Variables (#18) ·
+TOTP 2FA (#23) · Pomodoro (#24) · Disk Usage (#25) · Battery Health (#26) ·
+RSS Reader (#27) · App Cleaner (#28) · Text Expansion (#29) · Browser Router (#32) ·
+Quick Switches (#33) · Proxy Switcher (#36) · Drag Shelf (#39) ·
+Aspect Ratio Guide (#45) · Chapter Markers (#46) · Watermark (#47) ·
+Subtitle Tools (#48).
+Plus a password-strength estimator wired into the palette generator (#7), and a
+one-shot `current_battery()` FFI surface.
 
 Each shipped as a complete vertical slice: pure testable core + service +
 SwiftUI panel + Rust `FeatureManager` registration (FFI lib regenerated) +

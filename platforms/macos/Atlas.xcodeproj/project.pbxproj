@@ -25,6 +25,7 @@
 		0A6D803A9CB84221C4E0A647 /* TokenBarPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC45D71022E9032E9D52E38C /* TokenBarPanel.swift */; };
 		0AA14FE406AB4FC6B472B744 /* ColorPickerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F270156DB68B4328B055EA54 /* ColorPickerPanel.swift */; };
 		0AFDA6399A51154A7895483A /* DragShelfPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980CF182AAE00959AE3353FE /* DragShelfPanel.swift */; };
+		0B8F17E0AF074A890862E674 /* WatermarkLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E591D057E3ECDC105B72B64A /* WatermarkLayoutTests.swift */; };
 		0BCAB5A749CEC83E6D2382F0 /* CurrencyServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB5BDF21A5C4D63E003AAA1A /* CurrencyServiceTests.swift */; };
 		0D278D3752E1E26EA774C05A /* TOTPGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E712287847C2334A1C1A926 /* TOTPGenerator.swift */; };
 		0D3CE5851184C4455087868D /* HostsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DBC7951DAAC5DFDF80FE375 /* HostsService.swift */; };
@@ -88,6 +89,7 @@
 		5699A6E091A8D69FFFEB5C0B /* ExpressionEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FFFE98768F02206D081FF01 /* ExpressionEvaluator.swift */; };
 		56A0C96313AB49A88A11A5B5 /* AudioPresetStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F80E94F059345D9BF695AF2 /* AudioPresetStoreTests.swift */; };
 		5895D19288573E79C2B005FB /* AtlasCommandProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B541902B47B612BFED45441B /* AtlasCommandProviderTests.swift */; };
+		59074F13BB13C7A1053D6503 /* WatermarkLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB92A48034B568C54D96A2AD /* WatermarkLayout.swift */; };
 		5968A8BC14475FA9F6E3154D /* ChapterPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DF3E2E0E1C351BFCB30A352 /* ChapterPanel.swift */; };
 		5A4DD4663FC1A6922F8218EF /* AppLeftoverFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B779D2FCF05F4B4F69E4C47 /* AppLeftoverFinder.swift */; };
 		5A5F4CB53FC943176BEAFCE3 /* DeveloperToolsProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B699E34BE0CAAC9635CCA60 /* DeveloperToolsProviderTests.swift */; };
@@ -244,6 +246,7 @@
 		98CEDA338133A11310D0BF01 /* HandMirrorServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B570134E77A910024A872EC /* HandMirrorServiceTests.swift */; };
 		98FD4D714011E0AA1B43B674 /* SystemUtilitiesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698E1D946CD6E02A80422E1 /* SystemUtilitiesProvider.swift */; };
 		9A047ED488444F5186504845 /* SceneResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D815974595456CACAFCC11 /* SceneResolverTests.swift */; };
+		9A06A282B2D6278F4362CF6A /* WatermarkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC46B6C5AD77556EEB444EF9 /* WatermarkService.swift */; };
 		9A83368C0C40EE19F12BF636 /* SkillModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A932411008B274E4460FD036 /* SkillModels.swift */; };
 		9AE08327175D897C775BA2DD /* HandMirrorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED789F608A81C0466C6EABE9 /* HandMirrorService.swift */; };
 		9D1956C2F449345483BB413C /* SkillSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49CE70332FCD6E0CA3694604 /* SkillSettingsView.swift */; };
@@ -328,6 +331,7 @@
 		EFA8812540F348C0B63E6E30 /* DisplayControlParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97709649FE143318A5A1ADA /* DisplayControlParserTests.swift */; };
 		F1FD83D194B1BAF0C0B6AE7B /* LocalAILoadRefreshService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A60596A9FF3C888370A533 /* LocalAILoadRefreshService.swift */; };
 		F256611358BB6A231E5228AD /* RSSPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7450E7D6EA7C9AF2DD6CD8DF /* RSSPanel.swift */; };
+		F29B8AEEEEBC22A72238FB54 /* WatermarkPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47540B8091FFA8AA082AE9D8 /* WatermarkPanel.swift */; };
 		F2C424527101547E335EC89D /* EditionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC822B4864798A9A64E87F5 /* EditionModels.swift */; };
 		F34EA7F848DFDFE7A0732462 /* CommandPaletteController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E276FD7ABA37B12C6847A63 /* CommandPaletteController.swift */; };
 		F3598B3539FBE30DFA55C733 /* ApplicationScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE63B6C5B330DD731856FD5E /* ApplicationScanner.swift */; };
@@ -414,6 +418,7 @@
 		41C5E4D4AA865E83FA6ED692 /* TokenBarModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarModels.swift; sourceTree = "<group>"; };
 		4402AC346AC617CA53A5677D /* BrowserRouterTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserRouterTests.swift; sourceTree = "<group>"; };
 		45DEB7313C3A17471C84720F /* SubtitleService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubtitleService.swift; sourceTree = "<group>"; };
+		47540B8091FFA8AA082AE9D8 /* WatermarkPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatermarkPanel.swift; sourceTree = "<group>"; };
 		487BE4411CF39E05D6D90DBA /* TokenBarProviderClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarProviderClient.swift; sourceTree = "<group>"; };
 		49CE70332FCD6E0CA3694604 /* SkillSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SkillSettingsView.swift; sourceTree = "<group>"; };
 		4B4E64E0273F29C59FED6BBA /* TOTPStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TOTPStore.swift; sourceTree = "<group>"; };
@@ -604,6 +609,7 @@
 		AA6C6223F77206E54276A45C /* ProxyService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProxyService.swift; sourceTree = "<group>"; };
 		AAB99C5DE281831C1326A52B /* TokenBarSettingsPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarSettingsPanel.swift; sourceTree = "<group>"; };
 		AAD7C45585F2150E8A677140 /* SnippetStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnippetStore.swift; sourceTree = "<group>"; };
+		AB92A48034B568C54D96A2AD /* WatermarkLayout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatermarkLayout.swift; sourceTree = "<group>"; };
 		ADEF7D6BECF645CAAF622417 /* ColorPickerServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ColorPickerServiceTests.swift; sourceTree = "<group>"; };
 		AE9F25E36695F37BAF365B73 /* SystemUtilitiesPanelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemUtilitiesPanelTests.swift; sourceTree = "<group>"; };
 		AFFDF4687D80F83AFD13B685 /* AppLauncherRefreshTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppLauncherRefreshTests.swift; sourceTree = "<group>"; };
@@ -668,6 +674,7 @@
 		E432DB161183383E5722684F /* FileSearchProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FileSearchProvider.swift; sourceTree = "<group>"; };
 		E4C279B8D707828A901BAD80 /* TokenBarImportServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarImportServiceTests.swift; sourceTree = "<group>"; };
 		E524051331E4CF26B142A5AD /* PasswordStrength.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PasswordStrength.swift; sourceTree = "<group>"; };
+		E591D057E3ECDC105B72B64A /* WatermarkLayoutTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatermarkLayoutTests.swift; sourceTree = "<group>"; };
 		E5F5E6CC62BF91B392AEA527 /* Phase1ProvidersTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Phase1ProvidersTests.swift; sourceTree = "<group>"; };
 		E613269397434B9767C7202F /* KeepAwakeService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeepAwakeService.swift; sourceTree = "<group>"; };
 		E6ED5C58191AF87FA22B4409 /* SnippetsProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnippetsProviderTests.swift; sourceTree = "<group>"; };
@@ -689,6 +696,7 @@
 		F876024312CFE36C8B26EAF8 /* SubtitleDocument.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubtitleDocument.swift; sourceTree = "<group>"; };
 		F993DC0AE407919980A9BA9D /* TextExpansionPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TextExpansionPanel.swift; sourceTree = "<group>"; };
 		FBDF9E2A609A5F89E4AB4EB4 /* AtlasCommandProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasCommandProvider.swift; sourceTree = "<group>"; };
+		FC46B6C5AD77556EEB444EF9 /* WatermarkService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatermarkService.swift; sourceTree = "<group>"; };
 		FCA4D8F5DB95B41DD7BB0377 /* TOTPModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TOTPModels.swift; sourceTree = "<group>"; };
 		FCF7BCE17C8EFF052AC6FE57 /* EntitlementService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EntitlementService.swift; sourceTree = "<group>"; };
 		FF6272A1B4660F8A43600C61 /* WorkspaceWindowService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspaceWindowService.swift; sourceTree = "<group>"; };
@@ -1054,6 +1062,7 @@
 				616D27D4D10AB4CD151CF05D /* AspectGuide */,
 				2077AC41F6A0DCD6FF9382B5 /* DragShelf */,
 				1405655E37C9DEF73E121951 /* BatteryHealth */,
+				C688924BEED17E7A2FDA6A8B /* Watermark */,
 			);
 			path = Atlas;
 			sourceTree = "<group>";
@@ -1180,6 +1189,7 @@
 				5FF982118B4EE79428280AAE /* AspectRatioGuideTests.swift */,
 				848018F22586810745402598 /* DragShelfTests.swift */,
 				5CB628DEB4D270E392E36654 /* BatteryHealthTests.swift */,
+				E591D057E3ECDC105B72B64A /* WatermarkLayoutTests.swift */,
 			);
 			path = AtlasTests;
 			sourceTree = "<group>";
@@ -1249,6 +1259,17 @@
 				695EB6123E7FAD9788637111 /* PrivacyPulseSystemStatusProvider.swift */,
 			);
 			name = Atlas;
+			sourceTree = "<group>";
+		};
+		C688924BEED17E7A2FDA6A8B /* Watermark */ = {
+			isa = PBXGroup;
+			children = (
+				AB92A48034B568C54D96A2AD /* WatermarkLayout.swift */,
+				FC46B6C5AD77556EEB444EF9 /* WatermarkService.swift */,
+				47540B8091FFA8AA082AE9D8 /* WatermarkPanel.swift */,
+			);
+			name = Watermark;
+			path = Watermark;
 			sourceTree = "<group>";
 		};
 		D13742E064E2D8AC84EAAF79 /* Pomodoro */ = {
@@ -1593,6 +1614,9 @@
 				60F90FE79542EB13A6B3BDD7 /* BatteryHealthFormatter.swift in Sources */,
 				D7B7BA9A109C9852A0B91E48 /* BatteryHealthService.swift in Sources */,
 				83B146F3C642831266A85E4C /* BatteryHealthPanel.swift in Sources */,
+				59074F13BB13C7A1053D6503 /* WatermarkLayout.swift in Sources */,
+				9A06A282B2D6278F4362CF6A /* WatermarkService.swift in Sources */,
+				F29B8AEEEEBC22A72238FB54 /* WatermarkPanel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1721,6 +1745,7 @@
 				62D5983818FEFD6F2177CDB0 /* AspectRatioGuideTests.swift in Sources */,
 				36603ED870FD3ADEBF59CE9C /* DragShelfTests.swift in Sources */,
 				5FAB061F6F1158DB415BB8D0 /* BatteryHealthTests.swift in Sources */,
+				0B8F17E0AF074A890862E674 /* WatermarkLayoutTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

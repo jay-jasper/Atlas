@@ -60,6 +60,7 @@ impl FeatureManager {
         features.insert("text-expansion".to_string(), FeatureStatus::Disabled);
         features.insert("tokenbar".to_string(), FeatureStatus::Disabled);
         features.insert("totp".to_string(), FeatureStatus::Disabled);
+        features.insert("watermark".to_string(), FeatureStatus::Disabled);
         features.insert("window-manager".to_string(), FeatureStatus::Disabled);
         Self { features }
     }
@@ -165,6 +166,7 @@ mod tests {
                 "text-expansion",
                 "tokenbar",
                 "totp",
+                "watermark",
                 "window-manager",
             ]
         );
