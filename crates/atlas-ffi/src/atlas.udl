@@ -124,4 +124,8 @@ namespace atlas {
     /// Evaluates a mathematical expression, returning a formatted result string,
     /// or null when the input does not evaluate to a finite number.
     string? evaluate_expression(string input);
+
+    /// Returns a one-shot snapshot of the primary battery, or null when there is
+    /// no battery (desktop) or it cannot be read.
+    BatterySnapshot? current_battery();
 };

@@ -313,6 +313,22 @@ pub fn evaluate_expression(input: String) -> Option<String> {
     atlas_core::calculator::evaluate_expression(&input)
 }
 
+/// Returns a one-shot snapshot of the primary battery, or `None` when there is
+/// no battery or it cannot be read.
+pub fn current_battery() -> Option<BatterySnapshot> {
+    atlas_core::monitor::battery::get_battery_info()
+        .ok()
+        .flatten()
+        .map(|b| BatterySnapshot {
+            charge_percent: b.charge_percent,
+            is_charging: b.is_charging,
+            time_to_empty_secs: b.time_to_empty_secs,
+            time_to_full_secs: b.time_to_full_secs,
+            health_percent: b.health_percent,
+            cycle_count: b.cycle_count,
+        })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

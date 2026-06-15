@@ -1943,6 +1943,16 @@ public func captureRegion(x: Int32, y: Int32, width: UInt32, height: UInt32)thro
 })
 }
 /**
+ * Returns a one-shot snapshot of the primary battery, or null when there is
+ * no battery (desktop) or it cannot be read.
+ */
+public func currentBattery() -> BatterySnapshot? {
+    return try!  FfiConverterOptionTypeBatterySnapshot.lift(try! rustCall() {
+    uniffi_atlas_ffi_fn_func_current_battery($0
+    )
+})
+}
+/**
  * Evaluates a mathematical expression, returning a formatted result string,
  * or null when the input does not evaluate to a finite number.
  */
@@ -2027,6 +2037,9 @@ private var initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_capture_region() != 38160) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_current_battery() != 3146) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_evaluate_expression() != 32376) {

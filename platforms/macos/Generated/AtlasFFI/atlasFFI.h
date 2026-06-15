@@ -282,6 +282,12 @@ RustBuffer uniffi_atlas_ffi_fn_func_capture_full_screen(RustCallStatus *_Nonnull
 RustBuffer uniffi_atlas_ffi_fn_func_capture_region(int32_t x, int32_t y, uint32_t width, uint32_t height, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_CURRENT_BATTERY
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_CURRENT_BATTERY
+RustBuffer uniffi_atlas_ffi_fn_func_current_battery(RustCallStatus *_Nonnull out_status
+    
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_EVALUATE_EXPRESSION
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_EVALUATE_EXPRESSION
 RustBuffer uniffi_atlas_ffi_fn_func_evaluate_expression(RustBuffer input, RustCallStatus *_Nonnull out_status
@@ -614,6 +620,12 @@ uint16_t uniffi_atlas_ffi_checksum_func_capture_full_screen(void
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_CAPTURE_REGION
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_CAPTURE_REGION
 uint16_t uniffi_atlas_ffi_checksum_func_capture_region(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_CURRENT_BATTERY
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_CURRENT_BATTERY
+uint16_t uniffi_atlas_ffi_checksum_func_current_battery(void
     
 );
 #endif
