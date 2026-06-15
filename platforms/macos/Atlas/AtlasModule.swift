@@ -12,6 +12,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case chapterMarker = "chapter-marker"
     case clipboard
     case colorPicker = "color-picker"
+    case colorSampler = "color-sampler"
     case ddcControl = "ddc-control"
     case diskUsage = "disk-usage"
     case dragShelf = "drag-shelf"
@@ -78,6 +79,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "Clipboard History"
         case .colorPicker:
             return "Color Picker"
+        case .colorSampler:
+            return "Color Sampler"
         case .ddcControl:
             return "DDC Monitor Control"
         case .diskUsage:

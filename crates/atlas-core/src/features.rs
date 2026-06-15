@@ -37,6 +37,7 @@ impl FeatureManager {
         features.insert("calendar".to_string(), FeatureStatus::Disabled);
         features.insert("chapter-marker".to_string(), FeatureStatus::Disabled);
         features.insert("clipboard".to_string(), FeatureStatus::Disabled);
+        features.insert("color-sampler".to_string(), FeatureStatus::Disabled);
         features.insert("color-picker".to_string(), FeatureStatus::Disabled);
         features.insert("ddc-control".to_string(), FeatureStatus::Disabled);
         features.insert("disk-usage".to_string(), FeatureStatus::Disabled);
@@ -151,6 +152,7 @@ mod tests {
                 "chapter-marker",
                 "clipboard",
                 "color-picker",
+                "color-sampler",
                 "ddc-control",
                 "disk-usage",
                 "drag-shelf",
