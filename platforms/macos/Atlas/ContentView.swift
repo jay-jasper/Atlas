@@ -95,6 +95,7 @@ private enum PrimaryPanelSection: Hashable {
     case totp
     case pomodoro
     case subtitles
+    case textExpansion
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -235,6 +236,7 @@ struct ContentView: View {
     @StateObject private var totpService = TOTPService()
     @StateObject private var pomodoroService = PomodoroService()
     @StateObject private var subtitleService = SubtitleService()
+    @StateObject private var textExpansionService = TextExpansionService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -789,6 +791,11 @@ struct ContentView: View {
             return
         }
 
+        if feature == AtlasModule.textExpansion.featureName {
+            if !enabled { textExpansionService.stopMonitoring() }
+            return
+        }
+
         if feature == AtlasModule.calendar.featureName {
             if enabled { calendarService.requestAccessIfNeeded() }
             return
@@ -1215,6 +1222,7 @@ struct ContentView: View {
             .totp,
             .pomodoro,
             .subtitles,
+            .textExpansion,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1258,7 +1266,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion:
             return nil
         }
     }
@@ -1498,6 +1506,11 @@ struct ContentView: View {
         case .subtitles:
             if isFeatureEnabled(.subtitles) {
                 SubtitlePanel(service: subtitleService)
+                Divider()
+            }
+        case .textExpansion:
+            if isFeatureEnabled(.textExpansion) {
+                TextExpansionPanel(service: textExpansionService)
                 Divider()
             }
         }
