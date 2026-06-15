@@ -35,12 +35,14 @@ Chapter Markers (#46) · Watermark (#47) · Subtitle Tools (#48) · OBS Control 
 Plus a password-strength estimator wired into the palette generator (#7), and a
 one-shot `current_battery()` FFI surface.
 
-Remaining Phase 2 (17): Keyboard Display (#16), Audio Recording (#17), LAN
-Transfer (#19), GIF Post-Processing (#20), Bluetooth Battery (#21), Translation
-Popup (#22), Alt-Tab (#30), Scroll Smoothing (#31), Packet Monitor (#34), Now
-Playing (#35), Keyboard SFX (#38), Sound Feedback (#40), Live Caption (#42),
-Recording Indicator (#43), Audio Level Meter (#44), Video Color Sampler (#50),
-Mic Noise Gate (#51).
+Also shipped: Keyboard Display (#16), GIF Post-Processing (#20), Alt-Tab (#30),
+Scroll Smoothing (#31) → **24/37 Phase 2 modules done.**
+
+Remaining Phase 2 (13): Audio Recording (#17), LAN Transfer (#19), Bluetooth
+Battery (#21), Translation Popup (#22), Packet Monitor (#34), Now Playing (#35),
+Keyboard SFX (#38), Sound Feedback (#40), Live Caption (#42), Recording
+Indicator (#43), Audio Level Meter (#44), Video Color Sampler (#50), Mic Noise
+Gate (#51) — most need audio/recording, private frameworks, or privileged capture.
 
 Each shipped as a complete vertical slice: pure testable core + service +
 SwiftUI panel + Rust `FeatureManager` registration (FFI lib regenerated) +

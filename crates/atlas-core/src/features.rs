@@ -26,6 +26,7 @@ impl FeatureManager {
         let mut features = HashMap::new();
         // Default feature registry
         features.insert("ai-load-monitor".to_string(), FeatureStatus::Disabled);
+        features.insert("alt-tab".to_string(), FeatureStatus::Disabled);
         features.insert("app-audio".to_string(), FeatureStatus::Disabled);
         features.insert("app-cleaner".to_string(), FeatureStatus::Disabled);
         features.insert("aspect-guide".to_string(), FeatureStatus::Disabled);
@@ -138,6 +139,7 @@ mod tests {
             names,
             vec![
                 "ai-load-monitor",
+                "alt-tab",
                 "app-audio",
                 "app-cleaner",
                 "aspect-guide",

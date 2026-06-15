@@ -115,6 +115,7 @@ private enum PrimaryPanelSection: Hashable {
     case keyboardDisplay
     case scrollSmoothing
     case gifProcessing
+    case altTab
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -275,6 +276,7 @@ struct ContentView: View {
     @StateObject private var keyboardDisplayService = KeyboardDisplayService()
     @StateObject private var scrollSmoothingService = ScrollSmoothingService()
     @StateObject private var gifProcessingService = GIFProcessingService()
+    @StateObject private var altTabService = AltTabService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1285,6 +1287,7 @@ struct ContentView: View {
             .keyboardDisplay,
             .scrollSmoothing,
             .gifProcessing,
+            .altTab,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1328,7 +1331,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl, .teleprompter, .webWallpaper, .keyboardDisplay, .scrollSmoothing, .gifProcessing, .altTab:
             return nil
         }
     }
@@ -1668,6 +1671,11 @@ struct ContentView: View {
         case .gifProcessing:
             if isFeatureEnabled(.gifProcessing) {
                 GIFProcessingPanel(service: gifProcessingService)
+                Divider()
+            }
+        case .altTab:
+            if isFeatureEnabled(.altTab) {
+                AltTabPanel(service: altTabService)
                 Divider()
             }
         }

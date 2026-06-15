@@ -1,5 +1,6 @@
 enum AtlasModule: String, CaseIterable, Identifiable {
     case aiLoadMonitor = "ai-load-monitor"
+    case altTab = "alt-tab"
     case appAudio = "app-audio"
     case appCleaner = "app-cleaner"
     case aspectGuide = "aspect-guide"
@@ -53,6 +54,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
         switch self {
         case .aiLoadMonitor:
             return "AI Load"
+        case .altTab:
+            return "Window Switcher"
         case .appAudio:
             return "App Audio"
         case .appCleaner:
