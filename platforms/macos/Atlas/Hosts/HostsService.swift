@@ -10,11 +10,24 @@ protocol HostsFileAccessing {
 
 struct LiveHostsFileAccess: HostsFileAccessing {
     private let path = "/etc/hosts"
+    private let privilegedWriter: PrivilegedWriting
+
+    init(privilegedWriter: PrivilegedWriting = AppleScriptPrivilegedWriter()) {
+        self.privilegedWriter = privilegedWriter
+    }
+
     func read() -> String {
         (try? String(contentsOfFile: path, encoding: .utf8)) ?? ""
     }
+
     func write(_ content: String) throws {
-        try content.write(toFile: path, atomically: true, encoding: .utf8)
+        // /etc/hosts is root-owned; a direct write fails for normal users, so
+        // fall back to an authorized copy (prompts for admin password).
+        do {
+            try content.write(toFile: path, atomically: true, encoding: .utf8)
+        } catch {
+            try privilegedWriter.write(content, to: path)
+        }
     }
 }
 
