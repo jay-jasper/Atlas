@@ -46,6 +46,7 @@ impl FeatureManager {
         features.insert("hosts".to_string(), FeatureStatus::Disabled);
         features.insert("monitoring".to_string(), FeatureStatus::Disabled);
         features.insert("network-monitor".to_string(), FeatureStatus::Disabled);
+        features.insert("obs-control".to_string(), FeatureStatus::Disabled);
         features.insert("pomodoro".to_string(), FeatureStatus::Disabled);
         features.insert("privacy".to_string(), FeatureStatus::Disabled);
         features.insert("proxy".to_string(), FeatureStatus::Disabled);
@@ -152,6 +153,7 @@ mod tests {
                 "hosts",
                 "monitoring",
                 "network-monitor",
+                "obs-control",
                 "pomodoro",
                 "privacy",
                 "proxy",

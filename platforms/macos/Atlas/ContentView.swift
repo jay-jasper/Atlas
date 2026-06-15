@@ -109,6 +109,7 @@ private enum PrimaryPanelSection: Hashable {
     case dragShelf
     case batteryHealth
     case watermark
+    case obsControl
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -263,6 +264,7 @@ struct ContentView: View {
     @StateObject private var dragShelfService = DragShelfService()
     @StateObject private var batteryHealthService = BatteryHealthService()
     @StateObject private var watermarkService = WatermarkService()
+    @StateObject private var obsService = OBSService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1267,6 +1269,7 @@ struct ContentView: View {
             .dragShelf,
             .batteryHealth,
             .watermark,
+            .obsControl,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1310,7 +1313,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker, .appCleaner, .aspectGuide, .dragShelf, .batteryHealth, .watermark, .obsControl:
             return nil
         }
     }
@@ -1620,6 +1623,11 @@ struct ContentView: View {
         case .watermark:
             if isFeatureEnabled(.watermark) {
                 WatermarkPanel(service: watermarkService)
+                Divider()
+            }
+        case .obsControl:
+            if isFeatureEnabled(.obsControl) {
+                OBSPanel(service: obsService)
                 Divider()
             }
         }
