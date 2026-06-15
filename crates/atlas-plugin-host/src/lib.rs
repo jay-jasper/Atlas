@@ -16,7 +16,9 @@
 pub mod capabilities;
 pub mod manifest;
 pub mod registry;
+pub mod ui;
 
 pub use capabilities::{CapabilityError, CapabilityGuard};
 pub use manifest::{Capabilities, ManifestError, PluginManifest, Runtime, RuntimeKind};
 pub use registry::{PluginRegistry, RegistryError};
+pub use ui::{UiError, UiEvent, UiNode};
