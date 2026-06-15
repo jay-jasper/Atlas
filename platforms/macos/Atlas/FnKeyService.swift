@@ -77,24 +77,23 @@ struct LiveFnKeyController: FnKeyControlling {
         guard let service = openKeyboardService() else { return nil }
         defer { IOObjectRelease(service) }
 
-        var value: UInt32 = 0
-        let kr = IOHIDServiceGetIntegerProperty(
+        guard let property = IORegistryEntryCreateCFProperty(
             service,
             kIOHIDFKeyModeKey as CFString,
-            &value
-        )
-        guard kr == kIOReturnSuccess else { return nil }
-        return FnKeyMode(rawValue: Int(value))
+            kCFAllocatorDefault,
+            0
+        )?.takeRetainedValue() as? NSNumber else { return nil }
+        return FnKeyMode(rawValue: property.intValue)
     }
 
     func setMode(_ mode: FnKeyMode) -> Bool {
         guard let service = openKeyboardService() else { return false }
         defer { IOObjectRelease(service) }
 
-        let kr = IOHIDServiceSetIntegerProperty(
+        let kr = IORegistryEntrySetCFProperty(
             service,
             kIOHIDFKeyModeKey as CFString,
-            UInt32(mode.rawValue)
+            NSNumber(value: mode.rawValue)
         )
         return kr == kIOReturnSuccess
     }

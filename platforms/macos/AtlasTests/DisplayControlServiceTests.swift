@@ -14,7 +14,7 @@ final class DisplayControlServiceTests: XCTestCase {
 
         XCTAssertEqual(displays, [
             DisplayDevice(id: "display-1", name: "Built-in Retina", isBuiltin: true, supportsDDC: false),
-            DisplayDevice(id: "display-2", name: "LG UltraFine", isBuiltin: false, supportsDDC: true),
+            DisplayDevice(id: "display-2", name: "LG UltraFine", isBuiltin: false, supportsDDC: true, ddcIndex: 2),
         ])
     }
 

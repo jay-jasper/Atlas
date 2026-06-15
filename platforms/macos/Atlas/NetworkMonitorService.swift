@@ -89,7 +89,8 @@ enum NetworkMonitorParser {
 
             let local = endpoints[0].trimmingCharacters(in: .whitespaces)
             let remote = endpoints[1].trimmingCharacters(in: .whitespaces)
-            let stateField = parts.count > 9 ? parts[9] : "ESTABLISHED"
+            let stateField = (parts.count > 9 ? parts[9] : "ESTABLISHED")
+                .trimmingCharacters(in: CharacterSet(charactersIn: "()"))
             let idKey = "\(pid)-\(local)-\(remote)"
             guard !seen.contains(idKey) else { return nil }
             seen.insert(idKey)

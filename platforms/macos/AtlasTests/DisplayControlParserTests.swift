@@ -95,4 +95,10 @@ final class SpySystemCommandRunner: SystemCommandRunning {
         lastArguments = arguments
         return SystemCommandResult(terminationStatus: 0, standardOutput: "", standardError: "")
     }
+
+    func start(_ executable: String, arguments: [String]) throws -> SystemCommandProcess {
+        lastExecutable = executable
+        lastArguments = arguments
+        return FakeSystemCommandProcess()
+    }
 }

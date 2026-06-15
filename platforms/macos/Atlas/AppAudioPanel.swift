@@ -19,7 +19,7 @@ struct AppAudioPanel: View {
             }
 
             SystemVolumeRow(
-                volume: $service.systemVolume,
+                volume: service.systemVolume,
                 isMuted: service.isSystemMuted,
                 onVolumeChange: { service.setSystemVolume($0) },
                 onMuteToggle: { service.toggleSystemMute() }
@@ -50,7 +50,7 @@ struct AppAudioPanel: View {
 }
 
 private struct SystemVolumeRow: View {
-    @Binding var volume: Float
+    let volume: Float
     let isMuted: Bool
     let onVolumeChange: (Float) -> Void
     let onMuteToggle: () -> Void
