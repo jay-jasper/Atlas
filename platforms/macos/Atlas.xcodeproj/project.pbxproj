@@ -170,7 +170,9 @@
 		77D69C7AE0544DCA15643181 /* FeedParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3AE704FB75A2E3CBDDE7B6 /* FeedParserTests.swift */; };
 		78FE9068968FB7A1525472B2 /* UnitConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C54EC6BF53442B79BBA324E /* UnitConverter.swift */; };
 		7926B714057C69CC2D70CBF2 /* ScratchpadStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E4B44C9DA748AF33BC04266 /* ScratchpadStore.swift */; };
+		797054984E1D452D66AEAE65 /* SpeechTranscriptionMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7920F92DA8FF9A3D548F8B /* SpeechTranscriptionMapperTests.swift */; };
 		79BEA9922518FC4B7EDD6BE0 /* WorkspacePanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9504B17A66F3EB10E9202C42 /* WorkspacePanelTests.swift */; };
+		7A142B7A699E0B6495D97654 /* SpeechTranscriptionMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF8CEFA40539032E5C679B09 /* SpeechTranscriptionMapper.swift */; };
 		7A66546723530A837B4B9D15 /* ScrollSmoothingPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8FE8BD2953E1E6936808BD /* ScrollSmoothingPanel.swift */; };
 		7B7FC9A88BFFF32EC0FA82E3 /* EditionModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05514ABA150C37E63A8A33C5 /* EditionModelsTests.swift */; };
 		7B8B1390B8DFC133ADC00876 /* LocalAILoadMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A39066934E56F1EC377485F /* LocalAILoadMonitorTests.swift */; };
@@ -281,6 +283,7 @@
 		91B4235F05628F9458D06DDE /* TeleprompterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A320FD04B2E23200BCAF7837 /* TeleprompterTests.swift */; };
 		9206BDF72C221222D55C67A8 /* AtlasScriptAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83FAB328C2F119CE8CC9EA71 /* AtlasScriptAPI.swift */; };
 		921318CE226848754BD178BA /* AppCleanerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A81F53AE8AA1A1D81643B9 /* AppCleanerPanel.swift */; };
+		9262A8E905B94295E8E9DD44 /* SpeechFileTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FB9D12A3760A56BFF44643E /* SpeechFileTranscriber.swift */; };
 		94024FC42A48A5F2D890B4E4 /* ClipboardHistoryProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7197E28D112572E9204A1D59 /* ClipboardHistoryProviderTests.swift */; };
 		9508BCB8B2B54498B76200FC /* SceneStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F416F0EAC843FDAEF19D9D /* SceneStoreTests.swift */; };
 		960FE879C697E89139B048BF /* BlockKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32FABF6E62E65D7618A9310B /* BlockKitView.swift */; };
@@ -604,6 +607,7 @@
 		6DD923DBE2696C567A15B066 /* PasswordGeneratorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PasswordGeneratorProvider.swift; sourceTree = "<group>"; };
 		6E276FD7ABA37B12C6847A63 /* CommandPaletteController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommandPaletteController.swift; sourceTree = "<group>"; };
 		6EF0A254C1D4D8FD36219677 /* PrivacyPulsePanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrivacyPulsePanel.swift; path = Atlas/PrivacyPulsePanel.swift; sourceTree = "<group>"; };
+		6FB9D12A3760A56BFF44643E /* SpeechFileTranscriber.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SpeechFileTranscriber.swift; sourceTree = "<group>"; };
 		7189ACA4434845DA987B0755 /* DDCPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DDCPanel.swift; sourceTree = "<group>"; };
 		7197E28D112572E9204A1D59 /* ClipboardHistoryProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryProviderTests.swift; sourceTree = "<group>"; };
 		71E7EC9B8E38C8F989371E4A /* BrowserRouterService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserRouterService.swift; sourceTree = "<group>"; };
@@ -852,6 +856,7 @@
 		D899845A8F39B4236736FC37 /* SkillStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SkillStoreTests.swift; sourceTree = "<group>"; };
 		D9871729F51F53C6A755514A /* BrowserRoute.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserRoute.swift; sourceTree = "<group>"; };
 		DA6CF520A2524B3899891093 /* ScreenshotGIFRecording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotGIFRecording.swift; sourceTree = "<group>"; };
+		DB7920F92DA8FF9A3D548F8B /* SpeechTranscriptionMapperTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SpeechTranscriptionMapperTests.swift; sourceTree = "<group>"; };
 		DBB91A86EB78B6E1398B03FC /* QuickSwitchPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuickSwitchPanel.swift; sourceTree = "<group>"; };
 		DBD5333B0F572508A05707D7 /* DiskUsagePanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DiskUsagePanel.swift; sourceTree = "<group>"; };
 		DD69A44EB9161C74D5687CBA /* PasswordStrengthTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PasswordStrengthTests.swift; sourceTree = "<group>"; };
@@ -900,6 +905,7 @@
 		FCA4D8F5DB95B41DD7BB0377 /* TOTPModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TOTPModels.swift; sourceTree = "<group>"; };
 		FCF7BCE17C8EFF052AC6FE57 /* EntitlementService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EntitlementService.swift; sourceTree = "<group>"; };
 		FF6272A1B4660F8A43600C61 /* WorkspaceWindowService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspaceWindowService.swift; sourceTree = "<group>"; };
+		FF8CEFA40539032E5C679B09 /* SpeechTranscriptionMapper.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SpeechTranscriptionMapper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1228,6 +1234,8 @@
 				E7EDB0C8EC26A2F2128403DE /* TranscriptionModel.swift */,
 				3ED3D965FF832561E003F97F /* TranscriptionService.swift */,
 				7E993E01EFDE2F6AFD2EC1A5 /* TranscriptionPanel.swift */,
+				FF8CEFA40539032E5C679B09 /* SpeechTranscriptionMapper.swift */,
+				6FB9D12A3760A56BFF44643E /* SpeechFileTranscriber.swift */,
 			);
 			name = Transcription;
 			path = Transcription;
@@ -1560,6 +1568,7 @@
 				A555CC96A4F32B6F647A594A /* TranscriptionTests.swift */,
 				0BFDF0D448416516A2093C31 /* RecordingTimelineTests.swift */,
 				5963D5DA0CED452CAD692B9F /* AtlasScriptAPITests.swift */,
+				DB7920F92DA8FF9A3D548F8B /* SpeechTranscriptionMapperTests.swift */,
 			);
 			path = AtlasTests;
 			sourceTree = "<group>";
@@ -2217,6 +2226,8 @@
 				9206BDF72C221222D55C67A8 /* AtlasScriptAPI.swift in Sources */,
 				BAE8270E53B2444290A45D0B /* ScriptingService.swift in Sources */,
 				361A4DB2F9E6A9601CA41E1B /* ScriptingPanel.swift in Sources */,
+				7A142B7A699E0B6495D97654 /* SpeechTranscriptionMapper.swift in Sources */,
+				9262A8E905B94295E8E9DD44 /* SpeechFileTranscriber.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2371,6 +2382,7 @@
 				90EC39158806088F2CB7E3BE /* TranscriptionTests.swift in Sources */,
 				37CE93A4276BDA430C97437D /* RecordingTimelineTests.swift in Sources */,
 				75DB5D371A70BE12A24A9A10 /* AtlasScriptAPITests.swift in Sources */,
+				797054984E1D452D66AEAE65 /* SpeechTranscriptionMapperTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2509,7 +2521,9 @@
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Atlas uses the camera for the hand mirror preview.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Atlas uses the microphone for audio recording, level metering, noise gating, and live captions.";
 				INFOPLIST_KEY_NSScreenCaptureUsageDescription = "Atlas captures the screen to take screenshots.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Atlas uses speech recognition for live captions and audio transcription.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -2542,7 +2556,9 @@
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Atlas uses the camera for the hand mirror preview.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Atlas uses the microphone for audio recording, level metering, noise gating, and live captions.";
 				INFOPLIST_KEY_NSScreenCaptureUsageDescription = "Atlas captures the screen to take screenshots.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Atlas uses speech recognition for live captions and audio transcription.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

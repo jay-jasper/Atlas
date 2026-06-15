@@ -10,7 +10,7 @@ final class TranscriptionService: ObservableObject {
 
     private let transcriber: Transcribing
 
-    init(transcriber: Transcribing = UnavailableTranscriber()) {
+    init(transcriber: Transcribing = SpeechFileTranscriber()) {
         self.transcriber = transcriber
     }
 
