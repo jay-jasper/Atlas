@@ -35,6 +35,7 @@ final class AudioRecordingService: ObservableObject {
             self.recorder = recorder
             isRecording = true
             statusMessage = ""
+            PrivacyPulseReporter.shared.microphone("Audio Recording", detail: "Recording to \(url.lastPathComponent)")
         } catch {
             statusMessage = "Could not start recording — check microphone permission."
         }

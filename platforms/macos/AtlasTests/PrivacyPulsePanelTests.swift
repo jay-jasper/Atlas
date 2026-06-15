@@ -12,6 +12,7 @@ final class PrivacyPulsePanelTests: XCTestCase {
                 .clipboard: .recentlyUsed(date),
                 .screenRecording: .notDetermined,
                 .accessibility: .inactive,
+                .network: .inactive,
             ],
             events: []
         ))
@@ -22,6 +23,7 @@ final class PrivacyPulsePanelTests: XCTestCase {
             "Denied",
             "Recently Used",
             "Not Determined",
+            "Inactive",
             "Inactive",
         ])
         XCTAssertEqual(state.emptyText, "No Atlas privacy access recorded.")

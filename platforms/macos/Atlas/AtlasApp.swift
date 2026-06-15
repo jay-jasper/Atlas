@@ -10,6 +10,7 @@ struct AtlasApp: App {
 
     init() {
         let logger = PrivacyPulseAccessLogger()
+        PrivacyPulseReporter.shared.logger = logger
         let sharedWindowManager = AccessibilityWindowManager(accessLogger: logger)
         self.privacyAccessLogger = logger
         self.privacyPulseService = PrivacyPulseService(

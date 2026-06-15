@@ -6,6 +6,7 @@ enum PrivacyPulseCategory: String, CaseIterable, Identifiable, Sendable {
     case clipboard
     case screenRecording
     case accessibility
+    case network
 
     var id: String { rawValue }
 
@@ -21,6 +22,8 @@ enum PrivacyPulseCategory: String, CaseIterable, Identifiable, Sendable {
             return "Screen Recording"
         case .accessibility:
             return "Accessibility"
+        case .network:
+            return "Network"
         }
     }
 }

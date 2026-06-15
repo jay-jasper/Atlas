@@ -53,6 +53,7 @@ final class KeyboardDisplayService: ObservableObject {
         CGEvent.tapEnable(tap: tap, enable: true)
         isCapturing = true
         statusMessage = ""
+        PrivacyPulseReporter.shared.keyboard("Keyboard Display")
     }
 
     func stopCapture() {

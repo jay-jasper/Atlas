@@ -110,6 +110,8 @@ private struct PrivacyPulseStatusRow: View {
             return "rectangle.dashed"
         case .accessibility:
             return "accessibility"
+        case .network:
+            return "network"
         }
     }
 

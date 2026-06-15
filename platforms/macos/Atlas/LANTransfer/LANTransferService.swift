@@ -31,6 +31,7 @@ final class LANTransferService: ObservableObject {
             self.listener = listener
             isAdvertising = true
             statusMessage = "Ready to receive."
+            PrivacyPulseReporter.shared.network("LAN Transfer", detail: "Advertising a Bonjour receiver on the local network")
         } catch {
             statusMessage = "Could not start receiver."
         }

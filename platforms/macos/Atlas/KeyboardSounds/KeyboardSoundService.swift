@@ -47,6 +47,7 @@ final class KeyboardSoundService: ObservableObject {
         CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
         statusMessage = ""
+        PrivacyPulseReporter.shared.keyboard("Keyboard Sounds")
     }
 
     private func stop() {

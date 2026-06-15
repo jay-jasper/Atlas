@@ -75,6 +75,7 @@ final class LiveCaptionService: ObservableObject {
         }
         isCaptioning = true
         statusMessage = ""
+        PrivacyPulseReporter.shared.microphone("Live Caption", detail: "Started live speech recognition")
 
         task = recognizer.recognitionTask(with: request) { [weak self] result, _ in
             guard let self, let result else { return }

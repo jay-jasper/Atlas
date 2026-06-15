@@ -47,6 +47,7 @@ final class TextExpansionMonitor: TextExpansionMonitoring {
         runLoopSource = source
         CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
+        PrivacyPulseReporter.shared.keyboard("Text Expansion")
         return true
     }
 

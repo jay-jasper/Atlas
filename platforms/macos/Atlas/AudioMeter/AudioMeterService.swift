@@ -31,6 +31,7 @@ final class AudioMeterService: ObservableObject {
             try engine.start()
             isRunning = true
             statusMessage = ""
+            PrivacyPulseReporter.shared.microphone("Audio Level Meter")
         } catch {
             statusMessage = "Microphone access required."
         }
