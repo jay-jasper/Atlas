@@ -16,6 +16,7 @@
 pub mod capabilities;
 pub mod dist;
 pub mod hub;
+pub mod lua;
 pub mod manifest;
 pub mod mcp;
 pub mod mcp_transport;
