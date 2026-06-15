@@ -50,6 +50,7 @@
 		30EBCD038792D15E5554CB10 /* BrowserRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9871729F51F53C6A755514A /* BrowserRoute.swift */; };
 		31E76876D2E74EFBBED74589 /* NetworkMonitorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 280174B495DA4E699AB9EDD4 /* NetworkMonitorService.swift */; };
 		332922EA4D092EFE5CEAAA13 /* LoremIpsumProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F517CFAB11D9A661E2C4671F /* LoremIpsumProvider.swift */; };
+		33CA79645E7128753DAEFC93 /* PasswordStrength.swift in Sources */ = {isa = PBXBuildFile; fileRef = E524051331E4CF26B142A5AD /* PasswordStrength.swift */; };
 		360BE583438EA5E81F0032D9 /* ScratchpadSummaryServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A44260F6FC0C2D4643BD94 /* ScratchpadSummaryServiceTests.swift */; };
 		37C4BA09529F049C83FA8446 /* GlobalHotkeyServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E30A530F0213767E0551D5E /* GlobalHotkeyServiceTests.swift */; };
 		38179497FD123B228E40DA17 /* TokenBarProviderUsageImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3DE457B41A12660E780DC34 /* TokenBarProviderUsageImporter.swift */; };
@@ -256,6 +257,7 @@
 		C250A333099F44698E5D6B05 /* ScreenshotGIFRecordingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7ACF5FA17334730ADDA72E6 /* ScreenshotGIFRecordingTests.swift */; };
 		C27EB696CACA4ABC9D34B787 /* ScreenshotGIFRecording.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA6CF520A2524B3899891093 /* ScreenshotGIFRecording.swift */; };
 		C50CAA4A3E513691C3085226 /* EnvDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 022A1486F125EECADE728D83 /* EnvDocumentTests.swift */; };
+		C75CEB0CF169A2DF7D673BBF /* PasswordStrengthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD69A44EB9161C74D5687CBA /* PasswordStrengthTests.swift */; };
 		C92BC075544EB4DDBC2F639A /* WindowGridPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68EA27610C553B6123DCA781 /* WindowGridPanel.swift */; };
 		C9B92F5D750888F429C608BA /* CommandPaletteRanker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7EEA91FA1432688549E6E78 /* CommandPaletteRanker.swift */; };
 		C9E82B6BCE09BC69BCD40188 /* PrivacyPulseModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57C3B04EA2A5CCFCD1CB5818 /* PrivacyPulseModels.swift */; };
@@ -595,9 +597,11 @@
 		D899845A8F39B4236736FC37 /* SkillStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SkillStoreTests.swift; sourceTree = "<group>"; };
 		D9871729F51F53C6A755514A /* BrowserRoute.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserRoute.swift; sourceTree = "<group>"; };
 		DA6CF520A2524B3899891093 /* ScreenshotGIFRecording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotGIFRecording.swift; sourceTree = "<group>"; };
+		DD69A44EB9161C74D5687CBA /* PasswordStrengthTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PasswordStrengthTests.swift; sourceTree = "<group>"; };
 		E2D78BEA0EC18EB51F1C35ED /* DeveloperToolsProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeveloperToolsProvider.swift; sourceTree = "<group>"; };
 		E432DB161183383E5722684F /* FileSearchProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FileSearchProvider.swift; sourceTree = "<group>"; };
 		E4C279B8D707828A901BAD80 /* TokenBarImportServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarImportServiceTests.swift; sourceTree = "<group>"; };
+		E524051331E4CF26B142A5AD /* PasswordStrength.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PasswordStrength.swift; sourceTree = "<group>"; };
 		E5F5E6CC62BF91B392AEA527 /* Phase1ProvidersTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Phase1ProvidersTests.swift; sourceTree = "<group>"; };
 		E613269397434B9767C7202F /* KeepAwakeService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeepAwakeService.swift; sourceTree = "<group>"; };
 		E6ED5C58191AF87FA22B4409 /* SnippetsProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnippetsProviderTests.swift; sourceTree = "<group>"; };
@@ -668,6 +672,15 @@
 				B4D6DCBDB7963D769ABA6304 /* PrivacyPulsePanelTests.swift */,
 			);
 			name = AtlasTests;
+			sourceTree = "<group>";
+		};
+		42AB10FA422BAD0958134D32 /* Passwords */ = {
+			isa = PBXGroup;
+			children = (
+				E524051331E4CF26B142A5AD /* PasswordStrength.swift */,
+			);
+			name = Passwords;
+			path = Passwords;
 			sourceTree = "<group>";
 		};
 		5053D8560C4CEF9FF8386AF2 /* BrowserRouter */ = {
@@ -893,6 +906,7 @@
 				8223A1BA2426E4FC6A5B6D50 /* Hosts */,
 				5053D8560C4CEF9FF8386AF2 /* BrowserRouter */,
 				B5900E826B8A89004E75CD86 /* EnvManager */,
+				42AB10FA422BAD0958134D32 /* Passwords */,
 			);
 			path = Atlas;
 			sourceTree = "<group>";
@@ -1009,6 +1023,7 @@
 				C0C43C0C90F5997514BFE75A /* HostsDocumentTests.swift */,
 				4402AC346AC617CA53A5677D /* BrowserRouterTests.swift */,
 				022A1486F125EECADE728D83 /* EnvDocumentTests.swift */,
+				DD69A44EB9161C74D5687CBA /* PasswordStrengthTests.swift */,
 			);
 			path = AtlasTests;
 			sourceTree = "<group>";
@@ -1361,6 +1376,7 @@
 				D10849B0DCE68F6E9001639D /* EnvDocument.swift in Sources */,
 				D1E2429A0B6BA26DDE9366F9 /* EnvService.swift in Sources */,
 				846C5B7F777D4FD3921DC984 /* EnvPanel.swift in Sources */,
+				33CA79645E7128753DAEFC93 /* PasswordStrength.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1479,6 +1495,7 @@
 				91401D9C6DB4C638C07C1394 /* HostsDocumentTests.swift in Sources */,
 				8D7A5C6B1B499FBEA700E592 /* BrowserRouterTests.swift in Sources */,
 				C50CAA4A3E513691C3085226 /* EnvDocumentTests.swift in Sources */,
+				C75CEB0CF169A2DF7D673BBF /* PasswordStrengthTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

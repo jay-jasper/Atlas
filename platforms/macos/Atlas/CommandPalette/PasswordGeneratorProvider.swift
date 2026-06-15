@@ -38,6 +38,7 @@ final class PasswordGeneratorProvider: CommandProviding {
         let value = generate(length: clamped, from: Array(alphabet))
         var descriptor = "\(clamped) chars"
         if options.contains("symbols") { descriptor += " · symbols" }
+        descriptor += " · \(PasswordStrength.assess(value).rating.rawValue)"
 
         return [PaletteCommand(
             id: UUID(),
