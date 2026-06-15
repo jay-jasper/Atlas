@@ -12,6 +12,24 @@ AI Load Monitor · App Audio · Audio Hub · Automation · Calendar · Clipboard
 
 ---
 
+## Implementation Progress Log
+
+**Foundation (2026-06-15):** Made the macOS app build & test for the first time —
+replaced fictional private IOKit symbols in FnKeyService with the real
+`com.apple.keyboard.fnState` mechanism, marked XCTestCase suites `@MainActor`
+for Swift 6 isolation, fixed an AppAudioPanel binding, and fixed latent
+NetworkMonitor/DisplayControl parser bugs. Established `tools/xcode_add.rb` and
+verified the UniFFI regeneration pipeline. Suite: 601 Swift + 35 Rust green.
+
+**Phase 1 — COMPLETE (14/14):** Calculator/Unit/Currency (#1, Rust evalexpr via
+FFI + native evaluator), Emoji (#2), UUID/NanoID (#3), Shell Runner (#4),
+Bookmarks (#5), File Search (#6), Password (#7), JSON (#8), Hash (#9),
+Base64/URL (#10), Timezone (#11), Regex (#12), Lorem (#13), Color Convert (#14).
+
+**Phase 2 — in progress:** TOTP 2FA (#23) · Pomodoro (#24) · Subtitle Tools (#48).
+
+---
+
 ## Phase 1 — Command Palette Providers
 
 Lightweight, no new modules, all extend the existing Command Palette via `CommandProviding`.
