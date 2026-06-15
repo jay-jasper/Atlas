@@ -50,6 +50,7 @@
 		184467C57A6535ABF0CDEC30 /* TokenBarSettingsViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05476D1C950C7372382DE4A8 /* TokenBarSettingsViewTests.swift */; };
 		1B9B75BEE72B078DA88A8484 /* ExpressionEvaluatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CB82ACE64328FFFF4195A88 /* ExpressionEvaluatorTests.swift */; };
 		1CC84AAE68FA47EFF3752892 /* DragShelfStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D548220FD3DA27217EAF5486 /* DragShelfStore.swift */; };
+		1FBCED48F6EB50C0D0E2E8BA /* AtlasEditionScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F3F52AE8B6327EC32F6721C /* AtlasEditionScreen.swift */; };
 		2033376B4AC44FB3A1C0AEFB /* ScreenshotGIFEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A44156B2EB514BCCA0C59582 /* ScreenshotGIFEncoder.swift */; };
 		203C596BD6B511A83D5426C0 /* AudioRecordingPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AA9DCB43FE0C41EF0F97DC1 /* AudioRecordingPanel.swift */; };
 		208EB7B6A25FF36656812786 /* TOTPStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B4E64E0273F29C59FED6BBA /* TOTPStore.swift */; };
@@ -62,6 +63,7 @@
 		24F778FE35A7247E28A8160A /* TranscriptionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7EDB0C8EC26A2F2128403DE /* TranscriptionModel.swift */; };
 		2510A2DC3B97507E56351E3B /* KeyboardSoundTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1383C584255EE54D8095230E /* KeyboardSoundTests.swift */; };
 		251D1C9994CD4882B70BB210 /* AppAudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B3F4116F0147CEBEEAB1B5 /* AppAudioService.swift */; };
+		25221A1BF70B0A744FF93D75 /* AtlasTogglesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8287E6A1A73AF89708D3D7C0 /* AtlasTogglesScreen.swift */; };
 		253571B97F64E1A4283BF37D /* ExpressionDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 952C4F259979B23F91F1A16E /* ExpressionDetectorTests.swift */; };
 		256207F1169B9D071F388F1F /* NowPlayingParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96EB0317E0687CB771626198 /* NowPlayingParser.swift */; };
 		272BB15DC4617ABB9E1AE8FD /* AppCleanerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4C4C8543B63537288CA2F0 /* AppCleanerService.swift */; };
@@ -190,6 +192,7 @@
 		7FF82D75C0E538487DF65C53 /* TOTPTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7204F89F824E918275D8673 /* TOTPTests.swift */; };
 		808A6B4EB63DDA13F9EB362C /* CommandUsageStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 314B642DBE2B0B6CA4276880 /* CommandUsageStoreTests.swift */; };
 		813C29A119C87B1974A5469E /* ProxyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 673D3F40DC3DF98FBE3C565C /* ProxyTests.swift */; };
+		815328920EA34A4F104A5409 /* AtlasPaletteScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE4AC85F37B2116C5AC2A8A8 /* AtlasPaletteScreen.swift */; };
 		81D66F1528CDFA538B9AC64D /* TokenBarProviderClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13CB23AEEF1DA71D5904B40 /* TokenBarProviderClientTests.swift */; };
 		81FBB07ED4034A0A85D1B994 /* BluetoothQuickActionsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 808EB43DD51F4EC29D0DB3B8 /* BluetoothQuickActionsServiceTests.swift */; };
 		83A295509061E01DB6C09DA7 /* HostsDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BCD2DCD6B59BBF64162C7CC /* HostsDocument.swift */; };
@@ -271,6 +274,7 @@
 		83E1A00FF98BDBB8ACDFD3F0 /* SkillCommandProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C900F364E10A1A2AD41B3B85 /* SkillCommandProviderTests.swift */; };
 		840AEC116FC22F368E377DC5 /* TokenBarCommandProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D915D9445C4D361AEF9BB72 /* TokenBarCommandProvider.swift */; };
 		846C5B7F777D4FD3921DC984 /* EnvPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DB93057467DE54021D3D23 /* EnvPanel.swift */; };
+		849F27592751C517D0917228 /* AtlasPrefsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C64872FB91777AFDDA0E787 /* AtlasPrefsScreen.swift */; };
 		8507691346F2067ACB0823F9 /* RecordingEditorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9ED158C914EAA33FF7A1CB4 /* RecordingEditorService.swift */; };
 		86B0F84F2EC96C263DAEFCDE /* HostsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C1B16F6A8DAC8BB654FA43A /* HostsPanel.swift */; };
 		8767DAFA6C68072E756CBCEB /* BluetoothBatteryParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B976CF14A641C66534CF588C /* BluetoothBatteryParser.swift */; };
@@ -336,6 +340,7 @@
 		A9C6D48C51E44211AD5AC4FD /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B98D69D7B30401BB40B4D23 /* CalendarService.swift */; };
 		AA1817E367456E8A4BAFAA00 /* NowPlayingParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD37F4AB1596A2AD893C850 /* NowPlayingParserTests.swift */; };
 		AA2A051DA644E2D6C6F288F1 /* ScratchpadPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA8A5F47DBA508F58C46E2E6 /* ScratchpadPanel.swift */; };
+		AA3D22B987D6AA09F79C0217 /* AtlasPrototypeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4743F79BAEA9FF0D2BCA9023 /* AtlasPrototypeView.swift */; };
 		AAC8F90EC8056F1B5BE8D8C4 /* AudioRecordingConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCF0AFC0EE788F79D15D5F69 /* AudioRecordingConfig.swift */; };
 		AB195867730FFF9740728D4B /* ShellScriptStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0654E9D823BB9427DEB8BD56 /* ShellScriptStore.swift */; };
 		AC067B2BDDEE903A89303DFB /* CaptionBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE9F9636EE0DECC45993216B /* CaptionBuffer.swift */; };
@@ -413,6 +418,7 @@
 		E1F3770463554F30A7BE9715 /* DDCPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7189ACA4434845DA987B0755 /* DDCPanel.swift */; };
 		E34FDD2A1F94DBB150780942 /* DiskUsageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4C9BF295A5E0613F6B29591 /* DiskUsageService.swift */; };
 		E39B29EC308C9F49A65534B1 /* ColorSamplerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B651DA8816288AF44EB77692 /* ColorSamplerService.swift */; };
+		E3C4F518C44B54B5CB4DECB4 /* AtlasSceneScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 482F42B451BA97BDB902FF3A /* AtlasSceneScreen.swift */; };
 		E3E94B64FA8C8A256AEAFA55 /* SystemUtilitiesPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09ECE0E919001886E4F651DA /* SystemUtilitiesPanel.swift */; };
 		E4F0313DD7A74A1191B7B882 /* CustomAutomationProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 924A14E66E5847B3B953502B /* CustomAutomationProviderTests.swift */; };
 		E58D0F2D5987E6392B28F082 /* PasteboardWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F81AE0511FA892AB718C7B6F /* PasteboardWriter.swift */; };
@@ -523,9 +529,11 @@
 		282E2C5F521000DA261FF4B1 /* BluetoothBatteryParserTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BluetoothBatteryParserTests.swift; sourceTree = "<group>"; };
 		29CD9B50C029CD1873F80784 /* BlockKitNodeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BlockKitNodeTests.swift; sourceTree = "<group>"; };
 		2A1449ABE48B9D44215380D6 /* AppLauncherProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppLauncherProvider.swift; sourceTree = "<group>"; };
+		2C64872FB91777AFDDA0E787 /* AtlasPrefsScreen.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasPrefsScreen.swift; sourceTree = "<group>"; };
 		2C7CD54ACF496511BC13CD65 /* WindowManagementProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WindowManagementProvider.swift; sourceTree = "<group>"; };
 		2D478E157E12D434B81E8F75 /* BrowserRouterPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserRouterPanel.swift; sourceTree = "<group>"; };
 		2D915D9445C4D361AEF9BB72 /* TokenBarCommandProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarCommandProvider.swift; sourceTree = "<group>"; };
+		2F3F52AE8B6327EC32F6721C /* AtlasEditionScreen.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasEditionScreen.swift; sourceTree = "<group>"; };
 		3002E3A9F9BABB5233BAAEF8 /* TokenBarLedgerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarLedgerTests.swift; sourceTree = "<group>"; };
 		3027FA588A5151B97E8311DB /* WorkspacePanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspacePanel.swift; sourceTree = "<group>"; };
 		30C5605EB4D53D56EA16E0DF /* PrivacyPulseServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrivacyPulseServiceTests.swift; path = AtlasTests/PrivacyPulseServiceTests.swift; sourceTree = "<group>"; };
@@ -560,7 +568,9 @@
 		4651FFE3764B792AC834F2B8 /* NoiseGateService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoiseGateService.swift; sourceTree = "<group>"; };
 		465DD81721E6E0F2ED49F604 /* PixelSamplerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PixelSamplerTests.swift; sourceTree = "<group>"; };
 		46706792AB671A5EEE363FFC /* AudioRecordingService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AudioRecordingService.swift; sourceTree = "<group>"; };
+		4743F79BAEA9FF0D2BCA9023 /* AtlasPrototypeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasPrototypeView.swift; sourceTree = "<group>"; };
 		47540B8091FFA8AA082AE9D8 /* WatermarkPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatermarkPanel.swift; sourceTree = "<group>"; };
+		482F42B451BA97BDB902FF3A /* AtlasSceneScreen.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasSceneScreen.swift; sourceTree = "<group>"; };
 		487BE4411CF39E05D6D90DBA /* TokenBarProviderClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarProviderClient.swift; sourceTree = "<group>"; };
 		4932E83B1A7887CBBFB6EBD7 /* BluetoothBatteryPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BluetoothBatteryPanel.swift; sourceTree = "<group>"; };
 		49CE70332FCD6E0CA3694604 /* SkillSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SkillSettingsView.swift; sourceTree = "<group>"; };
@@ -651,6 +661,7 @@
 		80D40FF44B882B30D79C1050 /* NowPlayingPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NowPlayingPanel.swift; sourceTree = "<group>"; };
 		8107027F808A2F4D204F80EF /* CommandPaletteRankerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommandPaletteRankerTests.swift; sourceTree = "<group>"; };
 		81AD575D8E7CB0CB48CBAB20 /* AtlasDesignComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasDesignComponents.swift; sourceTree = "<group>"; };
+		8287E6A1A73AF89708D3D7C0 /* AtlasTogglesScreen.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasTogglesScreen.swift; sourceTree = "<group>"; };
 		8311472074BA549163EEAF11 /* ClipboardHistoryPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryPanel.swift; sourceTree = "<group>"; };
 		831CA3CA50C16D0EB549D485 /* CommandUsageStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommandUsageStore.swift; sourceTree = "<group>"; };
 		83CBBA301A601CBA00E9B192 /* Atlas.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atlas.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -926,6 +937,7 @@
 		FC5B968A55F75583ED8F03B7 /* AltTabPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AltTabPanel.swift; sourceTree = "<group>"; };
 		FCA4D8F5DB95B41DD7BB0377 /* TOTPModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TOTPModels.swift; sourceTree = "<group>"; };
 		FCF7BCE17C8EFF052AC6FE57 /* EntitlementService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EntitlementService.swift; sourceTree = "<group>"; };
+		FE4AC85F37B2116C5AC2A8A8 /* AtlasPaletteScreen.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasPaletteScreen.swift; sourceTree = "<group>"; };
 		FF6272A1B4660F8A43600C61 /* WorkspaceWindowService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspaceWindowService.swift; sourceTree = "<group>"; };
 		FF8CEFA40539032E5C679B09 /* SpeechTranscriptionMapper.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SpeechTranscriptionMapper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -1830,6 +1842,12 @@
 				8E579A42BA6F560BDEF26793 /* AtlasTheme.swift */,
 				81AD575D8E7CB0CB48CBAB20 /* AtlasDesignComponents.swift */,
 				CB9F3E6C0BA3E32660B83133 /* AtlasShellView.swift */,
+				FE4AC85F37B2116C5AC2A8A8 /* AtlasPaletteScreen.swift */,
+				8287E6A1A73AF89708D3D7C0 /* AtlasTogglesScreen.swift */,
+				2F3F52AE8B6327EC32F6721C /* AtlasEditionScreen.swift */,
+				2C64872FB91777AFDDA0E787 /* AtlasPrefsScreen.swift */,
+				482F42B451BA97BDB902FF3A /* AtlasSceneScreen.swift */,
+				4743F79BAEA9FF0D2BCA9023 /* AtlasPrototypeView.swift */,
 			);
 			name = DesignSystem;
 			path = DesignSystem;
@@ -2286,6 +2304,12 @@
 				0DE590553DCE9FB1E7889A31 /* AtlasTheme.swift in Sources */,
 				03539BBDBCC7BFE20F94D1AF /* AtlasDesignComponents.swift in Sources */,
 				C9D9E3CFECC6A2C74B3876B1 /* AtlasShellView.swift in Sources */,
+				815328920EA34A4F104A5409 /* AtlasPaletteScreen.swift in Sources */,
+				25221A1BF70B0A744FF93D75 /* AtlasTogglesScreen.swift in Sources */,
+				1FBCED48F6EB50C0D0E2E8BA /* AtlasEditionScreen.swift in Sources */,
+				849F27592751C517D0917228 /* AtlasPrefsScreen.swift in Sources */,
+				E3C4F518C44B54B5CB4DECB4 /* AtlasSceneScreen.swift in Sources */,
+				AA3D22B987D6AA09F79C0217 /* AtlasPrototypeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
