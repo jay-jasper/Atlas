@@ -37,6 +37,7 @@ impl FeatureManager {
         features.insert("fn-key".to_string(), FeatureStatus::Disabled);
         features.insert("monitoring".to_string(), FeatureStatus::Disabled);
         features.insert("network-monitor".to_string(), FeatureStatus::Disabled);
+        features.insert("pomodoro".to_string(), FeatureStatus::Disabled);
         features.insert("privacy".to_string(), FeatureStatus::Disabled);
         features.insert("scratchpad".to_string(), FeatureStatus::Disabled);
         features.insert("scene-system".to_string(), FeatureStatus::Disabled);
@@ -127,6 +128,7 @@ mod tests {
                 "fn-key",
                 "monitoring",
                 "network-monitor",
+                "pomodoro",
                 "privacy",
                 "scene-system",
                 "scratchpad",

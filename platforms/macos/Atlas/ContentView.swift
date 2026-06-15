@@ -93,6 +93,7 @@ private enum PrimaryPanelSection: Hashable {
     case appAudio
     case fnKey
     case totp
+    case pomodoro
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -231,6 +232,7 @@ struct ContentView: View {
     @StateObject private var appAudioService = AppAudioService()
     @StateObject private var fnKeyService = FnKeyService()
     @StateObject private var totpService = TOTPService()
+    @StateObject private var pomodoroService = PomodoroService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -780,6 +782,11 @@ struct ContentView: View {
             return
         }
 
+        if feature == AtlasModule.pomodoro.featureName {
+            if !enabled { pomodoroService.reset() }
+            return
+        }
+
         if feature == AtlasModule.calendar.featureName {
             if enabled { calendarService.requestAccessIfNeeded() }
             return
@@ -1204,6 +1211,7 @@ struct ContentView: View {
             .appAudio,
             .fnKey,
             .totp,
+            .pomodoro,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1247,7 +1255,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro:
             return nil
         }
     }
@@ -1477,6 +1485,11 @@ struct ContentView: View {
         case .totp:
             if isFeatureEnabled(.totp) {
                 TOTPPanel(service: totpService)
+                Divider()
+            }
+        case .pomodoro:
+            if isFeatureEnabled(.pomodoro) {
+                PomodoroPanel(service: pomodoroService)
                 Divider()
             }
         }
