@@ -103,6 +103,7 @@ private enum PrimaryPanelSection: Hashable {
     case proxy
     case rss
     case quickSwitches
+    case chapterMarker
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -251,6 +252,7 @@ struct ContentView: View {
     @StateObject private var proxyService = ProxyService()
     @StateObject private var rssService = RSSService()
     @StateObject private var quickSwitchService = QuickSwitchService()
+    @StateObject private var chapterService = ChapterService()
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
@@ -1249,6 +1251,7 @@ struct ContentView: View {
             .proxy,
             .rss,
             .quickSwitches,
+            .chapterMarker,
         ]
 
         guard isFeatureEnabled(.sceneSystem), let sceneCoordinator else {
@@ -1292,7 +1295,7 @@ struct ContentView: View {
             return coordinator.override(for: .tokenbar)?.panelOrder
         case .windowManager:
             return coordinator.override(for: .windowManager)?.panelOrder
-        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches:
+        case .colorPicker, .ddcControl, .calendar, .networkMonitor, .appAudio, .fnKey, .totp, .pomodoro, .subtitles, .textExpansion, .hosts, .browserRouter, .envManager, .diskUsage, .proxy, .rss, .quickSwitches, .chapterMarker:
             return nil
         }
     }
@@ -1572,6 +1575,11 @@ struct ContentView: View {
         case .quickSwitches:
             if isFeatureEnabled(.quickSwitches) {
                 QuickSwitchPanel(service: quickSwitchService)
+                Divider()
+            }
+        case .chapterMarker:
+            if isFeatureEnabled(.chapterMarker) {
+                ChapterPanel(service: chapterService)
                 Divider()
             }
         }

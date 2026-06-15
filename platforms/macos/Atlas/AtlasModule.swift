@@ -5,6 +5,7 @@ enum AtlasModule: String, CaseIterable, Identifiable {
     case automation
     case browserRouter = "browser-router"
     case calendar
+    case chapterMarker = "chapter-marker"
     case clipboard
     case colorPicker = "color-picker"
     case ddcControl = "ddc-control"
@@ -51,6 +52,8 @@ enum AtlasModule: String, CaseIterable, Identifiable {
             return "Browser Router"
         case .calendar:
             return "Calendar"
+        case .chapterMarker:
+            return "Chapter Markers"
         case .clipboard:
             return "Clipboard History"
         case .colorPicker:

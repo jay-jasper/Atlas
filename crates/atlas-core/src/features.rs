@@ -31,6 +31,7 @@ impl FeatureManager {
         features.insert("automation".to_string(), FeatureStatus::Disabled);
         features.insert("browser-router".to_string(), FeatureStatus::Disabled);
         features.insert("calendar".to_string(), FeatureStatus::Disabled);
+        features.insert("chapter-marker".to_string(), FeatureStatus::Disabled);
         features.insert("clipboard".to_string(), FeatureStatus::Disabled);
         features.insert("color-picker".to_string(), FeatureStatus::Disabled);
         features.insert("ddc-control".to_string(), FeatureStatus::Disabled);
@@ -131,6 +132,7 @@ mod tests {
                 "automation",
                 "browser-router",
                 "calendar",
+                "chapter-marker",
                 "clipboard",
                 "color-picker",
                 "ddc-control",
