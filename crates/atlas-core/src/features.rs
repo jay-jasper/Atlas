@@ -81,6 +81,7 @@ impl FeatureManager {
         features.insert("tokenbar".to_string(), FeatureStatus::Disabled);
         features.insert("totp".to_string(), FeatureStatus::Disabled);
         features.insert("translation".to_string(), FeatureStatus::Disabled);
+        features.insert("transcription".to_string(), FeatureStatus::Disabled);
         features.insert("watermark".to_string(), FeatureStatus::Disabled);
         features.insert("web-wallpaper".to_string(), FeatureStatus::Disabled);
         features.insert("window-manager".to_string(), FeatureStatus::Disabled);
@@ -208,6 +209,7 @@ mod tests {
                 "text-expansion",
                 "tokenbar",
                 "totp",
+                "transcription",
                 "translation",
                 "watermark",
                 "web-wallpaper",
