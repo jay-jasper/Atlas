@@ -38,8 +38,6 @@ struct ScreenshotEditorView: View {
             Divider()
             canvas
             recognizedTextPanel
-            Divider()
-            outputBar
         }
         .frame(minWidth: 520, minHeight: 420)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -49,6 +47,20 @@ struct ScreenshotEditorView: View {
     private var toolbar: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
+                Button { onCopy(renderedData()) } label: { Image(systemName: "doc.on.doc") }
+                    .buttonStyle(.borderless).help("Copy")
+                Button { onSave(renderedData()) } label: { Image(systemName: "square.and.arrow.down") }
+                    .buttonStyle(.borderless).help("Save")
+                if capabilities.pinning {
+                    Button { onPin(renderedData()) } label: { Image(systemName: "pin") }
+                        .buttonStyle(.borderless).help("Pin")
+                }
+                if capabilities.ocr {
+                    Button { onRecognizeText(renderedData()) } label: { Image(systemName: "text.viewfinder") }
+                        .buttonStyle(.borderless).disabled(isRecognizingText).help("OCR")
+                }
+                Divider().frame(height: 18)
+
                 if capabilities.annotations {
                     ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
@@ -129,9 +141,14 @@ struct ScreenshotEditorView: View {
                 .disabled(redoStack.isEmpty)
                 .help("Redo")
 
+                if isRecognizingText { ProgressView().controlSize(.small) }
+                Text("\(Int(screenshot.rect.width))×\(Int(screenshot.rect.height))")
+                    .font(.system(.caption2, design: .monospaced)).foregroundColor(.secondary)
+
                 Button(action: onClose) {
                     Image(systemName: "xmark")
                 }
+                .buttonStyle(.borderless)
                 .help("Close")
             }
 

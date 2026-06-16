@@ -44,12 +44,12 @@ enum ScreenshotEditorWindow {
         let imageSize = image?.size ?? CGSize(width: 900, height: 650)
         let visible = NSScreen.main?.visibleFrame ?? CGRect(x: 0, y: 0, width: 1440, height: 900)
 
-        // Reserve vertical space for the editor's toolbar + OCR strip.
-        let chrome: CGFloat = 120
-        let maxW = visible.width * 0.9
-        let maxH = visible.height * 0.9 - chrome
+        // Target ~2/3 of the screen; fit the image inside that.
+        let chrome: CGFloat = 56 // single top toolbar now
+        let maxW = visible.width * 0.66
+        let maxH = visible.height * 0.66 - chrome
         let scale = min(1, min(maxW / imageSize.width, maxH / imageSize.height))
-        let contentW = max(560, imageSize.width * scale)
+        let contentW = max(620, imageSize.width * scale)
         let contentH = imageSize.height * scale + chrome
 
         let window = NSWindow(

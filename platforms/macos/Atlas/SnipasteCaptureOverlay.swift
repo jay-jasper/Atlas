@@ -219,7 +219,18 @@ struct SnipasteCaptureOverlay: View {
                 .position(x: sel.minX + 54, y: max(14, sel.minY - 16))
                 .allowsHitTesting(false)
 
-            toolbar(sel, size)
+            // Hide the toolbar while the selection is being drawn / moved / resized;
+            // show it once the mouse is released.
+            if !isAdjustingSelection {
+                toolbar(sel, size)
+            }
+        }
+    }
+
+    private var isAdjustingSelection: Bool {
+        switch mode {
+        case .drawing, .moving, .resizing: return true
+        default: return false
         }
     }
 
