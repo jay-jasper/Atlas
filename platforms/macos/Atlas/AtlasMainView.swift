@@ -16,12 +16,29 @@ private func atlasCopyButton(_ value: String) -> some View {
         .disabled(value.isEmpty)
 }
 
+/// Generic module wrapper: owns the service as @StateObject (so it isn't recreated
+/// on every render) and renders its panel in a padded scroll view.
+private struct ModuleWrap<S: ObservableObject, Content: View>: View {
+    @StateObject private var service: S
+    private let content: (S) -> Content
+
+    init(_ service: @autoclosure @escaping () -> S, @ViewBuilder content: @escaping (S) -> Content) {
+        _service = StateObject(wrappedValue: service())
+        self.content = content
+    }
+
+    var body: some View {
+        ScrollView { content(service).padding() }
+    }
+}
+
 /// A focused, genuinely-working main window: three core tools that need no special
 /// permissions, each wired to real services — live system monitoring, port lookup
 /// + kill, and an instant calculator. Native master-detail layout.
 struct AtlasMainView: View {
     enum Feature: String, CaseIterable, Identifiable {
         case screenshot, windowgrid, colorpicker, colorsampler, textexpand, audiometer, noisegate
+        case audiorecord, subtitle, keyboarddisplay, proxy, hosts
         case monitor, processes, ports, connections, clipboard
         case devtools, colors, calc, timestamp, qrcode, password, regex
         case lorem, baseconv, jwt, urlcodec, textcase, worldclock, markdown, wordcount, cron
@@ -30,6 +47,7 @@ struct AtlasMainView: View {
         case scratchpad, totp, pomodoro
         case battery, bluetooth, disk, rss
         case env, appaudio, nowplaying
+        case teleprompter, watermark, gif, transpopup, quickswitch, chapter, notch
         var id: String { rawValue }
         var title: String {
             switch self {
@@ -40,6 +58,18 @@ struct AtlasMainView: View {
             case .textexpand: return "文本扩展"
             case .audiometer: return "麦克风电平"
             case .noisegate: return "降噪门"
+            case .audiorecord: return "录音"
+            case .subtitle: return "实时字幕"
+            case .keyboarddisplay: return "按键显示"
+            case .proxy: return "代理切换"
+            case .hosts: return "Hosts 编辑"
+            case .teleprompter: return "提词器"
+            case .watermark: return "图片水印"
+            case .gif: return "GIF 处理"
+            case .transpopup: return "翻译弹窗"
+            case .quickswitch: return "快捷开关"
+            case .chapter: return "章节标记"
+            case .notch: return "刘海岛"
             case .monitor: return "系统监控"
             case .processes: return "进程管理"
             case .ports: return "端口管理"
@@ -90,6 +120,18 @@ struct AtlasMainView: View {
             case .textexpand: return "text.cursor"
             case .audiometer: return "waveform"
             case .noisegate: return "mic.slash"
+            case .audiorecord: return "record.circle"
+            case .subtitle: return "captions.bubble"
+            case .keyboarddisplay: return "keyboard"
+            case .proxy: return "network.badge.shield.half.filled"
+            case .hosts: return "doc.text"
+            case .teleprompter: return "text.viewfinder"
+            case .watermark: return "drop"
+            case .gif: return "photo.stack"
+            case .transpopup: return "character.bubble"
+            case .quickswitch: return "switch.2"
+            case .chapter: return "bookmark"
+            case .notch: return "rectangle.topthird.inset.filled"
             case .monitor: return "gauge.with.dots.needle.67percent"
             case .processes: return "list.bullet.rectangle"
             case .ports: return "network"
@@ -140,6 +182,18 @@ struct AtlasMainView: View {
             case .textexpand: return "文本替换 · 需辅助功能"
             case .audiometer: return "VU 电平 · 需麦克风"
             case .noisegate: return "阈值降噪 · 需麦克风"
+            case .audiorecord: return "麦克风录音 · 需麦克风"
+            case .subtitle: return "语音转字幕 · 需语音识别"
+            case .keyboarddisplay: return "按键可视化 · 需输入监控"
+            case .proxy: return "系统代理 · 需管理员"
+            case .hosts: return "/etc/hosts · 需管理员"
+            case .teleprompter: return "大字滚动"
+            case .watermark: return "图片加水印"
+            case .gif: return "GIF 压缩 / 裁剪"
+            case .transpopup: return "划词翻译"
+            case .quickswitch: return "一键开关"
+            case .chapter: return "时间轴标记"
+            case .notch: return "刘海通知岛"
             case .monitor: return "CPU · 内存 · 网络 · 进程"
             case .processes: return "占用排行 · 结束进程"
             case .ports: return "查端口占用 · 结束进程"
@@ -227,6 +281,30 @@ struct AtlasMainView: View {
             AudioMeterModuleView()
         case .noisegate:
             NoiseGateModuleView()
+        case .audiorecord:
+            ModuleWrap(AudioRecordingService()) { AudioRecordingPanel(service: $0) }
+        case .subtitle:
+            ModuleWrap(SubtitleService()) { SubtitlePanel(service: $0) }
+        case .keyboarddisplay:
+            ModuleWrap(KeyboardDisplayService()) { KeyboardDisplayPanel(service: $0) }
+        case .proxy:
+            ModuleWrap(ProxyService()) { ProxyPanel(service: $0) }
+        case .hosts:
+            ModuleWrap(HostsService()) { HostsPanel(service: $0) }
+        case .teleprompter:
+            ModuleWrap(TeleprompterService()) { TeleprompterPanel(service: $0) }
+        case .watermark:
+            ModuleWrap(WatermarkService()) { WatermarkPanel(service: $0) }
+        case .gif:
+            ModuleWrap(GIFProcessingService()) { GIFProcessingPanel(service: $0) }
+        case .transpopup:
+            ModuleWrap(TranslationPopupService()) { TranslationPopupPanel(service: $0) }
+        case .quickswitch:
+            ModuleWrap(QuickSwitchService()) { QuickSwitchPanel(service: $0) }
+        case .chapter:
+            ModuleWrap(ChapterService()) { ChapterPanel(service: $0) }
+        case .notch:
+            ModuleWrap(NotchService()) { NotchPanel(service: $0) }
         case .monitor:
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
