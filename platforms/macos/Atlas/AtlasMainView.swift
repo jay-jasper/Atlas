@@ -21,6 +21,7 @@ private func atlasCopyButton(_ value: String) -> some View {
 /// + kill, and an instant calculator. Native master-detail layout.
 struct AtlasMainView: View {
     enum Feature: String, CaseIterable, Identifiable {
+        case screenshot, windowgrid, colorpicker, colorsampler, textexpand, audiometer, noisegate
         case monitor, processes, ports, connections, clipboard
         case devtools, colors, calc, timestamp, qrcode, password, regex
         case lorem, baseconv, jwt, urlcodec, textcase, worldclock, markdown, wordcount, cron
@@ -32,6 +33,13 @@ struct AtlasMainView: View {
         var id: String { rawValue }
         var title: String {
             switch self {
+            case .screenshot: return "截图"
+            case .windowgrid: return "窗口管理"
+            case .colorpicker: return "取色器"
+            case .colorsampler: return "屏幕取色"
+            case .textexpand: return "文本扩展"
+            case .audiometer: return "麦克风电平"
+            case .noisegate: return "降噪门"
             case .monitor: return "系统监控"
             case .processes: return "进程管理"
             case .ports: return "端口管理"
@@ -75,6 +83,13 @@ struct AtlasMainView: View {
         }
         var icon: String {
             switch self {
+            case .screenshot: return "camera.viewfinder"
+            case .windowgrid: return "macwindow"
+            case .colorpicker: return "eyedropper"
+            case .colorsampler: return "eyedropper.halffull"
+            case .textexpand: return "text.cursor"
+            case .audiometer: return "waveform"
+            case .noisegate: return "mic.slash"
             case .monitor: return "gauge.with.dots.needle.67percent"
             case .processes: return "list.bullet.rectangle"
             case .ports: return "network"
@@ -118,6 +133,13 @@ struct AtlasMainView: View {
         }
         var subtitle: String {
             switch self {
+            case .screenshot: return "全屏截图 · 需屏幕录制"
+            case .windowgrid: return "网格布局 · 需辅助功能"
+            case .colorpicker: return "系统拾色器"
+            case .colorsampler: return "屏幕取色 · 需屏幕录制"
+            case .textexpand: return "文本替换 · 需辅助功能"
+            case .audiometer: return "VU 电平 · 需麦克风"
+            case .noisegate: return "阈值降噪 · 需麦克风"
             case .monitor: return "CPU · 内存 · 网络 · 进程"
             case .processes: return "占用排行 · 结束进程"
             case .ports: return "查端口占用 · 结束进程"
@@ -191,6 +213,20 @@ struct AtlasMainView: View {
 
     @ViewBuilder private var detailView: some View {
         switch selection ?? .monitor {
+        case .screenshot:
+            ScreenshotModuleView()
+        case .windowgrid:
+            WindowGridModuleView()
+        case .colorpicker:
+            ColorPickerModuleView()
+        case .colorsampler:
+            ColorSamplerModuleView()
+        case .textexpand:
+            TextExpandModuleView()
+        case .audiometer:
+            AudioMeterModuleView()
+        case .noisegate:
+            NoiseGateModuleView()
         case .monitor:
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
@@ -1696,4 +1732,94 @@ private struct NowPlayingModuleView: View {
         NowPlayingPanel(service: service).padding()
             .onAppear { service.refresh() }
     }
+}
+
+// MARK: - Permission-gated modules
+
+/// 截图 — full-screen capture via the Rust core (needs Screen Recording).
+private struct ScreenshotModuleView: View {
+    @State private var data: Data?
+    @State private var status = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("首次使用需在「系统设置 → 隐私与安全性 → 屏幕录制」中授权 Atlas。")
+                .font(.caption).foregroundColor(.secondary)
+            Button { capture() } label: { Label("截取全屏", systemImage: "camera") }
+                .keyboardShortcut(.defaultAction)
+            if let data, let image = NSImage(data: data) {
+                Image(nsImage: image).resizable().scaledToFit().frame(maxHeight: 320)
+                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(.secondary.opacity(0.2)))
+                Button { save(data) } label: { Label("保存到桌面", systemImage: "square.and.arrow.down") }
+            }
+            if !status.isEmpty { Text(status).font(.caption).foregroundColor(.secondary) }
+            Spacer()
+        }
+        .padding()
+    }
+
+    private func capture() {
+        do { data = try AtlasBridge.captureFullScreen(); status = "已截图" }
+        catch { status = "截图失败:\(error.localizedDescription)" }
+    }
+
+    private func save(_ data: Data) {
+        let formatter = DateFormatter(); formatter.dateFormat = "yyyyMMdd-HHmmss"
+        let name = "Atlas-Screenshot-\(formatter.string(from: Date())).png"
+        let url = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop/\(name)")
+        do { try data.write(to: url); status = "已保存:\(url.lastPathComponent)" }
+        catch { status = "保存失败:\(error.localizedDescription)" }
+    }
+}
+
+/// 窗口管理 — WindowGridPanel (needs Accessibility).
+private struct WindowGridModuleView: View {
+    @StateObject private var model = WindowGridPanelModel(
+        windowManager: AtlasServices.shared.windowManager,
+        permissionChecker: AtlasServices.shared.windowPermissionChecker,
+        isFeatureEnabled: { true }
+    )
+    @State private var lastResult = ""
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 10) {
+                WindowGridPanel(model: model) { result in lastResult = "\(result)" }
+                if !lastResult.isEmpty {
+                    Text("结果:\(lastResult)").font(.caption).foregroundColor(.secondary)
+                }
+            }
+            .padding()
+        }
+    }
+}
+
+/// 取色器 — ColorPickerPanel (system color sampler).
+private struct ColorPickerModuleView: View {
+    @StateObject private var service = ColorPickerService()
+    var body: some View { ScrollView { ColorPickerPanel(service: service).padding() } }
+}
+
+/// 屏幕取色 — ColorSamplerPanel (needs Screen Recording).
+private struct ColorSamplerModuleView: View {
+    @StateObject private var service = ColorSamplerService()
+    var body: some View { ScrollView { ColorSamplerPanel(service: service).padding() } }
+}
+
+/// 文本扩展 — TextExpansionPanel (needs Accessibility to inject).
+private struct TextExpandModuleView: View {
+    @StateObject private var service = TextExpansionService()
+    var body: some View { ScrollView { TextExpansionPanel(service: service).padding() } }
+}
+
+/// 麦克风电平 — AudioMeterPanel (needs Microphone).
+private struct AudioMeterModuleView: View {
+    @StateObject private var service = AudioMeterService()
+    var body: some View { ScrollView { AudioMeterPanel(service: service).padding() } }
+}
+
+/// 降噪门 — NoiseGatePanel (needs Microphone).
+private struct NoiseGateModuleView: View {
+    @StateObject private var service = NoiseGateService()
+    var body: some View { ScrollView { NoiseGatePanel(service: service).padding() } }
 }
