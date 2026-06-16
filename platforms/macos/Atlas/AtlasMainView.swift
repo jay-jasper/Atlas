@@ -49,6 +49,7 @@ struct AtlasMainView: View {
         case env, appaudio, nowplaying
         case teleprompter, watermark, gif, transpopup, quickswitch, chapter, notch
         case appcleaner, aspectguide, browserrouter, dragshelf, keyboardsounds, lantransfer, obs, packetmonitor, recordindicator, scrollsmoothing, soundfeedback, webwallpaper, transcription, recordeditor
+        case alttab, calendar, ddc, fnkey, livecaption, plugins, scripting
         var id: String { rawValue }
         var title: String {
             switch self {
@@ -85,6 +86,13 @@ struct AtlasMainView: View {
             case .webwallpaper: return "网页壁纸"
             case .transcription: return "本地转录"
             case .recordeditor: return "录屏编辑"
+            case .alttab: return "窗口切换"
+            case .calendar: return "日历"
+            case .ddc: return "显示器控制"
+            case .fnkey: return "Fn 键"
+            case .livecaption: return "字幕悬浮条"
+            case .plugins: return "插件"
+            case .scripting: return "脚本"
             case .monitor: return "系统监控"
             case .processes: return "进程管理"
             case .ports: return "端口管理"
@@ -161,6 +169,13 @@ struct AtlasMainView: View {
             case .webwallpaper: return "photo"
             case .transcription: return "text.bubble"
             case .recordeditor: return "film"
+            case .alttab: return "rectangle.on.rectangle"
+            case .calendar: return "calendar"
+            case .ddc: return "display"
+            case .fnkey: return "keyboard.badge.ellipsis"
+            case .livecaption: return "captions.bubble.fill"
+            case .plugins: return "puzzlepiece.extension"
+            case .scripting: return "curlybraces"
             case .monitor: return "gauge.with.dots.needle.67percent"
             case .processes: return "list.bullet.rectangle"
             case .ports: return "network"
@@ -237,6 +252,13 @@ struct AtlasMainView: View {
             case .webwallpaper: return "动态网页壁纸"
             case .transcription: return "音频转文字 · 需语音识别"
             case .recordeditor: return "裁剪录屏"
+            case .alttab: return "切换窗口 · 需辅助功能"
+            case .calendar: return "即将到来 · 需日历权限"
+            case .ddc: return "外接屏亮度"
+            case .fnkey: return "功能键行为"
+            case .livecaption: return "悬浮字幕 · 需语音识别"
+            case .plugins: return "插件运行时"
+            case .scripting: return "Lua 自动化"
             case .monitor: return "CPU · 内存 · 网络 · 进程"
             case .processes: return "占用排行 · 结束进程"
             case .ports: return "查端口占用 · 结束进程"
@@ -376,6 +398,20 @@ struct AtlasMainView: View {
             ModuleWrap(TranscriptionService()) { TranscriptionPanel(service: $0) }
         case .recordeditor:
             ModuleWrap(RecordingEditorService()) { RecordingEditorPanel(service: $0) }
+        case .alttab:
+            ModuleWrap(AltTabService()) { AltTabPanel(service: $0) }
+        case .calendar:
+            ModuleWrap(CalendarService()) { CalendarPanel(service: $0) }
+        case .ddc:
+            ModuleWrap(DisplayControlService()) { DDCPanel(service: $0) }
+        case .fnkey:
+            ModuleWrap(FnKeyService()) { FnKeyPanel(service: $0) }
+        case .livecaption:
+            ModuleWrap(LiveCaptionService()) { LiveCaptionPanel(service: $0) }
+        case .plugins:
+            ModuleWrap(PluginsService()) { PluginsPanel(service: $0) }
+        case .scripting:
+            ModuleWrap(ScriptingService()) { ScriptingPanel(service: $0) }
         case .monitor:
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
