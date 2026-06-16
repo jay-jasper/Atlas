@@ -48,6 +48,7 @@ struct AtlasMainView: View {
         case battery, bluetooth, disk, rss
         case env, appaudio, nowplaying
         case teleprompter, watermark, gif, transpopup, quickswitch, chapter, notch
+        case appcleaner, aspectguide, browserrouter, dragshelf, keyboardsounds, lantransfer, obs, packetmonitor, recordindicator, scrollsmoothing, soundfeedback, webwallpaper, transcription, recordeditor
         var id: String { rawValue }
         var title: String {
             switch self {
@@ -70,6 +71,20 @@ struct AtlasMainView: View {
             case .quickswitch: return "快捷开关"
             case .chapter: return "章节标记"
             case .notch: return "刘海岛"
+            case .appcleaner: return "应用清理"
+            case .aspectguide: return "比例参考线"
+            case .browserrouter: return "浏览器路由"
+            case .dragshelf: return "拖拽暂存"
+            case .keyboardsounds: return "键盘音效"
+            case .lantransfer: return "局域网传输"
+            case .obs: return "OBS 控制"
+            case .packetmonitor: return "抓包监控"
+            case .recordindicator: return "录制指示"
+            case .scrollsmoothing: return "平滑滚动"
+            case .soundfeedback: return "声音反馈"
+            case .webwallpaper: return "网页壁纸"
+            case .transcription: return "本地转录"
+            case .recordeditor: return "录屏编辑"
             case .monitor: return "系统监控"
             case .processes: return "进程管理"
             case .ports: return "端口管理"
@@ -132,6 +147,20 @@ struct AtlasMainView: View {
             case .quickswitch: return "switch.2"
             case .chapter: return "bookmark"
             case .notch: return "rectangle.topthird.inset.filled"
+            case .appcleaner: return "trash"
+            case .aspectguide: return "rectangle.dashed"
+            case .browserrouter: return "arrow.triangle.branch"
+            case .dragshelf: return "tray.and.arrow.down"
+            case .keyboardsounds: return "pianokeys"
+            case .lantransfer: return "arrow.left.arrow.right"
+            case .obs: return "dot.radiowaves.left.and.right"
+            case .packetmonitor: return "antenna.radiowaves.left.and.right"
+            case .recordindicator: return "record.circle.fill"
+            case .scrollsmoothing: return "scroll"
+            case .soundfeedback: return "speaker.wave.1"
+            case .webwallpaper: return "photo"
+            case .transcription: return "text.bubble"
+            case .recordeditor: return "film"
             case .monitor: return "gauge.with.dots.needle.67percent"
             case .processes: return "list.bullet.rectangle"
             case .ports: return "network"
@@ -194,6 +223,20 @@ struct AtlasMainView: View {
             case .quickswitch: return "一键开关"
             case .chapter: return "时间轴标记"
             case .notch: return "刘海通知岛"
+            case .appcleaner: return "清理残留文件"
+            case .aspectguide: return "屏幕比例叠加"
+            case .browserrouter: return "按规则分流"
+            case .dragshelf: return "文件暂存架"
+            case .keyboardsounds: return "打字音效"
+            case .lantransfer: return "同网设备互传"
+            case .obs: return "控制 OBS 录制"
+            case .packetmonitor: return "网络抓包 · 需管理员"
+            case .recordindicator: return "录制状态提示"
+            case .scrollsmoothing: return "顺滑滚轮 · 需辅助功能"
+            case .soundfeedback: return "操作音效"
+            case .webwallpaper: return "动态网页壁纸"
+            case .transcription: return "音频转文字 · 需语音识别"
+            case .recordeditor: return "裁剪录屏"
             case .monitor: return "CPU · 内存 · 网络 · 进程"
             case .processes: return "占用排行 · 结束进程"
             case .ports: return "查端口占用 · 结束进程"
@@ -305,6 +348,34 @@ struct AtlasMainView: View {
             ModuleWrap(ChapterService()) { ChapterPanel(service: $0) }
         case .notch:
             ModuleWrap(NotchService()) { NotchPanel(service: $0) }
+        case .appcleaner:
+            ModuleWrap(AppCleanerService()) { AppCleanerPanel(service: $0) }
+        case .aspectguide:
+            ModuleWrap(AspectGuideService()) { AspectGuidePanel(service: $0) }
+        case .browserrouter:
+            ModuleWrap(BrowserRouterService()) { BrowserRouterPanel(service: $0) }
+        case .dragshelf:
+            ModuleWrap(DragShelfService()) { DragShelfPanel(service: $0) }
+        case .keyboardsounds:
+            ModuleWrap(KeyboardSoundService()) { KeyboardSoundPanel(service: $0) }
+        case .lantransfer:
+            ModuleWrap(LANTransferService()) { LANTransferPanel(service: $0) }
+        case .obs:
+            ModuleWrap(OBSService()) { OBSPanel(service: $0) }
+        case .packetmonitor:
+            ModuleWrap(PacketMonitorService()) { PacketMonitorPanel(service: $0) }
+        case .recordindicator:
+            ModuleWrap(RecordingIndicatorService()) { RecordingIndicatorPanel(service: $0) }
+        case .scrollsmoothing:
+            ModuleWrap(ScrollSmoothingService()) { ScrollSmoothingPanel(service: $0) }
+        case .soundfeedback:
+            ModuleWrap(SoundFeedbackService()) { SoundFeedbackPanel(service: $0) }
+        case .webwallpaper:
+            ModuleWrap(WebWallpaperService()) { WebWallpaperPanel(service: $0) }
+        case .transcription:
+            ModuleWrap(TranscriptionService()) { TranscriptionPanel(service: $0) }
+        case .recordeditor:
+            ModuleWrap(RecordingEditorService()) { RecordingEditorPanel(service: $0) }
         case .monitor:
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
