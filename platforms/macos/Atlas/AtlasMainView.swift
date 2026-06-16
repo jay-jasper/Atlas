@@ -1933,7 +1933,7 @@ private struct ScreenshotModuleView: View {
             Text("捕获后会在屏幕正中弹出标注编辑器:矩形 · 箭头 · 画笔 · 文字 · 马赛克,并支持取色、OCR、钉住、复制、保存。")
                 .font(.callout).foregroundColor(.secondary)
             HStack(spacing: 12) {
-                captureButton("区域截图", "viewfinder") { capture(.region) }
+                captureButton("区域截图", "viewfinder") { captureRegion() }
                 captureButton("窗口截图", "macwindow") { capture(.window) }
                 captureButton("全屏截图", "rectangle.inset.filled") { capture(.full) }
             }
@@ -1955,6 +1955,18 @@ private struct ScreenshotModuleView: View {
             .frame(width: 96, height: 72)
         }
         .buttonStyle(.bordered)
+    }
+
+    /// Region capture uses the Snipaste-style in-place overlay (freeze screen →
+    /// select → annotate on the overlay → copy/save/pin). No editor window.
+    private func captureRegion() {
+        let preview = try? AtlasBridge.captureFullScreen()
+        guard preview != nil else {
+            status = "需要屏幕录制权限"
+            return
+        }
+        status = ""
+        SnipasteCaptureWindow.show(previewImageData: preview)
     }
 
     private func capture(_ mode: InteractiveScreenCapture.Mode) {
