@@ -1921,37 +1921,120 @@ private struct NowPlayingModuleView: View {
 
 // MARK: - Permission-gated modules
 
-/// 截图 — full-screen capture via the Rust core (needs Screen Recording).
+/// 截图 — Shottr-style flow: region / window / full-screen capture, then the
+/// app's annotation editor (rectangle / arrow / pen / text / pixelate + OCR / pin
+/// / copy / save). Needs Screen Recording on first capture.
 private struct ScreenshotModuleView: View {
-    @State private var data: Data?
+    @State private var captured: CapturedScreenshot?
+    @State private var recognizedText = ""
+    @State private var isRecognizing = false
     @State private var status = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("首次使用需在「系统设置 → 隐私与安全性 → 屏幕录制」中授权 Atlas。")
-                .font(.caption).foregroundColor(.secondary)
-            Button { capture() } label: { Label("截取全屏", systemImage: "camera") }
-                .keyboardShortcut(.defaultAction)
-            if let data, let image = NSImage(data: data) {
-                Image(nsImage: image).resizable().scaledToFit().frame(maxHeight: 320)
-                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(.secondary.opacity(0.2)))
-                Button { save(data) } label: { Label("保存到桌面", systemImage: "square.and.arrow.down") }
+        if let shot = captured {
+            ScreenshotEditorView(
+                screenshot: shot,
+                capabilities: ScreenshotEditorCapabilities(annotations: true, pinning: true, ocr: true, translation: false),
+                onCopy: { copyImage($0); status = "已复制到剪贴板" },
+                onSave: { save($0) },
+                onPin: { PinnedScreenshotWindow.show(data: $0) },
+                recognizedText: recognizedText,
+                isRecognizingText: isRecognizing,
+                translatedText: "",
+                isTranslatingText: false,
+                onRecognizeText: { runOCR($0) },
+                onCopyRecognizedText: { atlasCopy($0) },
+                onTranslateRecognizedText: { _ in },
+                onCopyTranslatedText: { _ in },
+                onClose: { captured = nil; recognizedText = "" }
+            )
+        } else {
+            entry
+        }
+    }
+
+    private var entry: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Text("截图 + 标注").font(.title3).bold()
+            Text("捕获后打开标注编辑器:矩形 · 箭头 · 画笔 · 文字 · 马赛克,并支持取色、OCR 文字识别、钉住、复制、保存。")
+                .font(.callout).foregroundColor(.secondary)
+            HStack(spacing: 12) {
+                captureButton("区域截图", "viewfinder", action: captureRegion)
+                captureButton("窗口截图", "macwindow", action: captureWindow)
+                captureButton("全屏截图", "rectangle.inset.filled", action: captureFull)
             }
+            Text("首次使用需在「系统设置 → 隐私与安全性 → 屏幕录制」授权 Atlas。")
+                .font(.caption).foregroundColor(.secondary)
             if !status.isEmpty { Text(status).font(.caption).foregroundColor(.secondary) }
             Spacer()
         }
-        .padding()
+        .padding(24)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func capture() {
-        do { data = try AtlasBridge.captureFullScreen(); status = "已截图" }
-        catch { status = "截图失败:\(error.localizedDescription)" }
+    private func captureButton(_ title: String, _ icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                Image(systemName: icon).font(.system(size: 22))
+                Text(title).font(.caption)
+            }
+            .frame(width: 96, height: 72)
+        }
+        .buttonStyle(.bordered)
+    }
+
+    private func present(_ data: Data) {
+        guard let bitmap = NSBitmapImageRep(data: data) else { status = "图像解码失败"; return }
+        captured = CapturedScreenshot(pngData: data, rect: CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh))
+        status = ""
+    }
+
+    private func captureFull() {
+        do { present(try AtlasBridge.captureFullScreen()) }
+        catch { status = "全屏截图失败:\(error.localizedDescription)" }
+    }
+
+    private func captureRegion() {
+        let preview = try? AtlasBridge.captureFullScreen()
+        ScreenshotSelectionWindow.show(previewImageData: preview) { rect in
+            let scale = NSScreen.main?.backingScaleFactor ?? 1
+            let region = ScreenCaptureCoordinateMapper.pixelRegion(fromSelectionRect: rect, backingScaleFactor: scale)
+            do { present(try AtlasBridge.captureRegion(x: region.x, y: region.y, width: region.width, height: region.height)) }
+            catch { status = "区域截图失败:\(error.localizedDescription)" }
+        }
+    }
+
+    private func captureWindow() {
+        do {
+            let windows = try AtlasBridge.listCapturableWindows()
+            guard !windows.isEmpty else { status = "未找到可捕获窗口"; return }
+            WindowSelectionWindow.show(windows: windows, onCancel: {}, onSelect: { window in
+                do { present(try AtlasBridge.captureWindow(id: window.id)) }
+                catch { status = "窗口截图失败:\(error.localizedDescription)" }
+            })
+        } catch { status = "窗口截图失败:\(error.localizedDescription)" }
+    }
+
+    private func runOCR(_ data: Data) {
+        isRecognizing = true
+        DispatchQueue.global(qos: .userInitiated).async {
+            let result = try? AtlasBridge.recognizeText(in: data)
+            DispatchQueue.main.async {
+                isRecognizing = false
+                recognizedText = (result?.text.isEmpty == false) ? result!.text : "（未识别到文字）"
+            }
+        }
+    }
+
+    private func copyImage(_ data: Data) {
+        NSPasteboard.general.clearContents()
+        if let image = NSImage(data: data) { NSPasteboard.general.writeObjects([image]) }
     }
 
     private func save(_ data: Data) {
         let formatter = DateFormatter(); formatter.dateFormat = "yyyyMMdd-HHmmss"
-        let name = "Atlas-Screenshot-\(formatter.string(from: Date())).png"
-        let url = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop/\(name)")
+        let url = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Desktop/Atlas-Screenshot-\(formatter.string(from: Date())).png")
         do { try data.write(to: url); status = "已保存:\(url.lastPathComponent)" }
         catch { status = "保存失败:\(error.localizedDescription)" }
     }
