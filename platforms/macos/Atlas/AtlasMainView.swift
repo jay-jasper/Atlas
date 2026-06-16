@@ -1926,10 +1926,20 @@ private struct NowPlayingModuleView: View {
 /// window (see ScreenshotCaptureFlow.swift).
 private struct ScreenshotModuleView: View {
     @State private var status = ""
+    @State private var showSettings = false
+    @ObservedObject private var settings = ScreenshotSettings.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            Text("截图 + 标注").font(.title3).bold()
+            HStack {
+                Text("截图 + 标注").font(.title3).bold()
+                Spacer()
+                Button { showSettings = true } label: {
+                    Image(systemName: "gearshape")
+                }
+                .buttonStyle(.borderless)
+                .help("截图设置")
+            }
             Text("框选后直接在浮层上标注(矩形 · 椭圆 · 箭头 · 直线 · 画笔 · 高亮 · 步骤标号 · 文字 · 马赛克 · 高斯模糊),并支持取色、复制、保存、钉住。")
                 .font(.callout).foregroundColor(.secondary)
             HStack(spacing: 12) {
@@ -1939,10 +1949,34 @@ private struct ScreenshotModuleView: View {
             Text("拖动框选任意区域,或把鼠标移到某个窗口上点击即截该窗口。首次需在「系统设置 → 隐私与安全性 → 屏幕录制」授权 Atlas。")
                 .font(.caption).foregroundColor(.secondary)
             if !status.isEmpty { Text(status).font(.caption).foregroundColor(.secondary) }
+
+            if !settings.recentCaptures.isEmpty {
+                Divider()
+                Text("最近截图").font(.caption).bold().foregroundColor(.secondary)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(Array(settings.recentCaptures.enumerated()), id: \.offset) { _, data in
+                            if let img = NSImage(data: data) {
+                                Image(nsImage: img)
+                                    .resizable().scaledToFill()
+                                    .frame(width: 84, height: 56)
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(.secondary.opacity(0.3)))
+                                    .help("点击重新钉住")
+                                    .onTapGesture { PinnedScreenshotWindow.show(data: data) }
+                            }
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
             Spacer()
         }
         .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .sheet(isPresented: $showSettings) {
+            ScreenshotSettingsView(settings: settings) { showSettings = false }
+        }
     }
 
     private func captureButton(_ title: String, _ icon: String, action: @escaping () -> Void) -> some View {
@@ -1963,28 +1997,134 @@ private struct ScreenshotModuleView: View {
     private func captureRegion() {
         // Snipaste-style: freeze the screen (system screencapture), then the
         // in-place overlay — select → annotate on the overlay → copy/save/pin.
-        InteractiveScreenCapture.capture(.full) { data in
-            guard let data else {
-                status = "需要屏幕录制权限(系统设置 → 隐私与安全性 → 屏幕录制)"
-                return
+        afterDelay {
+            InteractiveScreenCapture.capture(.full) { data in
+                guard let data else {
+                    status = "需要屏幕录制权限(系统设置 → 隐私与安全性 → 屏幕录制)"
+                    return
+                }
+                status = ""
+                SnipasteCaptureWindow.show(previewImageData: data)
             }
-            status = ""
-            SnipasteCaptureWindow.show(previewImageData: data)
         }
     }
 
     private func capture(_ mode: InteractiveScreenCapture.Mode) {
-        InteractiveScreenCapture.capture(mode) { data in
-            guard let data, let bitmap = NSBitmapImageRep(data: data) else {
-                status = "已取消"
-                return
+        afterDelay {
+            InteractiveScreenCapture.capture(mode) { data in
+                guard let data, let bitmap = NSBitmapImageRep(data: data) else {
+                    status = "已取消"
+                    return
+                }
+                let shot = CapturedScreenshot(
+                    pngData: data,
+                    rect: CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
+                )
+                status = ""
+                ScreenshotEditorWindow.present(shot)
             }
-            let shot = CapturedScreenshot(
-                pngData: data,
-                rect: CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
-            )
-            status = ""
-            ScreenshotEditorWindow.present(shot)
+        }
+    }
+
+    /// Honour the configured delay-capture seconds before grabbing.
+    private func afterDelay(_ work: @escaping () -> Void) {
+        let delay = settings.captureDelay
+        if delay <= 0 { work(); return }
+        status = "将在 \(Int(delay)) 秒后截图…"
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { work() }
+    }
+}
+
+/// Snipaste-style settings, opened from the screenshot module's gear button.
+private struct ScreenshotSettingsView: View {
+    @ObservedObject var settings: ScreenshotSettings
+    let onDone: () -> Void
+
+    private var defaultColor: Binding<Color> {
+        Binding(get: { settings.defaultColor }, set: { settings.defaultColorHex = $0.hexString })
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("截图设置").font(.headline)
+                Spacer()
+                Button("完成") { onDone() }.keyboardShortcut(.defaultAction)
+            }
+            .padding()
+            Divider()
+
+            Form {
+                Section("标注默认值") {
+                    HStack {
+                        Text("默认颜色")
+                        Spacer()
+                        ForEach(ScreenshotAnnotationColor.presets) { c in
+                            Button { settings.defaultColorHex = c.color.hexString } label: {
+                                Circle().fill(c.color).frame(width: 14, height: 14)
+                                    .overlay(Circle().stroke(settings.defaultColorHex == c.color.hexString ? Color.primary : .secondary.opacity(0.4), lineWidth: settings.defaultColorHex == c.color.hexString ? 2 : 1))
+                            }.buttonStyle(.plain)
+                        }
+                        ColorWheelButton(color: defaultColor)
+                    }
+                    HStack {
+                        Text("默认线宽")
+                        Slider(value: $settings.defaultLineWidth, in: 1 ... 12, step: 1)
+                        Text("\(Int(settings.defaultLineWidth)) px").font(.system(.caption, design: .monospaced)).frame(width: 38)
+                    }
+                }
+
+                Section("截图") {
+                    Toggle("检测窗口 / UI 边界(移到窗口上点击截取)", isOn: $settings.detectWindows)
+                    Toggle("显示放大镜取色器", isOn: $settings.showMagnifier)
+                    Picker("取色器格式", selection: $settings.pickerUsesHex) {
+                        Text("HEX (#RRGGBB)").tag(true)
+                        Text("RGB").tag(false)
+                    }
+                    Toggle("保存 / 钉住后同时复制到剪贴板", isOn: $settings.autoCopyOnFinish)
+                    HStack {
+                        Text("延时截图")
+                        Stepper(value: $settings.captureDelay, in: 0 ... 10, step: 1) {
+                            Text(settings.captureDelay <= 0 ? "关闭" : "\(Int(settings.captureDelay)) 秒")
+                        }
+                    }
+                }
+
+                Section("输出") {
+                    HStack {
+                        Text("保存目录").frame(width: 64, alignment: .leading)
+                        Text(settings.saveDirectory).font(.caption).foregroundColor(.secondary).lineLimit(1).truncationMode(.middle)
+                        Spacer()
+                        Button("选择…") { chooseDirectory() }
+                    }
+                    HStack {
+                        Text("文件名").frame(width: 64, alignment: .leading)
+                        TextField("Atlas-Screenshot-{date}", text: $settings.filenamePattern)
+                    }
+                    Text("{date} 会替换为时间戳,例如 20260616-153000").font(.caption2).foregroundColor(.secondary)
+                }
+
+                Section("贴图(钉到屏幕)") {
+                    HStack {
+                        Text("默认不透明度")
+                        Slider(value: $settings.pinDefaultOpacity, in: 0.2 ... 1)
+                        Text("\(Int(settings.pinDefaultOpacity * 100))%").font(.system(.caption, design: .monospaced)).frame(width: 40)
+                    }
+                }
+            }
+            .formStyle(.grouped)
+        }
+        .frame(width: 460, height: 560)
+    }
+
+    private func chooseDirectory() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = false
+        panel.directoryURL = URL(fileURLWithPath: settings.saveDirectory)
+        if panel.runModal() == .OK, let url = panel.url {
+            settings.saveDirectory = url.path
         }
     }
 }

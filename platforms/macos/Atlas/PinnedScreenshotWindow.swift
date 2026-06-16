@@ -1,94 +1,177 @@
 import AppKit
 import SwiftUI
 
+/// Snipaste-style "贴图" (pin to screen): a borderless, always-on-top, draggable
+/// image. Supports zoom (pinch / buttons), opacity, grayscale, copy and save.
 final class PinnedScreenshotWindow {
     private static var windows: [UUID: NSWindow] = [:]
     private static var delegates: [UUID: WindowDelegate] = [:]
+    private static var controllers: [UUID: PinController] = [:]
 
     static func show(data: Data) {
         if Thread.isMainThread {
             showOnMain(data: data)
         } else {
-            DispatchQueue.main.async {
-                showOnMain(data: data)
-            }
+            DispatchQueue.main.async { showOnMain(data: data) }
         }
     }
 
     private static func showOnMain(data: Data) {
         guard let image = NSImage(data: data) else { return }
-
         let id = UUID()
-        let view = PinnedScreenshotView(image: image) {
-            closeWindow(id: id)
-        }
 
-        let controller = NSHostingController(rootView: view)
+        // Fit the initial size into a sensible range while keeping aspect ratio.
+        let raw = image.size
+        let scale = min(1, min(620 / max(1, raw.width), 460 / max(1, raw.height)))
+        let size = CGSize(width: max(80, raw.width * scale), height: max(60, raw.height * scale))
+
         let window = NSPanel(
-            contentRect: NSRect(
-                x: 160,
-                y: 160,
-                width: max(160, min(480, image.size.width)),
-                height: max(120, min(360, image.size.height))
-            ),
-            styleMask: [.titled, .closable, .resizable, .nonactivatingPanel],
+            contentRect: NSRect(x: 200, y: 200, width: size.width, height: size.height),
+            styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        window.hasShadow = true
+        window.level = .floating
+        window.isMovableByWindowBackground = true
+        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        window.isReleasedWhenClosed = false
+        window.alphaValue = CGFloat(ScreenshotSettings.shared.pinDefaultOpacity)
+
+        let controller = PinController(baseSize: size, opacity: ScreenshotSettings.shared.pinDefaultOpacity)
+        controller.window = window
+
+        let view = PinnedScreenshotView(image: image, data: data, controller: controller) {
+            closeWindow(id: id)
+        }
+        window.contentViewController = NSHostingController(rootView: view)
+
         let delegate = WindowDelegate {
             windows[id] = nil
             delegates[id] = nil
+            controllers[id] = nil
         }
-
-        window.level = .floating
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        window.contentViewController = controller
         window.delegate = delegate
-        window.isReleasedWhenClosed = false
         window.makeKeyAndOrderFront(nil)
 
         windows[id] = window
         delegates[id] = delegate
+        controllers[id] = controller
     }
 
     private static func closeWindow(id: UUID) {
-        guard let window = windows[id] else { return }
-        window.close()
+        windows[id]?.close()
         windows[id] = nil
         delegates[id] = nil
+        controllers[id] = nil
     }
 
     private final class WindowDelegate: NSObject, NSWindowDelegate {
         private let onClose: () -> Void
-
-        init(onClose: @escaping () -> Void) {
-            self.onClose = onClose
-        }
-
-        func windowWillClose(_: Notification) {
-            onClose()
-        }
+        init(onClose: @escaping () -> Void) { self.onClose = onClose }
+        func windowWillClose(_: Notification) { onClose() }
     }
+}
+
+/// Owns the live geometry/appearance of one pinned window so the SwiftUI view
+/// can drive its NSWindow (resize on zoom, fade on opacity).
+final class PinController: ObservableObject {
+    weak var window: NSWindow?
+    let baseSize: CGSize
+    @Published var scale: CGFloat = 1
+    @Published var opacity: Double
+    @Published var grayscale = false
+
+    init(baseSize: CGSize, opacity: Double) {
+        self.baseSize = baseSize
+        self.opacity = opacity
+    }
+
+    func zoom(by factor: CGFloat) { setScale(scale * factor) }
+
+    func setScale(_ newScale: CGFloat) {
+        scale = min(8, max(0.2, newScale))
+        guard let window else { return }
+        let w = baseSize.width * scale, h = baseSize.height * scale
+        var frame = window.frame
+        let top = frame.maxY               // keep the top-left corner anchored
+        frame.size = CGSize(width: w, height: h)
+        frame.origin.y = top - h
+        window.setFrame(frame, display: true, animate: false)
+    }
+
+    func applyOpacity() { window?.alphaValue = CGFloat(opacity) }
 }
 
 struct PinnedScreenshotView: View {
     let image: NSImage
+    let data: Data
+    @ObservedObject var controller: PinController
     let onClose: () -> Void
 
+    @State private var hovering = false
+
     var body: some View {
-        ZStack(alignment: .topTrailing) {
+        ZStack(alignment: .top) {
             Image(nsImage: image)
                 .resizable()
+                .interpolation(.high)
                 .scaledToFit()
-                .frame(minWidth: 160, minHeight: 120)
+                .grayscale(controller.grayscale ? 1 : 0)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .overlay(RoundedRectangle(cornerRadius: 6).stroke(.white.opacity(0.25), lineWidth: 0.5))
 
-            Button(action: onClose) {
-                Image(systemName: "xmark.circle.fill")
-                    .imageScale(.large)
-            }
-            .buttonStyle(.plain)
-            .padding(8)
-            .help("Close pinned screenshot")
+            if hovering { toolbar }
         }
+        .gesture(
+            MagnificationGesture()
+                .onChanged { controller.setScale($0) }
+                .onEnded { _ in controller.scale = controller.scale } // commit
+        )
+        .onHover { hovering = $0 }
+    }
+
+    private var toolbar: some View {
+        HStack(spacing: 8) {
+            iconButton("minus.magnifyingglass") { controller.zoom(by: 0.9) }
+            Text("\(Int(controller.scale * 100))%")
+                .font(.system(size: 10, design: .monospaced)).foregroundColor(.white).frame(width: 34)
+            iconButton("plus.magnifyingglass") { controller.zoom(by: 1.1) }
+            Divider().frame(height: 14).overlay(.white.opacity(0.3))
+
+            Image(systemName: "circle.lefthalf.filled").foregroundColor(.white).font(.system(size: 11))
+            Slider(value: Binding(get: { controller.opacity }, set: { controller.opacity = $0; controller.applyOpacity() }), in: 0.2 ... 1)
+                .frame(width: 64)
+
+            iconButton(controller.grayscale ? "drop.fill" : "drop", active: controller.grayscale) { controller.grayscale.toggle() }
+            iconButton("doc.on.doc") { copy() }
+            iconButton("square.and.arrow.down") { save() }
+            iconButton("xmark") { onClose() }
+        }
+        .padding(.horizontal, 8).padding(.vertical, 5)
+        .background(.black.opacity(0.62), in: Capsule())
+        .padding(.top, 6)
+    }
+
+    private func iconButton(_ name: String, active: Bool = false, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: name)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(active ? .accentColor : .white)
+                .frame(width: 18, height: 16)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func copy() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.writeObjects([image])
+    }
+
+    private func save() {
+        try? data.write(to: ScreenshotSettings.shared.saveURL())
     }
 }

@@ -158,4 +158,10 @@ extension Color {
                 Int((ns.greenComponent * 255).rounded()),
                 Int((ns.blueComponent * 255).rounded()))
     }
+
+    /// 6-digit uppercase hex (no leading `#`), e.g. `"FF3B30"`.
+    var hexString: String {
+        guard let c = rgb255 else { return "FFFFFF" }
+        return String(format: "%02X%02X%02X", c.r, c.g, c.b)
+    }
 }

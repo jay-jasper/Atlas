@@ -45,6 +45,10 @@ struct ScreenshotEditorView: View {
         .frame(minWidth: 520, minHeight: 420)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.regularMaterial)
+        .onAppear {
+            selectedColor = ScreenshotSettings.shared.defaultColor
+            annotationLineWidth = ScreenshotSettings.shared.defaultLineWidth
+        }
     }
 
     private var toolbar: some View {

@@ -112,7 +112,7 @@ struct ScreenshotEditorContainer: View {
             capabilities: ScreenshotEditorCapabilities(annotations: true, pinning: true, ocr: true, translation: false),
             onCopy: { copyImage($0) },
             onSave: { save($0) },
-            onPin: { PinnedScreenshotWindow.show(data: $0) },
+            onPin: { PinnedScreenshotWindow.show(data: $0); ScreenshotSettings.shared.record($0) },
             recognizedText: recognizedText,
             isRecognizingText: isRecognizing,
             translatedText: "",
@@ -145,6 +145,7 @@ struct ScreenshotEditorContainer: View {
     private func copyImage(_ data: Data) {
         NSPasteboard.general.clearContents()
         if let image = NSImage(data: data) { NSPasteboard.general.writeObjects([image]) }
+        ScreenshotSettings.shared.record(data)
     }
 
     private func copyString(_ text: String) {
@@ -153,9 +154,9 @@ struct ScreenshotEditorContainer: View {
     }
 
     private func save(_ data: Data) {
-        let formatter = DateFormatter(); formatter.dateFormat = "yyyyMMdd-HHmmss"
-        let url = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Desktop/Atlas-Screenshot-\(formatter.string(from: Date())).png")
-        try? data.write(to: url)
+        let settings = ScreenshotSettings.shared
+        try? data.write(to: settings.saveURL())
+        if settings.autoCopyOnFinish { copyImage(data) }
+        settings.record(data)
     }
 }

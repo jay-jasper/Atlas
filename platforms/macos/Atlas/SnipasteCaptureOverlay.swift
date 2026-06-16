@@ -103,6 +103,7 @@ struct SnipasteCaptureOverlay: View {
     @State private var cursor: CGPoint = .zero
     @State private var viewSize: CGSize = .zero
 
+    private let settings = ScreenshotSettings.shared
     @State private var tool: ScreenshotTool?
     @State private var arrowStyle: ScreenshotArrowStyle = .arrow
     @State private var annotations: [ScreenshotAnnotation] = []
@@ -144,7 +145,7 @@ struct SnipasteCaptureOverlay: View {
                         .position(x: win.midX, y: win.midY)
                         .allowsHitTesting(false)
                 }
-                if tool == nil, !isAdjustingSelection,
+                if settings.showMagnifier, tool == nil, !isAdjustingSelection,
                    selection == nil || selection!.insetBy(dx: -2, dy: -2).contains(cursor) {
                     loupe(geo.size)
                 }
@@ -158,7 +159,14 @@ struct SnipasteCaptureOverlay: View {
                 }
                 SelectionKeyboardBridge { handleKey($0, geo.size) }.frame(width: 0, height: 0)
             }
-            .onAppear { viewSize = geo.size; installKeyMonitor(); windowItems = detectWindows() }
+            .onAppear {
+                viewSize = geo.size
+                installKeyMonitor()
+                windowItems = settings.detectWindows ? detectWindows() : []
+                selectedColor = settings.defaultColor
+                lineWidth = settings.defaultLineWidth
+                hexMode = settings.pickerUsesHex
+            }
             .onDisappear { if let m = keyMonitor { NSEvent.removeMonitor(m) } }
             .onChange(of: geo.size) { viewSize = $0 }
         }
@@ -749,18 +757,21 @@ struct SnipasteCaptureOverlay: View {
 
     private func finish(_ action: FinishAction) {
         guard let data = renderRegion() else { cancel(); return }
-        switch action {
-        case .copy:
+        func copyToPasteboard() {
             NSPasteboard.general.clearContents()
             if let image = NSImage(data: data) { NSPasteboard.general.writeObjects([image]) }
+        }
+        switch action {
+        case .copy:
+            copyToPasteboard()
         case .save:
-            let fmt = DateFormatter(); fmt.dateFormat = "yyyyMMdd-HHmmss"
-            let url = FileManager.default.homeDirectoryForCurrentUser
-                .appendingPathComponent("Desktop/Atlas-Screenshot-\(fmt.string(from: Date())).png")
-            try? data.write(to: url)
+            try? data.write(to: settings.saveURL())
+            if settings.autoCopyOnFinish { copyToPasteboard() }
         case .pin:
             PinnedScreenshotWindow.show(data: data)
+            if settings.autoCopyOnFinish { copyToPasteboard() }
         }
+        settings.record(data)
         onClose()
     }
 
