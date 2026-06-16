@@ -41,15 +41,15 @@ enum ScreenshotEditorWindow {
     @MainActor
     static func present(_ screenshot: CapturedScreenshot) {
         let image = NSImage(data: screenshot.pngData)
-        let imageSize = image?.size ?? CGSize(width: 900, height: 650)
+        let imageSize = image?.size ?? CGSize(width: 1200, height: 800)
         let visible = NSScreen.main?.visibleFrame ?? CGRect(x: 0, y: 0, width: 1440, height: 900)
 
-        // Target ~2/3 of the screen; fit the image inside that.
+        // Target ~2/3 of the screen; fit the image inside that box (never upscale).
         let chrome: CGFloat = 56 // single top toolbar now
-        let maxW = visible.width * 0.66
-        let maxH = visible.height * 0.66 - chrome
+        let maxW = visible.width * 0.7
+        let maxH = visible.height * 0.7 - chrome
         let scale = min(1, min(maxW / imageSize.width, maxH / imageSize.height))
-        let contentW = max(620, imageSize.width * scale)
+        let contentW = max(visible.width * 0.5, imageSize.width * scale)
         let contentH = imageSize.height * scale + chrome
 
         let window = NSWindow(
@@ -64,12 +64,16 @@ enum ScreenshotEditorWindow {
         // Must stay false: when true, dragging on the canvas moves the window
         // instead of letting SwiftUI draw the annotation.
         window.isMovableByWindowBackground = false
-        window.center()
 
         let container = ScreenshotEditorContainer(screenshot: screenshot) { [weak window] in
             window?.close()
         }
+        // Assign the hosting controller BEFORE sizing: NSHostingController can
+        // resize the window to the view's fitting size, which would otherwise
+        // override our content size and throw off centering.
         window.contentViewController = NSHostingController(rootView: container)
+        window.setContentSize(NSSize(width: contentW, height: contentH))
+        window.center()
 
         let delegate = EditorWindowDelegate { [weak window] in
             guard let window else { return }

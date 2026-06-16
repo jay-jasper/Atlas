@@ -96,6 +96,7 @@ struct SnipasteCaptureOverlay: View {
     private enum Mode {
         case idle, drawing, moving(CGRect), resizing(CGRect, Handle), annotating
     }
+    private struct WindowItem { let id: CGWindowID; let rect: CGRect }
 
     @State private var selection: CGRect?
     @State private var mode: Mode = .idle
@@ -112,7 +113,9 @@ struct SnipasteCaptureOverlay: View {
     @State private var counter = 0
     @State private var hexMode = true
     @State private var keyMonitor: Any?
-    @State private var windowRects: [CGRect] = []
+    @State private var windowItems: [WindowItem] = []
+    @State private var selectedWindowID: CGWindowID?
+    @State private var windowCaptureData: Data?
     @State private var backdropOn = false
     @State private var annoStart: CGPoint?
     @State private var annoCurrent: CGPoint?
@@ -124,19 +127,24 @@ struct SnipasteCaptureOverlay: View {
         GeometryReader { geo in
             ZStack(alignment: .topLeading) {
                 base(geo.size)
+                dimLayer(highlightRect, geo.size)
                 if let sel = selection {
-                    brightHole(sel)
+                    if let winImage = windowCaptureImage {
+                        Image(nsImage: winImage).resizable().scaledToFill()
+                            .frame(width: sel.width, height: sel.height)
+                            .position(x: sel.midX, y: sel.midY)
+                            .allowsHitTesting(false)
+                    }
                     annotationLayer(sel)
                     selectionChrome(sel, geo.size)
-                }
-                if selection == nil, let win = windowRect(at: cursor) {
-                    brightHole(win)
+                } else if let win = windowRect(at: cursor) {
                     Rectangle().stroke(Color.accentColor, lineWidth: 2)
                         .frame(width: win.width, height: win.height)
                         .position(x: win.midX, y: win.midY)
                         .allowsHitTesting(false)
                 }
-                if tool == nil, selection == nil || selection!.insetBy(dx: -2, dy: -2).contains(cursor) {
+                if tool == nil, !isAdjustingSelection,
+                   selection == nil || selection!.insetBy(dx: -2, dy: -2).contains(cursor) {
                     loupe(geo.size)
                 }
                 if selection == nil {
@@ -149,7 +157,7 @@ struct SnipasteCaptureOverlay: View {
                 }
                 SelectionKeyboardBridge { handleKey($0, geo.size) }.frame(width: 0, height: 0)
             }
-            .onAppear { viewSize = geo.size; installKeyMonitor(); windowRects = detectWindows() }
+            .onAppear { viewSize = geo.size; installKeyMonitor(); windowItems = detectWindows() }
             .onDisappear { if let m = keyMonitor { NSEvent.removeMonitor(m) } }
             .onChange(of: geo.size) { viewSize = $0 }
         }
@@ -158,12 +166,24 @@ struct SnipasteCaptureOverlay: View {
 
     // MARK: - Layers
 
+    /// The brightly-lit region: the active selection, or the window under the
+    /// cursor when nothing is selected yet.
+    private var highlightRect: CGRect? {
+        if let selection { return selection }
+        return windowRect(at: cursor)
+    }
+
+    private var windowCaptureImage: NSImage? {
+        windowCaptureData.flatMap(NSImage.init(data:))
+    }
+
     private func base(_ size: CGSize) -> some View {
-        ZStack {
+        Group {
             if let previewImage {
                 Image(nsImage: previewImage).resizable().scaledToFill()
+            } else {
+                Color.black
             }
-            Color.black.opacity(0.45)
         }
         .frame(width: size.width, height: size.height)
         .contentShape(Rectangle())
@@ -173,21 +193,14 @@ struct SnipasteCaptureOverlay: View {
         }
     }
 
-    private func brightHole(_ sel: CGRect) -> some View {
-        Group {
-            if let previewImage {
-                Image(nsImage: previewImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: viewSize.width, height: viewSize.height)
-                    .offset(x: 0, y: 0)
-                    .mask(
-                        Rectangle()
-                            .frame(width: sel.width, height: sel.height)
-                            .position(x: sel.midX, y: sel.midY)
-                    )
-            }
+    /// Dims everything except `hole` using a single even-odd fill. Far cheaper
+    /// than masking a full-resolution preview image every drag frame.
+    private func dimLayer(_ hole: CGRect?, _ size: CGSize) -> some View {
+        Path { p in
+            p.addRect(CGRect(origin: .zero, size: size))
+            if let hole { p.addRect(hole) }
         }
+        .fill(Color.black.opacity(0.45), style: FillStyle(eoFill: true))
         .allowsHitTesting(false)
     }
 
@@ -456,6 +469,7 @@ struct SnipasteCaptureOverlay: View {
     private func beginDrag(_ start: CGPoint, _ size: CGSize) {
         if let sel = selection, let h = handleHit(start, sel) {
             mode = .resizing(sel, h)
+            clearWindowCapture()
         } else if let sel = selection, let t = tool, sel.insetBy(dx: -4, dy: -4).contains(start) {
             mode = .annotating
             annoStart = start
@@ -463,8 +477,10 @@ struct SnipasteCaptureOverlay: View {
             if t == .pen { penPoints = [start] }
         } else if let sel = selection, tool == nil, sel.contains(start) {
             mode = .moving(sel)
+            clearWindowCapture()
         } else {
             mode = .drawing
+            clearWindowCapture()
         }
     }
 
@@ -492,8 +508,13 @@ struct SnipasteCaptureOverlay: View {
         if case .drawing = mode {
             let rect = SelectionGeometry.normalizedRect(from: start, to: now)
             if rect.width < 6, rect.height < 6 {
-                // A click (not a drag): capture the window under the cursor.
-                selection = windowRect(at: start)
+                // A click (not a drag): select the top-most window under the
+                // cursor and grab its true, un-occluded content.
+                if let item = windowItem(at: start) {
+                    selection = item.rect
+                    selectedWindowID = item.id
+                    captureWindow(item.id)
+                }
             } else {
                 selection = SelectionGeometry.isValidSelection(rect) ? rect : nil
             }
@@ -504,25 +525,56 @@ struct SnipasteCaptureOverlay: View {
         annoCurrent = nil
     }
 
-    private func detectWindows() -> [CGRect] {
+    /// On-screen, normal-layer windows in front-to-back order (the order
+    /// `CGWindowListCopyWindowInfo` returns with `.optionOnScreenOnly`). Only
+    /// these — actually visible, top-level windows — are selectable.
+    private func detectWindows() -> [WindowItem] {
         guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else { return [] }
         let myPID = Int(ProcessInfo.processInfo.processIdentifier)
-        var rects: [CGRect] = []
+        var items: [WindowItem] = []
         for info in list {
             if let owner = info[kCGWindowOwnerPID as String] as? Int, owner == myPID { continue }
             guard let layer = info[kCGWindowLayer as String] as? Int, layer == 0 else { continue }
+            if let alpha = info[kCGWindowAlpha as String] as? Double, alpha < 0.1 { continue }
+            guard let id = info[kCGWindowNumber as String] as? CGWindowID else { continue }
             guard let bounds = info[kCGWindowBounds as String] as? [String: CGFloat],
                   let x = bounds["X"], let y = bounds["Y"], let w = bounds["Width"], let h = bounds["Height"],
                   w >= 40, h >= 40 else { continue }
-            rects.append(CGRect(x: x, y: y, width: w, height: h))
+            items.append(WindowItem(id: id, rect: CGRect(x: x, y: y, width: w, height: h)))
         }
-        return rects
+        return items
+    }
+
+    /// The top-most window under the point (first in front-to-back order), i.e.
+    /// the one the user actually sees there.
+    private func windowItem(at point: CGPoint) -> WindowItem? {
+        windowItems.first { $0.rect.contains(point) }
     }
 
     private func windowRect(at point: CGPoint) -> CGRect? {
-        windowRects
-            .filter { $0.contains(point) }
-            .min(by: { $0.width * $0.height < $1.width * $1.height })
+        windowItem(at: point)?.rect
+    }
+
+    /// Capture the real, un-occluded content of a specific window by its ID
+    /// (independent of z-order), so a selected window's screenshot is its own
+    /// pixels — not whatever is layered on top in the frozen preview.
+    private func captureWindow(_ id: CGWindowID) {
+        let path = NSTemporaryDirectory() + "atlas-win-\(UUID().uuidString).png"
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
+        process.arguments = ["-l\(id)", "-o", "-x", path]
+        process.terminationHandler = { _ in
+            let url = URL(fileURLWithPath: path)
+            let data = try? Data(contentsOf: url)
+            try? FileManager.default.removeItem(at: url)
+            DispatchQueue.main.async { windowCaptureData = data }
+        }
+        try? process.run()
+    }
+
+    private func clearWindowCapture() {
+        selectedWindowID = nil
+        windowCaptureData = nil
     }
 
     private func buildAnnotation(_ t: ScreenshotTool, from start: CGPoint, to end: CGPoint, counterNumber: Int) -> ScreenshotAnnotation? {
@@ -685,14 +737,27 @@ struct SnipasteCaptureOverlay: View {
     private func cancel() { onClose() }
 
     private func renderRegion() -> Data? {
-        guard let sel = selection, let bitmap = previewBitmap, let cg = bitmap.cgImage, viewSize.width > 0 else { return nil }
-        let scaleX = CGFloat(bitmap.pixelsWide) / viewSize.width
-        let scaleY = CGFloat(bitmap.pixelsHigh) / viewSize.height
-        let pixelRect = CGRect(x: sel.minX * scaleX, y: sel.minY * scaleY, width: sel.width * scaleX, height: sel.height * scaleY).integral
-        guard let cropped = cg.cropping(to: pixelRect),
-              let croppedPNG = NSBitmapImageRep(cgImage: cropped).representation(using: .png, properties: [:]) else { return nil }
+        guard let sel = selection, viewSize.width > 0 else { return nil }
+
+        let basePNG: Data
+        let pixelRect: CGRect
+        if let winData = windowCaptureData, let rep = NSBitmapImageRep(data: winData) {
+            // A window was selected: use its real, un-occluded content directly.
+            basePNG = winData
+            pixelRect = CGRect(x: 0, y: 0, width: rep.pixelsWide, height: rep.pixelsHigh)
+        } else {
+            guard let bitmap = previewBitmap, let cg = bitmap.cgImage else { return nil }
+            let scaleX = CGFloat(bitmap.pixelsWide) / viewSize.width
+            let scaleY = CGFloat(bitmap.pixelsHigh) / viewSize.height
+            let pr = CGRect(x: sel.minX * scaleX, y: sel.minY * scaleY, width: sel.width * scaleX, height: sel.height * scaleY).integral
+            guard let cropped = cg.cropping(to: pr),
+                  let croppedPNG = NSBitmapImageRep(cgImage: cropped).representation(using: .png, properties: [:]) else { return nil }
+            basePNG = croppedPNG
+            pixelRect = pr
+        }
+
         let translated = annotations.map { translate($0, by: CGPoint(x: -sel.minX, y: -sel.minY)) }
-        let shot = CapturedScreenshot(pngData: croppedPNG, rect: pixelRect)
+        let shot = CapturedScreenshot(pngData: basePNG, rect: pixelRect)
         let rendered = ScreenshotEditorRenderer.renderedPNGData(screenshot: shot, annotations: translated, canvasSize: sel.size)
         return backdropOn ? ScreenshotEditorRenderer.applyBackdrop(rendered) : rendered
     }
