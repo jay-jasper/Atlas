@@ -27,6 +27,7 @@ struct AtlasMainView: View {
         case htmlentities, diff, hexview, contrast
         case lines, slug, httpcodes, unicode
         case scratchpad, totp, pomodoro
+        case battery, bluetooth, disk, rss
         var id: String { rawValue }
         var title: String {
             switch self {
@@ -62,6 +63,10 @@ struct AtlasMainView: View {
             case .scratchpad: return "便签"
             case .totp: return "两步验证"
             case .pomodoro: return "番茄钟"
+            case .battery: return "电池健康"
+            case .bluetooth: return "蓝牙电量"
+            case .disk: return "磁盘用量"
+            case .rss: return "RSS 订阅"
             }
         }
         var icon: String {
@@ -98,6 +103,10 @@ struct AtlasMainView: View {
             case .scratchpad: return "note.text"
             case .totp: return "lock.shield"
             case .pomodoro: return "timer"
+            case .battery: return "battery.100"
+            case .bluetooth: return "wave.3.right"
+            case .disk: return "internaldrive"
+            case .rss: return "dot.radiowaves.up.forward"
             }
         }
         var subtitle: String {
@@ -134,6 +143,10 @@ struct AtlasMainView: View {
             case .scratchpad: return "Markdown 笔记"
             case .totp: return "TOTP 验证码"
             case .pomodoro: return "专注计时"
+            case .battery: return "健康度 · 循环"
+            case .bluetooth: return "已配对设备"
+            case .disk: return "目录占用"
+            case .rss: return "极简阅读器"
             }
         }
     }
@@ -251,6 +264,14 @@ struct AtlasMainView: View {
             TOTPModuleView()
         case .pomodoro:
             PomodoroModuleView()
+        case .battery:
+            BatteryModuleView()
+        case .bluetooth:
+            BluetoothModuleView()
+        case .disk:
+            DiskModuleView()
+        case .rss:
+            RSSModuleView()
         }
     }
 
@@ -1595,5 +1616,41 @@ private struct PomodoroModuleView: View {
     @StateObject private var service = PomodoroService()
     var body: some View {
         PomodoroPanel(service: service).padding()
+    }
+}
+
+/// 电池健康 — BatteryHealthPanel.
+private struct BatteryModuleView: View {
+    @StateObject private var service = BatteryHealthService()
+    var body: some View {
+        ScrollView { BatteryHealthPanel(service: service).padding() }
+            .onAppear { service.refresh() }
+    }
+}
+
+/// 蓝牙电量 — BluetoothBatteryPanel.
+private struct BluetoothModuleView: View {
+    @StateObject private var service = BluetoothBatteryService()
+    var body: some View {
+        ScrollView { BluetoothBatteryPanel(service: service).padding() }
+            .onAppear { service.refresh() }
+    }
+}
+
+/// 磁盘用量 — DiskUsagePanel (scans home, depth 1 — fast).
+private struct DiskModuleView: View {
+    @StateObject private var service = DiskUsageService()
+    var body: some View {
+        ScrollView { DiskUsagePanel(service: service).padding() }
+            .onAppear { service.scanHome() }
+    }
+}
+
+/// RSS 订阅 — RSSPanel.
+private struct RSSModuleView: View {
+    @StateObject private var service = RSSService()
+    var body: some View {
+        RSSPanel(service: service).padding()
+            .onAppear { Task { await service.refreshAll() } }
     }
 }
