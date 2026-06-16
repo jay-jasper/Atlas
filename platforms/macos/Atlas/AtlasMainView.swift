@@ -1962,11 +1962,16 @@ private struct ScreenshotModuleView: View {
     /// The freeze frame is taken with the system `screencapture` tool, which is
     /// the most reliable path for Screen Recording permission.
     private func captureRegion() {
-        // Synchronous freeze frame via the Rust core; show the overlay regardless
-        // (so it's visible even if the frame is empty — easier to diagnose).
+        // Proven selection overlay (reliably displays) → centered editor window.
         let preview = try? AtlasBridge.captureFullScreen()
-        status = preview == nil ? "屏幕录制权限未授予,预览为空(仍可框选,但无法生成图)" : ""
-        SnipasteCaptureWindow.show(previewImageData: preview)
+        ScreenshotSelectionWindow.show(previewImageData: preview) { rect in
+            let scale = NSScreen.main?.backingScaleFactor ?? 1
+            let region = ScreenCaptureCoordinateMapper.pixelRegion(fromSelectionRect: rect, backingScaleFactor: scale)
+            guard let data = try? AtlasBridge.captureRegion(x: region.x, y: region.y, width: region.width, height: region.height),
+                  let bitmap = NSBitmapImageRep(data: data) else { return }
+            let shot = CapturedScreenshot(pngData: data, rect: CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh))
+            ScreenshotEditorWindow.present(shot)
+        }
     }
 
     private func capture(_ mode: InteractiveScreenCapture.Mode) {
