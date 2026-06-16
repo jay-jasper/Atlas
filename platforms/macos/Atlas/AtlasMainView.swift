@@ -1959,14 +1959,17 @@ private struct ScreenshotModuleView: View {
 
     /// Region capture uses the Snipaste-style in-place overlay (freeze screen →
     /// select → annotate on the overlay → copy/save/pin). No editor window.
+    /// The freeze frame is taken with the system `screencapture` tool, which is
+    /// the most reliable path for Screen Recording permission.
     private func captureRegion() {
-        let preview = try? AtlasBridge.captureFullScreen()
-        guard preview != nil else {
-            status = "需要屏幕录制权限"
-            return
+        InteractiveScreenCapture.capture(.full) { data in
+            guard let data else {
+                status = "需要屏幕录制权限(系统设置 → 隐私与安全性 → 屏幕录制)"
+                return
+            }
+            status = ""
+            SnipasteCaptureWindow.show(previewImageData: data)
         }
-        status = ""
-        SnipasteCaptureWindow.show(previewImageData: preview)
     }
 
     private func capture(_ mode: InteractiveScreenCapture.Mode) {

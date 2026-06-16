@@ -61,7 +61,9 @@ enum ScreenshotEditorWindow {
         window.title = "截图标注"
         window.titlebarAppearsTransparent = true
         window.isReleasedWhenClosed = false
-        window.isMovableByWindowBackground = true
+        // Must stay false: when true, dragging on the canvas moves the window
+        // instead of letting SwiftUI draw the annotation.
+        window.isMovableByWindowBackground = false
         window.center()
 
         let container = ScreenshotEditorContainer(screenshot: screenshot) { [weak window] in

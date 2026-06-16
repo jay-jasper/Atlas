@@ -19,6 +19,7 @@ enum SnipasteCaptureWindow {
         panel.isOpaque = false
         panel.hasShadow = false
         panel.level = .screenSaver
+        panel.acceptsMouseMovedEvents = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         panel.isReleasedWhenClosed = false
         panel.makeKeyAndOrderFront(nil)
@@ -77,6 +78,14 @@ struct SnipasteCaptureOverlay: View {
                     selectionChrome(sel, geo.size)
                 }
                 if tool == nil { loupe(geo.size) }
+                if selection == nil {
+                    Text("拖动选择截图区域 · Esc 取消")
+                        .font(.system(size: 13, weight: .medium)).foregroundColor(.white)
+                        .padding(.horizontal, 14).padding(.vertical, 8)
+                        .background(Color.black.opacity(0.7), in: Capsule())
+                        .position(x: geo.size.width / 2, y: 56)
+                        .allowsHitTesting(false)
+                }
                 SelectionKeyboardBridge { handleKey($0, geo.size) }.frame(width: 0, height: 0)
             }
             .onAppear { viewSize = geo.size; installKeyMonitor() }
