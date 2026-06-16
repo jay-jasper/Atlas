@@ -1962,15 +1962,24 @@ private struct ScreenshotModuleView: View {
     /// The freeze frame is taken with the system `screencapture` tool, which is
     /// the most reliable path for Screen Recording permission.
     private func captureRegion() {
-        // Proven selection overlay (reliably displays) → centered editor window.
-        let preview = try? AtlasBridge.captureFullScreen()
-        ScreenshotSelectionWindow.show(previewImageData: preview) { rect in
-            let scale = NSScreen.main?.backingScaleFactor ?? 1
-            let region = ScreenCaptureCoordinateMapper.pixelRegion(fromSelectionRect: rect, backingScaleFactor: scale)
-            guard let data = try? AtlasBridge.captureRegion(x: region.x, y: region.y, width: region.width, height: region.height),
-                  let bitmap = NSBitmapImageRep(data: data) else { return }
-            let shot = CapturedScreenshot(pngData: data, rect: CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh))
-            ScreenshotEditorWindow.present(shot)
+        // Show the selection overlay immediately (no preview), then capture the
+        // chosen rect with `screencapture -R` (no blocking Rust call).
+        ScreenshotSelectionWindow.show(previewImageData: nil) { rect in
+            let path = NSTemporaryDirectory() + "atlas-region-\(UUID().uuidString).png"
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
+            process.arguments = ["-R\(Int(rect.minX)),\(Int(rect.minY)),\(Int(rect.width)),\(Int(rect.height))", "-o", path]
+            process.terminationHandler = { _ in
+                let url = URL(fileURLWithPath: path)
+                let data = try? Data(contentsOf: url)
+                try? FileManager.default.removeItem(at: url)
+                DispatchQueue.main.async {
+                    guard let data, let bitmap = NSBitmapImageRep(data: data) else { return }
+                    let shot = CapturedScreenshot(pngData: data, rect: CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh))
+                    ScreenshotEditorWindow.present(shot)
+                }
+            }
+            try? process.run()
         }
     }
 

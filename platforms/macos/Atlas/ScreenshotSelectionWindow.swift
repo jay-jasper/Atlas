@@ -61,8 +61,10 @@ final class ScreenshotSelectionWindow {
         selectionWindow.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         selectionWindow.delegate = windowDelegate
         selectionWindow.isReleasedWhenClosed = false
-        selectionWindow.makeKeyAndOrderFront(nil)
+        selectionWindow.setFrame(frame, display: true)
         NSApp.activate(ignoringOtherApps: true)
+        selectionWindow.makeKeyAndOrderFront(nil)
+        selectionWindow.orderFrontRegardless()
 
         window = selectionWindow
         delegate = windowDelegate
@@ -74,7 +76,10 @@ final class ScreenshotSelectionWindow {
         delegate = nil
     }
 
-    private final class SelectionPanel: NSPanel {
+    // A plain borderless NSWindow (not NSPanel): NSPanel is a floating panel that
+    // hides when the app's main window is active, which prevented the overlay from
+    // showing in the windowed app.
+    private final class SelectionPanel: NSWindow {
         override var canBecomeKey: Bool { true }
         override var canBecomeMain: Bool { true }
     }
