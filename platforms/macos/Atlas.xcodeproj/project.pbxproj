@@ -120,6 +120,7 @@
 		4E33C3ADD66D4E5B8AE180DF /* NetworkMonitorPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4742EB74C004AC68B04AA33 /* NetworkMonitorPanel.swift */; };
 		50F4ECA080184A9EA61B06F2 /* ScreenshotGIFOutputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1408CAF605184C5F990E7F9C /* ScreenshotGIFOutputTests.swift */; };
 		5130EECB7BCACC2B05F75375 /* TranslationPopupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C980AB00CBD282A394859858 /* TranslationPopupService.swift */; };
+		51BF8A7E80A2D1889C685FB7 /* ScreenshotCaptureFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDBDD73EC7B351404383EA /* ScreenshotCaptureFlow.swift */; };
 		5585D9A7ED649443F9AD7E55 /* NowPlayingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACD09043480F0BE1B6925D4 /* NowPlayingTests.swift */; };
 		5699A6E091A8D69FFFEB5C0B /* ExpressionEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FFFE98768F02206D081FF01 /* ExpressionEvaluator.swift */; };
 		56A0C96313AB49A88A11A5B5 /* AudioPresetStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F80E94F059345D9BF695AF2 /* AudioPresetStoreTests.swift */; };
@@ -751,6 +752,7 @@
 		88A8B8230EA651C257B343DD /* SkillRunner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SkillRunner.swift; sourceTree = "<group>"; };
 		88CBD52E6E389E284552F69D /* RecordingTimeline.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RecordingTimeline.swift; sourceTree = "<group>"; };
 		8AA8CF04F333085B6EAADCE7 /* CameraPreviewPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CameraPreviewPanel.swift; sourceTree = "<group>"; };
+		8ADDBDD73EC7B351404383EA /* ScreenshotCaptureFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScreenshotCaptureFlow.swift; sourceTree = "<group>"; };
 		8B69BAF8DF1B46902C14F4B7 /* PresentationModeServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PresentationModeServiceTests.swift; sourceTree = "<group>"; };
 		8B71563E0BF0B7DF25698C8C /* TextExpansionEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TextExpansionEngine.swift; sourceTree = "<group>"; };
 		8B90FCD93AA77617204F8B01 /* ClipboardHistoryStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryStore.swift; sourceTree = "<group>"; };
@@ -1456,6 +1458,7 @@
 				D496B3737293EE53C4E72BB4 /* Privileged */,
 				E4DC919ED0B3E6F9A8B65695 /* DesignSystem */,
 				3C8D0DA5D888CB4670A8AABD /* AtlasMainView.swift */,
+				8ADDBDD73EC7B351404383EA /* ScreenshotCaptureFlow.swift */,
 			);
 			path = Atlas;
 			sourceTree = "<group>";
@@ -2314,6 +2317,7 @@
 				E3C4F518C44B54B5CB4DECB4 /* AtlasSceneScreen.swift in Sources */,
 				AA3D22B987D6AA09F79C0217 /* AtlasPrototypeView.swift in Sources */,
 				D7F9C9ABBBBC2D00A3AA83EF /* AtlasMainView.swift in Sources */,
+				51BF8A7E80A2D1889C685FB7 /* ScreenshotCaptureFlow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

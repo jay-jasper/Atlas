@@ -1921,49 +1921,23 @@ private struct NowPlayingModuleView: View {
 
 // MARK: - Permission-gated modules
 
-/// 截图 — Shottr-style flow: region / window / full-screen capture, then the
-/// app's annotation editor (rectangle / arrow / pen / text / pixelate + OCR / pin
-/// / copy / save). Needs Screen Recording on first capture.
+/// 截图 — entry for the Shottr-style flow. Region / window selection uses the
+/// native macOS system UI; the annotation editor opens in a centered floating
+/// window (see ScreenshotCaptureFlow.swift).
 private struct ScreenshotModuleView: View {
-    @State private var captured: CapturedScreenshot?
-    @State private var recognizedText = ""
-    @State private var isRecognizing = false
     @State private var status = ""
 
     var body: some View {
-        if let shot = captured {
-            ScreenshotEditorView(
-                screenshot: shot,
-                capabilities: ScreenshotEditorCapabilities(annotations: true, pinning: true, ocr: true, translation: false),
-                onCopy: { copyImage($0); status = "已复制到剪贴板" },
-                onSave: { save($0) },
-                onPin: { PinnedScreenshotWindow.show(data: $0) },
-                recognizedText: recognizedText,
-                isRecognizingText: isRecognizing,
-                translatedText: "",
-                isTranslatingText: false,
-                onRecognizeText: { runOCR($0) },
-                onCopyRecognizedText: { atlasCopy($0) },
-                onTranslateRecognizedText: { _ in },
-                onCopyTranslatedText: { _ in },
-                onClose: { captured = nil; recognizedText = "" }
-            )
-        } else {
-            entry
-        }
-    }
-
-    private var entry: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text("截图 + 标注").font(.title3).bold()
-            Text("捕获后打开标注编辑器:矩形 · 箭头 · 画笔 · 文字 · 马赛克,并支持取色、OCR 文字识别、钉住、复制、保存。")
+            Text("捕获后会在屏幕正中弹出标注编辑器:矩形 · 箭头 · 画笔 · 文字 · 马赛克,并支持取色、OCR、钉住、复制、保存。")
                 .font(.callout).foregroundColor(.secondary)
             HStack(spacing: 12) {
-                captureButton("区域截图", "viewfinder", action: captureRegion)
-                captureButton("窗口截图", "macwindow", action: captureWindow)
-                captureButton("全屏截图", "rectangle.inset.filled", action: captureFull)
+                captureButton("区域截图", "viewfinder") { capture(.region) }
+                captureButton("窗口截图", "macwindow") { capture(.window) }
+                captureButton("全屏截图", "rectangle.inset.filled") { capture(.full) }
             }
-            Text("首次使用需在「系统设置 → 隐私与安全性 → 屏幕录制」授权 Atlas。")
+            Text("区域 / 窗口使用系统原生选择界面(拖拽选区,或在窗口模式点选窗口);首次需在「系统设置 → 隐私与安全性 → 屏幕录制」授权 Atlas。")
                 .font(.caption).foregroundColor(.secondary)
             if !status.isEmpty { Text(status).font(.caption).foregroundColor(.secondary) }
             Spacer()
@@ -1983,60 +1957,19 @@ private struct ScreenshotModuleView: View {
         .buttonStyle(.bordered)
     }
 
-    private func present(_ data: Data) {
-        guard let bitmap = NSBitmapImageRep(data: data) else { status = "图像解码失败"; return }
-        captured = CapturedScreenshot(pngData: data, rect: CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh))
-        status = ""
-    }
-
-    private func captureFull() {
-        do { present(try AtlasBridge.captureFullScreen()) }
-        catch { status = "全屏截图失败:\(error.localizedDescription)" }
-    }
-
-    private func captureRegion() {
-        let preview = try? AtlasBridge.captureFullScreen()
-        ScreenshotSelectionWindow.show(previewImageData: preview) { rect in
-            let scale = NSScreen.main?.backingScaleFactor ?? 1
-            let region = ScreenCaptureCoordinateMapper.pixelRegion(fromSelectionRect: rect, backingScaleFactor: scale)
-            do { present(try AtlasBridge.captureRegion(x: region.x, y: region.y, width: region.width, height: region.height)) }
-            catch { status = "区域截图失败:\(error.localizedDescription)" }
-        }
-    }
-
-    private func captureWindow() {
-        do {
-            let windows = try AtlasBridge.listCapturableWindows()
-            guard !windows.isEmpty else { status = "未找到可捕获窗口"; return }
-            WindowSelectionWindow.show(windows: windows, onCancel: {}, onSelect: { window in
-                do { present(try AtlasBridge.captureWindow(id: window.id)) }
-                catch { status = "窗口截图失败:\(error.localizedDescription)" }
-            })
-        } catch { status = "窗口截图失败:\(error.localizedDescription)" }
-    }
-
-    private func runOCR(_ data: Data) {
-        isRecognizing = true
-        DispatchQueue.global(qos: .userInitiated).async {
-            let result = try? AtlasBridge.recognizeText(in: data)
-            DispatchQueue.main.async {
-                isRecognizing = false
-                recognizedText = (result?.text.isEmpty == false) ? result!.text : "（未识别到文字）"
+    private func capture(_ mode: InteractiveScreenCapture.Mode) {
+        InteractiveScreenCapture.capture(mode) { data in
+            guard let data, let bitmap = NSBitmapImageRep(data: data) else {
+                status = "已取消"
+                return
             }
+            let shot = CapturedScreenshot(
+                pngData: data,
+                rect: CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
+            )
+            status = ""
+            ScreenshotEditorWindow.present(shot)
         }
-    }
-
-    private func copyImage(_ data: Data) {
-        NSPasteboard.general.clearContents()
-        if let image = NSImage(data: data) { NSPasteboard.general.writeObjects([image]) }
-    }
-
-    private func save(_ data: Data) {
-        let formatter = DateFormatter(); formatter.dateFormat = "yyyyMMdd-HHmmss"
-        let url = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Desktop/Atlas-Screenshot-\(formatter.string(from: Date())).png")
-        do { try data.write(to: url); status = "已保存:\(url.lastPathComponent)" }
-        catch { status = "保存失败:\(error.localizedDescription)" }
     }
 }
 
