@@ -29,6 +29,7 @@ struct ScreenshotEditorView: View {
     @State private var editingAnnotationID: UUID?
     @State private var counterIndex = 0
     @State private var redoStack: [ScreenshotAnnotation] = []
+    @State private var backdropOn = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -98,6 +99,18 @@ struct ScreenshotEditorView: View {
                 }
 
                 Spacer(minLength: 6)
+
+                Button { backdropOn.toggle() } label: {
+                    Image(systemName: "rectangle.portrait.on.rectangle.portrait")
+                }
+                .background(backdropOn ? Color.accentColor.opacity(0.25) : Color.clear)
+                .cornerRadius(5)
+                .help("Backdrop")
+
+                Button { addCapture() } label: {
+                    Image(systemName: "plus.viewfinder")
+                }
+                .help("Add Capture")
 
                 Button {
                     if let last = annotations.popLast() { redoStack.append(last) }
@@ -386,11 +399,34 @@ struct ScreenshotEditorView: View {
     }
 
     private func renderedData() -> Data {
-        ScreenshotEditorRenderer.renderedPNGData(
+        let base = ScreenshotEditorRenderer.renderedPNGData(
             screenshot: screenshot,
             annotations: annotations,
             canvasSize: canvasSize
         )
+        return backdropOn ? ScreenshotEditorRenderer.applyBackdrop(base) : base
+    }
+
+    /// Add Capture: take another screenshot of the live screen and drop it onto
+    /// the canvas as an image annotation.
+    private func addCapture() {
+        let path = NSTemporaryDirectory() + "atlas-add-\(UUID().uuidString).png"
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
+        process.arguments = ["-i", "-o", path]
+        process.terminationHandler = { _ in
+            let url = URL(fileURLWithPath: path)
+            let data = try? Data(contentsOf: url)
+            try? FileManager.default.removeItem(at: url)
+            DispatchQueue.main.async {
+                guard let data, let rep = NSBitmapImageRep(data: data) else { return }
+                let w = CGFloat(min(rep.pixelsWide, 360))
+                let h = CGFloat(rep.pixelsHigh) * (w / CGFloat(max(1, rep.pixelsWide)))
+                annotations.append(.image(data: data, rect: CGRect(x: canvasSize.width / 2 - w / 2, y: canvasSize.height / 2 - h / 2, width: w, height: h)))
+                redoStack.removeAll()
+            }
+        }
+        try? process.run()
     }
 }
 
@@ -832,6 +868,46 @@ enum ScreenshotEditorRenderer {
         let mapped = map(annotation.bounds, renderedImageRect: renderedImageRect, outputSize: outputSize)
         guard !mapped.isNull, mapped.width > 0, mapped.height > 0 else { return }
         context.draw(cg, in: mapped)
+    }
+
+    /// Backdrop: wrap the (already annotated) image in a gradient background with
+    /// padding, rounded corners and a drop shadow — for a polished share image.
+    static func applyBackdrop(_ data: Data) -> Data {
+        guard let source = NSImage(data: data), let rep = NSBitmapImageRep(data: data) else { return data }
+        let imgW = CGFloat(rep.pixelsWide), imgH = CGFloat(rep.pixelsHigh)
+        let pad = max(64, min(imgW, imgH) * 0.08)
+        let outSize = NSSize(width: imgW + pad * 2, height: imgH + pad * 2)
+
+        let out = NSImage(size: outSize)
+        out.lockFocus()
+        let gradient = NSGradient(colors: [
+            NSColor(calibratedRed: 0.36, green: 0.50, blue: 0.96, alpha: 1),
+            NSColor(calibratedRed: 0.60, green: 0.40, blue: 0.92, alpha: 1),
+        ])
+        gradient?.draw(in: NSRect(origin: .zero, size: outSize), angle: -45)
+
+        let imgRect = NSRect(x: pad, y: pad, width: imgW, height: imgH)
+        let radius = min(imgW, imgH) * 0.02
+        let roundedPath = NSBezierPath(roundedRect: imgRect, xRadius: radius, yRadius: radius)
+
+        NSGraphicsContext.current?.saveGraphicsState()
+        let shadow = NSShadow()
+        shadow.shadowOffset = NSSize(width: 0, height: -pad / 4)
+        shadow.shadowBlurRadius = pad / 1.4
+        shadow.shadowColor = NSColor.black.withAlphaComponent(0.45)
+        shadow.set()
+        NSColor.white.setFill()
+        roundedPath.fill()
+        NSGraphicsContext.current?.restoreGraphicsState()
+
+        NSGraphicsContext.current?.saveGraphicsState()
+        roundedPath.addClip()
+        source.draw(in: imgRect)
+        NSGraphicsContext.current?.restoreGraphicsState()
+        out.unlockFocus()
+
+        guard let tiff = out.tiffRepresentation, let outRep = NSBitmapImageRep(data: tiff) else { return data }
+        return outRep.representation(using: .png, properties: [:]) ?? data
     }
 
     private static func gaussianBlurred(_ image: CGImage, radius: CGFloat) -> CGImage? {

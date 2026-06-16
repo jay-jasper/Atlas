@@ -51,6 +51,28 @@ final class SnipasteCaptureWindow {
         delegate = nil
     }
 
+    /// Hide the overlay, let the user grab a fresh interactive capture of the live
+    /// screen, then restore the overlay and return the PNG.
+    static func addCapture(_ completion: @escaping (Data?) -> Void) {
+        let overlay = window
+        overlay?.orderOut(nil)
+        let path = NSTemporaryDirectory() + "atlas-add-\(UUID().uuidString).png"
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
+        process.arguments = ["-i", "-o", path]
+        process.terminationHandler = { _ in
+            let url = URL(fileURLWithPath: path)
+            let data = try? Data(contentsOf: url)
+            try? FileManager.default.removeItem(at: url)
+            DispatchQueue.main.async {
+                overlay?.makeKeyAndOrderFront(nil)
+                overlay?.orderFrontRegardless()
+                completion(data)
+            }
+        }
+        do { try process.run() } catch { DispatchQueue.main.async { overlay?.orderFrontRegardless(); completion(nil) } }
+    }
+
     // Plain borderless NSWindow (NSPanel hides when the app's main window is active).
     private final class OverlayWindow: NSWindow {
         override var canBecomeKey: Bool { true }
@@ -90,6 +112,7 @@ struct SnipasteCaptureOverlay: View {
     @State private var hexMode = true
     @State private var keyMonitor: Any?
     @State private var windowRects: [CGRect] = []
+    @State private var backdropOn = false
 
     private var previewImage: NSImage? { previewImageData.flatMap(NSImage.init(data:)) }
     private var previewBitmap: NSBitmapImageRep? { previewImageData.flatMap(NSBitmapImageRep.init(data:)) }
@@ -267,6 +290,14 @@ struct SnipasteCaptureOverlay: View {
             toolButtons
             Divider().frame(height: 16)
             colorButtons
+            Divider().frame(height: 16)
+            Button { backdropOn.toggle() } label: {
+                Image(systemName: "rectangle.portrait.on.rectangle.portrait").frame(width: 20, height: 18)
+            }
+            .buttonStyle(.borderless)
+            .background(backdropOn ? Color.accentColor.opacity(0.25) : Color.clear)
+            .cornerRadius(5).help("Backdrop")
+            iconButton("plus.viewfinder") { addCapture() }
             Divider().frame(height: 16)
             iconButton("arrow.uturn.backward", enabled: !annotations.isEmpty) { if let l = annotations.popLast() { redoStack.append(l) } }
             iconButton("arrow.uturn.forward", enabled: !redoStack.isEmpty) { if let r = redoStack.popLast() { annotations.append(r) } }
@@ -483,6 +514,17 @@ struct SnipasteCaptureOverlay: View {
         redoStack.removeAll()
     }
 
+    private func addCapture() {
+        SnipasteCaptureWindow.addCapture { data in
+            guard let data, let rep = NSBitmapImageRep(data: data) else { return }
+            let w = CGFloat(min(rep.pixelsWide, 320))
+            let h = CGFloat(rep.pixelsHigh) * (w / CGFloat(max(1, rep.pixelsWide)))
+            let center = selection.map { CGPoint(x: $0.midX, y: $0.midY) } ?? CGPoint(x: viewSize.width / 2, y: viewSize.height / 2)
+            annotations.append(.image(data: data, rect: CGRect(x: center.x - w / 2, y: center.y - h / 2, width: w, height: h)))
+            redoStack.removeAll()
+        }
+    }
+
     private func handleHit(_ point: CGPoint, _ sel: CGRect) -> Handle? {
         Handle.allCases.first { handlePoint($0, sel).distance(to: point) <= 10 }
     }
@@ -586,7 +628,8 @@ struct SnipasteCaptureOverlay: View {
               let croppedPNG = NSBitmapImageRep(cgImage: cropped).representation(using: .png, properties: [:]) else { return nil }
         let translated = annotations.map { translate($0, by: CGPoint(x: -sel.minX, y: -sel.minY)) }
         let shot = CapturedScreenshot(pngData: croppedPNG, rect: pixelRect)
-        return ScreenshotEditorRenderer.renderedPNGData(screenshot: shot, annotations: translated, canvasSize: sel.size)
+        let rendered = ScreenshotEditorRenderer.renderedPNGData(screenshot: shot, annotations: translated, canvasSize: sel.size)
+        return backdropOn ? ScreenshotEditorRenderer.applyBackdrop(rendered) : rendered
     }
 
     private func translate(_ a: ScreenshotAnnotation, by d: CGPoint) -> ScreenshotAnnotation {
