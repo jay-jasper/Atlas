@@ -1961,6 +1961,9 @@ private struct ScreenshotModuleView: View {
                     status = ""
                     ScrollingCaptureController.shared.begin()
                 }
+                captureButton("自动滚动(窗口)", "macwindow.and.cursorarrow") {
+                    autoScrollCapture()
+                }
             }
             Text("拖动框选任意区域,或把鼠标移到某个窗口上点击即截该窗口。首次需在「系统设置 → 隐私与安全性 → 屏幕录制」授权 Atlas。")
                 .font(.caption).foregroundColor(.secondary)
@@ -2004,6 +2007,45 @@ private struct ScreenshotModuleView: View {
             .frame(width: 96, height: 72)
         }
         .buttonStyle(.bordered)
+    }
+
+    /// Snipaste-style automated long capture: pick a window, the service
+    /// auto-scrolls it (synthetic scroll events) and stitches frames via the Rust
+    /// pipeline, then opens the result in the editor. Needs Accessibility +
+    /// Screen Recording permission.
+    private func autoScrollCapture() {
+        status = ""
+        let windows: [CapturableWindow]
+        do {
+            windows = try AtlasBridge.listCapturableWindows()
+        } catch {
+            status = error.localizedDescription
+            return
+        }
+        guard !windows.isEmpty else { status = "没有可截取的窗口"; return }
+
+        WindowSelectionWindow.show(windows: windows, onCancel: {}) { window in
+            status = "正在自动滚动截图…(请保持该窗口在前台)"
+            DispatchQueue.global(qos: .userInitiated).async {
+                let service = ScreenshotScrollingCaptureService()
+                do {
+                    let result = try service.capture(request: ScrollingCaptureRequest(
+                        window: window, maxFrames: 20, scrollDelta: -900, overlapPixels: 80
+                    ))
+                    let bitmap = NSBitmapImageRep(data: result.pngData)
+                    let rect = CGRect(x: 0, y: 0,
+                                      width: bitmap?.pixelsWide ?? result.libraryItem.pixelWidth,
+                                      height: bitmap?.pixelsHigh ?? result.libraryItem.pixelHeight)
+                    DispatchQueue.main.async {
+                        status = "已拼接 \(result.framesCaptured) 帧"
+                        ScreenshotSettings.shared.record(result.pngData)
+                        ScreenshotEditorWindow.present(CapturedScreenshot(pngData: result.pngData, rect: rect))
+                    }
+                } catch {
+                    DispatchQueue.main.async { status = error.localizedDescription }
+                }
+            }
+        }
     }
 
 }
