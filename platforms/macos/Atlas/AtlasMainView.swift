@@ -1962,24 +1962,15 @@ private struct ScreenshotModuleView: View {
     /// The freeze frame is taken with the system `screencapture` tool, which is
     /// the most reliable path for Screen Recording permission.
     private func captureRegion() {
-        // Show the selection overlay immediately (no preview), then capture the
-        // chosen rect with `screencapture -R` (no blocking Rust call).
-        ScreenshotSelectionWindow.show(previewImageData: nil) { rect in
-            let path = NSTemporaryDirectory() + "atlas-region-\(UUID().uuidString).png"
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
-            process.arguments = ["-R\(Int(rect.minX)),\(Int(rect.minY)),\(Int(rect.width)),\(Int(rect.height))", "-o", path]
-            process.terminationHandler = { _ in
-                let url = URL(fileURLWithPath: path)
-                let data = try? Data(contentsOf: url)
-                try? FileManager.default.removeItem(at: url)
-                DispatchQueue.main.async {
-                    guard let data, let bitmap = NSBitmapImageRep(data: data) else { return }
-                    let shot = CapturedScreenshot(pngData: data, rect: CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh))
-                    ScreenshotEditorWindow.present(shot)
-                }
+        // Snipaste-style: freeze the screen (system screencapture), then the
+        // in-place overlay — select → annotate on the overlay → copy/save/pin.
+        InteractiveScreenCapture.capture(.full) { data in
+            guard let data else {
+                status = "需要屏幕录制权限(系统设置 → 隐私与安全性 → 屏幕录制)"
+                return
             }
-            try? process.run()
+            status = ""
+            SnipasteCaptureWindow.show(previewImageData: data)
         }
     }
 

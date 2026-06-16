@@ -20,10 +20,11 @@ final class SnipasteCaptureWindow {
     private static func showOnMain(_ previewImageData: Data?) {
         close()
         guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
+        let frame = screen.frame
 
         let overlay = SnipasteCaptureOverlay(previewImageData: previewImageData) { close() }
         let controller = NSHostingController(rootView: overlay)
-        let panel = SelectionPanel(contentRect: screen.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+        let panel = OverlayWindow(contentRect: frame, styleMask: [.borderless], backing: .buffered, defer: false)
         let windowDelegate = WindowDelegate { window = nil; delegate = nil }
 
         panel.contentViewController = controller
@@ -35,8 +36,10 @@ final class SnipasteCaptureWindow {
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         panel.delegate = windowDelegate
         panel.isReleasedWhenClosed = false
-        panel.makeKeyAndOrderFront(nil)
+        panel.setFrame(frame, display: true)
         NSApp.activate(ignoringOtherApps: true)
+        panel.makeKeyAndOrderFront(nil)
+        panel.orderFrontRegardless()
 
         window = panel
         delegate = windowDelegate
@@ -48,7 +51,8 @@ final class SnipasteCaptureWindow {
         delegate = nil
     }
 
-    private final class SelectionPanel: NSPanel {
+    // Plain borderless NSWindow (NSPanel hides when the app's main window is active).
+    private final class OverlayWindow: NSWindow {
         override var canBecomeKey: Bool { true }
         override var canBecomeMain: Bool { true }
     }
