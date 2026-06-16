@@ -67,7 +67,7 @@ struct AtlasShellView: View {
                 footer(theme)
             }
         }
-        .frame(width: 460, height: 720)
+        .frame(width: 460, height: 560)
         .atlasTheme(scheme)
         .environment(\.atlasTheme, theme)
     }

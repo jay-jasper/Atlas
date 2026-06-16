@@ -1,52 +1,176 @@
+import AppKit
 import SwiftUI
 
-@main
-struct AtlasApp: App {
-    @StateObject private var paletteState: CommandPaletteState
-    private let windowManager: AccessibilityWindowManager
-    private let windowPermissionChecker = AccessibilityPermissionChecker()
-    private let privacyAccessLogger: PrivacyPulseAccessLogger
-    private let privacyPulseService: PrivacyPulseService
+/// Process-wide services, built once. Shared by the menu bar popover content and
+/// the Settings scene so both drive the same palette / window / scene state.
+@MainActor
+final class AtlasServices {
+    static let shared = AtlasServices()
 
-    init() {
+    let privacyAccessLogger: PrivacyPulseAccessLogger
+    let windowManager: AccessibilityWindowManager
+    let windowPermissionChecker = AccessibilityPermissionChecker()
+    let privacyPulseService: PrivacyPulseService
+    let paletteState: CommandPaletteState
+
+    private init() {
         let logger = PrivacyPulseAccessLogger()
         PrivacyPulseReporter.shared.logger = logger
         let sharedWindowManager = AccessibilityWindowManager(accessLogger: logger)
-        self.privacyAccessLogger = logger
-        self.privacyPulseService = PrivacyPulseService(
+        privacyAccessLogger = logger
+        windowManager = sharedWindowManager
+        privacyPulseService = PrivacyPulseService(
             statusProvider: PrivacyPulseSystemStatusProvider(accessLogger: logger),
             eventStore: logger
         )
-        self.windowManager = sharedWindowManager
         AtlasBridge.captureService = AtlasCaptureService.logging(base: .live, accessLogger: logger)
         AtlasBridge.windowCaptureProvider = LoggingWindowCaptureProvider(accessLogger: logger)
-        _paletteState = StateObject(
-            wrappedValue: CommandPaletteState(
-                windowManager: sharedWindowManager,
-                accessLogger: logger
-            )
-        )
+        paletteState = CommandPaletteState(windowManager: sharedWindowManager, accessLogger: logger)
     }
 
+    func makeContentView() -> ContentView {
+        ContentView(
+            windowManager: windowManager,
+            windowPermissionChecker: windowPermissionChecker,
+            paletteState: paletteState,
+            privacyPulseService: privacyPulseService,
+            privacyAccessLogger: privacyAccessLogger
+        )
+    }
+}
+
+@main
+struct AtlasApp: App {
     var body: some Scene {
-        MenuBarExtra {
-            ContentView(
-                windowManager: windowManager,
-                windowPermissionChecker: windowPermissionChecker,
-                paletteState: paletteState,
-                privacyPulseService: privacyPulseService,
-                privacyAccessLogger: privacyAccessLogger
-            )
-        } label: {
-            // Custom brand glyph (template image → adapts to light/dark menu bar).
-            Image("MenuBarIcon")
-                .renderingMode(.template)
+        // Show the main program in a normal window on launch (menu bar set aside
+        // for now). The same ContentView the popover hosted.
+        Window("Atlas", id: "atlas-main") {
+            AtlasMainView()
+                .frame(minWidth: 640, minHeight: 480)
         }
-        .menuBarExtraStyle(.window)
+        .defaultSize(width: 760, height: 560)
 
         Settings {
-            AtlasSettingsView(paletteController: paletteState.controller)
+            AtlasSettingsView(paletteController: AtlasServices.shared.paletteState.controller)
         }
+    }
+}
+
+@MainActor
+final class AtlasAppDelegate: NSObject, NSApplicationDelegate {
+    private let menuBar = AtlasMenuBarController()
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        menuBar.install()
+    }
+}
+
+/// Owns the menu bar status item. Left-click toggles the Atlas panel popover;
+/// right-click (or control-click) opens a quick-actions menu of common commands.
+@MainActor
+final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
+    private var statusItem: NSStatusItem?
+    private let popover = NSPopover()
+
+    func install() {
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        if let button = item.button {
+            let image = NSImage(named: "MenuBarIcon")
+            image?.isTemplate = true
+            image?.size = NSSize(width: 18, height: 18)
+            button.image = image
+            button.imageScaling = .scaleProportionallyDown
+            button.toolTip = "Atlas"
+            button.target = self
+            button.action = #selector(statusButtonClicked(_:))
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        }
+        statusItem = item
+
+        popover.behavior = .transient
+        popover.animates = true
+        // Explicit size: self-sizing SwiftUI content otherwise leaves the popover
+        // with a zero/ambiguous size and it never appears.
+        popover.contentSize = NSSize(width: 460, height: 560)
+        let host = NSHostingController(rootView: AtlasServices.shared.makeContentView())
+        popover.contentViewController = host
+        popover.delegate = self
+    }
+
+    @objc private func statusButtonClicked(_ sender: NSStatusBarButton) {
+        let event = NSApp.currentEvent
+        let isRightClick = event?.type == .rightMouseUp
+            || event?.modifierFlags.contains(.control) == true
+        if isRightClick {
+            showQuickMenu(from: sender)
+        } else {
+            togglePopover(from: sender)
+        }
+    }
+
+    private func togglePopover(from sender: NSStatusBarButton) {
+        if popover.isShown {
+            popover.performClose(nil)
+        } else {
+            popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+            popover.contentViewController?.view.window?.makeKey()
+            NSApp.activate(ignoringOtherApps: true)
+        }
+    }
+
+    private func showQuickMenu(from sender: NSStatusBarButton) {
+        if popover.isShown { popover.performClose(nil) }
+
+        let menu = NSMenu()
+        menu.addItem(menuItem("打开 Atlas", #selector(openPanel)))
+
+        let palette = menuItem("命令面板", #selector(openPalette), key: "k")
+        palette.keyEquivalentModifierMask = [.command]
+        menu.addItem(palette)
+
+        menu.addItem(.separator())
+
+        let prefs = menuItem("偏好设置…", #selector(openPreferences), key: ",")
+        prefs.keyEquivalentModifierMask = [.command]
+        menu.addItem(prefs)
+        menu.addItem(menuItem("关于 Atlas", #selector(showAbout)))
+
+        menu.addItem(.separator())
+
+        let quit = menuItem("退出 Atlas", #selector(quitApp), key: "q")
+        quit.keyEquivalentModifierMask = [.command]
+        menu.addItem(quit)
+
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: sender.bounds.height + 4), in: sender)
+    }
+
+    private func menuItem(_ title: String, _ action: Selector, key: String = "") -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: action, keyEquivalent: key)
+        item.target = self
+        return item
+    }
+
+    @objc private func openPanel() {
+        guard let button = statusItem?.button else { return }
+        togglePopover(from: button)
+    }
+
+    @objc private func openPalette() {
+        AtlasServices.shared.paletteState.controller.show()
+    }
+
+    @objc private func openPreferences() {
+        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc private func showAbout() {
+        NSApp.activate(ignoringOtherApps: true)
+        NSApp.orderFrontStandardAboutPanel(nil)
+    }
+
+    @objc private func quitApp() {
+        NSApp.terminate(nil)
     }
 }
 

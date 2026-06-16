@@ -316,7 +316,10 @@ struct ContentView: View {
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
-    @State private var showsHome = true
+    @State private var showsHome = false
+    /// Process-global so the one-time startup runs once per launch even if SwiftUI
+    /// recreates the menu bar content view (it would reset a plain @State flag).
+    private static var didStartModules = false
     @State private var revealedOnDemandSceneModules = Set<SceneModuleID>()
     @State private var revealedOnDemandSceneID: UUID?
     private let screenshotFeatureSettingsStore = ScreenshotFeatureSettingsStore()
@@ -408,7 +411,6 @@ struct ContentView: View {
                 )
             }
         }
-        .frame(minWidth: 360, minHeight: 500)
         .sheet(isPresented: $isShowingHandMirror) {
             CameraPreviewPanel(
                 permissionState: handMirrorService.permissionState,
@@ -427,7 +429,9 @@ struct ContentView: View {
             }
         }
         .onAppear(perform: startModules)
-        .onDisappear(perform: stopModules)
+        // Intentionally no `.onDisappear(stopModules)`: this is a menu bar agent,
+        // so monitoring, the global hotkey, and the Scene System must keep running
+        // while the popover is closed. They're torn down on app termination.
         .onReceive(NotificationCenter.default.publisher(for: .tokenBarSummaryDidChange)) { notification in
             if let summary = notification.object as? TokenBarSummary {
                 tokenBarSummary = summary
@@ -578,6 +582,7 @@ struct ContentView: View {
                 .padding()
             }
         }
+        .frame(minWidth: 360, minHeight: 500)
     }
 
     private static let historyMaxCount = 60
@@ -595,6 +600,12 @@ struct ContentView: View {
     }
 
     private func startModules() {
+        // `onAppear` fires every time the menu bar panel opens. Only run this
+        // once per launch so the global hotkey + monitoring stay alive while the
+        // panel is closed, and the accessibility prompt isn't shown repeatedly.
+        guard !Self.didStartModules else { return }
+        Self.didStartModules = true
+
         loadScreenshotFeatureSettings()
         loadTranslationSettings()
         loadScreenshotLibrary()

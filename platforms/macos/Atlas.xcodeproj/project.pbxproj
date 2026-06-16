@@ -399,6 +399,7 @@
 		D3533491765740AC1FD3CBC5 /* LocalAILoadModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BFD86394CFAB3EDD737AE7B /* LocalAILoadModels.swift */; };
 		D788D23DF525B48B80BCE7E3 /* TOTPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFCD56654B2BB1EBE0132131 /* TOTPService.swift */; };
 		D7B7BA9A109C9852A0B91E48 /* BatteryHealthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3E4FA9DA7E6707AEC2CAFB8 /* BatteryHealthService.swift */; };
+		D7F9C9ABBBBC2D00A3AA83EF /* AtlasMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C8D0DA5D888CB4670A8AABD /* AtlasMainView.swift */; };
 		D9C3F6043461B58138591ACF /* NoiseGateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4651FFE3764B792AC834F2B8 /* NoiseGateService.swift */; };
 		D9C56396B4A864359D1E292A /* WorkspaceWindowService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6272A1B4660F8A43600C61 /* WorkspaceWindowService.swift */; };
 		DA4FCC3C1330925471127792 /* KeyEventFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C4D06FEADD5D853E494A69 /* KeyEventFormatterTests.swift */; };
@@ -553,6 +554,7 @@
 		3B570134E77A910024A872EC /* HandMirrorServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HandMirrorServiceTests.swift; sourceTree = "<group>"; };
 		3BFD86394CFAB3EDD737AE7B /* LocalAILoadModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocalAILoadModels.swift; sourceTree = "<group>"; };
 		3C7A72389DEA3B6D92BC110D /* EditionPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EditionPanel.swift; sourceTree = "<group>"; };
+		3C8D0DA5D888CB4670A8AABD /* AtlasMainView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasMainView.swift; sourceTree = "<group>"; };
 		3CB82ACE64328FFFF4195A88 /* ExpressionEvaluatorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExpressionEvaluatorTests.swift; sourceTree = "<group>"; };
 		3CCEFEB02BF348E1817DD9D5 /* SceneCoordinatorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneCoordinatorTests.swift; sourceTree = "<group>"; };
 		3DAD5314FB1D5921ED831F5A /* WorkspaceProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspaceProvider.swift; sourceTree = "<group>"; };
@@ -1453,6 +1455,7 @@
 				E12054EAF148D5FDC026EB1B /* PrivacyPulseReporter.swift */,
 				D496B3737293EE53C4E72BB4 /* Privileged */,
 				E4DC919ED0B3E6F9A8B65695 /* DesignSystem */,
+				3C8D0DA5D888CB4670A8AABD /* AtlasMainView.swift */,
 			);
 			path = Atlas;
 			sourceTree = "<group>";
@@ -2310,6 +2313,7 @@
 				849F27592751C517D0917228 /* AtlasPrefsScreen.swift in Sources */,
 				E3C4F518C44B54B5CB4DECB4 /* AtlasSceneScreen.swift in Sources */,
 				AA3D22B987D6AA09F79C0217 /* AtlasPrototypeView.swift in Sources */,
+				D7F9C9ABBBBC2D00A3AA83EF /* AtlasMainView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2604,7 +2608,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_LSUIElement = NO;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Atlas uses the camera for the hand mirror preview.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Atlas uses the microphone for audio recording, level metering, noise gating, and live captions.";
@@ -2639,7 +2643,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_LSUIElement = NO;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Atlas uses the camera for the hand mirror preview.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Atlas uses the microphone for audio recording, level metering, noise gating, and live captions.";
