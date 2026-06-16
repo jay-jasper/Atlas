@@ -107,8 +107,9 @@ struct SnipasteCaptureOverlay: View {
     @State private var arrowStyle: ScreenshotArrowStyle = .arrow
     @State private var annotations: [ScreenshotAnnotation] = []
     @State private var redoStack: [ScreenshotAnnotation] = []
-    @State private var colorChoice: ScreenshotAnnotationColor = .red
+    @State private var selectedColor: Color = .red
     @State private var lineWidth: CGFloat = 3
+    @State private var activeAnnotationID: UUID?
     @State private var penPoints: [CGPoint] = []
     @State private var counter = 0
     @State private var hexMode = true
@@ -343,7 +344,7 @@ struct SnipasteCaptureOverlay: View {
                 HStack(spacing: 8) {
                     if tool == .arrow {
                         ForEach(ScreenshotArrowStyle.allCases) { s in
-                            Button { arrowStyle = s } label: {
+                            Button { arrowStyle = s; reskinActiveArrow() } label: {
                                 Image(systemName: s.systemImage).frame(width: 20, height: 18)
                             }
                             .buttonStyle(.borderless)
@@ -356,7 +357,10 @@ struct SnipasteCaptureOverlay: View {
                     colorButtons
                     Divider().frame(height: 14)
                     Image(systemName: "lineweight").foregroundColor(.secondary)
-                    Slider(value: $lineWidth, in: 1 ... 12, step: 1).frame(width: 90)
+                    Slider(value: $lineWidth, in: 1 ... 12, step: 1) { editing in
+                        if !editing { reskinActive() }
+                    }
+                    .frame(width: 90)
                     Text("\(Int(lineWidth))").font(.system(.caption2, design: .monospaced)).frame(width: 16)
                 }
             }
@@ -377,6 +381,7 @@ struct SnipasteCaptureOverlay: View {
                     pasteClipboardImage(at: center)
                 } else {
                     tool = (tool == t) ? nil : t
+                    activeAnnotationID = nil // sub-toolbar edits target the next drawn shape
                 }
             } label: {
                 Image(systemName: t == .arrow ? arrowStyle.systemImage : t.systemImage).frame(width: 20, height: 18)
@@ -389,12 +394,44 @@ struct SnipasteCaptureOverlay: View {
     }
 
     private var colorButtons: some View {
-        ForEach(ScreenshotAnnotationColor.allCases) { c in
-            Button { colorChoice = c } label: {
-                Circle().fill(c.color).frame(width: 13, height: 13)
-                    .overlay(Circle().stroke(colorChoice == c ? Color.primary : Color.secondary.opacity(0.4), lineWidth: colorChoice == c ? 2 : 1))
+        HStack(spacing: 6) {
+            ForEach(ScreenshotAnnotationColor.presets) { c in
+                Button { selectedColor = c.color; reskinActive() } label: {
+                    Circle().fill(c.color).frame(width: 13, height: 13)
+                        .overlay(Circle().stroke(selectedColor == c.color ? Color.primary : Color.secondary.opacity(0.4), lineWidth: selectedColor == c.color ? 2 : 1))
+                }
+                .buttonStyle(.plain)
+                .help(c.title)
             }
-            .buttonStyle(.plain)
+            // Free color: opens the macOS system color wheel.
+            ColorPicker("", selection: $selectedColor, supportsOpacity: false)
+                .labelsHidden()
+                .frame(width: 18)
+                .onChange(of: selectedColor) { _ in reskinActive() }
+                .help("更多颜色")
+        }
+    }
+
+    /// Re-apply the current color / width to the annotation just drawn with the
+    /// active tool, so the sub-toolbar edits that one in place (and only it).
+    private func reskinActive() {
+        guard let id = activeAnnotationID, let idx = annotations.firstIndex(where: { $0.id == id }) else { return }
+        annotations[idx].color = selectedColor
+        annotations[idx].lineWidth = lineWidth
+    }
+
+    /// Swap the active arrow annotation between arrow / line / double-arrow,
+    /// keeping its endpoints, color and width.
+    private func reskinActiveArrow() {
+        guard tool == .arrow, let id = activeAnnotationID,
+              let idx = annotations.firstIndex(where: { $0.id == id }),
+              annotations[idx].points.count == 2 else { return }
+        let a = annotations[idx]
+        let from = a.points[0], to = a.points[1]
+        switch arrowStyle {
+        case .arrow: annotations[idx] = .arrow(id: id, from: from, to: to, color: a.color, lineWidth: a.lineWidth)
+        case .line: annotations[idx] = .line(id: id, from: from, to: to, color: a.color, lineWidth: a.lineWidth)
+        case .doubleArrow: annotations[idx] = .doubleArrow(id: id, from: from, to: to, color: a.color, lineWidth: a.lineWidth)
         }
     }
 
@@ -530,10 +567,11 @@ struct SnipasteCaptureOverlay: View {
     /// these — actually visible, top-level windows — are selectable.
     private func detectWindows() -> [WindowItem] {
         guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else { return [] }
-        let myPID = Int(ProcessInfo.processInfo.processIdentifier)
         var items: [WindowItem] = []
         for info in list {
-            if let owner = info[kCGWindowOwnerPID as String] as? Int, owner == myPID { continue }
+            // Note: we DON'T exclude Atlas's own PID — its normal windows are
+            // selectable too. The capture overlay itself sits above the normal
+            // window layer (layer != 0), so the `layer == 0` filter drops it.
             guard let layer = info[kCGWindowLayer as String] as? Int, layer == 0 else { continue }
             if let alpha = info[kCGWindowAlpha as String] as? Double, alpha < 0.1 { continue }
             guard let id = info[kCGWindowNumber as String] as? CGWindowID else { continue }
@@ -571,32 +609,33 @@ struct SnipasteCaptureOverlay: View {
     }
 
     private func buildAnnotation(_ t: ScreenshotTool, from start: CGPoint, to end: CGPoint, counterNumber: Int) -> ScreenshotAnnotation? {
-        let style = ScreenshotAnnotationStyle(colorChoice: colorChoice, lineWidth: lineWidth)
+        let color = selectedColor
+        let width = lineWidth
         let rect = CGRect(x: min(start.x, end.x), y: min(start.y, end.y), width: abs(start.x - end.x), height: abs(start.y - end.y)).integral
         switch t {
         case .select: return nil
-        case .rectangle: return .rectangle(rect: rect, color: style.color, lineWidth: style.lineWidth)
-        case .ellipse: return .ellipse(rect: rect, color: style.color, lineWidth: style.lineWidth)
+        case .rectangle: return .rectangle(rect: rect, color: color, lineWidth: width)
+        case .ellipse: return .ellipse(rect: rect, color: color, lineWidth: width)
         case .arrow:
             switch arrowStyle {
-            case .arrow: return .arrow(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
-            case .line: return .line(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
-            case .doubleArrow: return .doubleArrow(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
+            case .arrow: return .arrow(from: start, to: end, color: color, lineWidth: width)
+            case .line: return .line(from: start, to: end, color: color, lineWidth: width)
+            case .doubleArrow: return .doubleArrow(from: start, to: end, color: color, lineWidth: width)
             }
-        case .line: return .line(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
+        case .line: return .line(from: start, to: end, color: color, lineWidth: width)
         case .pen:
             let pts = penPoints.count >= 2 ? penPoints : [start, end]
-            return .pen(points: pts, color: style.color, lineWidth: style.lineWidth)
-        case .highlight: return .highlight(rect: rect, color: style.color, lineWidth: style.lineWidth)
-        case .counter: return .counter(number: counterNumber, center: end, color: style.color)
-        case .text: return .text(value: "Text", rect: rect.width > 8 ? rect : CGRect(x: start.x, y: start.y, width: 80, height: 26), color: style.color)
+            return .pen(points: pts, color: color, lineWidth: width)
+        case .highlight: return .highlight(rect: rect, color: color, lineWidth: width)
+        case .counter: return .counter(number: counterNumber, center: end, color: color)
+        case .text: return .text(value: "Text", rect: rect.width > 8 ? rect : CGRect(x: start.x, y: start.y, width: 80, height: 26), color: color)
         case .pixelate: return .pixelate(rect: rect)
         case .blur: return .blur(rect: rect)
-        case .measure: return .measure(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
+        case .measure: return .measure(from: start, to: end, color: color, lineWidth: width)
         case .spotlight: return .spotlight(rect: rect)
         case .magnifier:
             let side = max(60, min(rect.width, rect.height) > 8 ? min(rect.width, rect.height) : 120)
-            return .magnifier(rect: CGRect(x: start.x, y: start.y, width: side, height: side), lineWidth: style.lineWidth)
+            return .magnifier(rect: CGRect(x: start.x, y: start.y, width: side, height: side), lineWidth: width)
         case .pasteImage:
             return nil
         }
@@ -613,6 +652,7 @@ struct SnipasteCaptureOverlay: View {
         if t == .counter { counter += 1 }
         guard let anno = buildAnnotation(t, from: start, to: end, counterNumber: counter) else { penPoints = []; return }
         annotations.append(anno)
+        activeAnnotationID = anno.id
         penPoints = []
         redoStack.removeAll()
     }

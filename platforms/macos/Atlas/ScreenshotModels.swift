@@ -142,6 +142,10 @@ enum ScreenshotAnnotationColor: String, CaseIterable, Identifiable {
         case .black: return .black
         }
     }
+
+    /// The handful of swatches shown directly in the toolbar; everything else is
+    /// reachable through the system color wheel.
+    static let presets: [ScreenshotAnnotationColor] = [.red, .orange, .yellow, .green, .blue]
 }
 
 struct ScreenshotAnnotationStyle: Equatable {

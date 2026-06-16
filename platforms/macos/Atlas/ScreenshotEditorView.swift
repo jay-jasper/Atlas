@@ -22,7 +22,7 @@ struct ScreenshotEditorView: View {
     @State private var selectedTool: ScreenshotTool = .select
     @State private var cropRect: CGRect?
     @State private var arrowStyle: ScreenshotArrowStyle = .arrow
-    @State private var selectedAnnotationColor: ScreenshotAnnotationColor = ScreenshotAnnotationStyle.defaultStyle.colorChoice
+    @State private var selectedColor: Color = ScreenshotAnnotationStyle.defaultStyle.color
     @State private var annotationLineWidth: CGFloat = ScreenshotAnnotationStyle.defaultStyle.lineWidth
     @AppStorage("annotation.text.draft") private var textDraftRaw: String = ScreenshotTextAnnotationDraft.fallbackValue
     @State private var annotations: [ScreenshotAnnotation] = []
@@ -109,17 +109,17 @@ struct ScreenshotEditorView: View {
                             .frame(height: 18)
                     }
 
-                    ForEach(ScreenshotAnnotationColor.allCases) { colorChoice in
+                    ForEach(ScreenshotAnnotationColor.presets) { colorChoice in
                         Button {
-                            selectedAnnotationColor = colorChoice
+                            selectedColor = colorChoice.color
                         } label: {
                             Circle()
                                 .fill(colorChoice.color)
                                 .overlay(
                                     Circle()
                                         .stroke(
-                                            selectedAnnotationColor == colorChoice ? Color.accentColor : Color.secondary.opacity(0.35),
-                                            lineWidth: selectedAnnotationColor == colorChoice ? 2 : 1
+                                            selectedColor == colorChoice.color ? Color.accentColor : Color.secondary.opacity(0.35),
+                                            lineWidth: selectedColor == colorChoice.color ? 2 : 1
                                         )
                                 )
                                 .frame(width: 14, height: 14)
@@ -127,6 +127,11 @@ struct ScreenshotEditorView: View {
                         .buttonStyle(.plain)
                         .help(colorChoice.title)
                     }
+
+                    ColorPicker("", selection: $selectedColor, supportsOpacity: false)
+                        .labelsHidden()
+                        .frame(width: 20)
+                        .help("更多颜色")
 
                     Stepper(value: $annotationLineWidth, in: 1...12, step: 1) {
                         Text("\(Int(annotationLineWidth)) px")
@@ -228,7 +233,7 @@ struct ScreenshotEditorView: View {
                         }
                     }
                     .stroke(
-                        ScreenshotAnnotationStyle(colorChoice: selectedAnnotationColor, lineWidth: annotationLineWidth).color,
+                        selectedColor,
                         lineWidth: annotationLineWidth
                     )
                     .allowsHitTesting(false)
@@ -366,10 +371,8 @@ struct ScreenshotEditorView: View {
                 guard capabilities.annotations else { return }
                 if selectedTool == .select { return } // crop applied via the Crop button
                 guard let start = dragStart else { return }
-                let style = ScreenshotAnnotationStyle(
-                    colorChoice: selectedAnnotationColor,
-                    lineWidth: annotationLineWidth
-                )
+                let color = selectedColor
+                let lineW = annotationLineWidth
                 let rect = CGRect(
                     x: min(start.x, value.location.x),
                     y: min(start.y, value.location.y),
@@ -381,40 +384,40 @@ struct ScreenshotEditorView: View {
                 case .select:
                     break
                 case .rectangle:
-                    annotations.append(.rectangle(rect: rect, color: style.color, lineWidth: style.lineWidth))
+                    annotations.append(.rectangle(rect: rect, color: color, lineWidth: lineW))
                 case .ellipse:
-                    annotations.append(.ellipse(rect: rect, color: style.color, lineWidth: style.lineWidth))
+                    annotations.append(.ellipse(rect: rect, color: color, lineWidth: lineW))
                 case .arrow:
-                    annotations.append(arrowAnnotation(from: start, to: value.location, style: style))
+                    annotations.append(arrowAnnotation(from: start, to: value.location, color: color, lineWidth: lineW))
                 case .line:
-                    annotations.append(.line(from: start, to: value.location, color: style.color, lineWidth: style.lineWidth))
+                    annotations.append(.line(from: start, to: value.location, color: color, lineWidth: lineW))
                 case .pen:
                     let raw = penPoints.isEmpty ? [start, value.location] : penPoints
                     let smooth = smoothedPoints(raw)
-                    annotations.append(.pen(points: smooth, color: style.color, lineWidth: style.lineWidth))
+                    annotations.append(.pen(points: smooth, color: color, lineWidth: lineW))
                     penPoints = []
                 case .text:
                     annotations.append(.text(
                         value: ScreenshotTextAnnotationDraft(rawValue: textDraftRaw).annotationValue,
                         rect: rect.width > 8 && rect.height > 8 ? rect : CGRect(x: start.x, y: start.y, width: 80, height: 28),
-                        color: style.color
+                        color: color
                     ))
                 case .counter:
                     counterIndex += 1
-                    annotations.append(.counter(number: counterIndex, center: value.location, color: style.color))
+                    annotations.append(.counter(number: counterIndex, center: value.location, color: color))
                 case .highlight:
-                    annotations.append(.highlight(rect: rect, color: style.color, lineWidth: style.lineWidth))
+                    annotations.append(.highlight(rect: rect, color: color, lineWidth: lineW))
                 case .pixelate:
                     annotations.append(.pixelate(rect: rect))
                 case .blur:
                     annotations.append(.blur(rect: rect))
                 case .measure:
-                    annotations.append(.measure(from: start, to: value.location, color: style.color, lineWidth: style.lineWidth))
+                    annotations.append(.measure(from: start, to: value.location, color: color, lineWidth: lineW))
                 case .spotlight:
                     annotations.append(.spotlight(rect: rect))
                 case .magnifier:
                     let side = max(60, min(rect.width, rect.height) > 8 ? min(rect.width, rect.height) : 120)
-                    annotations.append(.magnifier(rect: CGRect(x: start.x, y: start.y, width: side, height: side), lineWidth: style.lineWidth))
+                    annotations.append(.magnifier(rect: CGRect(x: start.x, y: start.y, width: side, height: side), lineWidth: lineW))
                 case .pasteImage:
                     if let data = ScreenshotEditorView.clipboardImagePNG() {
                         let rep = NSBitmapImageRep(data: data)
@@ -432,33 +435,34 @@ struct ScreenshotEditorView: View {
 
     /// Builds an arrow / line / double-arrow annotation based on the current
     /// `arrowStyle` (the Arrow tool merges all three).
-    private func arrowAnnotation(from start: CGPoint, to end: CGPoint, style: ScreenshotAnnotationStyle) -> ScreenshotAnnotation {
+    private func arrowAnnotation(from start: CGPoint, to end: CGPoint, color: Color, lineWidth: CGFloat) -> ScreenshotAnnotation {
         switch arrowStyle {
-        case .arrow: return .arrow(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
-        case .line: return .line(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
-        case .doubleArrow: return .doubleArrow(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
+        case .arrow: return .arrow(from: start, to: end, color: color, lineWidth: lineWidth)
+        case .line: return .line(from: start, to: end, color: color, lineWidth: lineWidth)
+        case .doubleArrow: return .doubleArrow(from: start, to: end, color: color, lineWidth: lineWidth)
         }
     }
 
     /// The annotation currently being dragged, for live preview on the canvas.
     private var editorPreviewAnnotation: ScreenshotAnnotation? {
         guard let start = dragStart, let cur = dragCurrent else { return nil }
-        let style = ScreenshotAnnotationStyle(colorChoice: selectedAnnotationColor, lineWidth: annotationLineWidth)
+        let color = selectedColor
+        let lineW = annotationLineWidth
         let rect = CGRect(x: min(start.x, cur.x), y: min(start.y, cur.y), width: abs(start.x - cur.x), height: abs(start.y - cur.y))
         switch selectedTool {
         case .select: return nil
-        case .rectangle: return .rectangle(rect: rect, color: style.color, lineWidth: style.lineWidth)
-        case .ellipse: return .ellipse(rect: rect, color: style.color, lineWidth: style.lineWidth)
-        case .arrow: return arrowAnnotation(from: start, to: cur, style: style)
-        case .line: return .line(from: start, to: cur, color: style.color, lineWidth: style.lineWidth)
-        case .highlight: return .highlight(rect: rect, color: style.color, lineWidth: style.lineWidth)
+        case .rectangle: return .rectangle(rect: rect, color: color, lineWidth: lineW)
+        case .ellipse: return .ellipse(rect: rect, color: color, lineWidth: lineW)
+        case .arrow: return arrowAnnotation(from: start, to: cur, color: color, lineWidth: lineW)
+        case .line: return .line(from: start, to: cur, color: color, lineWidth: lineW)
+        case .highlight: return .highlight(rect: rect, color: color, lineWidth: lineW)
         case .pixelate: return .pixelate(rect: rect)
         case .blur: return .blur(rect: rect)
-        case .measure: return .measure(from: start, to: cur, color: style.color, lineWidth: style.lineWidth)
+        case .measure: return .measure(from: start, to: cur, color: color, lineWidth: lineW)
         case .spotlight: return .spotlight(rect: rect)
         case .magnifier:
             let side = max(60, min(rect.width, rect.height) > 8 ? min(rect.width, rect.height) : 120)
-            return .magnifier(rect: CGRect(x: start.x, y: start.y, width: side, height: side), lineWidth: style.lineWidth)
+            return .magnifier(rect: CGRect(x: start.x, y: start.y, width: side, height: side), lineWidth: lineW)
         case .pen, .text, .counter, .pasteImage: return nil
         }
     }
