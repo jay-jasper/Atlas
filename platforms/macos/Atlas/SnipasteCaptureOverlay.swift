@@ -5,37 +5,58 @@ import SwiftUI
 /// loupe with pixel color + coordinates, and an annotation toolbar that appears
 /// on the overlay itself (no jump to a separate editor). Copy / save / pin
 /// flatten the cropped region + annotations.
-enum SnipasteCaptureWindow {
+final class SnipasteCaptureWindow {
     private static var window: NSWindow?
+    private static var delegate: WindowDelegate?
 
-    @MainActor
     static func show(previewImageData: Data?) {
+        if Thread.isMainThread {
+            showOnMain(previewImageData)
+        } else {
+            DispatchQueue.main.async { showOnMain(previewImageData) }
+        }
+    }
+
+    private static func showOnMain(_ previewImageData: Data?) {
         close()
         guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
-        let panel = Panel(contentRect: screen.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+
         let overlay = SnipasteCaptureOverlay(previewImageData: previewImageData) { close() }
-        panel.contentViewController = NSHostingController(rootView: overlay)
+        let controller = NSHostingController(rootView: overlay)
+        let panel = SelectionPanel(contentRect: screen.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+        let windowDelegate = WindowDelegate { window = nil; delegate = nil }
+
+        panel.contentViewController = controller
         panel.backgroundColor = .clear
         panel.isOpaque = false
         panel.hasShadow = false
         panel.level = .screenSaver
         panel.acceptsMouseMovedEvents = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+        panel.delegate = windowDelegate
         panel.isReleasedWhenClosed = false
         panel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+
         window = panel
+        delegate = windowDelegate
     }
 
-    @MainActor
     static func close() {
         window?.close()
         window = nil
+        delegate = nil
     }
 
-    private final class Panel: NSPanel {
+    private final class SelectionPanel: NSPanel {
         override var canBecomeKey: Bool { true }
         override var canBecomeMain: Bool { true }
+    }
+
+    private final class WindowDelegate: NSObject, NSWindowDelegate {
+        private let onClose: () -> Void
+        init(onClose: @escaping () -> Void) { self.onClose = onClose }
+        func windowWillClose(_: Notification) { onClose() }
     }
 }
 

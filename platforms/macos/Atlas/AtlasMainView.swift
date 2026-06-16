@@ -1962,14 +1962,11 @@ private struct ScreenshotModuleView: View {
     /// The freeze frame is taken with the system `screencapture` tool, which is
     /// the most reliable path for Screen Recording permission.
     private func captureRegion() {
-        InteractiveScreenCapture.capture(.full) { data in
-            guard let data else {
-                status = "需要屏幕录制权限(系统设置 → 隐私与安全性 → 屏幕录制)"
-                return
-            }
-            status = ""
-            SnipasteCaptureWindow.show(previewImageData: data)
-        }
+        // Synchronous freeze frame via the Rust core; show the overlay regardless
+        // (so it's visible even if the frame is empty — easier to diagnose).
+        let preview = try? AtlasBridge.captureFullScreen()
+        status = preview == nil ? "屏幕录制权限未授予,预览为空(仍可框选,但无法生成图)" : ""
+        SnipasteCaptureWindow.show(previewImageData: preview)
     }
 
     private func capture(_ mode: InteractiveScreenCapture.Mode) {
