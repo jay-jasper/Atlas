@@ -28,6 +28,7 @@ struct AtlasMainView: View {
         case lines, slug, httpcodes, unicode
         case scratchpad, totp, pomodoro
         case battery, bluetooth, disk, rss
+        case env, appaudio, nowplaying
         var id: String { rawValue }
         var title: String {
             switch self {
@@ -67,6 +68,9 @@ struct AtlasMainView: View {
             case .bluetooth: return "蓝牙电量"
             case .disk: return "磁盘用量"
             case .rss: return "RSS 订阅"
+            case .env: return "环境变量"
+            case .appaudio: return "应用音量"
+            case .nowplaying: return "正在播放"
             }
         }
         var icon: String {
@@ -107,6 +111,9 @@ struct AtlasMainView: View {
             case .bluetooth: return "wave.3.right"
             case .disk: return "internaldrive"
             case .rss: return "dot.radiowaves.up.forward"
+            case .env: return "terminal"
+            case .appaudio: return "speaker.wave.2"
+            case .nowplaying: return "play.circle"
             }
         }
         var subtitle: String {
@@ -147,6 +154,9 @@ struct AtlasMainView: View {
             case .bluetooth: return "已配对设备"
             case .disk: return "目录占用"
             case .rss: return "极简阅读器"
+            case .env: return ".zshrc 变量"
+            case .appaudio: return "分应用音量"
+            case .nowplaying: return "媒体信息"
             }
         }
     }
@@ -272,6 +282,12 @@ struct AtlasMainView: View {
             DiskModuleView()
         case .rss:
             RSSModuleView()
+        case .env:
+            EnvModuleView()
+        case .appaudio:
+            AppAudioModuleView()
+        case .nowplaying:
+            NowPlayingModuleView()
         }
     }
 
@@ -1652,5 +1668,32 @@ private struct RSSModuleView: View {
     var body: some View {
         RSSPanel(service: service).padding()
             .onAppear { Task { await service.refreshAll() } }
+    }
+}
+
+/// 环境变量 — EnvPanel (~/.zshrc).
+private struct EnvModuleView: View {
+    @StateObject private var service = EnvService()
+    var body: some View {
+        ScrollView { EnvPanel(service: service).padding() }
+            .onAppear { service.reload() }
+    }
+}
+
+/// 应用音量 — AppAudioPanel (per-app volume).
+private struct AppAudioModuleView: View {
+    @StateObject private var service = AppAudioService()
+    var body: some View {
+        ScrollView { AppAudioPanel(service: service).padding() }
+            .onAppear { service.refresh() }
+    }
+}
+
+/// 正在播放 — NowPlayingPanel (MediaRemote).
+private struct NowPlayingModuleView: View {
+    @StateObject private var service = NowPlayingService()
+    var body: some View {
+        NowPlayingPanel(service: service).padding()
+            .onAppear { service.refresh() }
     }
 }
