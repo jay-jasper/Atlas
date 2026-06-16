@@ -323,6 +323,20 @@ struct ScreenshotEditorView: View {
                     annotations.append(.pixelate(rect: rect))
                 case .blur:
                     annotations.append(.blur(rect: rect))
+                case .measure:
+                    annotations.append(.measure(from: start, to: value.location, color: style.color, lineWidth: style.lineWidth))
+                case .spotlight:
+                    annotations.append(.spotlight(rect: rect))
+                case .magnifier:
+                    let side = max(60, min(rect.width, rect.height) > 8 ? min(rect.width, rect.height) : 120)
+                    annotations.append(.magnifier(rect: CGRect(x: start.x, y: start.y, width: side, height: side), lineWidth: style.lineWidth))
+                case .pasteImage:
+                    if let data = ScreenshotEditorView.clipboardImagePNG() {
+                        let rep = NSBitmapImageRep(data: data)
+                        let w = CGFloat(min(rep?.pixelsWide ?? 200, 320))
+                        let h = CGFloat(rep?.pixelsHigh ?? 200) * (w / CGFloat(max(1, rep?.pixelsWide ?? 200)))
+                        annotations.append(.image(data: data, rect: CGRect(x: start.x, y: start.y, width: w, height: h)))
+                    }
                 }
 
                 redoStack.removeAll()
@@ -362,6 +376,13 @@ struct ScreenshotEditorView: View {
         let value = ScreenshotTextAnnotationDraft(rawValue: textDraftRaw).annotationValue
         annotations[index] = annotations[index].withTextValue(value)
         editingAnnotationID = nil
+    }
+
+    static func clipboardImagePNG() -> Data? {
+        guard let image = NSPasteboard.general.readObjects(forClasses: [NSImage.self], options: nil)?.first as? NSImage,
+              let tiff = image.tiffRepresentation,
+              let rep = NSBitmapImageRep(data: tiff) else { return nil }
+        return rep.representation(using: .png, properties: [:])
     }
 
     private func renderedData() -> Data {
@@ -413,6 +434,22 @@ enum ScreenshotEditorRenderer {
         let blurRadius = max(6, min(outputSize.width, outputSize.height) * 0.012)
         let blurredImage: CGImage? = hasBlur ? gaussianBlurred(sourceImage, radius: blurRadius) : nil
 
+        // Spotlight: dim everything, then re-brighten the spotlighted regions.
+        let spotlights = annotations.filter { if case .spotlight = $0.kind { return true } else { return false } }
+        if !spotlights.isEmpty {
+            context.setFillColor(NSColor.black.withAlphaComponent(0.55).cgColor)
+            context.fill(pixelBounds)
+            for spot in spotlights {
+                let mapped = map(spot.bounds, renderedImageRect: renderedImageRect, outputSize: outputSize)
+                guard !mapped.isNull, mapped.width > 0, mapped.height > 0 else { continue }
+                context.saveGState()
+                context.addPath(CGPath(roundedRect: mapped, cornerWidth: 6, cornerHeight: 6, transform: nil))
+                context.clip()
+                context.draw(sourceImage, in: pixelBounds)
+                context.restoreGState()
+            }
+        }
+
         for annotation in annotations {
             switch annotation.kind {
             case .rectangle:
@@ -435,6 +472,14 @@ enum ScreenshotEditorRenderer {
                 pixelate(annotation.bounds, sourceBitmap: sourceBitmap, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
             case .blur:
                 drawBlur(annotation.bounds, blurredImage: blurredImage, pixelBounds: pixelBounds, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
+            case .measure:
+                drawMeasure(annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
+            case .spotlight:
+                break // handled before the loop
+            case .magnifier:
+                drawMagnifier(annotation, sourceImage: sourceImage, pixelBounds: pixelBounds, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
+            case .image(let data):
+                drawImageAnnotation(data, annotation: annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
             }
         }
 
@@ -699,6 +744,96 @@ enum ScreenshotEditorRenderer {
         context.restoreGState()
     }
 
+    private static func drawMeasure(
+        _ annotation: ScreenshotAnnotation,
+        renderedImageRect: CGRect,
+        outputSize: CGSize,
+        in context: CGContext
+    ) {
+        guard annotation.points.count == 2 else { return }
+        let start = map(annotation.points[0], renderedImageRect: renderedImageRect, outputSize: outputSize)
+        let end = map(annotation.points[1], renderedImageRect: renderedImageRect, outputSize: outputSize)
+        let width = scaledLineWidth(annotation, renderedImageRect: renderedImageRect, outputSize: outputSize)
+        context.setStrokeColor(cgColor(from: annotation.color))
+        context.setLineWidth(width)
+        context.setLineCap(.round)
+        // Main line.
+        context.move(to: start); context.addLine(to: end); context.strokePath()
+        // End ticks (perpendicular).
+        let angle = atan2(end.y - start.y, end.x - start.x) + .pi / 2
+        let tick: CGFloat = max(6, width * 4)
+        for point in [start, end] {
+            context.move(to: CGPoint(x: point.x - tick * cos(angle), y: point.y - tick * sin(angle)))
+            context.addLine(to: CGPoint(x: point.x + tick * cos(angle), y: point.y + tick * sin(angle)))
+        }
+        context.strokePath()
+        // Pixel-length label at the midpoint.
+        let pixels = Int(hypot(end.x - start.x, end.y - start.y).rounded())
+        let label = "\(pixels)px" as NSString
+        let fontSize = max(11, width * 5)
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: fontSize, weight: .semibold),
+            .foregroundColor: NSColor.white,
+        ]
+        let size = label.size(withAttributes: attributes)
+        let mid = CGPoint(x: (start.x + end.x) / 2, y: (start.y + end.y) / 2)
+        let bgRect = CGRect(x: mid.x - size.width / 2 - 4, y: mid.y - size.height / 2 - 2, width: size.width + 8, height: size.height + 4)
+        context.setFillColor(cgColor(from: annotation.color))
+        context.addPath(CGPath(roundedRect: bgRect, cornerWidth: 3, cornerHeight: 3, transform: nil))
+        context.fillPath()
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: true)
+        label.draw(at: CGPoint(x: mid.x - size.width / 2, y: mid.y - size.height / 2), withAttributes: attributes)
+        NSGraphicsContext.restoreGraphicsState()
+    }
+
+    private static func drawMagnifier(
+        _ annotation: ScreenshotAnnotation,
+        sourceImage: CGImage,
+        pixelBounds: CGRect,
+        renderedImageRect: CGRect,
+        outputSize: CGSize,
+        in context: CGContext
+    ) {
+        let mapped = map(annotation.bounds, renderedImageRect: renderedImageRect, outputSize: outputSize)
+        guard !mapped.isNull, mapped.width > 0, mapped.height > 0 else { return }
+        let zoom: CGFloat = 2.5
+        // Source region (centered at the magnifier, sized 1/zoom of the lens).
+        let srcW = mapped.width / zoom, srcH = mapped.height / zoom
+        let srcRect = CGRect(x: mapped.midX - srcW / 2, y: mapped.midY - srcH / 2, width: srcW, height: srcH)
+        // Draw the whole source scaled so srcRect fills the lens, clipped to a circle.
+        context.saveGState()
+        context.addEllipse(in: mapped)
+        context.clip()
+        let scaleX = mapped.width / srcRect.width
+        let scaleY = mapped.height / srcRect.height
+        let drawRect = CGRect(
+            x: mapped.minX - srcRect.minX * scaleX,
+            y: mapped.minY - srcRect.minY * scaleY,
+            width: pixelBounds.width * scaleX,
+            height: pixelBounds.height * scaleY
+        )
+        context.draw(sourceImage, in: drawRect)
+        context.restoreGState()
+        // Lens border.
+        context.setStrokeColor(NSColor.white.cgColor)
+        context.setLineWidth(scaledLineWidth(annotation, renderedImageRect: renderedImageRect, outputSize: outputSize) + 1)
+        context.strokeEllipse(in: mapped)
+    }
+
+    private static func drawImageAnnotation(
+        _ data: Data,
+        annotation: ScreenshotAnnotation,
+        renderedImageRect: CGRect,
+        outputSize: CGSize,
+        in context: CGContext
+    ) {
+        guard let rep = NSBitmapImageRep(data: data), let cg = rep.cgImage else { return }
+        let mapped = map(annotation.bounds, renderedImageRect: renderedImageRect, outputSize: outputSize)
+        guard !mapped.isNull, mapped.width > 0, mapped.height > 0 else { return }
+        context.draw(cg, in: mapped)
+    }
+
     private static func gaussianBlurred(_ image: CGImage, radius: CGFloat) -> CGImage? {
         let input = CIImage(cgImage: image)
         guard let filter = CIFilter(name: "CIGaussianBlur") else { return nil }
@@ -786,6 +921,44 @@ private struct AnnotationShape: View {
                 .overlay(Rectangle().stroke(Color.white.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [4])))
                 .frame(width: annotation.bounds.width, height: annotation.bounds.height)
                 .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
+        case .measure:
+            ScreenshotMeasureShape(points: annotation.points)
+                .stroke(annotation.color, style: StrokeStyle(lineWidth: annotation.lineWidth, lineCap: .round))
+        case .spotlight:
+            Rectangle()
+                .stroke(Color.yellow, style: StrokeStyle(lineWidth: 1.5, dash: [5]))
+                .frame(width: annotation.bounds.width, height: annotation.bounds.height)
+                .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
+        case .magnifier:
+            Circle()
+                .stroke(Color.white, lineWidth: max(2, annotation.lineWidth))
+                .background(Circle().fill(Color.white.opacity(0.08)))
+                .frame(width: annotation.bounds.width, height: annotation.bounds.height)
+                .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
+        case .image(let data):
+            if let image = NSImage(data: data) {
+                Image(nsImage: image).resizable()
+                    .frame(width: annotation.bounds.width, height: annotation.bounds.height)
+                    .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
+            }
         }
+    }
+}
+
+/// A ruler/measure shape: the line plus perpendicular end ticks.
+private struct ScreenshotMeasureShape: Shape {
+    let points: [CGPoint]
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        guard points.count == 2 else { return path }
+        let start = points[0], end = points[1]
+        path.move(to: start); path.addLine(to: end)
+        let angle = atan2(end.y - start.y, end.x - start.x) + .pi / 2
+        let tick: CGFloat = 6
+        for p in [start, end] {
+            path.move(to: CGPoint(x: p.x - tick * cos(angle), y: p.y - tick * sin(angle)))
+            path.addLine(to: CGPoint(x: p.x + tick * cos(angle), y: p.y + tick * sin(angle)))
+        }
+        return path
     }
 }

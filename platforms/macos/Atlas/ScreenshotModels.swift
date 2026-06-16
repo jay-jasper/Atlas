@@ -11,8 +11,15 @@ enum ScreenshotTool: String, CaseIterable, Identifiable {
     case highlight
     case pixelate
     case blur
+    case measure
+    case spotlight
+    case magnifier
+    case pasteImage
 
     var id: String { rawValue }
+
+    /// Tools that paste/insert immediately on selection rather than via a drag.
+    var isInstantAction: Bool { self == .pasteImage }
 
     var title: String {
         switch self {
@@ -26,6 +33,10 @@ enum ScreenshotTool: String, CaseIterable, Identifiable {
         case .highlight: return "Highlighter"
         case .pixelate: return "Pixelate"
         case .blur: return "Blur"
+        case .measure: return "Ruler"
+        case .spotlight: return "Spotlight"
+        case .magnifier: return "Magnifier"
+        case .pasteImage: return "Paste Image"
         }
     }
 
@@ -41,6 +52,10 @@ enum ScreenshotTool: String, CaseIterable, Identifiable {
         case .highlight: return "highlighter"
         case .pixelate: return "checkerboard.rectangle"
         case .blur: return "drop"
+        case .measure: return "ruler"
+        case .spotlight: return "rays"
+        case .magnifier: return "plus.magnifyingglass"
+        case .pasteImage: return "photo.on.rectangle"
         }
     }
 }
@@ -134,6 +149,10 @@ enum ScreenshotAnnotationKind: Equatable {
     case highlight
     case pixelate
     case blur
+    case measure
+    case spotlight
+    case magnifier
+    case image(Data)
 }
 
 struct ScreenshotAnnotation: Identifiable, Equatable {
@@ -204,6 +223,29 @@ struct ScreenshotAnnotation: Identifiable, Equatable {
 
     static func blur(id: UUID = UUID(), rect: CGRect) -> Self {
         ScreenshotAnnotation(id: id, kind: .blur, bounds: rect, color: .gray, lineWidth: 1, points: [])
+    }
+
+    static func measure(id: UUID = UUID(), from start: CGPoint, to end: CGPoint, color: Color, lineWidth: CGFloat) -> Self {
+        ScreenshotAnnotation(
+            id: id,
+            kind: .measure,
+            bounds: CGRect(origin: start, size: CGSize(width: end.x - start.x, height: end.y - start.y)).standardized,
+            color: color,
+            lineWidth: lineWidth,
+            points: [start, end]
+        )
+    }
+
+    static func spotlight(id: UUID = UUID(), rect: CGRect) -> Self {
+        ScreenshotAnnotation(id: id, kind: .spotlight, bounds: rect, color: .black, lineWidth: 1, points: [])
+    }
+
+    static func magnifier(id: UUID = UUID(), rect: CGRect, lineWidth: CGFloat) -> Self {
+        ScreenshotAnnotation(id: id, kind: .magnifier, bounds: rect, color: .white, lineWidth: lineWidth, points: [])
+    }
+
+    static func image(id: UUID = UUID(), data: Data, rect: CGRect) -> Self {
+        ScreenshotAnnotation(id: id, kind: .image(data), bounds: rect, color: .clear, lineWidth: 1, points: [])
     }
 
     func withTextValue(_ value: String) -> ScreenshotAnnotation {

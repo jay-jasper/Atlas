@@ -232,12 +232,35 @@ struct SnipasteCaptureOverlay: View {
         case .pixelate, .blur:
             Rectangle().fill(.ultraThinMaterial)
                 .frame(width: a.bounds.width, height: a.bounds.height).position(x: a.bounds.midX, y: a.bounds.midY)
+        case .measure:
+            Path { p in
+                guard a.points.count == 2 else { return }
+                let s = a.points[0], e = a.points[1]
+                p.move(to: s); p.addLine(to: e)
+                let angle = atan2(e.y - s.y, e.x - s.x) + .pi / 2
+                for pt in [s, e] {
+                    p.move(to: CGPoint(x: pt.x - 6 * cos(angle), y: pt.y - 6 * sin(angle)))
+                    p.addLine(to: CGPoint(x: pt.x + 6 * cos(angle), y: pt.y + 6 * sin(angle)))
+                }
+            }
+            .stroke(a.color, style: StrokeStyle(lineWidth: a.lineWidth, lineCap: .round))
+        case .spotlight:
+            Rectangle().stroke(Color.yellow, style: StrokeStyle(lineWidth: 1.5, dash: [5]))
+                .frame(width: a.bounds.width, height: a.bounds.height).position(x: a.bounds.midX, y: a.bounds.midY)
+        case .magnifier:
+            Circle().stroke(Color.white, lineWidth: max(2, a.lineWidth))
+                .frame(width: a.bounds.width, height: a.bounds.height).position(x: a.bounds.midX, y: a.bounds.midY)
+        case .image(let data):
+            if let image = NSImage(data: data) {
+                Image(nsImage: image).resizable()
+                    .frame(width: a.bounds.width, height: a.bounds.height).position(x: a.bounds.midX, y: a.bounds.midY)
+            }
         }
     }
 
     // MARK: - Toolbar
 
-    private static let toolList: [ScreenshotTool] = [.rectangle, .ellipse, .arrow, .line, .pen, .highlight, .counter, .text, .pixelate, .blur]
+    private static let toolList: [ScreenshotTool] = [.rectangle, .ellipse, .arrow, .line, .pen, .highlight, .counter, .text, .measure, .spotlight, .magnifier, .pixelate, .blur, .pasteImage]
 
     private func toolbar(_ sel: CGRect, _ size: CGSize) -> some View {
         HStack(spacing: 6) {
@@ -263,7 +286,14 @@ struct SnipasteCaptureOverlay: View {
 
     private var toolButtons: some View {
         ForEach(Self.toolList) { t in
-            Button { tool = (tool == t) ? nil : t } label: {
+            Button {
+                if t.isInstantAction {
+                    let center = selection.map { CGPoint(x: $0.midX, y: $0.midY) } ?? CGPoint(x: viewSize.width / 2, y: viewSize.height / 2)
+                    pasteClipboardImage(at: center)
+                } else {
+                    tool = (tool == t) ? nil : t
+                }
+            } label: {
                 Image(systemName: t.systemImage).frame(width: 20, height: 18)
             }
             .buttonStyle(.borderless)
@@ -434,7 +464,22 @@ struct SnipasteCaptureOverlay: View {
         case .text: annotations.append(.text(value: "Text", rect: rect.width > 8 ? rect : CGRect(x: start.x, y: start.y, width: 80, height: 26), color: style.color))
         case .pixelate: annotations.append(.pixelate(rect: rect))
         case .blur: annotations.append(.blur(rect: rect))
+        case .measure: annotations.append(.measure(from: start, to: end, color: style.color, lineWidth: style.lineWidth))
+        case .spotlight: annotations.append(.spotlight(rect: rect))
+        case .magnifier:
+            let side = max(60, min(rect.width, rect.height) > 8 ? min(rect.width, rect.height) : 120)
+            annotations.append(.magnifier(rect: CGRect(x: start.x, y: start.y, width: side, height: side), lineWidth: style.lineWidth))
+        case .pasteImage:
+            pasteClipboardImage(at: end)
         }
+        redoStack.removeAll()
+    }
+
+    private func pasteClipboardImage(at point: CGPoint) {
+        guard let data = ScreenshotEditorView.clipboardImagePNG(), let rep = NSBitmapImageRep(data: data) else { return }
+        let w = CGFloat(min(rep.pixelsWide, 320))
+        let h = CGFloat(rep.pixelsHigh) * (w / CGFloat(max(1, rep.pixelsWide)))
+        annotations.append(.image(data: data, rect: CGRect(x: point.x - w / 2, y: point.y - h / 2, width: w, height: h)))
         redoStack.removeAll()
     }
 
