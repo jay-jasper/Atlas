@@ -403,12 +403,8 @@ struct SnipasteCaptureOverlay: View {
                 .buttonStyle(.plain)
                 .help(c.title)
             }
-            // Free color: opens the macOS system color wheel.
-            ColorPicker("", selection: $selectedColor, supportsOpacity: false)
-                .labelsHidden()
-                .frame(width: 18)
-                .onChange(of: selectedColor) { _ in reskinActive() }
-                .help("更多颜色")
+            // Free color: opens the macOS system color wheel next to the toolbar.
+            ColorWheelButton(color: $selectedColor, onChange: reskinActive)
         }
     }
 

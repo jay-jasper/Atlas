@@ -128,10 +128,7 @@ struct ScreenshotEditorView: View {
                         .help(colorChoice.title)
                     }
 
-                    ColorPicker("", selection: $selectedColor, supportsOpacity: false)
-                        .labelsHidden()
-                        .frame(width: 20)
-                        .help("更多颜色")
+                    ColorWheelButton(color: $selectedColor)
 
                     Stepper(value: $annotationLineWidth, in: 1...12, step: 1) {
                         Text("\(Int(annotationLineWidth)) px")
