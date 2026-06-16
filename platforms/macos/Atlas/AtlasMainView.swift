@@ -2087,21 +2087,26 @@ private struct ScreenshotSettingsView: View {
 
                 Section("全局快捷键") {
                     Toggle("启用全局快捷键(无需聚焦 Atlas)", isOn: $settings.hotkeysEnabled)
-                    ForEach(ScreenshotHotkeys.descriptions, id: \.action) { item in
-                        HStack {
-                            Text(item.action).foregroundColor(settings.hotkeysEnabled ? .primary : .secondary)
-                            Spacer()
-                            Text(item.shortcut)
-                                .font(.system(.caption, design: .monospaced))
-                                .padding(.horizontal, 6).padding(.vertical, 2)
-                                .background(.secondary.opacity(0.15), in: RoundedRectangle(cornerRadius: 4))
-                        }
-                    }
+                    hotkeyRow("区域 / 窗口截图", binding: $settings.hotkeyRegion)
+                    hotkeyRow("全屏截图", binding: $settings.hotkeyFull)
+                    hotkeyRow("贴图(从剪贴板)", binding: $settings.hotkeyPin)
+                    hotkeyRow("隐藏 / 显示所有贴图", binding: $settings.hotkeyHide)
+                    Text("点击右侧按钮后按下想要的组合键(需含修饰键),Esc 取消录制。")
+                        .font(.caption2).foregroundColor(.secondary)
                 }
             }
             .formStyle(.grouped)
         }
         .frame(width: 460, height: 560)
+    }
+
+    private func hotkeyRow(_ title: String, binding: Binding<HotkeyBinding>) -> some View {
+        HStack {
+            Text(title).foregroundColor(settings.hotkeysEnabled ? .primary : .secondary)
+            Spacer()
+            HotkeyRecorderView(binding: binding)
+        }
+        .disabled(!settings.hotkeysEnabled)
     }
 
     private func chooseDirectory() {

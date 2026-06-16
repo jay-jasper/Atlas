@@ -33,6 +33,15 @@ final class ScreenshotSettings: ObservableObject {
             ScreenshotHotkeys.applyFromSettings()
         }
     }
+    @Published var hotkeyRegionPacked: Int { didSet { store.set(hotkeyRegionPacked, forKey: K.hkRegion); ScreenshotHotkeys.applyFromSettings() } }
+    @Published var hotkeyFullPacked: Int { didSet { store.set(hotkeyFullPacked, forKey: K.hkFull); ScreenshotHotkeys.applyFromSettings() } }
+    @Published var hotkeyPinPacked: Int { didSet { store.set(hotkeyPinPacked, forKey: K.hkPin); ScreenshotHotkeys.applyFromSettings() } }
+    @Published var hotkeyHidePacked: Int { didSet { store.set(hotkeyHidePacked, forKey: K.hkHide); ScreenshotHotkeys.applyFromSettings() } }
+
+    var hotkeyRegion: HotkeyBinding { get { HotkeyBinding(packed: hotkeyRegionPacked) } set { hotkeyRegionPacked = newValue.packed } }
+    var hotkeyFull: HotkeyBinding { get { HotkeyBinding(packed: hotkeyFullPacked) } set { hotkeyFullPacked = newValue.packed } }
+    var hotkeyPin: HotkeyBinding { get { HotkeyBinding(packed: hotkeyPinPacked) } set { hotkeyPinPacked = newValue.packed } }
+    var hotkeyHide: HotkeyBinding { get { HotkeyBinding(packed: hotkeyHidePacked) } set { hotkeyHidePacked = newValue.packed } }
 
     /// Most-recent finished captures (in-memory history), newest first.
     @Published var recentCaptures: [Data] = []
@@ -49,6 +58,10 @@ final class ScreenshotSettings: ObservableObject {
         static let name = "ss.filenamePattern"
         static let opacity = "ss.pinDefaultOpacity"
         static let hotkeys = "ss.hotkeysEnabled"
+        static let hkRegion = "ss.hkRegion"
+        static let hkFull = "ss.hkFull"
+        static let hkPin = "ss.hkPin"
+        static let hkHide = "ss.hkHide"
     }
 
     static var defaultSaveDirectory: String {
@@ -67,6 +80,11 @@ final class ScreenshotSettings: ObservableObject {
         filenamePattern = store.string(forKey: K.name) ?? "Atlas-Screenshot-{date}"
         pinDefaultOpacity = store.object(forKey: K.opacity) as? Double ?? 1
         hotkeysEnabled = store.object(forKey: K.hotkeys) as? Bool ?? false
+        let hk = ScreenshotHotkeys.defaults
+        hotkeyRegionPacked = store.object(forKey: K.hkRegion) as? Int ?? hk.region
+        hotkeyFullPacked = store.object(forKey: K.hkFull) as? Int ?? hk.full
+        hotkeyPinPacked = store.object(forKey: K.hkPin) as? Int ?? hk.pin
+        hotkeyHidePacked = store.object(forKey: K.hkHide) as? Int ?? hk.hide
     }
 
     var defaultColor: Color { Color(hex: defaultColorHex) }

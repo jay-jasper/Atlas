@@ -36,7 +36,65 @@ enum ScreenshotActions {
     private static func afterDelay(_ work: @escaping () -> Void) {
         let delay = ScreenshotSettings.shared.captureDelay
         if delay <= 0 { DispatchQueue.main.async(execute: work); return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+        CaptureCountdown.run(seconds: Int(delay.rounded()), completion: work)
+    }
+}
+
+/// A centered countdown shown before a delayed capture; the user sees the
+/// remaining seconds and can press Esc to abort.
+final class CaptureCountdown {
+    private static var window: NSWindow?
+    private static var timer: Timer?
+    private static var monitor: Any?
+
+    static func run(seconds: Int, completion: @escaping () -> Void) {
+        cancel()
+        var remaining = seconds
+        let label = NSTextField(labelWithString: "\(remaining)")
+        label.font = .monospacedDigitSystemFont(ofSize: 72, weight: .semibold)
+        label.textColor = .white
+        label.alignment = .center
+
+        let container = NSView(frame: NSRect(x: 0, y: 0, width: 160, height: 160))
+        container.wantsLayer = true
+        container.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.6).cgColor
+        container.layer?.cornerRadius = 24
+        label.frame = container.bounds.insetBy(dx: 0, dy: 36)
+        container.addSubview(label)
+
+        guard let screen = NSScreen.main else { completion(); return }
+        let win = NSWindow(contentRect: NSRect(x: screen.frame.midX - 80, y: screen.frame.midY - 80, width: 160, height: 160),
+                           styleMask: [.borderless], backing: .buffered, defer: false)
+        win.isOpaque = false
+        win.backgroundColor = .clear
+        win.level = .screenSaver
+        win.ignoresMouseEvents = true
+        win.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        win.contentView = container
+        win.orderFrontRegardless()
+        window = win
+
+        monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
+            if event.keyCode == 53 { cancel(); return nil } // Esc aborts
+            return event
+        }
+
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            remaining -= 1
+            if remaining <= 0 {
+                cancel()
+                completion()
+            } else {
+                label.stringValue = "\(remaining)"
+            }
+        }
+    }
+
+    private static func cancel() {
+        timer?.invalidate(); timer = nil
+        if let monitor { NSEvent.removeMonitor(monitor) }
+        monitor = nil
+        window?.orderOut(nil); window = nil
     }
 }
 

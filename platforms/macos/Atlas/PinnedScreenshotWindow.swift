@@ -93,8 +93,8 @@ final class PinnedScreenshotWindow {
 /// drive its NSWindow.
 final class PinController: ObservableObject {
     weak var window: NSWindow?
-    let original: NSImage
-    let baseSize: CGSize
+    @Published var original: NSImage
+    private var baseSize: CGSize
 
     @Published var scale: CGFloat = 1
     @Published var opacity: Double
@@ -103,11 +103,38 @@ final class PinController: ObservableObject {
     @Published var flipH = false
     @Published var flipV = false
     @Published var clickThrough = false
+    private var historyIndex = 0
 
     init(original: NSImage, baseSize: CGSize, opacity: Double) {
         self.original = original
         self.baseSize = baseSize
         self.opacity = opacity
+    }
+
+    /// Swap to the previous / next image in the capture history (Snipaste 贴图历史).
+    func cycleHistory(_ delta: Int) {
+        let history = ScreenshotSettings.shared.recentCaptures
+        guard history.count > 1 else { return }
+        historyIndex = (historyIndex + delta + history.count) % history.count
+        guard let image = NSImage(data: history[historyIndex]) else { return }
+        replace(with: image)
+    }
+
+    var hasHistory: Bool { ScreenshotSettings.shared.recentCaptures.count > 1 }
+
+    private func replace(with image: NSImage) {
+        original = image
+        rotation = 0; flipH = false; flipV = false; scale = 1
+        let raw = image.size
+        let s = min(1, min(620 / max(1, raw.width), 460 / max(1, raw.height)))
+        baseSize = CGSize(width: max(80, raw.width * s), height: max(60, raw.height * s))
+        applyGeometry()
+    }
+
+    /// Current image (with transforms baked) as PNG, for annotate / copy / save.
+    func currentPNG() -> Data? {
+        guard let tiff = displayImage.tiffRepresentation else { return nil }
+        return NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:])
     }
 
     /// The image with the current rotation / flip baked in, for display.
@@ -175,6 +202,11 @@ struct PinnedScreenshotView: View {
 
     private var toolbar: some View {
         HStack(spacing: 7) {
+            if controller.hasHistory {
+                iconButton("chevron.left") { controller.cycleHistory(1) }   // older
+                iconButton("chevron.right") { controller.cycleHistory(-1) } // newer
+                divider
+            }
             iconButton("minus.magnifyingglass") { controller.zoom(by: 0.9) }
             Text("\(Int(controller.scale * 100))%")
                 .font(.system(size: 10, design: .monospaced)).foregroundColor(.white).frame(width: 32)
@@ -190,6 +222,7 @@ struct PinnedScreenshotView: View {
                 .frame(width: 52)
             iconButton("cursorarrow.slash", active: controller.clickThrough) { controller.setClickThrough(true) }
             divider
+            iconButton("pencil.tip.crop.circle") { annotate() }
             iconButton("doc.on.doc") { copy() }
             iconButton("square.and.arrow.down") { save() }
             iconButton("xmark") { onClose() }
@@ -218,12 +251,15 @@ struct PinnedScreenshotView: View {
     }
 
     private func save() {
-        if let tiff = controller.displayImage.tiffRepresentation,
-           let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
-            try? png.write(to: ScreenshotSettings.shared.saveURL())
-        } else {
-            try? data.write(to: ScreenshotSettings.shared.saveURL())
-        }
+        let png = controller.currentPNG() ?? data
+        try? png.write(to: ScreenshotSettings.shared.saveURL())
+    }
+
+    /// Open the pinned image (with its current transforms) in the annotation editor.
+    private func annotate() {
+        guard let png = controller.currentPNG(), let bitmap = NSBitmapImageRep(data: png) else { return }
+        let shot = CapturedScreenshot(pngData: png, rect: CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh))
+        Task { @MainActor in ScreenshotEditorWindow.present(shot) }
     }
 }
 
