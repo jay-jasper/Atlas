@@ -1,6 +1,7 @@
 import SwiftUI
 
 enum ScreenshotTool: String, CaseIterable, Identifiable {
+    case select
     case rectangle
     case ellipse
     case arrow
@@ -21,12 +22,16 @@ enum ScreenshotTool: String, CaseIterable, Identifiable {
     /// Tools that paste/insert immediately on selection rather than via a drag.
     var isInstantAction: Bool { self == .pasteImage }
 
+    /// The neutral pointer tool: it doesn't draw — it selects / crops a region.
+    var isSelect: Bool { self == .select }
+
     /// `.line` is merged into the Arrow tool (selectable as a type), so it isn't
     /// shown as its own toolbar button.
     var isHiddenFromToolbar: Bool { self == .line }
 
     var title: String {
         switch self {
+        case .select: return "Crop / Select"
         case .rectangle: return "Rectangle"
         case .ellipse: return "Ellipse"
         case .arrow: return "Arrow"
@@ -46,6 +51,7 @@ enum ScreenshotTool: String, CaseIterable, Identifiable {
 
     var systemImage: String {
         switch self {
+        case .select: return "cursorarrow"
         case .rectangle: return "rectangle"
         case .ellipse: return "circle"
         case .arrow: return "arrow.up.right"
@@ -92,45 +98,48 @@ enum ScreenshotArrowStyle: String, CaseIterable, Identifiable {
 
 enum ScreenshotAnnotationColor: String, CaseIterable, Identifiable {
     case red
+    case orange
     case yellow
     case green
+    case teal
     case blue
+    case purple
+    case pink
     case white
+    case gray
     case black
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .red:
-            return "Red"
-        case .yellow:
-            return "Yellow"
-        case .green:
-            return "Green"
-        case .blue:
-            return "Blue"
-        case .white:
-            return "White"
-        case .black:
-            return "Black"
+        case .red: return "Red"
+        case .orange: return "Orange"
+        case .yellow: return "Yellow"
+        case .green: return "Green"
+        case .teal: return "Teal"
+        case .blue: return "Blue"
+        case .purple: return "Purple"
+        case .pink: return "Pink"
+        case .white: return "White"
+        case .gray: return "Gray"
+        case .black: return "Black"
         }
     }
 
     var color: Color {
         switch self {
-        case .red:
-            return .red
-        case .yellow:
-            return .yellow
-        case .green:
-            return .green
-        case .blue:
-            return .blue
-        case .white:
-            return .white
-        case .black:
-            return .black
+        case .red: return .red
+        case .orange: return .orange
+        case .yellow: return .yellow
+        case .green: return .green
+        case .teal: return .teal
+        case .blue: return .blue
+        case .purple: return .purple
+        case .pink: return .pink
+        case .white: return .white
+        case .gray: return .gray
+        case .black: return .black
         }
     }
 }

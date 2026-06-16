@@ -121,7 +121,12 @@ struct ScreenshotEditorContainer: View {
             onCopyRecognizedText: { copyString($0) },
             onTranslateRecognizedText: { _ in },
             onCopyTranslatedText: { _ in },
-            onClose: onClose
+            onClose: onClose,
+            onCrop: { cropped in
+                let shot = CapturedScreenshot(pngData: cropped, rect: CGRect(origin: .zero, size: NSImage(data: cropped)?.size ?? .zero))
+                onClose()
+                ScreenshotEditorWindow.present(shot)
+            }
         )
         .frame(minWidth: 560, minHeight: 420)
     }

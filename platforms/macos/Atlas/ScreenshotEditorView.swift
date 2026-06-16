@@ -17,8 +17,10 @@ struct ScreenshotEditorView: View {
     let onTranslateRecognizedText: (String) -> Void
     let onCopyTranslatedText: (String) -> Void
     let onClose: () -> Void
+    var onCrop: ((Data) -> Void)? = nil
 
-    @State private var selectedTool: ScreenshotTool = .rectangle
+    @State private var selectedTool: ScreenshotTool = .select
+    @State private var cropRect: CGRect?
     @State private var arrowStyle: ScreenshotArrowStyle = .arrow
     @State private var selectedAnnotationColor: ScreenshotAnnotationColor = ScreenshotAnnotationStyle.defaultStyle.colorChoice
     @State private var annotationLineWidth: CGFloat = ScreenshotAnnotationStyle.defaultStyle.lineWidth
@@ -60,6 +62,13 @@ struct ScreenshotEditorView: View {
                     Button { onRecognizeText(renderedData()) } label: { Image(systemName: "text.viewfinder") }
                         .buttonStyle(.borderless).disabled(isRecognizingText).help("OCR")
                 }
+                if onCrop != nil, let crop = cropRect, selectedTool == .select,
+                   crop.width > 4, crop.height > 4 {
+                    Button { performCrop(crop) } label: {
+                        Label("裁剪", systemImage: "crop")
+                    }
+                    .buttonStyle(.bordered).controlSize(.small).help("Crop to selection")
+                }
                 Divider().frame(height: 18)
 
                 if capabilities.annotations {
@@ -68,6 +77,7 @@ struct ScreenshotEditorView: View {
                     ForEach(ScreenshotTool.allCases.filter { !$0.isHiddenFromToolbar }) { tool in
                         Button {
                             selectedTool = tool
+                            if tool != .select { cropRect = nil }
                         } label: {
                             Image(systemName: tool == .arrow ? arrowStyle.systemImage : tool.systemImage)
                         }
@@ -123,7 +133,7 @@ struct ScreenshotEditorView: View {
                             .font(.caption)
                             .frame(width: 34, alignment: .trailing)
                     }
-                    .help("Line Width")
+                    .help("线条粗细 (Line width, in pixels)")
                     .controlSize(.small)
                     }
                     .padding(.vertical, 2)
@@ -227,6 +237,14 @@ struct ScreenshotEditorView: View {
                 if let preview = editorPreviewAnnotation {
                     AnnotationShape(annotation: preview).allowsHitTesting(false)
                 }
+
+                if let crop = cropRect, selectedTool == .select {
+                    Rectangle()
+                        .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 1.5, dash: [5]))
+                        .frame(width: crop.width, height: crop.height)
+                        .position(x: crop.midX, y: crop.midY)
+                        .allowsHitTesting(false)
+                }
             }
             .contentShape(Rectangle())
             .gesture(annotationDrag)
@@ -325,6 +343,15 @@ struct ScreenshotEditorView: View {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
                 guard capabilities.annotations else { return }
+                if selectedTool == .select {
+                    cropRect = CGRect(
+                        x: min(value.startLocation.x, value.location.x),
+                        y: min(value.startLocation.y, value.location.y),
+                        width: abs(value.startLocation.x - value.location.x),
+                        height: abs(value.startLocation.y - value.location.y)
+                    )
+                    return
+                }
                 dragCurrent = value.location
                 if dragStart == nil {
                     dragStart = value.startLocation
@@ -337,6 +364,7 @@ struct ScreenshotEditorView: View {
             }
             .onEnded { value in
                 guard capabilities.annotations else { return }
+                if selectedTool == .select { return } // crop applied via the Crop button
                 guard let start = dragStart else { return }
                 let style = ScreenshotAnnotationStyle(
                     colorChoice: selectedAnnotationColor,
@@ -350,6 +378,8 @@ struct ScreenshotEditorView: View {
                 ).integral
 
                 switch selectedTool {
+                case .select:
+                    break
                 case .rectangle:
                     annotations.append(.rectangle(rect: rect, color: style.color, lineWidth: style.lineWidth))
                 case .ellipse:
@@ -416,6 +446,7 @@ struct ScreenshotEditorView: View {
         let style = ScreenshotAnnotationStyle(colorChoice: selectedAnnotationColor, lineWidth: annotationLineWidth)
         let rect = CGRect(x: min(start.x, cur.x), y: min(start.y, cur.y), width: abs(start.x - cur.x), height: abs(start.y - cur.y))
         switch selectedTool {
+        case .select: return nil
         case .rectangle: return .rectangle(rect: rect, color: style.color, lineWidth: style.lineWidth)
         case .ellipse: return .ellipse(rect: rect, color: style.color, lineWidth: style.lineWidth)
         case .arrow: return arrowAnnotation(from: start, to: cur, style: style)
@@ -480,6 +511,26 @@ struct ScreenshotEditorView: View {
             canvasSize: canvasSize
         )
         return backdropOn ? ScreenshotEditorRenderer.applyBackdrop(base) : base
+    }
+
+    /// Crop the image (with current annotations baked in) to the select-tool
+    /// region, then re-present a fresh editor sized to the cropped image.
+    private func performCrop(_ rect: CGRect) {
+        guard let onCrop, canvasSize.width > 0, canvasSize.height > 0 else { return }
+        let flattened = ScreenshotEditorRenderer.renderedPNGData(
+            screenshot: screenshot,
+            annotations: annotations,
+            canvasSize: canvasSize
+        )
+        guard let rep = NSBitmapImageRep(data: flattened), let cg = rep.cgImage else { return }
+        let sx = CGFloat(rep.pixelsWide) / canvasSize.width
+        let sy = CGFloat(rep.pixelsHigh) / canvasSize.height
+        let pixelRect = CGRect(x: rect.minX * sx, y: rect.minY * sy, width: rect.width * sx, height: rect.height * sy).integral
+        guard pixelRect.width >= 1, pixelRect.height >= 1,
+              let cropped = cg.cropping(to: pixelRect),
+              let png = NSBitmapImageRep(cgImage: cropped).representation(using: .png, properties: [:]) else { return }
+        cropRect = nil
+        onCrop(png)
     }
 
     /// Add Capture: take another screenshot of the live screen and drop it onto

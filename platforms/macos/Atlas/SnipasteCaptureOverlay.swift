@@ -555,21 +555,14 @@ struct SnipasteCaptureOverlay: View {
         windowItem(at: point)?.rect
     }
 
-    /// Capture the real, un-occluded content of a specific window by its ID
-    /// (independent of z-order), so a selected window's screenshot is its own
-    /// pixels — not whatever is layered on top in the frozen preview.
+    /// Capture the real, un-occluded content of a specific window by its ID.
+    /// `.optionIncludingWindow` composites ONLY that window, so the result is the
+    /// window's own pixels — never the windows layered on top of it — regardless
+    /// of z-order. Synchronous, so the selection shows the true content at once.
     private func captureWindow(_ id: CGWindowID) {
-        let path = NSTemporaryDirectory() + "atlas-win-\(UUID().uuidString).png"
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
-        process.arguments = ["-l\(id)", "-o", "-x", path]
-        process.terminationHandler = { _ in
-            let url = URL(fileURLWithPath: path)
-            let data = try? Data(contentsOf: url)
-            try? FileManager.default.removeItem(at: url)
-            DispatchQueue.main.async { windowCaptureData = data }
-        }
-        try? process.run()
+        let options: CGWindowImageOption = [.boundsIgnoreFraming, .bestResolution]
+        guard let cg = CGWindowListCreateImage(.null, .optionIncludingWindow, id, options) else { return }
+        windowCaptureData = NSBitmapImageRep(cgImage: cg).representation(using: .png, properties: [:])
     }
 
     private func clearWindowCapture() {
@@ -581,6 +574,7 @@ struct SnipasteCaptureOverlay: View {
         let style = ScreenshotAnnotationStyle(colorChoice: colorChoice, lineWidth: lineWidth)
         let rect = CGRect(x: min(start.x, end.x), y: min(start.y, end.y), width: abs(start.x - end.x), height: abs(start.y - end.y)).integral
         switch t {
+        case .select: return nil
         case .rectangle: return .rectangle(rect: rect, color: style.color, lineWidth: style.lineWidth)
         case .ellipse: return .ellipse(rect: rect, color: style.color, lineWidth: style.lineWidth)
         case .arrow:
