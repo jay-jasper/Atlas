@@ -24,6 +24,7 @@ struct ScreenshotEditorView: View {
     @AppStorage("annotation.text.draft") private var textDraftRaw: String = ScreenshotTextAnnotationDraft.fallbackValue
     @State private var annotations: [ScreenshotAnnotation] = []
     @State private var dragStart: CGPoint?
+    @State private var dragCurrent: CGPoint?
     @State private var penPoints: [CGPoint] = []
     @State private var canvasSize: CGSize = .zero
     @State private var editingAnnotationID: UUID?
@@ -186,6 +187,10 @@ struct ScreenshotEditorView: View {
                     )
                     .allowsHitTesting(false)
                 }
+
+                if let preview = editorPreviewAnnotation {
+                    AnnotationShape(annotation: preview).allowsHitTesting(false)
+                }
             }
             .contentShape(Rectangle())
             .gesture(annotationDrag)
@@ -284,6 +289,7 @@ struct ScreenshotEditorView: View {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
                 guard capabilities.annotations else { return }
+                dragCurrent = value.location
                 if dragStart == nil {
                     dragStart = value.startLocation
                     if selectedTool == .pen {
@@ -354,7 +360,30 @@ struct ScreenshotEditorView: View {
 
                 redoStack.removeAll()
                 dragStart = nil
+                dragCurrent = nil
             }
+    }
+
+    /// The annotation currently being dragged, for live preview on the canvas.
+    private var editorPreviewAnnotation: ScreenshotAnnotation? {
+        guard let start = dragStart, let cur = dragCurrent else { return nil }
+        let style = ScreenshotAnnotationStyle(colorChoice: selectedAnnotationColor, lineWidth: annotationLineWidth)
+        let rect = CGRect(x: min(start.x, cur.x), y: min(start.y, cur.y), width: abs(start.x - cur.x), height: abs(start.y - cur.y))
+        switch selectedTool {
+        case .rectangle: return .rectangle(rect: rect, color: style.color, lineWidth: style.lineWidth)
+        case .ellipse: return .ellipse(rect: rect, color: style.color, lineWidth: style.lineWidth)
+        case .arrow: return .arrow(from: start, to: cur, color: style.color, lineWidth: style.lineWidth)
+        case .line: return .line(from: start, to: cur, color: style.color, lineWidth: style.lineWidth)
+        case .highlight: return .highlight(rect: rect, color: style.color, lineWidth: style.lineWidth)
+        case .pixelate: return .pixelate(rect: rect)
+        case .blur: return .blur(rect: rect)
+        case .measure: return .measure(from: start, to: cur, color: style.color, lineWidth: style.lineWidth)
+        case .spotlight: return .spotlight(rect: rect)
+        case .magnifier:
+            let side = max(60, min(rect.width, rect.height) > 8 ? min(rect.width, rect.height) : 120)
+            return .magnifier(rect: CGRect(x: start.x, y: start.y, width: side, height: side), lineWidth: style.lineWidth)
+        case .pen, .text, .counter, .pasteImage: return nil
+        }
     }
 
     private func smoothedPoints(_ points: [CGPoint]) -> [CGPoint] {

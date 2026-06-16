@@ -113,6 +113,8 @@ struct SnipasteCaptureOverlay: View {
     @State private var keyMonitor: Any?
     @State private var windowRects: [CGRect] = []
     @State private var backdropOn = false
+    @State private var annoStart: CGPoint?
+    @State private var annoCurrent: CGPoint?
 
     private var previewImage: NSImage? { previewImageData.flatMap(NSImage.init(data:)) }
     private var previewBitmap: NSBitmapImageRep? { previewImageData.flatMap(NSBitmapImageRep.init(data:)) }
@@ -189,12 +191,7 @@ struct SnipasteCaptureOverlay: View {
     private func annotationLayer(_ sel: CGRect) -> some View {
         ZStack(alignment: .topLeading) {
             ForEach(annotations) { annoView($0) }
-            if penPoints.count >= 2 {
-                Path { p in
-                    p.move(to: penPoints[0]); penPoints.dropFirst().forEach { p.addLine(to: $0) }
-                }
-                .stroke(colorChoice.color, lineWidth: lineWidth)
-            }
+            if let preview = previewAnnotation { annoView(preview) }
         }
         .frame(width: viewSize.width, height: viewSize.height, alignment: .topLeading)
         .mask(Rectangle().frame(width: sel.width, height: sel.height).position(x: sel.midX, y: sel.midY))
@@ -285,27 +282,43 @@ struct SnipasteCaptureOverlay: View {
 
     private static let toolList: [ScreenshotTool] = [.rectangle, .ellipse, .arrow, .line, .pen, .highlight, .counter, .text, .measure, .spotlight, .magnifier, .pixelate, .blur, .pasteImage]
 
+    private var toolUsesColor: Bool {
+        switch tool {
+        case .rectangle, .ellipse, .arrow, .line, .pen, .text, .counter, .highlight, .measure: return true
+        default: return false
+        }
+    }
+
     private func toolbar(_ sel: CGRect, _ size: CGSize) -> some View {
-        HStack(spacing: 6) {
-            toolButtons
-            Divider().frame(height: 16)
-            colorButtons
-            Divider().frame(height: 16)
-            Button { backdropOn.toggle() } label: {
-                Image(systemName: "rectangle.portrait.on.rectangle.portrait").frame(width: 20, height: 18)
+        VStack(spacing: 6) {
+            HStack(spacing: 6) {
+                toolButtons
+                Divider().frame(height: 16)
+                Button { backdropOn.toggle() } label: {
+                    Image(systemName: "rectangle.portrait.on.rectangle.portrait").frame(width: 20, height: 18)
+                }
+                .buttonStyle(.borderless)
+                .background(backdropOn ? Color.accentColor.opacity(0.25) : Color.clear)
+                .cornerRadius(5).help("Backdrop")
+                iconButton("plus.viewfinder") { addCapture() }
+                Divider().frame(height: 16)
+                iconButton("arrow.uturn.backward", enabled: !annotations.isEmpty) { if let l = annotations.popLast() { redoStack.append(l) } }
+                iconButton("arrow.uturn.forward", enabled: !redoStack.isEmpty) { if let r = redoStack.popLast() { annotations.append(r) } }
+                Divider().frame(height: 16)
+                iconButton("xmark") { cancel() }
+                iconButton("pin") { finish(.pin) }
+                iconButton("square.and.arrow.down") { finish(.save) }
+                iconButton("doc.on.doc") { finish(.copy) }
             }
-            .buttonStyle(.borderless)
-            .background(backdropOn ? Color.accentColor.opacity(0.25) : Color.clear)
-            .cornerRadius(5).help("Backdrop")
-            iconButton("plus.viewfinder") { addCapture() }
-            Divider().frame(height: 16)
-            iconButton("arrow.uturn.backward", enabled: !annotations.isEmpty) { if let l = annotations.popLast() { redoStack.append(l) } }
-            iconButton("arrow.uturn.forward", enabled: !redoStack.isEmpty) { if let r = redoStack.popLast() { annotations.append(r) } }
-            Divider().frame(height: 16)
-            iconButton("xmark") { cancel() }
-            iconButton("pin") { finish(.pin) }
-            iconButton("square.and.arrow.down") { finish(.save) }
-            iconButton("doc.on.doc") { finish(.copy) }
+            if toolUsesColor {
+                HStack(spacing: 8) {
+                    colorButtons
+                    Divider().frame(height: 14)
+                    Image(systemName: "lineweight").foregroundColor(.secondary)
+                    Slider(value: $lineWidth, in: 1 ... 12, step: 1).frame(width: 90)
+                    Text("\(Int(lineWidth))").font(.system(.caption2, design: .monospaced)).frame(width: 16)
+                }
+            }
         }
         .padding(7)
         .background(.regularMaterial)
@@ -353,8 +366,8 @@ struct SnipasteCaptureOverlay: View {
     /// Place the toolbar just below the selection; flip above if there's no room,
     /// and clamp horizontally so it never sits off-screen.
     private func toolbarCenter(_ sel: CGRect, _ size: CGSize) -> CGPoint {
-        let estWidth: CGFloat = 560
-        let estHeight: CGFloat = 44
+        let estWidth: CGFloat = 500
+        let estHeight: CGFloat = toolUsesColor ? 84 : 44
         var y = sel.maxY + 8 + estHeight / 2
         if y + estHeight / 2 > size.height - 6 { y = sel.minY - 8 - estHeight / 2 }
         if y - estHeight / 2 < 6 { y = min(size.height - estHeight / 2 - 6, sel.maxY - estHeight / 2 - 8) }
@@ -417,6 +430,8 @@ struct SnipasteCaptureOverlay: View {
             mode = .resizing(sel, h)
         } else if let sel = selection, let t = tool, sel.insetBy(dx: -4, dy: -4).contains(start) {
             mode = .annotating
+            annoStart = start
+            annoCurrent = start
             if t == .pen { penPoints = [start] }
         } else if let sel = selection, tool == nil, sel.contains(start) {
             mode = .moving(sel)
@@ -436,6 +451,7 @@ struct SnipasteCaptureOverlay: View {
         case .resizing(let origin, let h):
             selection = resized(origin, handle: h, translation: v.translation, bounds: size)
         case .annotating:
+            annoCurrent = now
             if tool == .pen { penPoints.append(now) }
         case .idle:
             break
@@ -456,6 +472,8 @@ struct SnipasteCaptureOverlay: View {
         } else if case .annotating = mode, let t = tool {
             appendAnnotation(t, from: start, to: now)
         }
+        annoStart = nil
+        annoCurrent = nil
     }
 
     private func detectWindows() -> [CGRect] {
@@ -479,30 +497,44 @@ struct SnipasteCaptureOverlay: View {
             .min(by: { $0.width * $0.height < $1.width * $1.height })
     }
 
-    private func appendAnnotation(_ t: ScreenshotTool, from start: CGPoint, to end: CGPoint) {
+    private func buildAnnotation(_ t: ScreenshotTool, from start: CGPoint, to end: CGPoint, counterNumber: Int) -> ScreenshotAnnotation? {
         let style = ScreenshotAnnotationStyle(colorChoice: colorChoice, lineWidth: lineWidth)
         let rect = CGRect(x: min(start.x, end.x), y: min(start.y, end.y), width: abs(start.x - end.x), height: abs(start.y - end.y)).integral
         switch t {
-        case .rectangle: annotations.append(.rectangle(rect: rect, color: style.color, lineWidth: style.lineWidth))
-        case .ellipse: annotations.append(.ellipse(rect: rect, color: style.color, lineWidth: style.lineWidth))
-        case .arrow: annotations.append(.arrow(from: start, to: end, color: style.color, lineWidth: style.lineWidth))
-        case .line: annotations.append(.line(from: start, to: end, color: style.color, lineWidth: style.lineWidth))
+        case .rectangle: return .rectangle(rect: rect, color: style.color, lineWidth: style.lineWidth)
+        case .ellipse: return .ellipse(rect: rect, color: style.color, lineWidth: style.lineWidth)
+        case .arrow: return .arrow(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
+        case .line: return .line(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
         case .pen:
             let pts = penPoints.count >= 2 ? penPoints : [start, end]
-            annotations.append(.pen(points: pts, color: style.color, lineWidth: style.lineWidth)); penPoints = []
-        case .highlight: annotations.append(.highlight(rect: rect, color: style.color, lineWidth: style.lineWidth))
-        case .counter: counter += 1; annotations.append(.counter(number: counter, center: end, color: style.color))
-        case .text: annotations.append(.text(value: "Text", rect: rect.width > 8 ? rect : CGRect(x: start.x, y: start.y, width: 80, height: 26), color: style.color))
-        case .pixelate: annotations.append(.pixelate(rect: rect))
-        case .blur: annotations.append(.blur(rect: rect))
-        case .measure: annotations.append(.measure(from: start, to: end, color: style.color, lineWidth: style.lineWidth))
-        case .spotlight: annotations.append(.spotlight(rect: rect))
+            return .pen(points: pts, color: style.color, lineWidth: style.lineWidth)
+        case .highlight: return .highlight(rect: rect, color: style.color, lineWidth: style.lineWidth)
+        case .counter: return .counter(number: counterNumber, center: end, color: style.color)
+        case .text: return .text(value: "Text", rect: rect.width > 8 ? rect : CGRect(x: start.x, y: start.y, width: 80, height: 26), color: style.color)
+        case .pixelate: return .pixelate(rect: rect)
+        case .blur: return .blur(rect: rect)
+        case .measure: return .measure(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
+        case .spotlight: return .spotlight(rect: rect)
         case .magnifier:
             let side = max(60, min(rect.width, rect.height) > 8 ? min(rect.width, rect.height) : 120)
-            annotations.append(.magnifier(rect: CGRect(x: start.x, y: start.y, width: side, height: side), lineWidth: style.lineWidth))
+            return .magnifier(rect: CGRect(x: start.x, y: start.y, width: side, height: side), lineWidth: style.lineWidth)
         case .pasteImage:
-            pasteClipboardImage(at: end)
+            return nil
         }
+    }
+
+    /// The annotation currently being dragged, for live preview.
+    private var previewAnnotation: ScreenshotAnnotation? {
+        guard case .annotating = mode, let t = tool, let s = annoStart, let c = annoCurrent else { return nil }
+        return buildAnnotation(t, from: s, to: c, counterNumber: counter + 1)
+    }
+
+    private func appendAnnotation(_ t: ScreenshotTool, from start: CGPoint, to end: CGPoint) {
+        if t == .pasteImage { pasteClipboardImage(at: end); return }
+        if t == .counter { counter += 1 }
+        guard let anno = buildAnnotation(t, from: start, to: end, counterNumber: counter) else { penPoints = []; return }
+        annotations.append(anno)
+        penPoints = []
         redoStack.removeAll()
     }
 
