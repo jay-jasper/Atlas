@@ -2,30 +2,45 @@ import SwiftUI
 
 enum ScreenshotTool: String, CaseIterable, Identifiable {
     case rectangle
+    case ellipse
     case arrow
+    case line
     case pen
     case text
+    case counter
+    case highlight
     case pixelate
+    case blur
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
         case .rectangle: return "Rectangle"
+        case .ellipse: return "Ellipse"
         case .arrow: return "Arrow"
+        case .line: return "Line"
         case .pen: return "Pen"
         case .text: return "Text"
+        case .counter: return "Step Counter"
+        case .highlight: return "Highlighter"
         case .pixelate: return "Pixelate"
+        case .blur: return "Blur"
         }
     }
 
     var systemImage: String {
         switch self {
         case .rectangle: return "rectangle"
+        case .ellipse: return "circle"
         case .arrow: return "arrow.up.right"
+        case .line: return "line.diagonal"
         case .pen: return "pencil"
         case .text: return "textformat"
+        case .counter: return "number.circle"
+        case .highlight: return "highlighter"
         case .pixelate: return "checkerboard.rectangle"
+        case .blur: return "drop"
         }
     }
 }
@@ -110,10 +125,15 @@ struct ScreenshotTextAnnotationDraft: Equatable {
 
 enum ScreenshotAnnotationKind: Equatable {
     case rectangle
+    case ellipse
     case arrow
+    case line
     case pen
     case text(String)
+    case counter(Int)
+    case highlight
     case pixelate
+    case blur
 }
 
 struct ScreenshotAnnotation: Identifiable, Equatable {
@@ -155,6 +175,35 @@ struct ScreenshotAnnotation: Identifiable, Equatable {
 
     static func pixelate(id: UUID = UUID(), rect: CGRect) -> Self {
         ScreenshotAnnotation(id: id, kind: .pixelate, bounds: rect, color: .gray, lineWidth: 1, points: [])
+    }
+
+    static func ellipse(id: UUID = UUID(), rect: CGRect, color: Color, lineWidth: CGFloat) -> Self {
+        ScreenshotAnnotation(id: id, kind: .ellipse, bounds: rect, color: color, lineWidth: lineWidth, points: [])
+    }
+
+    static func line(id: UUID = UUID(), from start: CGPoint, to end: CGPoint, color: Color, lineWidth: CGFloat) -> Self {
+        ScreenshotAnnotation(
+            id: id,
+            kind: .line,
+            bounds: CGRect(origin: start, size: CGSize(width: end.x - start.x, height: end.y - start.y)).standardized,
+            color: color,
+            lineWidth: lineWidth,
+            points: [start, end]
+        )
+    }
+
+    static func highlight(id: UUID = UUID(), rect: CGRect, color: Color, lineWidth: CGFloat) -> Self {
+        ScreenshotAnnotation(id: id, kind: .highlight, bounds: rect, color: color, lineWidth: lineWidth, points: [])
+    }
+
+    static func counter(id: UUID = UUID(), number: Int, center: CGPoint, color: Color) -> Self {
+        let size: CGFloat = 28
+        let rect = CGRect(x: center.x - size / 2, y: center.y - size / 2, width: size, height: size)
+        return ScreenshotAnnotation(id: id, kind: .counter(number), bounds: rect, color: color, lineWidth: 2, points: [])
+    }
+
+    static func blur(id: UUID = UUID(), rect: CGRect) -> Self {
+        ScreenshotAnnotation(id: id, kind: .blur, bounds: rect, color: .gray, lineWidth: 1, points: [])
     }
 
     func withTextValue(_ value: String) -> ScreenshotAnnotation {

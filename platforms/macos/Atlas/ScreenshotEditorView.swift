@@ -1,4 +1,5 @@
 import AppKit
+import CoreImage
 import SwiftUI
 
 struct ScreenshotEditorView: View {
@@ -26,6 +27,8 @@ struct ScreenshotEditorView: View {
     @State private var penPoints: [CGPoint] = []
     @State private var canvasSize: CGSize = .zero
     @State private var editingAnnotationID: UUID?
+    @State private var counterIndex = 0
+    @State private var redoStack: [ScreenshotAnnotation] = []
 
     var body: some View {
         VStack(spacing: 0) {
@@ -36,17 +39,17 @@ struct ScreenshotEditorView: View {
             Divider()
             outputBar
         }
-        .frame(width: 520, height: 420)
+        .frame(minWidth: 520, minHeight: 420)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.regularMaterial)
-        .cornerRadius(10)
-        .shadow(radius: 12)
-        .padding()
     }
 
     private var toolbar: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 if capabilities.annotations {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
                     ForEach(ScreenshotTool.allCases) { tool in
                         Button {
                             selectedTool = tool
@@ -89,17 +92,28 @@ struct ScreenshotEditorView: View {
                     }
                     .help("Line Width")
                     .controlSize(.small)
+                    }
+                    .padding(.vertical, 2)
+                    }
                 }
 
-                Spacer()
+                Spacer(minLength: 6)
 
                 Button {
-                    annotations.removeLast()
+                    if let last = annotations.popLast() { redoStack.append(last) }
                 } label: {
                     Image(systemName: "arrow.uturn.backward")
                 }
                 .disabled(annotations.isEmpty)
                 .help("Undo")
+
+                Button {
+                    if let restored = redoStack.popLast() { annotations.append(restored) }
+                } label: {
+                    Image(systemName: "arrow.uturn.forward")
+                }
+                .disabled(redoStack.isEmpty)
+                .help("Redo")
 
                 Button(action: onClose) {
                     Image(systemName: "xmark")
@@ -283,8 +297,12 @@ struct ScreenshotEditorView: View {
                 switch selectedTool {
                 case .rectangle:
                     annotations.append(.rectangle(rect: rect, color: style.color, lineWidth: style.lineWidth))
+                case .ellipse:
+                    annotations.append(.ellipse(rect: rect, color: style.color, lineWidth: style.lineWidth))
                 case .arrow:
                     annotations.append(.arrow(from: start, to: value.location, color: style.color, lineWidth: style.lineWidth))
+                case .line:
+                    annotations.append(.line(from: start, to: value.location, color: style.color, lineWidth: style.lineWidth))
                 case .pen:
                     let raw = penPoints.isEmpty ? [start, value.location] : penPoints
                     let smooth = smoothedPoints(raw)
@@ -296,10 +314,18 @@ struct ScreenshotEditorView: View {
                         rect: rect.width > 8 && rect.height > 8 ? rect : CGRect(x: start.x, y: start.y, width: 80, height: 28),
                         color: style.color
                     ))
+                case .counter:
+                    counterIndex += 1
+                    annotations.append(.counter(number: counterIndex, center: value.location, color: style.color))
+                case .highlight:
+                    annotations.append(.highlight(rect: rect, color: style.color, lineWidth: style.lineWidth))
                 case .pixelate:
                     annotations.append(.pixelate(rect: rect))
+                case .blur:
+                    annotations.append(.blur(rect: rect))
                 }
 
+                redoStack.removeAll()
                 dragStart = nil
             }
     }
@@ -383,18 +409,32 @@ enum ScreenshotEditorRenderer {
 
         let renderedImageRect = imageRect(for: outputSize, in: canvasSize)
 
+        let hasBlur = annotations.contains { if case .blur = $0.kind { return true } else { return false } }
+        let blurRadius = max(6, min(outputSize.width, outputSize.height) * 0.012)
+        let blurredImage: CGImage? = hasBlur ? gaussianBlurred(sourceImage, radius: blurRadius) : nil
+
         for annotation in annotations {
             switch annotation.kind {
             case .rectangle:
                 stroke(annotation.bounds, annotation: annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
+            case .ellipse:
+                strokeEllipse(annotation.bounds, annotation: annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
             case .arrow:
                 drawArrow(annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
+            case .line:
+                drawLine(annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
             case .pen:
                 drawPen(annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
             case .text(let value):
                 drawText(value, annotation: annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
+            case .counter(let number):
+                drawCounter(number, annotation: annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
+            case .highlight:
+                fillHighlight(annotation.bounds, annotation: annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
             case .pixelate:
                 pixelate(annotation.bounds, sourceBitmap: sourceBitmap, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
+            case .blur:
+                drawBlur(annotation.bounds, blurredImage: blurredImage, pixelBounds: pixelBounds, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
             }
         }
 
@@ -568,6 +608,107 @@ enum ScreenshotEditorRenderer {
         }
     }
 
+    private static func strokeEllipse(
+        _ rect: CGRect,
+        annotation: ScreenshotAnnotation,
+        renderedImageRect: CGRect,
+        outputSize: CGSize,
+        in context: CGContext
+    ) {
+        let mapped = map(rect, renderedImageRect: renderedImageRect, outputSize: outputSize)
+        guard !mapped.isNull, mapped.width > 0, mapped.height > 0 else { return }
+        context.setStrokeColor(cgColor(from: annotation.color))
+        context.setLineWidth(scaledLineWidth(annotation, renderedImageRect: renderedImageRect, outputSize: outputSize))
+        context.strokeEllipse(in: mapped)
+    }
+
+    private static func drawLine(
+        _ annotation: ScreenshotAnnotation,
+        renderedImageRect: CGRect,
+        outputSize: CGSize,
+        in context: CGContext
+    ) {
+        guard annotation.points.count == 2 else { return }
+        let start = map(annotation.points[0], renderedImageRect: renderedImageRect, outputSize: outputSize)
+        let end = map(annotation.points[1], renderedImageRect: renderedImageRect, outputSize: outputSize)
+        context.setStrokeColor(cgColor(from: annotation.color))
+        context.setLineWidth(scaledLineWidth(annotation, renderedImageRect: renderedImageRect, outputSize: outputSize))
+        context.setLineCap(.round)
+        context.move(to: start)
+        context.addLine(to: end)
+        context.strokePath()
+    }
+
+    private static func fillHighlight(
+        _ rect: CGRect,
+        annotation: ScreenshotAnnotation,
+        renderedImageRect: CGRect,
+        outputSize: CGSize,
+        in context: CGContext
+    ) {
+        let mapped = map(rect, renderedImageRect: renderedImageRect, outputSize: outputSize)
+        guard !mapped.isNull, mapped.width > 0, mapped.height > 0 else { return }
+        let color = nsColor(from: annotation.color).withAlphaComponent(0.35).cgColor
+        context.saveGState()
+        context.setBlendMode(.multiply)
+        context.setFillColor(color)
+        context.fill(mapped)
+        context.restoreGState()
+    }
+
+    private static func drawCounter(
+        _ number: Int,
+        annotation: ScreenshotAnnotation,
+        renderedImageRect: CGRect,
+        outputSize: CGSize,
+        in context: CGContext
+    ) {
+        let mapped = map(annotation.bounds, renderedImageRect: renderedImageRect, outputSize: outputSize)
+        guard !mapped.isNull, mapped.width > 0, mapped.height > 0 else { return }
+        context.setFillColor(cgColor(from: annotation.color))
+        context.fillEllipse(in: mapped)
+
+        let fontSize = max(10, mapped.height * 0.55)
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: fontSize, weight: .bold),
+            .foregroundColor: NSColor.white,
+        ]
+        let text = "\(number)" as NSString
+        let size = text.size(withAttributes: attributes)
+        let textRect = CGRect(x: mapped.midX - size.width / 2, y: mapped.midY - size.height / 2, width: size.width, height: size.height)
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: true)
+        text.draw(in: textRect, withAttributes: attributes)
+        NSGraphicsContext.restoreGraphicsState()
+    }
+
+    private static func drawBlur(
+        _ rect: CGRect,
+        blurredImage: CGImage?,
+        pixelBounds: CGRect,
+        renderedImageRect: CGRect,
+        outputSize: CGSize,
+        in context: CGContext
+    ) {
+        guard let blurredImage else { return }
+        let mapped = map(rect, renderedImageRect: renderedImageRect, outputSize: outputSize)
+        guard !mapped.isNull, mapped.width > 0, mapped.height > 0 else { return }
+        context.saveGState()
+        context.clip(to: mapped)
+        context.draw(blurredImage, in: pixelBounds)
+        context.restoreGState()
+    }
+
+    private static func gaussianBlurred(_ image: CGImage, radius: CGFloat) -> CGImage? {
+        let input = CIImage(cgImage: image)
+        guard let filter = CIFilter(name: "CIGaussianBlur") else { return nil }
+        filter.setValue(input.clampedToExtent(), forKey: kCIInputImageKey)
+        filter.setValue(radius, forKey: kCIInputRadiusKey)
+        guard let output = filter.outputImage else { return nil }
+        let ciContext = CIContext()
+        return ciContext.createCGImage(output, from: input.extent)
+    }
+
     private static func cgColor(from color: Color) -> CGColor {
         nsColor(from: color).cgColor
     }
@@ -611,6 +752,38 @@ private struct AnnotationShape: View {
         case .pixelate:
             Rectangle()
                 .fill(.ultraThinMaterial)
+                .frame(width: annotation.bounds.width, height: annotation.bounds.height)
+                .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
+        case .ellipse:
+            Ellipse()
+                .stroke(annotation.color, lineWidth: annotation.lineWidth)
+                .frame(width: annotation.bounds.width, height: annotation.bounds.height)
+                .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
+        case .line:
+            Path { path in
+                guard annotation.points.count == 2 else { return }
+                path.move(to: annotation.points[0])
+                path.addLine(to: annotation.points[1])
+            }
+            .stroke(annotation.color, lineWidth: annotation.lineWidth)
+        case .highlight:
+            Rectangle()
+                .fill(annotation.color.opacity(0.35))
+                .frame(width: annotation.bounds.width, height: annotation.bounds.height)
+                .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
+        case .counter(let number):
+            ZStack {
+                Circle().fill(annotation.color)
+                Text("\(number)")
+                    .foregroundColor(.white)
+                    .font(.system(size: annotation.bounds.height * 0.5, weight: .bold))
+            }
+            .frame(width: annotation.bounds.width, height: annotation.bounds.height)
+            .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
+        case .blur:
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .overlay(Rectangle().stroke(Color.white.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [4])))
                 .frame(width: annotation.bounds.width, height: annotation.bounds.height)
                 .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
         }
