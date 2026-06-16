@@ -89,6 +89,7 @@ struct SnipasteCaptureOverlay: View {
     @State private var counter = 0
     @State private var hexMode = true
     @State private var keyMonitor: Any?
+    @State private var windowRects: [CGRect] = []
 
     private var previewImage: NSImage? { previewImageData.flatMap(NSImage.init(data:)) }
     private var previewBitmap: NSBitmapImageRep? { previewImageData.flatMap(NSBitmapImageRep.init(data:)) }
@@ -102,9 +103,16 @@ struct SnipasteCaptureOverlay: View {
                     annotationLayer(sel)
                     selectionChrome(sel, geo.size)
                 }
+                if selection == nil, let win = windowRect(at: cursor) {
+                    brightHole(win)
+                    Rectangle().stroke(Color.accentColor, lineWidth: 2)
+                        .frame(width: win.width, height: win.height)
+                        .position(x: win.midX, y: win.midY)
+                        .allowsHitTesting(false)
+                }
                 if tool == nil { loupe(geo.size) }
                 if selection == nil {
-                    Text("拖动选择截图区域 · Esc 取消")
+                    Text("拖动框选,或移到窗口上点击截取该窗口 · Esc 取消")
                         .font(.system(size: 13, weight: .medium)).foregroundColor(.white)
                         .padding(.horizontal, 14).padding(.vertical, 8)
                         .background(Color.black.opacity(0.7), in: Capsule())
@@ -113,7 +121,7 @@ struct SnipasteCaptureOverlay: View {
                 }
                 SelectionKeyboardBridge { handleKey($0, geo.size) }.frame(width: 0, height: 0)
             }
-            .onAppear { viewSize = geo.size; installKeyMonitor() }
+            .onAppear { viewSize = geo.size; installKeyMonitor(); windowRects = detectWindows() }
             .onDisappear { if let m = keyMonitor { NSEvent.removeMonitor(m) } }
             .onChange(of: geo.size) { viewSize = $0 }
         }
@@ -378,10 +386,36 @@ struct SnipasteCaptureOverlay: View {
         let now = SelectionGeometry.clamp(v.location, bounds: size)
         if case .drawing = mode {
             let rect = SelectionGeometry.normalizedRect(from: start, to: now)
-            selection = SelectionGeometry.isValidSelection(rect) ? rect : nil
+            if rect.width < 6, rect.height < 6 {
+                // A click (not a drag): capture the window under the cursor.
+                selection = windowRect(at: start)
+            } else {
+                selection = SelectionGeometry.isValidSelection(rect) ? rect : nil
+            }
         } else if case .annotating = mode, let t = tool {
             appendAnnotation(t, from: start, to: now)
         }
+    }
+
+    private func detectWindows() -> [CGRect] {
+        guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else { return [] }
+        let myPID = Int(ProcessInfo.processInfo.processIdentifier)
+        var rects: [CGRect] = []
+        for info in list {
+            if let owner = info[kCGWindowOwnerPID as String] as? Int, owner == myPID { continue }
+            guard let layer = info[kCGWindowLayer as String] as? Int, layer == 0 else { continue }
+            guard let bounds = info[kCGWindowBounds as String] as? [String: CGFloat],
+                  let x = bounds["X"], let y = bounds["Y"], let w = bounds["Width"], let h = bounds["Height"],
+                  w >= 40, h >= 40 else { continue }
+            rects.append(CGRect(x: x, y: y, width: w, height: h))
+        }
+        return rects
+    }
+
+    private func windowRect(at point: CGPoint) -> CGRect? {
+        windowRects
+            .filter { $0.contains(point) }
+            .min(by: { $0.width * $0.height < $1.width * $1.height })
     }
 
     private func appendAnnotation(_ t: ScreenshotTool, from start: CGPoint, to end: CGPoint) {

@@ -1930,14 +1930,13 @@ private struct ScreenshotModuleView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text("截图 + 标注").font(.title3).bold()
-            Text("捕获后会在屏幕正中弹出标注编辑器:矩形 · 箭头 · 画笔 · 文字 · 马赛克,并支持取色、OCR、钉住、复制、保存。")
+            Text("框选后直接在浮层上标注(矩形 · 椭圆 · 箭头 · 直线 · 画笔 · 高亮 · 步骤标号 · 文字 · 马赛克 · 高斯模糊),并支持取色、复制、保存、钉住。")
                 .font(.callout).foregroundColor(.secondary)
             HStack(spacing: 12) {
-                captureButton("区域截图", "viewfinder") { captureRegion() }
-                captureButton("窗口截图", "macwindow") { capture(.window) }
+                captureButton("区域 / 窗口截图", "viewfinder") { captureRegion() }
                 captureButton("全屏截图", "rectangle.inset.filled") { capture(.full) }
             }
-            Text("区域 / 窗口使用系统原生选择界面(拖拽选区,或在窗口模式点选窗口);首次需在「系统设置 → 隐私与安全性 → 屏幕录制」授权 Atlas。")
+            Text("拖动框选任意区域,或把鼠标移到某个窗口上点击即截该窗口。首次需在「系统设置 → 隐私与安全性 → 屏幕录制」授权 Atlas。")
                 .font(.caption).foregroundColor(.secondary)
             if !status.isEmpty { Text(status).font(.caption).foregroundColor(.secondary) }
             Spacer()
