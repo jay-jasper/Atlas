@@ -24,6 +24,7 @@ struct AtlasMainView: View {
         case monitor, processes, ports, connections, clipboard
         case devtools, colors, calc, timestamp, qrcode, password, regex
         case lorem, baseconv, jwt, urlcodec, textcase, worldclock, markdown, wordcount, cron
+        case htmlentities, diff, hexview, contrast
         var id: String { rawValue }
         var title: String {
             switch self {
@@ -48,6 +49,10 @@ struct AtlasMainView: View {
             case .markdown: return "Markdown 预览"
             case .wordcount: return "文本统计"
             case .cron: return "Cron 解析"
+            case .htmlentities: return "HTML 实体"
+            case .diff: return "文本 Diff"
+            case .hexview: return "十六进制"
+            case .contrast: return "对比度检查"
             }
         }
         var icon: String {
@@ -73,6 +78,10 @@ struct AtlasMainView: View {
             case .markdown: return "doc.richtext"
             case .wordcount: return "character.cursor.ibeam"
             case .cron: return "calendar.badge.clock"
+            case .htmlentities: return "chevron.left.forwardslash.chevron.right"
+            case .diff: return "plus.forwardslash.minus"
+            case .hexview: return "number.square"
+            case .contrast: return "circle.lefthalf.filled"
             }
         }
         var subtitle: String {
@@ -98,6 +107,10 @@ struct AtlasMainView: View {
             case .markdown: return "实时渲染"
             case .wordcount: return "字符 · 单词 · 行数"
             case .cron: return "表达式 → 人类可读"
+            case .htmlentities: return "实体编解码"
+            case .diff: return "行级差异"
+            case .hexview: return "Hex Dump"
+            case .contrast: return "WCAG 比值"
             }
         }
     }
@@ -193,6 +206,14 @@ struct AtlasMainView: View {
             WordCountToolView()
         case .cron:
             CronToolView()
+        case .htmlentities:
+            HTMLEntitiesToolView()
+        case .diff:
+            DiffToolView()
+        case .hexview:
+            HexViewToolView()
+        case .contrast:
+            ContrastToolView()
         }
     }
 
@@ -1156,5 +1177,239 @@ private struct CronToolView: View {
             part(fields[3], "月"),
             part(fields[4], "周(0=周日)"),
         ].joined(separator: " · ")
+    }
+}
+
+/// HTML entity encode / decode. Pure.
+private struct HTMLEntitiesToolView: View {
+    @State private var input = ""
+    @State private var decode = false
+
+    var body: some View {
+        let out = result
+        return VStack(alignment: .leading, spacing: 14) {
+            Picker("", selection: $decode) {
+                Text("编码").tag(false); Text("解码").tag(true)
+            }
+            .pickerStyle(.segmented).frame(width: 160).labelsHidden()
+            TextField(decode ? "粘贴含实体的文本" : "输入文本", text: $input, axis: .vertical)
+                .textFieldStyle(.roundedBorder).lineLimit(2 ... 5)
+            HStack(alignment: .top) {
+                Text(out.isEmpty ? "结果" : out)
+                    .font(.system(.body, design: .monospaced))
+                    .foregroundColor(out.isEmpty ? .secondary : .primary).textSelection(.enabled)
+                Spacer()
+                atlasCopyButton(out)
+            }
+            Spacer()
+        }
+        .padding()
+    }
+
+    private var result: String {
+        guard !input.isEmpty else { return "" }
+        return decode ? Self.decodeEntities(input) : Self.encodeEntities(input)
+    }
+
+    private static let encodeMap: [Character: String] =
+        ["&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"]
+
+    private static func encodeEntities(_ s: String) -> String {
+        s.map { encodeMap[$0] ?? String($0) }.joined()
+    }
+
+    private static func decodeEntities(_ s: String) -> String {
+        var result = s
+        // Numeric: &#123; and &#x1F；
+        if let regex = try? NSRegularExpression(pattern: "&#(x?)([0-9A-Fa-f]+);") {
+            let ns = result as NSString
+            var output = ""
+            var last = 0
+            for match in regex.matches(in: result, range: NSRange(location: 0, length: ns.length)) {
+                output += ns.substring(with: NSRange(location: last, length: match.range.location - last))
+                let isHex = ns.substring(with: match.range(at: 1)) == "x"
+                let digits = ns.substring(with: match.range(at: 2))
+                if let code = UInt32(digits, radix: isHex ? 16 : 10), let scalar = Unicode.Scalar(code) {
+                    output += String(scalar)
+                } else {
+                    output += ns.substring(with: match.range)
+                }
+                last = match.range.location + match.range.length
+            }
+            output += ns.substring(from: last)
+            result = output
+        }
+        let named = ["&lt;": "<", "&gt;": ">", "&quot;": "\"", "&apos;": "'", "&#39;": "'", "&nbsp;": " "]
+        for (entity, char) in named { result = result.replacingOccurrences(of: entity, with: char) }
+        return result.replacingOccurrences(of: "&amp;", with: "&")
+    }
+}
+
+/// Line-level text diff via CollectionDifference. Pure.
+private struct DiffToolView: View {
+    @State private var left = ""
+    @State private var right = ""
+
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 8) {
+                editor("原文", $left)
+                editor("新文", $right)
+            }
+            .frame(height: 160)
+            Divider()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 2) {
+                    let changes = changeList
+                    if changes.isEmpty {
+                        Text(left.isEmpty && right.isEmpty ? "在两侧输入文本对比" : "两侧内容相同")
+                            .foregroundColor(.secondary)
+                    } else {
+                        ForEach(Array(changes.enumerated()), id: \.offset) { _, line in
+                            Text(line.text)
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundColor(line.added ? .green : .red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                }
+                .padding(8)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding()
+    }
+
+    private struct Line { let text: String; let added: Bool }
+
+    private var changeList: [Line] {
+        let a = left.components(separatedBy: "\n")
+        let b = right.components(separatedBy: "\n")
+        let diff = b.difference(from: a)
+        return diff.map { change in
+            switch change {
+            case .remove(_, let element, _): return Line(text: "− \(element)", added: false)
+            case .insert(_, let element, _): return Line(text: "+ \(element)", added: true)
+            }
+        }
+    }
+
+    private func editor(_ title: String, _ text: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title).font(.caption).foregroundColor(.secondary)
+            TextEditor(text: text)
+                .font(.system(.caption, design: .monospaced))
+                .overlay(RoundedRectangle(cornerRadius: 4).stroke(.secondary.opacity(0.2)))
+        }
+    }
+}
+
+/// Hex dump of the input text's UTF-8 bytes. Pure.
+private struct HexViewToolView: View {
+    @State private var input = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            TextField("输入文本", text: $input, axis: .vertical)
+                .textFieldStyle(.roundedBorder).lineLimit(2 ... 4)
+            HStack {
+                Text("\(Array(input.utf8).count) 字节").font(.caption).foregroundColor(.secondary)
+                Spacer()
+                atlasCopyButton(dump)
+            }
+            ScrollView {
+                Text(dump.isEmpty ? "Hex dump 会显示在这里" : dump)
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundColor(dump.isEmpty ? .secondary : .primary)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            Spacer()
+        }
+        .padding()
+    }
+
+    private var dump: String {
+        let bytes = Array(input.utf8)
+        guard !bytes.isEmpty else { return "" }
+        var lines: [String] = []
+        for offset in stride(from: 0, to: bytes.count, by: 16) {
+            let chunk = Array(bytes[offset ..< min(offset + 16, bytes.count)])
+            let hex = chunk.map { String(format: "%02X", $0) }.joined(separator: " ")
+            let padded = hex.padding(toLength: 16 * 3 - 1, withPad: " ", startingAt: 0)
+            let ascii = chunk.map { (32 ... 126).contains($0) ? String(UnicodeScalar($0)) : "." }.joined()
+            lines.append(String(format: "%08X  %@  %@", offset, padded, ascii))
+        }
+        return lines.joined(separator: "\n")
+    }
+}
+
+/// WCAG contrast ratio between two colors. Pure, reuses Color(hex:)/rgb255.
+private struct ContrastToolView: View {
+    @State private var fg = "#1F8579"
+    @State private var bg = "#FFFFFF"
+
+    var body: some View {
+        let ratio = contrastRatio
+        return VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
+                colorField("前景", $fg)
+                colorField("背景", $bg)
+            }
+            ZStack {
+                RoundedRectangle(cornerRadius: 8).fill(Color(hex: bg))
+                Text("示例文本 Aa 123").font(.title2).foregroundColor(Color(hex: fg))
+            }
+            .frame(height: 80)
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(.secondary.opacity(0.3)))
+
+            if let ratio {
+                Text(String(format: "对比度 %.2f : 1", ratio))
+                    .font(.system(.title3, design: .monospaced))
+                grade("正常文本 AA (≥4.5)", ratio >= 4.5)
+                grade("正常文本 AAA (≥7)", ratio >= 7)
+                grade("大号文本 AA (≥3)", ratio >= 3)
+            } else {
+                Text("⚠️ 无效的 HEX").foregroundColor(.red)
+            }
+            Spacer()
+        }
+        .padding()
+    }
+
+    private func colorField(_ label: String, _ binding: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label).font(.caption).foregroundColor(.secondary)
+            HStack {
+                TextField("#RRGGBB", text: binding)
+                    .textFieldStyle(.roundedBorder).font(.system(.body, design: .monospaced))
+                RoundedRectangle(cornerRadius: 5).fill(Color(hex: binding.wrappedValue))
+                    .frame(width: 32, height: 24)
+                    .overlay(RoundedRectangle(cornerRadius: 5).stroke(.secondary.opacity(0.3)))
+            }
+        }
+    }
+
+    private func grade(_ label: String, _ pass: Bool) -> some View {
+        HStack {
+            Image(systemName: pass ? "checkmark.circle.fill" : "xmark.circle")
+                .foregroundColor(pass ? .green : .secondary)
+            Text(label).foregroundColor(pass ? .primary : .secondary)
+        }
+    }
+
+    private var contrastRatio: Double? {
+        guard let f = Color(hex: fg).rgb255, let b = Color(hex: bg).rgb255 else { return nil }
+        let lf = Self.luminance(f.r, f.g, f.b)
+        let lb = Self.luminance(b.r, b.g, b.b)
+        return (max(lf, lb) + 0.05) / (min(lf, lb) + 0.05)
+    }
+
+    private static func luminance(_ r: Int, _ g: Int, _ b: Int) -> Double {
+        func channel(_ value: Int) -> Double {
+            let s = Double(value) / 255
+            return s <= 0.03928 ? s / 12.92 : pow((s + 0.055) / 1.055, 2.4)
+        }
+        return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
     }
 }
