@@ -26,6 +26,7 @@ struct AtlasMainView: View {
         case lorem, baseconv, jwt, urlcodec, textcase, worldclock, markdown, wordcount, cron
         case htmlentities, diff, hexview, contrast
         case lines, slug, httpcodes, unicode
+        case scratchpad, totp, pomodoro
         var id: String { rawValue }
         var title: String {
             switch self {
@@ -58,6 +59,9 @@ struct AtlasMainView: View {
             case .slug: return "Slug 生成"
             case .httpcodes: return "HTTP 状态码"
             case .unicode: return "Unicode 查询"
+            case .scratchpad: return "便签"
+            case .totp: return "两步验证"
+            case .pomodoro: return "番茄钟"
             }
         }
         var icon: String {
@@ -91,6 +95,9 @@ struct AtlasMainView: View {
             case .slug: return "link.badge.plus"
             case .httpcodes: return "number.circle"
             case .unicode: return "character"
+            case .scratchpad: return "note.text"
+            case .totp: return "lock.shield"
+            case .pomodoro: return "timer"
             }
         }
         var subtitle: String {
@@ -124,6 +131,9 @@ struct AtlasMainView: View {
             case .slug: return "URL 友好串"
             case .httpcodes: return "状态码速查"
             case .unicode: return "字符 → 码点"
+            case .scratchpad: return "Markdown 笔记"
+            case .totp: return "TOTP 验证码"
+            case .pomodoro: return "专注计时"
             }
         }
     }
@@ -235,6 +245,12 @@ struct AtlasMainView: View {
             HTTPCodesToolView()
         case .unicode:
             UnicodeToolView()
+        case .scratchpad:
+            ScratchpadModuleView()
+        case .totp:
+            TOTPModuleView()
+        case .pomodoro:
+            PomodoroModuleView()
         }
     }
 
@@ -1552,5 +1568,32 @@ private struct UnicodeToolView: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Real app modules (permission-free)
+
+/// 便签 — reuses the app's ScratchpadPanel (disk-backed Markdown notes).
+private struct ScratchpadModuleView: View {
+    private let store = ScratchpadStore()
+    var body: some View {
+        ScratchpadPanel(store: store, summarizer: DisabledScratchpadSummarizer())
+            .padding()
+    }
+}
+
+/// 两步验证 — reuses the app's TOTPPanel (Keychain-backed authenticator).
+private struct TOTPModuleView: View {
+    @StateObject private var service = TOTPService()
+    var body: some View {
+        ScrollView { TOTPPanel(service: service).padding() }
+    }
+}
+
+/// 番茄钟 — reuses the app's PomodoroPanel timer.
+private struct PomodoroModuleView: View {
+    @StateObject private var service = PomodoroService()
+    var body: some View {
+        PomodoroPanel(service: service).padding()
     }
 }
