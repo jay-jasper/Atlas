@@ -19,6 +19,7 @@ struct ScreenshotEditorView: View {
     let onClose: () -> Void
 
     @State private var selectedTool: ScreenshotTool = .rectangle
+    @State private var arrowStyle: ScreenshotArrowStyle = .arrow
     @State private var selectedAnnotationColor: ScreenshotAnnotationColor = ScreenshotAnnotationStyle.defaultStyle.colorChoice
     @State private var annotationLineWidth: CGFloat = ScreenshotAnnotationStyle.defaultStyle.lineWidth
     @AppStorage("annotation.text.draft") private var textDraftRaw: String = ScreenshotTextAnnotationDraft.fallbackValue
@@ -64,11 +65,11 @@ struct ScreenshotEditorView: View {
                 if capabilities.annotations {
                     ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                    ForEach(ScreenshotTool.allCases) { tool in
+                    ForEach(ScreenshotTool.allCases.filter { !$0.isHiddenFromToolbar }) { tool in
                         Button {
                             selectedTool = tool
                         } label: {
-                            Image(systemName: tool.systemImage)
+                            Image(systemName: tool == .arrow ? arrowStyle.systemImage : tool.systemImage)
                         }
                         .help(tool.title)
                         .buttonStyle(.bordered)
@@ -79,6 +80,24 @@ struct ScreenshotEditorView: View {
 
                     Divider()
                         .frame(height: 18)
+
+                    if selectedTool == .arrow {
+                        ForEach(ScreenshotArrowStyle.allCases) { style in
+                            Button {
+                                arrowStyle = style
+                            } label: {
+                                Image(systemName: style.systemImage)
+                            }
+                            .help(style.title)
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                            .background(arrowStyle == style ? Color.accentColor.opacity(0.18) : Color.clear)
+                            .cornerRadius(6)
+                        }
+
+                        Divider()
+                            .frame(height: 18)
+                    }
 
                     ForEach(ScreenshotAnnotationColor.allCases) { colorChoice in
                         Button {
@@ -336,7 +355,7 @@ struct ScreenshotEditorView: View {
                 case .ellipse:
                     annotations.append(.ellipse(rect: rect, color: style.color, lineWidth: style.lineWidth))
                 case .arrow:
-                    annotations.append(.arrow(from: start, to: value.location, color: style.color, lineWidth: style.lineWidth))
+                    annotations.append(arrowAnnotation(from: start, to: value.location, style: style))
                 case .line:
                     annotations.append(.line(from: start, to: value.location, color: style.color, lineWidth: style.lineWidth))
                 case .pen:
@@ -381,6 +400,16 @@ struct ScreenshotEditorView: View {
             }
     }
 
+    /// Builds an arrow / line / double-arrow annotation based on the current
+    /// `arrowStyle` (the Arrow tool merges all three).
+    private func arrowAnnotation(from start: CGPoint, to end: CGPoint, style: ScreenshotAnnotationStyle) -> ScreenshotAnnotation {
+        switch arrowStyle {
+        case .arrow: return .arrow(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
+        case .line: return .line(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
+        case .doubleArrow: return .doubleArrow(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
+        }
+    }
+
     /// The annotation currently being dragged, for live preview on the canvas.
     private var editorPreviewAnnotation: ScreenshotAnnotation? {
         guard let start = dragStart, let cur = dragCurrent else { return nil }
@@ -389,7 +418,7 @@ struct ScreenshotEditorView: View {
         switch selectedTool {
         case .rectangle: return .rectangle(rect: rect, color: style.color, lineWidth: style.lineWidth)
         case .ellipse: return .ellipse(rect: rect, color: style.color, lineWidth: style.lineWidth)
-        case .arrow: return .arrow(from: start, to: cur, color: style.color, lineWidth: style.lineWidth)
+        case .arrow: return arrowAnnotation(from: start, to: cur, style: style)
         case .line: return .line(from: start, to: cur, color: style.color, lineWidth: style.lineWidth)
         case .highlight: return .highlight(rect: rect, color: style.color, lineWidth: style.lineWidth)
         case .pixelate: return .pixelate(rect: rect)
@@ -562,6 +591,8 @@ enum ScreenshotEditorRenderer {
                 drawMagnifier(annotation, sourceImage: sourceImage, pixelBounds: pixelBounds, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
             case .image(let data):
                 drawImageAnnotation(data, annotation: annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
+            case .doubleArrow:
+                drawArrow(annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context, doubleHeaded: true)
             }
         }
 
@@ -627,7 +658,8 @@ enum ScreenshotEditorRenderer {
         _ annotation: ScreenshotAnnotation,
         renderedImageRect: CGRect,
         outputSize: CGSize,
-        in context: CGContext
+        in context: CGContext,
+        doubleHeaded: Bool = false
     ) {
         guard annotation.points.count == 2 else { return }
 
@@ -642,23 +674,18 @@ enum ScreenshotEditorRenderer {
         context.addLine(to: end)
         context.strokePath()
 
-        let angle = atan2(end.y - start.y, end.x - start.x)
         let arrowLength = max(10, min(28, lineWidth * 7))
         let arrowAngle = CGFloat.pi / 7
-        let head1 = CGPoint(
-            x: end.x - arrowLength * cos(angle - arrowAngle),
-            y: end.y - arrowLength * sin(angle - arrowAngle)
-        )
-        let head2 = CGPoint(
-            x: end.x - arrowLength * cos(angle + arrowAngle),
-            y: end.y - arrowLength * sin(angle + arrowAngle)
-        )
-
-        context.move(to: end)
-        context.addLine(to: head1)
-        context.move(to: end)
-        context.addLine(to: head2)
-        context.strokePath()
+        func head(at tip: CGPoint, towards from: CGPoint) {
+            let angle = atan2(tip.y - from.y, tip.x - from.x)
+            context.move(to: tip)
+            context.addLine(to: CGPoint(x: tip.x - arrowLength * cos(angle - arrowAngle), y: tip.y - arrowLength * sin(angle - arrowAngle)))
+            context.move(to: tip)
+            context.addLine(to: CGPoint(x: tip.x - arrowLength * cos(angle + arrowAngle), y: tip.y - arrowLength * sin(angle + arrowAngle)))
+            context.strokePath()
+        }
+        head(at: end, towards: start)
+        if doubleHeaded { head(at: start, towards: end) }
     }
 
     private static func drawPen(
@@ -1017,6 +1044,13 @@ private struct AnnotationShape: View {
                 .frame(width: annotation.bounds.width, height: annotation.bounds.height)
                 .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
         case .line:
+            Path { path in
+                guard annotation.points.count == 2 else { return }
+                path.move(to: annotation.points[0])
+                path.addLine(to: annotation.points[1])
+            }
+            .stroke(annotation.color, lineWidth: annotation.lineWidth)
+        case .doubleArrow:
             Path { path in
                 guard annotation.points.count == 2 else { return }
                 path.move(to: annotation.points[0])

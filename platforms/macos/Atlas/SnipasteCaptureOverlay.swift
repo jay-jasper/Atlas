@@ -103,6 +103,7 @@ struct SnipasteCaptureOverlay: View {
     @State private var viewSize: CGSize = .zero
 
     @State private var tool: ScreenshotTool?
+    @State private var arrowStyle: ScreenshotArrowStyle = .arrow
     @State private var annotations: [ScreenshotAnnotation] = []
     @State private var redoStack: [ScreenshotAnnotation] = []
     @State private var colorChoice: ScreenshotAnnotationColor = .red
@@ -135,7 +136,9 @@ struct SnipasteCaptureOverlay: View {
                         .position(x: win.midX, y: win.midY)
                         .allowsHitTesting(false)
                 }
-                if tool == nil { loupe(geo.size) }
+                if tool == nil, selection == nil || selection!.insetBy(dx: -2, dy: -2).contains(cursor) {
+                    loupe(geo.size)
+                }
                 if selection == nil {
                     Text("拖动框选,或移到窗口上点击截取该窗口 · Esc 取消")
                         .font(.system(size: 13, weight: .medium)).foregroundColor(.white)
@@ -245,6 +248,8 @@ struct SnipasteCaptureOverlay: View {
                 .frame(width: a.bounds.width, height: a.bounds.height).position(x: a.bounds.midX, y: a.bounds.midY)
         case .arrow:
             ArrowShape(points: a.points).stroke(a.color, style: StrokeStyle(lineWidth: a.lineWidth, lineCap: .round, lineJoin: .round))
+        case .doubleArrow:
+            ArrowShape(points: a.points, doubleHeaded: true).stroke(a.color, style: StrokeStyle(lineWidth: a.lineWidth, lineCap: .round, lineJoin: .round))
         case .line:
             Path { p in if a.points.count == 2 { p.move(to: a.points[0]); p.addLine(to: a.points[1]) } }
                 .stroke(a.color, style: StrokeStyle(lineWidth: a.lineWidth, lineCap: .round))
@@ -291,7 +296,7 @@ struct SnipasteCaptureOverlay: View {
 
     // MARK: - Toolbar
 
-    private static let toolList: [ScreenshotTool] = [.rectangle, .ellipse, .arrow, .line, .pen, .highlight, .counter, .text, .measure, .spotlight, .magnifier, .pixelate, .blur, .pasteImage]
+    private static let toolList: [ScreenshotTool] = [.rectangle, .ellipse, .arrow, .pen, .highlight, .counter, .text, .measure, .spotlight, .magnifier, .pixelate, .blur, .pasteImage]
 
     private var toolUsesColor: Bool {
         switch tool {
@@ -323,6 +328,18 @@ struct SnipasteCaptureOverlay: View {
             }
             if toolUsesColor {
                 HStack(spacing: 8) {
+                    if tool == .arrow {
+                        ForEach(ScreenshotArrowStyle.allCases) { s in
+                            Button { arrowStyle = s } label: {
+                                Image(systemName: s.systemImage).frame(width: 20, height: 18)
+                            }
+                            .buttonStyle(.borderless)
+                            .background(arrowStyle == s ? Color.accentColor.opacity(0.25) : Color.clear)
+                            .cornerRadius(5)
+                            .help(s.title)
+                        }
+                        Divider().frame(height: 14)
+                    }
                     colorButtons
                     Divider().frame(height: 14)
                     Image(systemName: "lineweight").foregroundColor(.secondary)
@@ -349,7 +366,7 @@ struct SnipasteCaptureOverlay: View {
                     tool = (tool == t) ? nil : t
                 }
             } label: {
-                Image(systemName: t.systemImage).frame(width: 20, height: 18)
+                Image(systemName: t == .arrow ? arrowStyle.systemImage : t.systemImage).frame(width: 20, height: 18)
             }
             .buttonStyle(.borderless)
             .background(tool == t ? Color.accentColor.opacity(0.25) : Color.clear)
@@ -514,7 +531,12 @@ struct SnipasteCaptureOverlay: View {
         switch t {
         case .rectangle: return .rectangle(rect: rect, color: style.color, lineWidth: style.lineWidth)
         case .ellipse: return .ellipse(rect: rect, color: style.color, lineWidth: style.lineWidth)
-        case .arrow: return .arrow(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
+        case .arrow:
+            switch arrowStyle {
+            case .arrow: return .arrow(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
+            case .line: return .line(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
+            case .doubleArrow: return .doubleArrow(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
+            }
         case .line: return .line(from: start, to: end, color: style.color, lineWidth: style.lineWidth)
         case .pen:
             let pts = penPoints.count >= 2 ? penPoints : [start, end]
@@ -693,17 +715,22 @@ struct SnipasteCaptureOverlay: View {
 
 private struct ArrowShape: Shape {
     let points: [CGPoint]
+    var doubleHeaded: Bool = false
     func path(in rect: CGRect) -> Path {
         var path = Path()
         guard points.count == 2 else { return path }
         let start = points[0], end = points[1]
         path.move(to: start); path.addLine(to: end)
-        let angle = atan2(end.y - start.y, end.x - start.x)
         let len: CGFloat = 14, spread = CGFloat.pi / 7
-        path.move(to: end)
-        path.addLine(to: CGPoint(x: end.x - len * cos(angle - spread), y: end.y - len * sin(angle - spread)))
-        path.move(to: end)
-        path.addLine(to: CGPoint(x: end.x - len * cos(angle + spread), y: end.y - len * sin(angle + spread)))
+        func head(at tip: CGPoint, from origin: CGPoint) {
+            let angle = atan2(tip.y - origin.y, tip.x - origin.x)
+            path.move(to: tip)
+            path.addLine(to: CGPoint(x: tip.x - len * cos(angle - spread), y: tip.y - len * sin(angle - spread)))
+            path.move(to: tip)
+            path.addLine(to: CGPoint(x: tip.x - len * cos(angle + spread), y: tip.y - len * sin(angle + spread)))
+        }
+        head(at: end, from: start)
+        if doubleHeaded { head(at: start, from: end) }
         return path
     }
 }

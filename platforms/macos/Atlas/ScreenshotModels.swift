@@ -21,6 +21,10 @@ enum ScreenshotTool: String, CaseIterable, Identifiable {
     /// Tools that paste/insert immediately on selection rather than via a drag.
     var isInstantAction: Bool { self == .pasteImage }
 
+    /// `.line` is merged into the Arrow tool (selectable as a type), so it isn't
+    /// shown as its own toolbar button.
+    var isHiddenFromToolbar: Bool { self == .line }
+
     var title: String {
         switch self {
         case .rectangle: return "Rectangle"
@@ -56,6 +60,32 @@ enum ScreenshotTool: String, CaseIterable, Identifiable {
         case .spotlight: return "rays"
         case .magnifier: return "plus.magnifyingglass"
         case .pasteImage: return "photo.on.rectangle"
+        }
+    }
+}
+
+/// The Arrow tool can draw a single-headed arrow, a plain line, or a
+/// double-headed arrow. Selectable at any time from the tool's sub-toolbar.
+enum ScreenshotArrowStyle: String, CaseIterable, Identifiable {
+    case arrow
+    case line
+    case doubleArrow
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .arrow: return "Arrow"
+        case .line: return "Line"
+        case .doubleArrow: return "Double Arrow"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .arrow: return "arrow.up.right"
+        case .line: return "line.diagonal"
+        case .doubleArrow: return "arrow.left.and.right"
         }
     }
 }
@@ -153,6 +183,7 @@ enum ScreenshotAnnotationKind: Equatable {
     case spotlight
     case magnifier
     case image(Data)
+    case doubleArrow
 }
 
 struct ScreenshotAnnotation: Identifiable, Equatable {
@@ -204,6 +235,17 @@ struct ScreenshotAnnotation: Identifiable, Equatable {
         ScreenshotAnnotation(
             id: id,
             kind: .line,
+            bounds: CGRect(origin: start, size: CGSize(width: end.x - start.x, height: end.y - start.y)).standardized,
+            color: color,
+            lineWidth: lineWidth,
+            points: [start, end]
+        )
+    }
+
+    static func doubleArrow(id: UUID = UUID(), from start: CGPoint, to end: CGPoint, color: Color, lineWidth: CGFloat) -> Self {
+        ScreenshotAnnotation(
+            id: id,
+            kind: .doubleArrow,
             bounds: CGRect(origin: start, size: CGSize(width: end.x - start.x, height: end.y - start.y)).standardized,
             color: color,
             lineWidth: lineWidth,
