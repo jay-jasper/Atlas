@@ -326,7 +326,10 @@ struct AtlasMainView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .navigationTitle((selection ?? .monitor).title)
         }
-        .onAppear(perform: startMonitoring)
+        .onAppear {
+            startMonitoring()
+            ScreenshotHotkeys.applyFromSettings()
+        }
         .onDisappear { try? AtlasBridge.stopMonitoring() }
     }
 
@@ -1943,8 +1946,17 @@ private struct ScreenshotModuleView: View {
             Text("框选后直接在浮层上标注(矩形 · 椭圆 · 箭头 · 直线 · 画笔 · 高亮 · 步骤标号 · 文字 · 马赛克 · 高斯模糊),并支持取色、复制、保存、钉住。")
                 .font(.callout).foregroundColor(.secondary)
             HStack(spacing: 12) {
-                captureButton("区域 / 窗口截图", "viewfinder") { captureRegion() }
-                captureButton("全屏截图", "rectangle.inset.filled") { capture(.full) }
+                captureButton("区域 / 窗口截图", "viewfinder") {
+                    status = ""
+                    ScreenshotActions.captureRegion { status = "需要屏幕录制权限(系统设置 → 隐私与安全性 → 屏幕录制)" }
+                }
+                captureButton("全屏截图", "rectangle.inset.filled") {
+                    status = ""
+                    ScreenshotActions.captureFull { status = "已取消" }
+                }
+                captureButton("贴图(剪贴板)", "pin") {
+                    status = ScreenshotActions.pinFromClipboard() ? "" : "剪贴板没有图片"
+                }
             }
             Text("拖动框选任意区域,或把鼠标移到某个窗口上点击即截该窗口。首次需在「系统设置 → 隐私与安全性 → 屏幕录制」授权 Atlas。")
                 .font(.caption).foregroundColor(.secondary)
@@ -1990,49 +2002,6 @@ private struct ScreenshotModuleView: View {
         .buttonStyle(.bordered)
     }
 
-    /// Region capture uses the Snipaste-style in-place overlay (freeze screen →
-    /// select → annotate on the overlay → copy/save/pin). No editor window.
-    /// The freeze frame is taken with the system `screencapture` tool, which is
-    /// the most reliable path for Screen Recording permission.
-    private func captureRegion() {
-        // Snipaste-style: freeze the screen (system screencapture), then the
-        // in-place overlay — select → annotate on the overlay → copy/save/pin.
-        afterDelay {
-            InteractiveScreenCapture.capture(.full) { data in
-                guard let data else {
-                    status = "需要屏幕录制权限(系统设置 → 隐私与安全性 → 屏幕录制)"
-                    return
-                }
-                status = ""
-                SnipasteCaptureWindow.show(previewImageData: data)
-            }
-        }
-    }
-
-    private func capture(_ mode: InteractiveScreenCapture.Mode) {
-        afterDelay {
-            InteractiveScreenCapture.capture(mode) { data in
-                guard let data, let bitmap = NSBitmapImageRep(data: data) else {
-                    status = "已取消"
-                    return
-                }
-                let shot = CapturedScreenshot(
-                    pngData: data,
-                    rect: CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
-                )
-                status = ""
-                ScreenshotEditorWindow.present(shot)
-            }
-        }
-    }
-
-    /// Honour the configured delay-capture seconds before grabbing.
-    private func afterDelay(_ work: @escaping () -> Void) {
-        let delay = settings.captureDelay
-        if delay <= 0 { work(); return }
-        status = "将在 \(Int(delay)) 秒后截图…"
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { work() }
-    }
 }
 
 /// Snipaste-style settings, opened from the screenshot module's gear button.
@@ -2109,6 +2078,20 @@ private struct ScreenshotSettingsView: View {
                         Text("默认不透明度")
                         Slider(value: $settings.pinDefaultOpacity, in: 0.2 ... 1)
                         Text("\(Int(settings.pinDefaultOpacity * 100))%").font(.system(.caption, design: .monospaced)).frame(width: 40)
+                    }
+                }
+
+                Section("全局快捷键") {
+                    Toggle("启用全局快捷键(无需聚焦 Atlas)", isOn: $settings.hotkeysEnabled)
+                    ForEach(ScreenshotHotkeys.descriptions, id: \.action) { item in
+                        HStack {
+                            Text(item.action).foregroundColor(settings.hotkeysEnabled ? .primary : .secondary)
+                            Spacer()
+                            Text(item.shortcut)
+                                .font(.system(.caption, design: .monospaced))
+                                .padding(.horizontal, 6).padding(.vertical, 2)
+                                .background(.secondary.opacity(0.15), in: RoundedRectangle(cornerRadius: 4))
+                        }
                     }
                 }
             }

@@ -212,6 +212,7 @@
 		83CBBA2A1A601CBA00E9B192 /* SystemModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3B1A601CBA00E9B192 /* SystemModels.swift */; };
 		83CBBA2B1A601CBA00E9B192 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 83CBBA3C1A601CBA00E9B192 /* Assets.xcassets */; };
 		83CBBA2C1A601CBA00E9B192 /* ScreenshotModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3E1A601CBA00E9B192 /* ScreenshotModels.swift */; };
+		83CBBA2C1A601CBA00E9B202 /* GlobalHotkeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3E1A601CBA00E9B202 /* GlobalHotkeys.swift */; };
 		83CBBA2C1A601CBA00E9B201 /* ScreenshotColorPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3E1A601CBA00E9B201 /* ScreenshotColorPicker.swift */; };
 		83CBBA2D1A601CBA00E9B192 /* ScreenshotModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3F1A601CBA00E9B192 /* ScreenshotModelsTests.swift */; };
 		83CBBA641A601CBA00E9B192 /* ScreenshotOutputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA651A601CBA00E9B192 /* ScreenshotOutputTests.swift */; };
@@ -685,6 +686,7 @@
 		83CBBA3C1A601CBA00E9B192 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		83CBBA3D1A601CBA00E9B192 /* Atlas.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Atlas.entitlements; sourceTree = "<group>"; };
 		83CBBA3E1A601CBA00E9B192 /* ScreenshotModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotModels.swift; sourceTree = "<group>"; };
+		83CBBA3E1A601CBA00E9B202 /* GlobalHotkeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotkeys.swift; sourceTree = "<group>"; };
 		83CBBA3E1A601CBA00E9B201 /* ScreenshotColorPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotColorPicker.swift; sourceTree = "<group>"; };
 		83CBBA3F1A601CBA00E9B192 /* ScreenshotModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotModelsTests.swift; sourceTree = "<group>"; };
 		83CBBA4A1A601CBA00E9B192 /* AtlasTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AtlasTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1342,6 +1344,7 @@
 				DA6CF520A2524B3899891093 /* ScreenshotGIFRecording.swift */,
 				CDB44C6600E344589BB08786 /* ScreenshotGIFOutput.swift */,
 				83CBBA3E1A601CBA00E9B192 /* ScreenshotModels.swift */,
+				83CBBA3E1A601CBA00E9B202 /* GlobalHotkeys.swift */,
 				83CBBA3E1A601CBA00E9B201 /* ScreenshotColorPicker.swift */,
 				83CBBA6A1A601CBA00E9B192 /* ScreenshotEditorView.swift */,
 				83CBBA671A601CBA00E9B192 /* ScreenshotOutput.swift */,
@@ -2055,6 +2058,7 @@
 				C27EB696CACA4ABC9D34B787 /* ScreenshotGIFRecording.swift in Sources */,
 				AFEE5883ED4E468ABBCF9E24 /* ScreenshotGIFOutput.swift in Sources */,
 				83CBBA2C1A601CBA00E9B192 /* ScreenshotModels.swift in Sources */,
+				83CBBA2C1A601CBA00E9B202 /* GlobalHotkeys.swift in Sources */,
 				83CBBA2C1A601CBA00E9B201 /* ScreenshotColorPicker.swift in Sources */,
 				83CBBA6B1A601CBA00E9B192 /* ScreenshotEditorView.swift in Sources */,
 				83CBBA661A601CBA00E9B192 /* ScreenshotOutput.swift in Sources */,

@@ -1,6 +1,45 @@
 import AppKit
 import SwiftUI
 
+/// Shared entry points for the capture flows, so the in-app buttons and the
+/// global hotkeys drive exactly the same behaviour.
+enum ScreenshotActions {
+    /// Region/window capture → Snipaste-style in-place annotation overlay.
+    static func captureRegion(onDenied: (() -> Void)? = nil) {
+        afterDelay {
+            InteractiveScreenCapture.capture(.full) { data in
+                guard let data else { onDenied?(); return }
+                SnipasteCaptureWindow.show(previewImageData: data)
+            }
+        }
+    }
+
+    /// Full-screen capture → floating annotation editor.
+    static func captureFull(onCancel: (() -> Void)? = nil) {
+        afterDelay {
+            InteractiveScreenCapture.capture(.full) { data in
+                guard let data, let bitmap = NSBitmapImageRep(data: data) else { onCancel?(); return }
+                let shot = CapturedScreenshot(pngData: data, rect: CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh))
+                Task { @MainActor in ScreenshotEditorWindow.present(shot) }
+            }
+        }
+    }
+
+    /// Pin the current clipboard image to the screen (Snipaste 贴图).
+    @discardableResult
+    static func pinFromClipboard() -> Bool {
+        guard let data = ScreenshotEditorView.clipboardImagePNG() else { return false }
+        PinnedScreenshotWindow.show(data: data)
+        return true
+    }
+
+    private static func afterDelay(_ work: @escaping () -> Void) {
+        let delay = ScreenshotSettings.shared.captureDelay
+        if delay <= 0 { DispatchQueue.main.async(execute: work); return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+    }
+}
+
 /// Interactive capture via the native macOS `screencapture` tool, so region and
 /// window selection use the real system UI (highlight-and-click a window, drag a
 /// region) instead of an in-app picker.

@@ -318,7 +318,7 @@ struct SnipasteCaptureOverlay: View {
 
     // MARK: - Toolbar
 
-    private static let toolList: [ScreenshotTool] = [.rectangle, .ellipse, .arrow, .pen, .highlight, .counter, .text, .measure, .spotlight, .magnifier, .pixelate, .blur, .pasteImage]
+    private static let toolList: [ScreenshotTool] = [.rectangle, .ellipse, .arrow, .pen, .highlight, .counter, .text, .measure, .spotlight, .magnifier, .pixelate, .blur, .eraser, .pasteImage]
 
     private var toolUsesColor: Bool {
         switch tool {
@@ -612,12 +612,21 @@ struct SnipasteCaptureOverlay: View {
         windowCaptureData = nil
     }
 
+    /// Eraser: delete the top-most annotation under the point.
+    private func eraseAnnotation(at point: CGPoint) {
+        if let idx = annotations.lastIndex(where: { $0.bounds.insetBy(dx: -6, dy: -6).contains(point) }) {
+            let removed = annotations.remove(at: idx)
+            redoStack.append(removed)
+            if activeAnnotationID == removed.id { activeAnnotationID = nil }
+        }
+    }
+
     private func buildAnnotation(_ t: ScreenshotTool, from start: CGPoint, to end: CGPoint, counterNumber: Int) -> ScreenshotAnnotation? {
         let color = selectedColor
         let width = lineWidth
         let rect = CGRect(x: min(start.x, end.x), y: min(start.y, end.y), width: abs(start.x - end.x), height: abs(start.y - end.y)).integral
         switch t {
-        case .select: return nil
+        case .select, .eraser: return nil
         case .rectangle: return .rectangle(rect: rect, color: color, lineWidth: width)
         case .ellipse: return .ellipse(rect: rect, color: color, lineWidth: width)
         case .arrow:
@@ -652,6 +661,7 @@ struct SnipasteCaptureOverlay: View {
     }
 
     private func appendAnnotation(_ t: ScreenshotTool, from start: CGPoint, to end: CGPoint) {
+        if t == .eraser { eraseAnnotation(at: end); return }
         if t == .pasteImage { pasteClipboardImage(at: end); return }
         if t == .counter { counter += 1 }
         guard let anno = buildAnnotation(t, from: start, to: end, counterNumber: counter) else { penPoints = []; return }

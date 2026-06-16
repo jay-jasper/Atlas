@@ -384,6 +384,10 @@ struct ScreenshotEditorView: View {
                 switch selectedTool {
                 case .select:
                     break
+                case .eraser:
+                    if let i = annotations.lastIndex(where: { $0.bounds.insetBy(dx: -6, dy: -6).contains(start) }) {
+                        redoStack.append(annotations.remove(at: i))
+                    }
                 case .rectangle:
                     annotations.append(.rectangle(rect: rect, color: color, lineWidth: lineW))
                 case .ellipse:
@@ -464,7 +468,7 @@ struct ScreenshotEditorView: View {
         case .magnifier:
             let side = max(60, min(rect.width, rect.height) > 8 ? min(rect.width, rect.height) : 120)
             return .magnifier(rect: CGRect(x: start.x, y: start.y, width: side, height: side), lineWidth: lineW)
-        case .pen, .text, .counter, .pasteImage: return nil
+        case .pen, .text, .counter, .pasteImage, .eraser: return nil
         }
     }
 

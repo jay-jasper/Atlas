@@ -26,6 +26,14 @@ final class ScreenshotSettings: ObservableObject {
     // Pin (贴图)
     @Published var pinDefaultOpacity: Double { didSet { store.set(pinDefaultOpacity, forKey: K.opacity) } }
 
+    // Global hotkeys
+    @Published var hotkeysEnabled: Bool {
+        didSet {
+            store.set(hotkeysEnabled, forKey: K.hotkeys)
+            ScreenshotHotkeys.applyFromSettings()
+        }
+    }
+
     /// Most-recent finished captures (in-memory history), newest first.
     @Published var recentCaptures: [Data] = []
 
@@ -40,6 +48,7 @@ final class ScreenshotSettings: ObservableObject {
         static let dir = "ss.saveDirectory"
         static let name = "ss.filenamePattern"
         static let opacity = "ss.pinDefaultOpacity"
+        static let hotkeys = "ss.hotkeysEnabled"
     }
 
     static var defaultSaveDirectory: String {
@@ -57,6 +66,7 @@ final class ScreenshotSettings: ObservableObject {
         saveDirectory = store.string(forKey: K.dir) ?? Self.defaultSaveDirectory
         filenamePattern = store.string(forKey: K.name) ?? "Atlas-Screenshot-{date}"
         pinDefaultOpacity = store.object(forKey: K.opacity) as? Double ?? 1
+        hotkeysEnabled = store.object(forKey: K.hotkeys) as? Bool ?? false
     }
 
     var defaultColor: Color { Color(hex: defaultColorHex) }
@@ -94,6 +104,7 @@ enum ScreenshotTool: String, CaseIterable, Identifiable {
     case measure
     case spotlight
     case magnifier
+    case eraser
     case pasteImage
 
     var id: String { rawValue }
@@ -124,6 +135,7 @@ enum ScreenshotTool: String, CaseIterable, Identifiable {
         case .measure: return "Ruler"
         case .spotlight: return "Spotlight"
         case .magnifier: return "Magnifier"
+        case .eraser: return "Eraser"
         case .pasteImage: return "Paste Image"
         }
     }
@@ -144,6 +156,7 @@ enum ScreenshotTool: String, CaseIterable, Identifiable {
         case .measure: return "ruler"
         case .spotlight: return "rays"
         case .magnifier: return "plus.magnifyingglass"
+        case .eraser: return "eraser"
         case .pasteImage: return "photo.on.rectangle"
         }
     }
