@@ -25,6 +25,7 @@ struct AtlasMainView: View {
         case devtools, colors, calc, timestamp, qrcode, password, regex
         case lorem, baseconv, jwt, urlcodec, textcase, worldclock, markdown, wordcount, cron
         case htmlentities, diff, hexview, contrast
+        case lines, slug, httpcodes, unicode
         var id: String { rawValue }
         var title: String {
             switch self {
@@ -53,6 +54,10 @@ struct AtlasMainView: View {
             case .diff: return "文本 Diff"
             case .hexview: return "十六进制"
             case .contrast: return "对比度检查"
+            case .lines: return "行处理"
+            case .slug: return "Slug 生成"
+            case .httpcodes: return "HTTP 状态码"
+            case .unicode: return "Unicode 查询"
             }
         }
         var icon: String {
@@ -82,6 +87,10 @@ struct AtlasMainView: View {
             case .diff: return "plus.forwardslash.minus"
             case .hexview: return "number.square"
             case .contrast: return "circle.lefthalf.filled"
+            case .lines: return "list.number"
+            case .slug: return "link.badge.plus"
+            case .httpcodes: return "number.circle"
+            case .unicode: return "character"
             }
         }
         var subtitle: String {
@@ -111,6 +120,10 @@ struct AtlasMainView: View {
             case .diff: return "行级差异"
             case .hexview: return "Hex Dump"
             case .contrast: return "WCAG 比值"
+            case .lines: return "排序 · 去重 · 反转"
+            case .slug: return "URL 友好串"
+            case .httpcodes: return "状态码速查"
+            case .unicode: return "字符 → 码点"
             }
         }
     }
@@ -214,6 +227,14 @@ struct AtlasMainView: View {
             HexViewToolView()
         case .contrast:
             ContrastToolView()
+        case .lines:
+            LineToolsView()
+        case .slug:
+            SlugToolView()
+        case .httpcodes:
+            HTTPCodesToolView()
+        case .unicode:
+            UnicodeToolView()
         }
     }
 
@@ -1411,5 +1432,125 @@ private struct ContrastToolView: View {
             return s <= 0.03928 ? s / 12.92 : pow((s + 0.055) / 1.055, 2.4)
         }
         return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
+    }
+}
+
+/// Line operations: sort / dedupe / reverse / drop blanks. Pure.
+private struct LineToolsView: View {
+    @State private var input = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            TextEditor(text: $input)
+                .font(.system(.body, design: .monospaced)).frame(minHeight: 150)
+                .overlay(RoundedRectangle(cornerRadius: 4).stroke(.secondary.opacity(0.2)))
+            HStack {
+                Button("升序") { transform { $0.sorted() } }
+                Button("降序") { transform { $0.sorted(by: >) } }
+                Button("去重") { transform { var seen = Set<String>(); return $0.filter { seen.insert($0).inserted } } }
+                Button("反转") { transform { Array($0.reversed()) } }
+                Button("去空行") { transform { $0.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty } } }
+                atlasCopyButton(input)
+            }
+            Spacer()
+        }
+        .padding()
+    }
+
+    private func transform(_ operation: ([String]) -> [String]) {
+        input = operation(input.components(separatedBy: "\n")).joined(separator: "\n")
+    }
+}
+
+/// URL slug generator. Pure.
+private struct SlugToolView: View {
+    @State private var input = ""
+
+    var body: some View {
+        let slug = Self.slugify(input)
+        return VStack(alignment: .leading, spacing: 16) {
+            TextField("输入标题文本", text: $input).textFieldStyle(.roundedBorder)
+            HStack {
+                Text(slug.isEmpty ? "slug-会出现在这里" : slug)
+                    .font(.system(.title3, design: .monospaced))
+                    .foregroundColor(slug.isEmpty ? .secondary : .primary).textSelection(.enabled)
+                Spacer()
+                atlasCopyButton(slug)
+            }
+            Spacer()
+        }
+        .padding()
+    }
+
+    private static func slugify(_ s: String) -> String {
+        let mapped = s.lowercased().map { ($0.isLetter || $0.isNumber) ? $0 : " " }
+        return String(mapped).split(separator: " ").joined(separator: "-")
+    }
+}
+
+/// HTTP status code reference. Pure.
+private struct HTTPCodesToolView: View {
+    @State private var query = ""
+
+    private static let codes: [(Int, String)] = [
+        (200, "OK"), (201, "Created"), (202, "Accepted"), (204, "No Content"),
+        (301, "Moved Permanently"), (302, "Found"), (304, "Not Modified"), (307, "Temporary Redirect"),
+        (400, "Bad Request"), (401, "Unauthorized"), (403, "Forbidden"), (404, "Not Found"),
+        (405, "Method Not Allowed"), (408, "Request Timeout"), (409, "Conflict"), (410, "Gone"),
+        (418, "I'm a teapot"), (422, "Unprocessable Entity"), (429, "Too Many Requests"),
+        (500, "Internal Server Error"), (501, "Not Implemented"), (502, "Bad Gateway"),
+        (503, "Service Unavailable"), (504, "Gateway Timeout"),
+    ]
+
+    var body: some View {
+        VStack(spacing: 8) {
+            TextField("搜索状态码或描述", text: $query)
+                .textFieldStyle(.roundedBorder).padding([.horizontal, .top])
+            List(filtered, id: \.0) { code in
+                HStack {
+                    Text("\(code.0)")
+                        .font(.system(.body, design: .monospaced).weight(.semibold))
+                        .foregroundColor(color(code.0)).frame(width: 50, alignment: .leading)
+                    Text(code.1)
+                    Spacer()
+                }
+            }
+        }
+    }
+
+    private var filtered: [(Int, String)] {
+        guard !query.isEmpty else { return Self.codes }
+        return Self.codes.filter { "\($0.0) \($0.1)".localizedCaseInsensitiveContains(query) }
+    }
+
+    private func color(_ code: Int) -> Color {
+        switch code / 100 {
+        case 2: return .green
+        case 3: return .blue
+        case 4: return .orange
+        case 5: return .red
+        default: return .primary
+        }
+    }
+}
+
+/// Unicode scalar inspector. Pure.
+private struct UnicodeToolView: View {
+    @State private var input = "A😀中"
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            TextField("输入文本", text: $input).textFieldStyle(.roundedBorder).font(.title3)
+            List(Array(input.unicodeScalars.enumerated()), id: \.offset) { _, scalar in
+                HStack(spacing: 12) {
+                    Text(String(scalar)).frame(width: 36)
+                    Text(String(format: "U+%04X", scalar.value))
+                        .font(.system(.body, design: .monospaced)).foregroundColor(.secondary)
+                        .frame(width: 90, alignment: .leading)
+                    Text(scalar.properties.name ?? "—").font(.caption).lineLimit(1)
+                    Spacer()
+                }
+            }
+        }
     }
 }
