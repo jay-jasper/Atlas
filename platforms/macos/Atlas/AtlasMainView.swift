@@ -1957,6 +1957,10 @@ private struct ScreenshotModuleView: View {
                 captureButton("贴图(剪贴板)", "pin") {
                     status = ScreenshotActions.pinFromClipboard() ? "" : "剪贴板没有图片"
                 }
+                captureButton("滚动长截图", "arrow.up.and.down.text.horizontal") {
+                    status = ""
+                    ScrollingCaptureController.shared.begin()
+                }
             }
             Text("拖动框选任意区域,或把鼠标移到某个窗口上点击即截该窗口。首次需在「系统设置 → 隐私与安全性 → 屏幕录制」授权 Atlas。")
                 .font(.caption).foregroundColor(.secondary)
