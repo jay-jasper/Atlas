@@ -1,8 +1,9 @@
 # Atlas Plugin System — Architecture Design
 
 **Date:** 2026-05-24
-**Status:** Approved (design phase)
+**Status:** Approved (design phase) — **partially built** as of 2026-06-17 audit: wasmtime exec, MCP client+stdio, Block Kit schema, SHA-256 verify are REAL; WIT Component Model bindings, Hub HTTP download, and capability-consent UX are NOT built. Third-party plugins are **direct-distribution only** (App Store forbids external code).
 **Scope:** Full extensibility platform allowing third-party plugins to extend Atlas without recompilation.
+**Unified context:** This doc owns the **Tier 3 extensibility** slice. See [`2026-06-17-modular-distribution-unified.md`](./2026-06-17-modular-distribution-unified.md) for how it composes with the dynamic loader, editions, and the channel split.
 
 ---
 

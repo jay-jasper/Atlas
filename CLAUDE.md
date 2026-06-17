@@ -67,12 +67,14 @@ UniFFI bridge that exposes `atlas-core` to Swift:
 SwiftUI app structured as a `MenuBarExtra` with `.window` style:
 
 - `AtlasApp.swift` — app entry point; registers the menu bar item.
-- `ContentView.swift` — main panel with sections for screenshot capture, system monitoring, port master, and feature toggles. **The `AtlasBridge` class currently uses mock data** (random values, print statements) and is not yet wired to the real UniFFI-generated bindings.
+- `ContentView.swift` — main panel with sections for screenshot capture, system monitoring, port master, and feature toggles. `AtlasBridge` now delegates to real provider singletons (`MonitoringService.live`, `FeatureService.live`, `AtlasCaptureService.live`) that call the generated UniFFI bindings; mock data survives only in DesignSystem preview files and test injection.
 - `SelectionOverlay.swift` — full-screen drag gesture overlay for region capture; calls back with a `CGRect` on release.
 
 ### FFI integration status
 
-The Rust side is fully implemented and tested. The Swift side uses a placeholder `AtlasBridge` class. The next integration step is to import the UniFFI-generated Swift module (`AtlasFFI`) into the Xcode project and replace `AtlasBridge` with the real generated bindings.
+The UniFFI bridge is **wired** (verified 2026-06-17). Generated bindings live at `platforms/macos/Generated/AtlasFFI/atlas.swift` (+ `atlasFFI.h`, modulemap, prebuilt `libatlas_ffi.a`) and are compiled into the `Atlas` target. Services call the generated module functions directly — e.g. `Atlas.startMonitoring`, `Atlas.lookupPort`, `Atlas.listFeatures`, `Atlas.captureFullScreen`. The protocol-provider seam (`MonitoringProviding`, `FeatureProviding`, …) remains, but its default is `.live` (real FFI); mocks are injected only in tests.
+
+> Modularity note: features are still **statically linked** into `atlas-core`. The dynamic `.dylib` module loader and third-party plugin runtime are designed but not yet built. See `docs/superpowers/specs/2026-06-17-modular-distribution-unified.md` for the unified packaging/distribution plan and current build-vs-design status.
 
 ## Key conventions
 

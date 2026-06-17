@@ -72,6 +72,57 @@ SwiftUI panel + Rust `FeatureManager` registration (FFI lib regenerated) +
 
 ---
 
+## Implementation Reality Check (2026-06-17 audit)
+
+A ground-truth audit of the Rust crates and the Swift app was run against the
+"ALL 61 ROADMAP ITEMS IMPLEMENTED" claim above. The headline is broadly accurate
+— the product surface is genuinely there as tested vertical slices — but several
+specific claims were **inflated or stale** and are corrected here. The "shipped"
+list stands; treat the boundaries below as the precise edge of what is real.
+
+### Corrections to claims above
+
+| Claim in this doc | Audited reality | Status |
+|---|---|---|
+| "~95 plugin-host Rust tests" / "~95 Rust tests" | **58** plugin-host tests; **91** across the workspace (atlas-core 29, atlas-ffi 4, plugin-host 58), all green | ⚠️ count inflated |
+| "841 Swift tests" | **~860** `func test` methods across 152 XCTest files — credible | ✅ holds |
+| Phase 4 "real wasmtime WASM execution host (loads & runs modules)" | **REAL** — `wasmtime 26` compiles & instantiates modules, runs exported funcs (`wasm_host.rs`); WAT round-trip tests pass | ✅ real |
+| Phase 4 "WIT component-binding surface" (injectable) | **ABSENT** — no `.wit` files, no `wit-bindgen`/`cargo-component`; host uses core-wasm `(i32,i32)->i32` ABI only, not the Component Model | ❌ not built |
+| Phase 4 "MCP client protocol + stdio subprocess transport" | **REAL** — full JSON-RPC 2024-11-05 (`mcp.rs`) + real `Command`-spawned stdio transport (`mcp_transport.rs`, `/bin/cat` round-trip test) | ✅ real |
+| Phase 4 "Atlas Hub index with SHA-256 package verification" | SHA-256 **verification is real** (`hub.rs`, `sha2`); the **HTTP download/fetch transport is not implemented** (deferred to platform layer) | ⚠️ verify real, fetch absent |
+| Lua Bridge (#55) "behind an injectable provider" | **REAL & embedded** — `mlua` vendored Lua 5.4 runs actual scripts (`lua.rs`); stronger than "injectable" | ✅ real |
+| Whisper (#52) "whisper.cpp behind an injectable provider" | whisper.cpp itself **NOT wired** (`UnavailableTranscriber` always throws). Shipped default is a **real Apple Speech** transcriber (`SpeechFileTranscriber`) | ⚠️ real default, not whisper |
+| Live Caption (#42) Speech framework | **REAL native** — live `AVAudioEngine` tap + `SFSpeechAudioBufferRecognitionRequest` | ✅ real |
+| Now Playing (#35) / Notch (#54) MediaRemote | **REAL native** — `dlopen` MediaRemote.framework + `dlsym MRMediaRemoteGetNowPlayingInfo` | ✅ real |
+| OBS Control (#49) | **REAL native** — live `URLSessionWebSocketTask`, OBS WebSocket v5 handshake | ✅ real |
+| Mic Noise Gate (#51) RNNoise | RNNoise **NOT wired**; shipped default is a real, tested RMS threshold gate (`NoiseGate.swift`) | ⚠️ real substitute, not RNNoise |
+| Bluetooth Battery (#21) | **REAL native** — shells `ioreg -r -l -k BatteryPercent`, parsed | ✅ real |
+| FFI bridge "uses mock data / not yet wired" (old CLAUDE.md) | **WIRED** — generated bindings compiled in; services call real `Atlas.*` functions | ✅ real |
+| Editions / entitlement (packaging-and-editions-v1) | Local edition + entitlement **logic implemented & wired** (`EditionModels`/`EntitlementService`/`EditionPanel`). **No StoreKit / IAP / paywall** — monetization layer unbuilt | ⚠️ gating real, monetization absent |
+
+### What is genuinely NOT built yet (design-only)
+
+- **Dynamic module loader** (`2026-05-24-dynamic-module-loader-design.md`): no
+  `libloading`, no `ModuleRegistry`/`ModuleLoader`, no vtable, no `.dylib`
+  modules. Features remain compile-time members of `atlas-core` (a hardcoded
+  `HashMap` of 63 toggles, all `Disabled`). **This is the gating dependency for
+  any "download only the components you need" story.**
+- **WIT Component Model** plugin surface (Track A typed bindings).
+- **Hub HTTP download/fetch** transport (only index parse + SHA-256 verify exist).
+- **StoreKit / paywall** monetization (only local entitlement gating exists).
+
+### Net
+
+The plugin-host is a **genuinely functional foundation** (real WASM exec, real
+MCP stdio, real embedded Lua, real SHA-256) and the macOS feature surface is real
+native code, not fake data. The gap between "implemented" and "shippable modular
+product" is concentrated in three places — the **dynamic loader**, the
+**remote/Hub download transport**, and the **monetization layer** — which are
+unified into one delivery plan in
+[`2026-06-17-modular-distribution-unified.md`](./2026-06-17-modular-distribution-unified.md).
+
+---
+
 ## Phase 1 — Command Palette Providers
 
 Lightweight, no new modules, all extend the existing Command Palette via `CommandProviding`.

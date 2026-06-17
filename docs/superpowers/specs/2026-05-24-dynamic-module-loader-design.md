@@ -1,8 +1,9 @@
 # Atlas Dynamic Module Loader — Architecture Design
 
 **Date:** 2026-05-24
-**Status:** Approved (design phase)
+**Status:** Approved (design phase) — **NOT YET BUILT** as of 2026-06-17 audit (no `libloading`/`ModuleRegistry`/vtable in code; features remain static in `atlas-core`). This is the gating prerequisite for download-size savings.
 **Scope:** Convert first-party functionality from compile-time members of `atlas-core` into independently shipped dynamic libraries (`.dylib`) discovered and loaded at runtime by a small kernel. Goal is install-time and runtime footprint reduction without changing UX.
+**Unified context:** This doc owns the **Tier 2 packaging** slice. See [`2026-06-17-modular-distribution-unified.md`](./2026-06-17-modular-distribution-unified.md) for how it composes with the plugin system, editions, and the App-Store-vs-direct channel split.
 
 ---
 

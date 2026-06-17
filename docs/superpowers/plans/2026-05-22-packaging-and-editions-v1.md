@@ -2,6 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Status (2026-06-17 audit):** This plan is **IMPLEMENTED** (all tasks checked).
+> `EditionModels`, `EntitlementService`, `EditionPanel` are wired into `ContentView`.
+> It is **local-only by design** — there is no StoreKit/IAP/paywall/license-server.
+> For how this entitlement layer composes with the dynamic loader (Tier 2),
+> the plugin system (Tier 3), and the App-Store-vs-direct monetization paths,
+> see [`../specs/2026-06-17-modular-distribution-unified.md`](../specs/2026-06-17-modular-distribution-unified.md).
+
 **Goal:** Add local packaging and commercial feature boundaries for Atlas editions without adding payment processing, subscriptions, network license checks, App Store receipt validation, or server-side entitlement calls.
 
 **Architecture:** Keep v1 entirely local in the macOS Swift layer. Edition metadata is static app metadata, entitlement state is injected through a small provider protocol, and feature availability is evaluated locally by combining the selected edition with feature metadata. The Feature Center remains the runtime enable/disable surface; edition availability only labels and blocks unavailable commercial features before they are toggled on.
