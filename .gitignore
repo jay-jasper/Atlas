@@ -3,3 +3,6 @@
 Cargo.lock
 .antigravitycli/
 .DS_Store
+
+# brainstorming visual-companion scratch
+.superpowers/
