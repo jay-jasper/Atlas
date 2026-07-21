@@ -122,6 +122,7 @@ enum ScreenshotTool: String, CaseIterable, Identifiable {
     case measure
     case spotlight
     case magnifier
+    case sticker
     case eraser
     case pasteImage
 
@@ -153,6 +154,7 @@ enum ScreenshotTool: String, CaseIterable, Identifiable {
         case .measure: return "Ruler"
         case .spotlight: return "Spotlight"
         case .magnifier: return "Magnifier"
+        case .sticker: return "Sticker"
         case .eraser: return "Eraser"
         case .pasteImage: return "Paste Image"
         }
@@ -174,9 +176,86 @@ enum ScreenshotTool: String, CaseIterable, Identifiable {
         case .measure: return "ruler"
         case .spotlight: return "rays"
         case .magnifier: return "plus.magnifyingglass"
+        case .sticker: return "face.smiling"
         case .eraser: return "eraser"
         case .pasteImage: return "photo.on.rectangle"
         }
+    }
+}
+
+/// Fill treatment for closed shapes (rectangle / ellipse).
+enum ScreenshotFillStyle: String, CaseIterable, Identifiable {
+    case none
+    case semi
+    case solid
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .none: return "Outline"
+        case .semi: return "Semi Fill"
+        case .solid: return "Solid Fill"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .none: return "square"
+        case .semi: return "square.lefthalf.filled"
+        case .solid: return "square.fill"
+        }
+    }
+
+    /// Fill alpha applied on top of the stroke color; nil = no fill.
+    var fillAlpha: CGFloat? {
+        switch self {
+        case .none: return nil
+        case .semi: return 0.35
+        case .solid: return 1.0
+        }
+    }
+}
+
+/// Rich-text attributes for text annotations.
+struct ScreenshotTextStyle: Equatable {
+    enum SizeCategory: String, CaseIterable, Identifiable {
+        case small
+        case medium
+        case large
+        case extraLarge
+
+        var id: String { rawValue }
+
+        var pointSize: CGFloat {
+            switch self {
+            case .small: return 12
+            case .medium: return 16
+            case .large: return 24
+            case .extraLarge: return 36
+            }
+        }
+
+        var title: String {
+            switch self {
+            case .small: return "S"
+            case .medium: return "M"
+            case .large: return "L"
+            case .extraLarge: return "XL"
+            }
+        }
+    }
+
+    var isBold: Bool = false
+    var isItalic: Bool = false
+    var size: SizeCategory = .medium
+
+    func font() -> NSFont {
+        var font = NSFont.systemFont(ofSize: size.pointSize, weight: isBold ? .semibold : .medium)
+        if isItalic {
+            font = NSFontManager.shared.convert(font, toHaveTrait: .italicFontMask)
+        }
+        return font
     }
 }
 
@@ -279,6 +358,7 @@ struct ScreenshotTextAnnotationDraft: Equatable {
     static let maximumLength = 80
 
     var rawValue: String
+    var style: ScreenshotTextStyle
 
     var annotationValue: String {
         let trimmed = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -286,8 +366,9 @@ struct ScreenshotTextAnnotationDraft: Equatable {
         return String(trimmed.prefix(Self.maximumLength))
     }
 
-    init(rawValue: String = Self.fallbackValue) {
+    init(rawValue: String = Self.fallbackValue, style: ScreenshotTextStyle = ScreenshotTextStyle()) {
         self.rawValue = rawValue
+        self.style = style
     }
 }
 
@@ -307,6 +388,7 @@ enum ScreenshotAnnotationKind: Equatable {
     case magnifier
     case image(Data)
     case doubleArrow
+    case sticker(String)
 }
 
 struct ScreenshotAnnotation: Identifiable, Equatable {
@@ -316,6 +398,43 @@ struct ScreenshotAnnotation: Identifiable, Equatable {
     var color: Color
     var lineWidth: CGFloat
     var points: [CGPoint]
+    /// Rotation in radians around the bounds center.
+    var rotation: Double = 0
+    /// Fill treatment; only rectangle/ellipse honor it.
+    var fillStyle: ScreenshotFillStyle = .none
+    /// Corner radius; only rectangle honors it.
+    var cornerRadius: CGFloat = 0
+    /// Rich-text attributes; only text honors it.
+    var textStyle: ScreenshotTextStyle = ScreenshotTextStyle()
+
+    /// Translate the annotation (bounds and any anchored points) by a delta.
+    func moved(by delta: CGSize) -> ScreenshotAnnotation {
+        var copy = self
+        copy.bounds = bounds.offsetBy(dx: delta.width, dy: delta.height)
+        copy.points = points.map { CGPoint(x: $0.x + delta.width, y: $0.y + delta.height) }
+        return copy
+    }
+
+    /// Scale the annotation around its bounds origin to a new bounds size.
+    /// Points (arrow/pen anchors) scale proportionally inside the bounds.
+    func resized(to newBounds: CGRect) -> ScreenshotAnnotation {
+        var copy = self
+        let old = bounds
+        guard old.width > 0, old.height > 0 else {
+            copy.bounds = newBounds
+            return copy
+        }
+        let scaleX = newBounds.width / old.width
+        let scaleY = newBounds.height / old.height
+        copy.bounds = newBounds
+        copy.points = points.map { point in
+            CGPoint(
+                x: newBounds.minX + (point.x - old.minX) * scaleX,
+                y: newBounds.minY + (point.y - old.minY) * scaleY
+            )
+        }
+        return copy
+    }
 
     static func rectangle(id: UUID = UUID(), rect: CGRect, color: Color, lineWidth: CGFloat) -> Self {
         ScreenshotAnnotation(id: id, kind: .rectangle, bounds: rect, color: color, lineWidth: lineWidth, points: [])
@@ -413,9 +532,19 @@ struct ScreenshotAnnotation: Identifiable, Equatable {
         ScreenshotAnnotation(id: id, kind: .image(data), bounds: rect, color: .clear, lineWidth: 1, points: [])
     }
 
+    static func sticker(id: UUID = UUID(), emoji: String, center: CGPoint, size: CGFloat = 48) -> Self {
+        let rect = CGRect(x: center.x - size / 2, y: center.y - size / 2, width: size, height: size)
+        return ScreenshotAnnotation(id: id, kind: .sticker(emoji), bounds: rect, color: .clear, lineWidth: 1, points: [])
+    }
+
     func withTextValue(_ value: String) -> ScreenshotAnnotation {
         guard case .text = kind else { return self }
-        return ScreenshotAnnotation(id: id, kind: .text(value), bounds: bounds, color: color, lineWidth: lineWidth, points: points)
+        var copy = ScreenshotAnnotation(id: id, kind: .text(value), bounds: bounds, color: color, lineWidth: lineWidth, points: points)
+        copy.rotation = rotation
+        copy.fillStyle = fillStyle
+        copy.cornerRadius = cornerRadius
+        copy.textStyle = textStyle
+        return copy
     }
 }
 

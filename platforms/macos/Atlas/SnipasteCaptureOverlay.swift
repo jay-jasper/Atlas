@@ -313,6 +313,9 @@ struct SnipasteCaptureOverlay: View {
                 Image(nsImage: image).resizable()
                     .frame(width: a.bounds.width, height: a.bounds.height).position(x: a.bounds.midX, y: a.bounds.midY)
             }
+        case .sticker(let emoji):
+            Text(emoji).font(.system(size: max(12, a.bounds.height * 0.82)))
+                .frame(width: a.bounds.width, height: a.bounds.height).position(x: a.bounds.midX, y: a.bounds.midY)
         }
     }
 
@@ -649,6 +652,10 @@ struct SnipasteCaptureOverlay: View {
         case .magnifier:
             let side = max(60, min(rect.width, rect.height) > 8 ? min(rect.width, rect.height) : 120)
             return .magnifier(rect: CGRect(x: start.x, y: start.y, width: side, height: side), lineWidth: width)
+        case .sticker:
+            // The quick capture overlay doesn't offer the sticker tool; it's
+            // available in the full editor.
+            return nil
         case .pasteImage:
             return nil
         }

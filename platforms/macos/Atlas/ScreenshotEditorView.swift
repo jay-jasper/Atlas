@@ -34,6 +34,36 @@ struct ScreenshotEditorView: View {
     @State private var counterIndex = 0
     @State private var redoStack: [ScreenshotAnnotation] = []
     @State private var backdropOn = false
+    @State private var selectedAnnotationID: UUID?
+    @State private var selectionDrag: SelectionDragState?
+    @State private var fillStyle: ScreenshotFillStyle = .none
+    @State private var shapeCornerRadius: CGFloat = 0
+    @State private var stickerEmoji: String = "😀"
+    @State private var isShowingStickerGrid = false
+    @State private var textStyle = ScreenshotTextStyle()
+
+    /// One in-flight manipulation of the selected annotation.
+    private struct SelectionDragState {
+        enum Mode {
+            case move
+            case resizeTopLeft
+            case resizeTopRight
+            case resizeBottomLeft
+            case resizeBottomRight
+            case rotate
+        }
+
+        let mode: Mode
+        let annotationID: UUID
+        let original: ScreenshotAnnotation
+    }
+
+    private static let stickerChoices: [String] = [
+        "😀", "😅", "😂", "🥹", "😍", "🤔", "😎", "😭", "🥳", "😱", "🙄", "🫡",
+        "👍", "👎", "👏", "🙏", "💪", "👀", "🫵", "🤝", "✌️", "🤞", "🖐️", "👌",
+        "🔥", "⭐️", "❤️", "💯", "✅", "❌", "⚠️", "❗️", "❓", "💡", "🎯", "📌",
+        "🎉", "🚀", "🏆", "⚡️", "💥", "🌈", "☀️", "🌙", "🍀", "🎁", "🔒", "🔔",
+    ]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -81,7 +111,10 @@ struct ScreenshotEditorView: View {
                     ForEach(ScreenshotTool.allCases.filter { !$0.isHiddenFromToolbar }) { tool in
                         Button {
                             selectedTool = tool
-                            if tool != .select { cropRect = nil }
+                            if tool != .select {
+                                cropRect = nil
+                                selectedAnnotationID = nil
+                            }
                         } label: {
                             Image(systemName: tool == .arrow ? arrowStyle.systemImage : tool.systemImage)
                         }
@@ -107,6 +140,79 @@ struct ScreenshotEditorView: View {
                             .controlSize(.small)
                             .background(arrowStyle == style ? Color.accentColor.opacity(0.18) : Color.clear)
                             .cornerRadius(6)
+                        }
+
+                        Divider()
+                            .frame(height: 18)
+                    }
+
+                    if selectedTool == .rectangle || selectedTool == .ellipse {
+                        ForEach(ScreenshotFillStyle.allCases) { style in
+                            Button {
+                                fillStyle = style
+                                applyToSelectedAnnotation { $0.fillStyle = style }
+                            } label: {
+                                Image(systemName: style.systemImage)
+                            }
+                            .help(style.title)
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                            .background(fillStyle == style ? Color.accentColor.opacity(0.18) : Color.clear)
+                            .cornerRadius(6)
+                        }
+
+                        if selectedTool == .rectangle {
+                            Slider(value: Binding(
+                                get: { shapeCornerRadius },
+                                set: { newValue in
+                                    shapeCornerRadius = newValue
+                                    applyToSelectedAnnotation { $0.cornerRadius = newValue }
+                                }
+                            ), in: 0...24)
+                                .frame(width: 70)
+                                .controlSize(.small)
+                                .help("圆角 (Corner radius)")
+                        }
+
+                        Divider()
+                            .frame(height: 18)
+                    }
+
+                    if selectedTool == .sticker {
+                        ForEach(Self.stickerChoices.prefix(8), id: \.self) { emoji in
+                            Button {
+                                stickerEmoji = emoji
+                            } label: {
+                                Text(emoji)
+                            }
+                            .buttonStyle(.plain)
+                            .padding(2)
+                            .background(stickerEmoji == emoji ? Color.accentColor.opacity(0.18) : Color.clear)
+                            .cornerRadius(4)
+                        }
+
+                        Button {
+                            isShowingStickerGrid.toggle()
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .help("更多贴纸")
+                        .popover(isPresented: $isShowingStickerGrid, arrowEdge: .bottom) {
+                            LazyVGrid(columns: Array(repeating: GridItem(.fixed(30)), count: 8), spacing: 4) {
+                                ForEach(Self.stickerChoices, id: \.self) { emoji in
+                                    Button {
+                                        stickerEmoji = emoji
+                                        isShowingStickerGrid = false
+                                    } label: {
+                                        Text(emoji).font(.system(size: 18))
+                                    }
+                                    .buttonStyle(.plain)
+                                    .focusable(false)
+                                }
+                            }
+                            .padding(10)
                         }
 
                         Divider()
@@ -194,6 +300,47 @@ struct ScreenshotEditorView: View {
                         .font(.caption)
                         .frame(maxWidth: .infinity)
                         .help("Text Annotation")
+
+                    Button {
+                        textStyle.isBold.toggle()
+                        applyToSelectedAnnotation { $0.textStyle.isBold = textStyle.isBold }
+                    } label: {
+                        Image(systemName: "bold")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .background(textStyle.isBold ? Color.accentColor.opacity(0.18) : Color.clear)
+                    .cornerRadius(6)
+                    .help("粗体")
+
+                    Button {
+                        textStyle.isItalic.toggle()
+                        applyToSelectedAnnotation { $0.textStyle.isItalic = textStyle.isItalic }
+                    } label: {
+                        Image(systemName: "italic")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .background(textStyle.isItalic ? Color.accentColor.opacity(0.18) : Color.clear)
+                    .cornerRadius(6)
+                    .help("斜体")
+
+                    Picker("", selection: Binding(
+                        get: { textStyle.size },
+                        set: { newValue in
+                            textStyle.size = newValue
+                            applyToSelectedAnnotation { $0.textStyle.size = newValue }
+                        }
+                    )) {
+                        ForEach(ScreenshotTextStyle.SizeCategory.allCases) { size in
+                            Text(size.title).tag(size)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 130)
+                    .controlSize(.small)
+                    .help("字号")
+
                     if let editID = editingAnnotationID {
                         Button("Apply") {
                             applyTextEdit(editID)
@@ -221,6 +368,7 @@ struct ScreenshotEditorView: View {
                             if case .text(let value) = annotation.kind {
                                 editingAnnotationID = annotation.id
                                 textDraftRaw = value
+                                textStyle = annotation.textStyle
                                 selectedTool = .text
                             }
                         }
@@ -249,6 +397,12 @@ struct ScreenshotEditorView: View {
                         .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 1.5, dash: [5]))
                         .frame(width: crop.width, height: crop.height)
                         .position(x: crop.midX, y: crop.midY)
+                        .allowsHitTesting(false)
+                }
+
+                if selectedTool == .select, let selectedID = selectedAnnotationID,
+                   let selected = annotations.first(where: { $0.id == selectedID }) {
+                    SelectionHandlesOverlay(annotation: selected)
                         .allowsHitTesting(false)
                 }
             }
@@ -350,12 +504,22 @@ struct ScreenshotEditorView: View {
             .onChanged { value in
                 guard capabilities.annotations else { return }
                 if selectedTool == .select {
-                    cropRect = CGRect(
-                        x: min(value.startLocation.x, value.location.x),
-                        y: min(value.startLocation.y, value.location.y),
-                        width: abs(value.startLocation.x - value.location.x),
-                        height: abs(value.startLocation.y - value.location.y)
-                    )
+                    if dragStart == nil {
+                        dragStart = value.startLocation
+                        selectionDrag = selectionDragState(at: value.startLocation)
+                    }
+                    if let drag = selectionDrag {
+                        if let index = annotations.firstIndex(where: { $0.id == drag.annotationID }) {
+                            annotations[index] = transformedAnnotation(drag, start: value.startLocation, current: value.location)
+                        }
+                    } else {
+                        cropRect = CGRect(
+                            x: min(value.startLocation.x, value.location.x),
+                            y: min(value.startLocation.y, value.location.y),
+                            width: abs(value.startLocation.x - value.location.x),
+                            height: abs(value.startLocation.y - value.location.y)
+                        )
+                    }
                     return
                 }
                 dragCurrent = value.location
@@ -370,7 +534,13 @@ struct ScreenshotEditorView: View {
             }
             .onEnded { value in
                 guard capabilities.annotations else { return }
-                if selectedTool == .select { return } // crop applied via the Crop button
+                if selectedTool == .select {
+                    // Crop is applied via the Crop button; annotation moves are
+                    // already committed live during the drag.
+                    selectionDrag = nil
+                    dragStart = nil
+                    return
+                }
                 guard let start = dragStart else { return }
                 let color = selectedColor
                 let lineW = annotationLineWidth
@@ -389,9 +559,14 @@ struct ScreenshotEditorView: View {
                         redoStack.append(annotations.remove(at: i))
                     }
                 case .rectangle:
-                    annotations.append(.rectangle(rect: rect, color: color, lineWidth: lineW))
+                    var annotation = ScreenshotAnnotation.rectangle(rect: rect, color: color, lineWidth: lineW)
+                    annotation.fillStyle = fillStyle
+                    annotation.cornerRadius = shapeCornerRadius
+                    annotations.append(annotation)
                 case .ellipse:
-                    annotations.append(.ellipse(rect: rect, color: color, lineWidth: lineW))
+                    var annotation = ScreenshotAnnotation.ellipse(rect: rect, color: color, lineWidth: lineW)
+                    annotation.fillStyle = fillStyle
+                    annotations.append(annotation)
                 case .arrow:
                     annotations.append(arrowAnnotation(from: start, to: value.location, color: color, lineWidth: lineW))
                 case .line:
@@ -402,11 +577,13 @@ struct ScreenshotEditorView: View {
                     annotations.append(.pen(points: smooth, color: color, lineWidth: lineW))
                     penPoints = []
                 case .text:
-                    annotations.append(.text(
+                    var annotation = ScreenshotAnnotation.text(
                         value: ScreenshotTextAnnotationDraft(rawValue: textDraftRaw).annotationValue,
                         rect: rect.width > 8 && rect.height > 8 ? rect : CGRect(x: start.x, y: start.y, width: 80, height: 28),
                         color: color
-                    ))
+                    )
+                    annotation.textStyle = textStyle
+                    annotations.append(annotation)
                 case .counter:
                     counterIndex += 1
                     annotations.append(.counter(number: counterIndex, center: value.location, color: color))
@@ -423,6 +600,10 @@ struct ScreenshotEditorView: View {
                 case .magnifier:
                     let side = max(60, min(rect.width, rect.height) > 8 ? min(rect.width, rect.height) : 120)
                     annotations.append(.magnifier(rect: CGRect(x: start.x, y: start.y, width: side, height: side), lineWidth: lineW))
+                case .sticker:
+                    let distance = hypot(value.location.x - start.x, value.location.y - start.y)
+                    let size = max(28, min(160, distance > 20 ? distance : 48))
+                    annotations.append(.sticker(emoji: stickerEmoji, center: value.location, size: size))
                 case .pasteImage:
                     if let data = ScreenshotEditorView.clipboardImagePNG() {
                         let rep = NSBitmapImageRep(data: data)
@@ -456,8 +637,15 @@ struct ScreenshotEditorView: View {
         let rect = CGRect(x: min(start.x, cur.x), y: min(start.y, cur.y), width: abs(start.x - cur.x), height: abs(start.y - cur.y))
         switch selectedTool {
         case .select: return nil
-        case .rectangle: return .rectangle(rect: rect, color: color, lineWidth: lineW)
-        case .ellipse: return .ellipse(rect: rect, color: color, lineWidth: lineW)
+        case .rectangle:
+            var annotation = ScreenshotAnnotation.rectangle(rect: rect, color: color, lineWidth: lineW)
+            annotation.fillStyle = fillStyle
+            annotation.cornerRadius = shapeCornerRadius
+            return annotation
+        case .ellipse:
+            var annotation = ScreenshotAnnotation.ellipse(rect: rect, color: color, lineWidth: lineW)
+            annotation.fillStyle = fillStyle
+            return annotation
         case .arrow: return arrowAnnotation(from: start, to: cur, color: color, lineWidth: lineW)
         case .line: return .line(from: start, to: cur, color: color, lineWidth: lineW)
         case .highlight: return .highlight(rect: rect, color: color, lineWidth: lineW)
@@ -468,8 +656,86 @@ struct ScreenshotEditorView: View {
         case .magnifier:
             let side = max(60, min(rect.width, rect.height) > 8 ? min(rect.width, rect.height) : 120)
             return .magnifier(rect: CGRect(x: start.x, y: start.y, width: side, height: side), lineWidth: lineW)
-        case .pen, .text, .counter, .pasteImage, .eraser: return nil
+        case .pen, .text, .counter, .pasteImage, .eraser, .sticker: return nil
         }
+    }
+
+    // MARK: Selection manipulation (select tool)
+
+    /// Decide what a drag starting at `point` manipulates: a handle of the
+    /// current selection, the body of an annotation (move), or nothing (crop).
+    private func selectionDragState(at point: CGPoint) -> SelectionDragState? {
+        if let selectedID = selectedAnnotationID,
+           let selected = annotations.first(where: { $0.id == selectedID }),
+           let mode = handleMode(at: point, for: selected) {
+            return SelectionDragState(mode: mode, annotationID: selectedID, original: selected)
+        }
+        if let hit = annotations.last(where: { $0.bounds.insetBy(dx: -6, dy: -6).contains(point) }) {
+            selectedAnnotationID = hit.id
+            return SelectionDragState(mode: .move, annotationID: hit.id, original: hit)
+        }
+        selectedAnnotationID = nil
+        return nil
+    }
+
+    private func handleMode(at point: CGPoint, for annotation: ScreenshotAnnotation) -> SelectionDragState.Mode? {
+        let radius: CGFloat = 10
+        let bounds = annotation.bounds
+        func near(_ target: CGPoint) -> Bool {
+            hypot(point.x - target.x, point.y - target.y) <= radius
+        }
+        if near(CGPoint(x: bounds.minX, y: bounds.minY)) { return .resizeTopLeft }
+        if near(CGPoint(x: bounds.maxX, y: bounds.minY)) { return .resizeTopRight }
+        if near(CGPoint(x: bounds.minX, y: bounds.maxY)) { return .resizeBottomLeft }
+        if near(CGPoint(x: bounds.maxX, y: bounds.maxY)) { return .resizeBottomRight }
+        // Rotation only for bounds-based annotations; point-based ones (arrow,
+        // pen, measure…) are defined by their endpoints.
+        if annotation.points.isEmpty, near(CGPoint(x: bounds.midX, y: bounds.minY - 18)) { return .rotate }
+        return nil
+    }
+
+    private func transformedAnnotation(_ drag: SelectionDragState, start: CGPoint, current: CGPoint) -> ScreenshotAnnotation {
+        let original = drag.original
+        switch drag.mode {
+        case .move:
+            return original.moved(by: CGSize(width: current.x - start.x, height: current.y - start.y))
+        case .resizeTopLeft, .resizeTopRight, .resizeBottomLeft, .resizeBottomRight:
+            let fixed: CGPoint
+            switch drag.mode {
+            case .resizeTopLeft: fixed = CGPoint(x: original.bounds.maxX, y: original.bounds.maxY)
+            case .resizeTopRight: fixed = CGPoint(x: original.bounds.minX, y: original.bounds.maxY)
+            case .resizeBottomLeft: fixed = CGPoint(x: original.bounds.maxX, y: original.bounds.minY)
+            default: fixed = CGPoint(x: original.bounds.minX, y: original.bounds.minY)
+            }
+            let rect = CGRect(
+                x: min(fixed.x, current.x),
+                y: min(fixed.y, current.y),
+                width: max(8, abs(fixed.x - current.x)),
+                height: max(8, abs(fixed.y - current.y))
+            )
+            return original.resized(to: rect)
+        case .rotate:
+            let center = CGPoint(x: original.bounds.midX, y: original.bounds.midY)
+            let startAngle = atan2(start.y - center.y, start.x - center.x)
+            let currentAngle = atan2(current.y - center.y, current.x - center.x)
+            var rotation = original.rotation + Double(currentAngle - startAngle)
+            let quarter = Double.pi / 2
+            let nearest = (rotation / quarter).rounded() * quarter
+            if abs(rotation - nearest) < Double.pi / 36 { rotation = nearest }
+            var copy = original
+            copy.rotation = rotation
+            return copy
+        }
+    }
+
+    /// Apply a mutation to the currently selected (or text-editing) annotation,
+    /// so style controls affect an existing annotation, not just new ones.
+    private func applyToSelectedAnnotation(_ mutate: (inout ScreenshotAnnotation) -> Void) {
+        let targetID = selectedAnnotationID ?? editingAnnotationID
+        guard let targetID, let index = annotations.firstIndex(where: { $0.id == targetID }) else { return }
+        var copy = annotations[index]
+        mutate(&copy)
+        annotations[index] = copy
     }
 
     private func smoothedPoints(_ points: [CGPoint]) -> [CGPoint] {
@@ -502,7 +768,9 @@ struct ScreenshotEditorView: View {
             return
         }
         let value = ScreenshotTextAnnotationDraft(rawValue: textDraftRaw).annotationValue
-        annotations[index] = annotations[index].withTextValue(value)
+        var updated = annotations[index].withTextValue(value)
+        updated.textStyle = textStyle
+        annotations[index] = updated
         editingAnnotationID = nil
     }
 
@@ -622,6 +890,18 @@ enum ScreenshotEditorRenderer {
         }
 
         for annotation in annotations {
+            // Rotation: spin the context around the annotation's mapped center.
+            let rotated = annotation.rotation != 0
+            if rotated {
+                let mappedBounds = map(annotation.bounds, renderedImageRect: renderedImageRect, outputSize: outputSize)
+                context.saveGState()
+                context.translateBy(x: mappedBounds.midX, y: mappedBounds.midY)
+                context.rotate(by: CGFloat(annotation.rotation))
+                context.translateBy(x: -mappedBounds.midX, y: -mappedBounds.midY)
+            }
+            defer {
+                if rotated { context.restoreGState() }
+            }
             switch annotation.kind {
             case .rectangle:
                 stroke(annotation.bounds, annotation: annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
@@ -653,6 +933,8 @@ enum ScreenshotEditorRenderer {
                 drawImageAnnotation(data, annotation: annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
             case .doubleArrow:
                 drawArrow(annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context, doubleHeaded: true)
+            case .sticker(let emoji):
+                drawSticker(emoji, annotation: annotation, renderedImageRect: renderedImageRect, outputSize: outputSize, in: context)
             }
         }
 
@@ -709,9 +991,45 @@ enum ScreenshotEditorRenderer {
         let mapped = map(rect, renderedImageRect: renderedImageRect, outputSize: outputSize)
         guard !mapped.isNull, mapped.width > 0, mapped.height > 0 else { return }
 
+        let scale = (outputSize.width / renderedImageRect.width + outputSize.height / renderedImageRect.height) / 2
+        let radius = min(annotation.cornerRadius * scale, min(mapped.width, mapped.height) / 2)
+        let path = CGPath(roundedRect: mapped, cornerWidth: radius, cornerHeight: radius, transform: nil)
+
+        if let fillAlpha = annotation.fillStyle.fillAlpha {
+            context.setFillColor(nsColor(from: annotation.color).withAlphaComponent(fillAlpha).cgColor)
+            context.addPath(path)
+            context.fillPath()
+        }
         context.setStrokeColor(cgColor(from: annotation.color))
         context.setLineWidth(scaledLineWidth(annotation, renderedImageRect: renderedImageRect, outputSize: outputSize))
-        context.stroke(mapped)
+        context.addPath(path)
+        context.strokePath()
+    }
+
+    private static func drawSticker(
+        _ emoji: String,
+        annotation: ScreenshotAnnotation,
+        renderedImageRect: CGRect,
+        outputSize: CGSize,
+        in context: CGContext
+    ) {
+        let mapped = map(annotation.bounds, renderedImageRect: renderedImageRect, outputSize: outputSize)
+        guard !mapped.isNull, mapped.width > 0, mapped.height > 0 else { return }
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: max(12, mapped.height * 0.82)),
+        ]
+        let text = emoji as NSString
+        let size = text.size(withAttributes: attributes)
+        let rect = CGRect(
+            x: mapped.midX - size.width / 2,
+            y: mapped.midY - size.height / 2,
+            width: size.width,
+            height: size.height
+        )
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: true)
+        text.draw(in: rect, withAttributes: attributes)
+        NSGraphicsContext.restoreGraphicsState()
     }
 
     private static func drawArrow(
@@ -779,9 +1097,14 @@ enum ScreenshotEditorRenderer {
         let mapped = map(annotation.bounds, renderedImageRect: renderedImageRect, outputSize: outputSize)
         guard !mapped.isNull, mapped.width > 0, mapped.height > 0 else { return }
 
-        let fontSize = max(12, mapped.height * 0.65)
+        // Scale the chosen point size from canvas points to output pixels.
+        let scale = (outputSize.width / renderedImageRect.width + outputSize.height / renderedImageRect.height) / 2
+        let scaledFont = NSFontManager.shared.convert(
+            annotation.textStyle.font(),
+            toSize: max(10, annotation.textStyle.size.pointSize * scale)
+        )
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: fontSize, weight: .semibold),
+            .font: scaledFont,
             .foregroundColor: nsColor(from: annotation.color),
         ]
 
@@ -831,6 +1154,10 @@ enum ScreenshotEditorRenderer {
     ) {
         let mapped = map(rect, renderedImageRect: renderedImageRect, outputSize: outputSize)
         guard !mapped.isNull, mapped.width > 0, mapped.height > 0 else { return }
+        if let fillAlpha = annotation.fillStyle.fillAlpha {
+            context.setFillColor(nsColor(from: annotation.color).withAlphaComponent(fillAlpha).cgColor)
+            context.fillEllipse(in: mapped)
+        }
         context.setStrokeColor(cgColor(from: annotation.color))
         context.setLineWidth(scaledLineWidth(annotation, renderedImageRect: renderedImageRect, outputSize: outputSize))
         context.strokeEllipse(in: mapped)
@@ -1062,15 +1389,66 @@ enum ScreenshotEditorRenderer {
     }
 }
 
+/// Selection chrome for the select tool: dashed bounds, four corner handles,
+/// and a rotate handle above the top edge (bounds-based annotations only).
+private struct SelectionHandlesOverlay: View {
+    let annotation: ScreenshotAnnotation
+
+    var body: some View {
+        let bounds = annotation.bounds
+        ZStack {
+            Rectangle()
+                .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                .frame(width: bounds.width, height: bounds.height)
+                .position(x: bounds.midX, y: bounds.midY)
+
+            ForEach(0..<4, id: \.self) { index in
+                let corner: CGPoint = [
+                    CGPoint(x: bounds.minX, y: bounds.minY),
+                    CGPoint(x: bounds.maxX, y: bounds.minY),
+                    CGPoint(x: bounds.minX, y: bounds.maxY),
+                    CGPoint(x: bounds.maxX, y: bounds.maxY),
+                ][index]
+                Circle()
+                    .fill(Color.white)
+                    .overlay(Circle().stroke(Color.accentColor, lineWidth: 1.5))
+                    .frame(width: 9, height: 9)
+                    .position(corner)
+            }
+
+            if annotation.points.isEmpty {
+                Path { path in
+                    path.move(to: CGPoint(x: bounds.midX, y: bounds.minY))
+                    path.addLine(to: CGPoint(x: bounds.midX, y: bounds.minY - 18))
+                }
+                .stroke(Color.accentColor, lineWidth: 1)
+
+                Circle()
+                    .fill(Color.white)
+                    .overlay(Circle().stroke(Color.accentColor, lineWidth: 1.5))
+                    .frame(width: 9, height: 9)
+                    .position(x: bounds.midX, y: bounds.minY - 18)
+            }
+        }
+        // Chrome stays axis-aligned even for rotated annotations: handles map
+        // to the unrotated bounds, which is also what the hit-testing uses.
+    }
+}
+
 private struct AnnotationShape: View {
     let annotation: ScreenshotAnnotation
 
     var body: some View {
         switch annotation.kind {
         case .rectangle:
-            Rectangle()
-                .stroke(annotation.color, lineWidth: annotation.lineWidth)
+            RoundedRectangle(cornerRadius: annotation.cornerRadius)
+                .fill(annotation.fillStyle.fillAlpha.map { annotation.color.opacity($0) } ?? Color.clear)
+                .overlay(
+                    RoundedRectangle(cornerRadius: annotation.cornerRadius)
+                        .stroke(annotation.color, lineWidth: annotation.lineWidth)
+                )
                 .frame(width: annotation.bounds.width, height: annotation.bounds.height)
+                .rotationEffect(.radians(annotation.rotation))
                 .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
         case .arrow:
             Path { path in
@@ -1090,8 +1468,10 @@ private struct AnnotationShape: View {
             .stroke(annotation.color, lineWidth: annotation.lineWidth)
         case .text(let value):
             Text(value)
+                .font(Font(annotation.textStyle.font()))
                 .foregroundColor(annotation.color)
                 .frame(width: annotation.bounds.width, height: annotation.bounds.height, alignment: .leading)
+                .rotationEffect(.radians(annotation.rotation))
                 .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
         case .pixelate:
             Rectangle()
@@ -1100,8 +1480,10 @@ private struct AnnotationShape: View {
                 .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
         case .ellipse:
             Ellipse()
-                .stroke(annotation.color, lineWidth: annotation.lineWidth)
+                .fill(annotation.fillStyle.fillAlpha.map { annotation.color.opacity($0) } ?? Color.clear)
+                .overlay(Ellipse().stroke(annotation.color, lineWidth: annotation.lineWidth))
                 .frame(width: annotation.bounds.width, height: annotation.bounds.height)
+                .rotationEffect(.radians(annotation.rotation))
                 .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
         case .line:
             Path { path in
@@ -1155,8 +1537,15 @@ private struct AnnotationShape: View {
             if let image = NSImage(data: data) {
                 Image(nsImage: image).resizable()
                     .frame(width: annotation.bounds.width, height: annotation.bounds.height)
+                    .rotationEffect(.radians(annotation.rotation))
                     .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
             }
+        case .sticker(let emoji):
+            Text(emoji)
+                .font(.system(size: max(12, annotation.bounds.height * 0.82)))
+                .frame(width: annotation.bounds.width, height: annotation.bounds.height)
+                .rotationEffect(.radians(annotation.rotation))
+                .position(x: annotation.bounds.midX, y: annotation.bounds.midY)
         }
     }
 }

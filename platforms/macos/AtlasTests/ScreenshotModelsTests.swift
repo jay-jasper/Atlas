@@ -38,7 +38,78 @@ final class ScreenshotModelsTests: XCTestCase {
         XCTAssertEqual(ScreenshotTool.text.id, "text")
         XCTAssertEqual(ScreenshotTool.pixelate.id, "pixelate")
 
-        XCTAssertEqual(ScreenshotTool.allCases, [.rectangle, .arrow, .pen, .text, .pixelate])
+        XCTAssertEqual(ScreenshotTool.allCases, [
+            .select,
+            .rectangle,
+            .ellipse,
+            .arrow,
+            .line,
+            .pen,
+            .text,
+            .counter,
+            .highlight,
+            .pixelate,
+            .blur,
+            .measure,
+            .spotlight,
+            .magnifier,
+            .sticker,
+            .eraser,
+            .pasteImage,
+        ])
+    }
+
+    func testMovedTranslatesBoundsAndPoints() {
+        let annotation = ScreenshotAnnotation.arrow(
+            from: CGPoint(x: 10, y: 20),
+            to: CGPoint(x: 50, y: 80),
+            color: .blue,
+            lineWidth: 2
+        )
+        let moved = annotation.moved(by: CGSize(width: 5, height: -10))
+
+        XCTAssertEqual(moved.bounds, CGRect(x: 15, y: 10, width: 40, height: 60))
+        XCTAssertEqual(moved.points, [CGPoint(x: 15, y: 10), CGPoint(x: 55, y: 70)])
+        XCTAssertEqual(moved.id, annotation.id)
+    }
+
+    func testResizedScalesPointsInsideBounds() {
+        let annotation = ScreenshotAnnotation.arrow(
+            from: CGPoint(x: 0, y: 0),
+            to: CGPoint(x: 100, y: 100),
+            color: .blue,
+            lineWidth: 2
+        )
+        let resized = annotation.resized(to: CGRect(x: 0, y: 0, width: 50, height: 200))
+
+        XCTAssertEqual(resized.bounds, CGRect(x: 0, y: 0, width: 50, height: 200))
+        XCTAssertEqual(resized.points, [CGPoint(x: 0, y: 0), CGPoint(x: 50, y: 200)])
+    }
+
+    func testStickerFactoryCentersBounds() {
+        let sticker = ScreenshotAnnotation.sticker(emoji: "🔥", center: CGPoint(x: 100, y: 60), size: 40)
+
+        XCTAssertEqual(sticker.kind, .sticker("🔥"))
+        XCTAssertEqual(sticker.bounds, CGRect(x: 80, y: 40, width: 40, height: 40))
+    }
+
+    func testFillStyleAlpha() {
+        XCTAssertNil(ScreenshotFillStyle.none.fillAlpha)
+        XCTAssertEqual(ScreenshotFillStyle.semi.fillAlpha, 0.35)
+        XCTAssertEqual(ScreenshotFillStyle.solid.fillAlpha, 1.0)
+    }
+
+    func testWithTextValuePreservesStyleFields() {
+        var annotation = ScreenshotAnnotation.text(value: "old", rect: CGRect(x: 0, y: 0, width: 80, height: 28), color: .red)
+        annotation.rotation = 1.2
+        annotation.textStyle = ScreenshotTextStyle(isBold: true, isItalic: false, size: .large)
+
+        let updated = annotation.withTextValue("new")
+
+        XCTAssertEqual(updated.kind, .text("new"))
+        XCTAssertEqual(updated.rotation, 1.2)
+        XCTAssertEqual(updated.textStyle.isBold, true)
+        XCTAssertEqual(updated.textStyle.size, .large)
     }
 
     func testArrowStandardizesBoundsAndKeepsPoints() {
@@ -93,10 +164,15 @@ final class ScreenshotModelsTests: XCTestCase {
     func testAnnotationColorMetadata() {
         XCTAssertEqual(ScreenshotAnnotationColor.allCases.map(\.rawValue), [
             "red",
+            "orange",
             "yellow",
             "green",
+            "teal",
             "blue",
+            "purple",
+            "pink",
             "white",
+            "gray",
             "black",
         ])
 
