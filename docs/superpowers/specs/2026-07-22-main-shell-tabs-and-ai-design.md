@@ -76,10 +76,17 @@ crates/atlas-ai/               # 新 workspace 成员
 - **会话/配置持久化在 Rust**,格式 JSON,坏文件跳过并报错不崩溃;跨平台时其他前端直接复用。
 - **UI 不下沉。** 五 tab 外壳与聊天视图是平台 UI,SwiftUI 实现;未来跨平台走各自前端(与 2026-07-20 UI-schema 策略不冲突)。
 
+## 主题保留(硬性要求)
+
+- `ShellThemeKind` 全部 16 个主题(aurora/elements-3d/biophilic/clay/fabric/gradient/sketch/ink-wash/kawaii/nature/papercraft/scandi/soft-ui/neon-glow/holographic/foil)一个不少,注册表机制(`ShellThemeSpec`)不动。
+- 主题选择器(4 列网格)完整迁入「设置」tab,选择即时生效并持久化,行为与现在一致。
+- 玻璃背景、卡片 tokens(`ShellThemedCardStyle`)、强制外观(forced appearance)在**全部五个 tab** 内生效——AI 对话区、插件面板、关于页都套用当前主题,不允许出现「新 tab 白板不吃主题」。
+- 新增视图一律通过现有主题环境(`ShellThemeEnvironmentKey`)取值,禁止硬编码配色。
+
 ## 迁移与兼容
 
 - `ContentView` 主窗口分支改挂 `MainShellView`;菜单栏小面板分支不动。
-- 12 分组侧栏、单 host 迁移机制、`--main-window`、主题系统原样保留,只包一层顶级 tab。
+- 12 分组侧栏、单 host 迁移机制、`--main-window` 原样保留,只包一层顶级 tab。
 - 抽取即治理:主窗口外壳代码从 `ContentView.swift` 移入 `MainShell/`,ContentView 剩菜单栏面板职责。
 - 新 Swift 文件用 `add_launcher_files.rb` 同款方式注册(扩展该脚本或复制一份 `add_mainshell_files.rb`)。
 
@@ -93,7 +100,7 @@ crates/atlas-ai/               # 新 workspace 成员
 ## 测试
 
 - **Rust(主战场)**:provider/session/preset CRUD 与持久化、SSE 解析器(fixture 流:正常/中断/错误帧)、export Markdown 快照、base64 图片编码、取消令牌。`cargo test -p atlas-ai`。
-- **Swift**:ShellTab 路由/快捷键映射、AIChatBridge 回调 main 线程分发(mock delegate)、Keychain 引用读写。
+- **Swift**:ShellTab 路由/快捷键映射、AIChatBridge 回调 main 线程分发(mock delegate)、Keychain 引用读写、主题回归(16 主题枚举齐全 + 新 tab 视图从主题环境取值的断言)。
 - 现有 952 Swift 测试 + 104 Rust 测试回归兜底。
 
 ## 分期
