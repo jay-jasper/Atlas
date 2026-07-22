@@ -178,6 +178,16 @@ struct AIConfigSheet: View {
         return nil
     }
 
+    private func currentEngineModel(for cliID: String) -> String? {
+        if case .cli(let id, _, let model) = engineStore.engine, id == cliID { return model }
+        return nil
+    }
+
+    private func applyCliModel(_ cli: AiDetectedCli, model: String) {
+        let trimmed = model.trimmingCharacters(in: .whitespaces)
+        engineStore.engine = .cli(id: cli.kindId, path: cli.path, model: trimmed.isEmpty ? nil : trimmed)
+    }
+
     private var selectedByokID: String? {
         if case .byok(let providerID) = engineStore.engine {
             return providerID.replacingOccurrences(of: "byok-", with: "")
@@ -211,17 +221,42 @@ struct AIConfigSheet: View {
                 }
             }
 
-            if expandedCliID == cli.kindId, !cli.defaultModels.isEmpty {
-                Picker(loc("模型", "Model"), selection: Binding(
-                    get: { selectedModel[cli.kindId] ?? cli.defaultModels.first ?? "" },
-                    set: { model in
-                        selectedModel[cli.kindId] = model
-                        engineStore.engine = .cli(id: cli.kindId, path: cli.path, model: model)
+            if expandedCliID == cli.kindId {
+                HStack(spacing: 8) {
+                    Text(loc("模型", "Model"))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    TextField(
+                        loc("留空用 CLI 默认,可自定义", "Empty = CLI default; type any model"),
+                        text: Binding(
+                            get: { selectedModel[cli.kindId] ?? currentEngineModel(for: cli.kindId) ?? "" },
+                            set: { model in
+                                selectedModel[cli.kindId] = model
+                                applyCliModel(cli, model: model)
+                            }
+                        )
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: 260)
+
+                    if !cli.defaultModels.isEmpty {
+                        Menu {
+                            ForEach(cli.defaultModels, id: \.self) { candidate in
+                                Button(candidate) {
+                                    selectedModel[cli.kindId] = candidate
+                                    applyCliModel(cli, model: candidate)
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.caption)
+                        }
+                        .menuStyle(.borderlessButton)
+                        .frame(width: 26)
+                        .focusable(false)
                     }
-                )) {
-                    ForEach(cli.defaultModels, id: \.self) { Text($0).tag($0) }
+                    Spacer()
                 }
-                .frame(maxWidth: 280)
             }
         }
         .padding(10)
@@ -239,11 +274,9 @@ struct AIConfigSheet: View {
             }
         }
         .onTapGesture {
-            engineStore.engine = .cli(
-                id: cli.kindId,
-                path: cli.path,
-                model: selectedModel[cli.kindId] ?? cli.defaultModels.first
-            )
+            let draft = (selectedModel[cli.kindId] ?? currentEngineModel(for: cli.kindId) ?? cli.defaultModels.first ?? "")
+                .trimmingCharacters(in: .whitespaces)
+            engineStore.engine = .cli(id: cli.kindId, path: cli.path, model: draft.isEmpty ? nil : draft)
         }
     }
 
