@@ -8,6 +8,7 @@ struct SettingsPanelsHost: View {
     private let translationConfigStore = ScreenshotTranslationConfigurationStore()
     private let tokenBarConfigStore = TokenBarConfigurationStore()
     @ObservedObject var paletteState: CommandPaletteState
+    var includeLauncherSection: Bool = true
 
     private var paletteController: LauncherPanelController { paletteState.controller }
 
@@ -42,9 +43,11 @@ struct SettingsPanelsHost: View {
                 onClear: clearTokenBarSettings
             )
 
-            Divider()
+            if includeLauncherSection {
+                Divider()
 
-            commandPaletteSection
+                commandPaletteSection
+            }
 
             Divider()
 

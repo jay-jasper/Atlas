@@ -1014,7 +1014,15 @@ struct ContentView: View {
                 Group {
                     switch shellTab {
                     case .general:
-                        SettingsTabView(shellThemeRaw: $shellThemeRaw)
+                        if let paletteState {
+                            GeneralSettingsTab(
+                                shellThemeRaw: $shellThemeRaw,
+                                paletteState: paletteState,
+                                onOpenCommands: { shellTab = .plugins }
+                            )
+                        } else {
+                            Text("初始化中…").foregroundColor(.secondary)
+                        }
                     case .plugins:
                         switch shellPage {
                         case .dashboard:

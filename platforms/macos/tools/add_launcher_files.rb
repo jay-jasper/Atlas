@@ -32,6 +32,11 @@ atlas_group = project.main_group["Atlas"] or abort "Atlas group missing"
   Dir.glob(File.join(repo_macos, "Atlas", dir, "*.swift")).sort.each do |file|
     add_file(group, app, File.basename(file))
   end
+  # Prune references whose backing files were deleted.
+  group.files.select { |f| !File.exist?(File.join(repo_macos, "Atlas", dir, f.path.to_s)) }.each do |reference|
+    reference.build_files.each(&:remove_from_project)
+    reference.remove_from_project
+  end
 end
 
 widgets_parent = atlas_group["MenuPanel"]
