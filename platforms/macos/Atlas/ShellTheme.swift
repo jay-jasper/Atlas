@@ -15,7 +15,6 @@ enum ShellThemeKind: String, CaseIterable, Identifiable {
     case clay
     case fabric
     case gradient
-    case sketch
     case inkWash = "ink-wash"
     case kawaii
     case nature
@@ -37,7 +36,6 @@ enum ShellThemeKind: String, CaseIterable, Identifiable {
         case .clay: return .clay
         case .fabric: return .fabric
         case .gradient: return .gradient
-        case .sketch: return .sketch
         case .inkWash: return .inkWash
         case .kawaii: return .kawaii
         case .nature: return .nature
@@ -327,39 +325,6 @@ extension ShellThemeSpec {
 extension ShellThemeSpec {
     /// 手绘涂鸦：方格纸背景 + 便签黄卡片，硬边纸片投影 + 墨线描边，
     /// hover 像撩起纸片（抬起 + 微旋转），强制浅色。
-    static let sketch = ShellThemeSpec(
-        title: "手绘",
-        subtitle: "方格纸 · 便签涂鸦",
-        icon: "scribble",
-        swatchColors: [
-            Color(red: 0.98, green: 0.93, blue: 0.66),
-            Color(red: 0.98, green: 0.80, blue: 0.83),
-            Color(red: 0.75, green: 0.86, blue: 0.97),
-        ],
-        colorScheme: .light,
-        cardTokens: ShellCardTokens(
-            cornerRadiusDelta: -8,
-            usesMaterial: false,
-            tint: Color(red: 0.995, green: 0.960, blue: 0.800),
-            tintOpacity: 1.0,
-            tintOpacityHovered: 1.0,
-            strokeColors: [Color(red: 0.22, green: 0.26, blue: 0.38).opacity(0.75)],
-            strokeColorsHovered: [Color(red: 0.22, green: 0.26, blue: 0.38).opacity(0.95)],
-            strokeLineWidth: 1.5,
-            shadows: [ShellCardShadow(color: Color(red: 0.25, green: 0.28, blue: 0.38).opacity(0.35), radius: 0.5, x: 3, y: 4)],
-            shadowsHovered: [ShellCardShadow(color: Color(red: 0.25, green: 0.28, blue: 0.38).opacity(0.42), radius: 0.5, x: 4, y: 6)],
-            hoverScale: 1.02,
-            hoverRotationDegrees: 0.6,
-            hoverRotationAxis: (x: 0, y: 0, z: 1),
-            animationDuration: 0.3
-        ),
-        makeBackground: { AnyView(SketchPaperBackgroundView()) }
-    )
-}
-
-extension ShellThemeSpec {
-    /// 水墨：宣纸白底 + 远山墨晕（不对称构图、大量留白），象牙白卡片 +
-    /// 淡墨描边，hover 如墨晕开（阴影柔化扩散），朱红仅作点缀，强制浅色。
     static let inkWash = ShellThemeSpec(
         title: "水墨",
         subtitle: "宣纸留白 · 墨分五色",

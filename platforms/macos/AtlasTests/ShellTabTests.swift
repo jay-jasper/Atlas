@@ -14,7 +14,7 @@ final class ShellTabTests: XCTestCase {
     }
 
     func testSeventeenThemesRegisteredWithPlainDefault() {
-        XCTAssertEqual(ShellThemeKind.allCases.count, 17)
+        XCTAssertEqual(ShellThemeKind.allCases.count, 16)
         XCTAssertEqual(ShellThemeKind.allCases.first, .plain)
         XCTAssertNil(ShellThemeKind.plain.spec.colorScheme) // 跟随系统
         for kind in ShellThemeKind.allCases {
