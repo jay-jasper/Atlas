@@ -57,7 +57,7 @@ Dir.glob(File.join(repo_macos, "Atlas", "MenuPanel", "Widgets", "*.swift")).sort
 end
 
 tests_group = project.main_group["AtlasTests"] or abort "AtlasTests group missing"
-["Launcher*Tests.swift", "ShellTab*Tests.swift", "AI*Tests.swift", "MenuPanel*Tests.swift"].each do |pattern|
+["Launcher*Tests.swift", "ShellTab*Tests.swift", "AI*Tests.swift", "MenuPanel*Tests.swift", "Search*Tests.swift"].each do |pattern|
   Dir.glob(File.join(repo_macos, "AtlasTests", pattern)).sort.each do |file|
     add_file(tests_group, tests, File.basename(file))
   end

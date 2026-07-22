@@ -15,7 +15,7 @@ final class AtlasCommandProvider: CommandProviding {
                 title: "Capture Desktop",
                 subtitle: nil,
                 icon: .sfSymbol("desktopcomputer"),
-                keywords: ["screenshot", "capture", "desktop"],
+                keywords: ["screenshot", "capture", "desktop", "截图", "截屏", "全屏", "桌面"],
                 action: .execute(onCaptureDesktop),
                 category: "Atlas"
             ),
@@ -24,7 +24,7 @@ final class AtlasCommandProvider: CommandProviding {
                 title: "Capture Area",
                 subtitle: nil,
                 icon: .sfSymbol("crop"),
-                keywords: ["screenshot", "capture", "area", "region"],
+                keywords: ["screenshot", "capture", "area", "region", "截图", "截屏", "区域"],
                 action: .execute(onCaptureArea),
                 category: "Atlas"
             ),
@@ -33,7 +33,7 @@ final class AtlasCommandProvider: CommandProviding {
                 title: "Capture Window",
                 subtitle: nil,
                 icon: .sfSymbol("macwindow"),
-                keywords: ["screenshot", "capture", "window"],
+                keywords: ["screenshot", "capture", "window", "截图", "截屏", "窗口"],
                 action: .push(.windowPicker),
                 category: "Atlas"
             ),
@@ -42,7 +42,7 @@ final class AtlasCommandProvider: CommandProviding {
                 title: "Screenshot Library",
                 subtitle: nil,
                 icon: .sfSymbol("photo.stack"),
-                keywords: ["library", "screenshots", "history"],
+                keywords: ["library", "screenshots", "history", "截图库", "截图", "历史"],
                 action: .push(.screenshotLibrary),
                 category: "Atlas"
             ),
@@ -51,7 +51,7 @@ final class AtlasCommandProvider: CommandProviding {
                 title: "Port Lookup",
                 subtitle: nil,
                 icon: .sfSymbol("network"),
-                keywords: ["port", "process", "network"],
+                keywords: ["port", "process", "network", "端口", "进程"],
                 action: .push(.portLookup),
                 category: "Atlas"
             ),
@@ -60,7 +60,7 @@ final class AtlasCommandProvider: CommandProviding {
                 title: "Open Settings",
                 subtitle: nil,
                 icon: .sfSymbol("gear"),
-                keywords: ["settings", "preferences"],
+                keywords: ["settings", "preferences", "设置", "偏好"],
                 action: .execute(onOpenSettings),
                 category: "Atlas"
             ),
