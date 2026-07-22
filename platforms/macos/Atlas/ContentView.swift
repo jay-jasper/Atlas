@@ -685,7 +685,6 @@ struct ContentView: View {
     @State private var isShowingHandMirror = false
     @State private var isShowingSceneEditor = false
     @State private var isShowingSceneDiagnostics = false
-    @State private var showsHome = false
     /// Process-global so the one-time startup runs once per launch even if SwiftUI
     /// recreates the menu bar content view (it would reset a plain @State flag).
     private static var didStartModules = false
@@ -736,6 +735,8 @@ struct ContentView: View {
     @State private var selectedShellTab: ShellToolTab = .overview
     @State private var shellTab: ShellTab = .general
     @State private var shellPage: ShellPage = .dashboard
+    @StateObject private var menuWidgetStore = WidgetStore()
+    @StateObject private var menuBluetoothBattery = BluetoothBatteryService()
     @State private var isShowingThemePicker = false
     @State private var shellReturnPage: ShellPage = .dashboard
     @State private var shellLibraryQuery: String = ""
@@ -776,10 +777,8 @@ struct ContentView: View {
         ZStack {
             if shellMode.isMainWindow {
                 mainShellView
-            } else if showsHome {
-                homeView
             } else {
-                fullPanelView
+                menuPanelView
             }
 
             if let capturedScreenshot {
@@ -839,151 +838,157 @@ struct ContentView: View {
 
     /// The designed Shell (`Atlas Shell.dc.html`) as the menu bar home, backed by
     /// real monitoring/feature/scene data and wired to real actions.
-    private var homeView: some View {
-        AtlasShellView(
-            live: shellLiveData,
-            onOpenPalette: { paletteState?.controller.show() },
-            onOpenPreferences: { Self.openPreferencesWindow() },
-            onOpenScene: { isShowingSceneEditor = true },
-            onOpenToggles: { showsHome = false },
-            onOpenMore: { showsHome = false }
+    // MARK: - MacTools-style menu bar panel
+
+    private var menuPanelView: some View {
+        MenuPanelView(
+            featureGroups: menuPanelGroups(),
+            widgetStore: menuWidgetStore,
+            widgetContent: { kind in AnyView(self.menuWidget(for: kind)) },
+            sectionBuilder: { tag in
+                if let section = tag.base as? PrimaryPanelSection {
+                    return AnyView(self.primaryPanelSection(section))
+                }
+                return AnyView(EmptyView())
+            },
+            sectionTitle: { tag in
+                (tag.base as? PrimaryPanelSection)?.module.localizedTitle ?? ""
+            },
+            statusBanner: showCaptureStatus
+                ? AnyView(CaptureStatusBanner(message: captureStatus, kind: captureStatusKind))
+                : nil,
+            onOpenMainWindow: { AtlasServices.shared.openMainWindow?() },
+            onOpenSettings: { Self.openPreferencesWindow() },
+            onQuit: { NSApp.terminate(nil) }
         )
     }
 
-    private var shellLiveData: AtlasShellLiveData {
-        let gib = 1_073_741_824.0
-        let snap = snapshot
-        let procs = (snap?.topCpuProcesses ?? []).prefix(3).map { p in
-            AtlasShellLiveData.Process(
-                badge: String(p.name.prefix(2)),
-                name: p.name,
-                detail: "pid \(p.pid)",
-                cpu: "\(Int(p.cpuUsage.rounded()))%"
+    private func menuPanelGroups() -> [FeatureListPanel.Group] {
+        var groups: [FeatureListPanel.Group] = []
+
+        groups.append(FeatureListPanel.Group(id: "actions", title: "快捷操作", rows: [
+            FeatureRowModel(
+                id: "capture-full", icon: "camera", title: "全屏截图",
+                control: .action(label: "拍", run: { self.captureDesktop() })
+            ),
+            FeatureRowModel(
+                id: "capture-area", icon: "crop", title: "区域截图",
+                control: .action(label: "拍", run: { self.showSelectionWindow() })
+            ),
+            FeatureRowModel(
+                id: "capture-window", icon: "macwindow", title: "窗口截图",
+                control: .action(label: "拍", run: { self.showWindowSelection() })
+            ),
+            FeatureRowModel(
+                id: "clear-clipboard", icon: "trash", title: "清空剪贴板历史",
+                control: .action(label: "清空", run: { self.clearClipboardHistory() })
+            ),
+        ]))
+
+        groups.append(FeatureListPanel.Group(id: "toggles", title: "开关", rows: [
+            FeatureRowModel(
+                id: "keep-awake", icon: "cup.and.saucer", title: "阻止休眠",
+                subtitle: keepAwakeService.status == .running ? "运行中" : nil,
+                control: .toggle(Binding(
+                    get: { self.keepAwakeService.status == .running },
+                    set: { _ in self.toggleKeepAwake() }
+                ))
+            ),
+            FeatureRowModel(
+                id: "presentation", icon: "play.rectangle", title: "演示模式",
+                subtitle: presentationModeService.status == .running ? "运行中" : nil,
+                control: .toggle(Binding(
+                    get: { self.presentationModeService.status == .running },
+                    set: { _ in self.togglePresentationMode() }
+                ))
+            ),
+        ] + featureToggleRows()))
+
+        let sectionRows = orderedPrimarySections().map { section in
+            FeatureRowModel(
+                id: "section-\(String(describing: section))",
+                icon: ShellToolGroup.group(containing: section).icon,
+                title: section.module.localizedTitle,
+                control: .chevron(tag: AnyHashable(section))
             )
         }
-        let total = features.count
-        let enabled = features.filter { enabledFeatures[$0.name, default: $0.isEnabled] }.count
-        let sceneName = sceneCoordinator.flatMap { c in
-            c.scenes.first { $0.id == c.activeSceneID }?.name
-        }
-        return AtlasShellLiveData(
-            cpuPercent: Int((snap?.cpuUsage ?? 0).rounded()),
-            memUsedGB: Double(snap?.memUsedBytes ?? 0) / gib,
-            memTotalGB: Double(snap?.memTotalBytes ?? 0) / gib,
-            netDownText: Self.shortRate(snap?.netDownloadBps ?? 0),
-            netDownUnit: "下行 · 上行 /s",
-            netUpText: Self.shortRate(snap?.netUploadBps ?? 0),
-            cores: (snap?.cpuCores ?? []).map { min(max(Double($0.usage) / 100, 0), 1) },
-            processes: Array(procs),
-            sceneName: sceneName,
-            enabledCount: enabled,
-            totalCount: max(total, enabled),
-            activeModuleCount: enabled,
-            nowPlayingSource: nil
-        )
+        groups.append(FeatureListPanel.Group(id: "tools", title: "工具", rows: sectionRows))
+
+        return groups
     }
 
-    private static func shortRate(_ bps: UInt64) -> String {
-        let v = Double(bps)
-        if v >= 1_000_000 { return String(format: "%.1fM", v / 1_000_000) }
-        if v >= 1_000 { return String(format: "%.0fK", v / 1_000) }
-        return "\(bps)"
+    private func featureToggleRows() -> [FeatureRowModel] {
+        features.map { feature in
+            FeatureRowModel(
+                id: "feature-\(feature.name)",
+                icon: PrimaryPanelSection.section(forFeatureName: feature.name)
+                    .map { ShellToolGroup.group(containing: $0).icon } ?? "switch.2",
+                title: AtlasModule(rawValue: feature.name)?.localizedTitle ?? feature.name,
+                control: .toggle(Binding(
+                    get: { self.enabledFeatures[feature.name, default: feature.isEnabled] },
+                    set: { enabled in
+                        self.enabledFeatures[feature.name] = enabled
+                        self.handleFeatureChange(feature.name, enabled: enabled)
+                    }
+                ))
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func menuWidget(for kind: WidgetKind) -> some View {
+        switch kind {
+        case .gauges:
+            GaugeQuadWidget(
+                cpuPercent: snapshot.map { Double($0.cpuUsage) },
+                memUsedBytes: snapshot.map { Double($0.memUsedBytes) },
+                memTotalBytes: snapshot.map { Double($0.memTotalBytes) },
+                diskUsedBytes: menuRootDisk.map { Double($0.usedBytes) },
+                diskTotalBytes: menuRootDisk.map { Double($0.totalBytes) },
+                batteryPercent: (snapshot?.battery).map { Double($0.chargePercent) },
+                batteryCharging: snapshot?.battery?.isCharging ?? false,
+                onEnableMonitoring: { self.enabledFeatures["monitoring"] = true
+                    self.handleFeatureChange("monitoring", enabled: true) }
+            )
+        case .network:
+            NetworkWidget(
+                downloadBps: snapshot?.netDownloadBps,
+                uploadBps: snapshot?.netUploadBps
+            )
+        case .processTop:
+            ProcessTopWidget(rows: (snapshot?.topCpuProcesses ?? []).prefix(5).map { process in
+                ProcessTopWidget.Row(
+                    id: "\(process.pid)",
+                    name: process.name,
+                    cpuText: "\(Int(process.cpuUsage.rounded()))%",
+                    memText: String(format: "%.0fM", Double(process.memBytes) / 1_048_576)
+                )
+            })
+        case .calendar:
+            CalendarWidget()
+        case .deviceBattery:
+            DeviceBatteryWidget(
+                devices: menuBluetoothBattery.devices.map { device in
+                    DeviceBatteryWidget.Device(
+                        id: device.name,
+                        name: device.name,
+                        icon: "headphones",
+                        percent: device.percent
+                    )
+                }
+            )
+            .onAppear { menuBluetoothBattery.refresh() }
+        }
+    }
+
+    private var menuRootDisk: MonitoringDiskSnapshot? {
+        let disks = snapshot?.disks ?? []
+        return disks.first { $0.mountPoint == "/" } ?? disks.first
     }
 
     private static func openPreferencesWindow() {
         NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
         NSApp.activate(ignoringOtherApps: true)
-    }
-
-    private var fullPanelView: some View {
-        ZStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    HStack(spacing: 8) {
-                        Button {
-                            showsHome = true
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "chevron.left")
-                                Text("主页")
-                            }
-                            .font(.system(size: 12, weight: .medium))
-                        }
-                        .buttonStyle(.plain)
-                        Spacer()
-                        Button {
-                            AtlasServices.shared.openMainWindow?()
-                        } label: {
-                            Image(systemName: "macwindow")
-                                .font(.system(size: 12, weight: .medium))
-                        }
-                        .buttonStyle(.plain)
-                        .help("打开主窗口")
-                    }
-
-                    Text(statusText).font(.headline)
-
-                    if showCaptureStatus {
-                        CaptureStatusBanner(message: captureStatus, kind: captureStatusKind)
-                    }
-
-                    ForEach(orderedPrimarySections(), id: \.self) { section in
-                        primaryPanelSection(section)
-                    }
-
-                    FeatureCenterPanel(
-                        features: features,
-                        enabledFeatures: $enabledFeatures,
-                        onFeatureChanged: handleFeatureChange
-                    )
-
-                    Divider()
-
-                    EditionPanel(state: EditionPanelState(entitlement: entitlementState))
-
-                    Divider()
-
-                    ScreenshotFeatureSettingsPanel(
-                        settings: screenshotFeatureSettings,
-                        onSave: saveScreenshotFeatureSettings
-                    )
-                    .id(screenshotFeatureSettingsIdentity)
-
-                    Divider()
-
-                    ScreenshotLibraryPanel(
-                        items: screenshotLibraryItems,
-                        onOpen: openLibraryItem,
-                        onDelete: deleteLibraryItem,
-                        pngURL: { screenshotLibraryStore.pngURL(for: $0) },
-                        onRunOCR: screenshotFeatureSettings.editorCapabilities.ocr ? runBackgroundOCR : nil,
-                        onRunTranslation: screenshotFeatureSettings.editorCapabilities.translation && isTranslationConfigured ? runBackgroundTranslation : nil,
-                        onUpdateTags: updateLibraryItemTags,
-                        onCopyText: { text in
-                            copyTextToClipboard(text, detail: "Screenshot library copied recognized text to the pasteboard")
-                            showStatus("Copied text")
-                        },
-                        query: $screenshotLibraryQuery
-                    )
-
-                    Divider()
-
-                    TranslationSettingsPanel(
-                        draft: translationSettingsDraft,
-                        isConfigured: isTranslationConfigured,
-                        onSave: saveTranslationSettings,
-                        onClear: clearTranslationSettings
-                    )
-                    .id(translationSettingsPanelIdentity)
-
-                    Divider()
-
-                    AppFooter()
-                }
-                .padding()
-            }
-        }
-        .frame(minWidth: 360, minHeight: 500)
     }
 
     // MARK: - Main window shell (top category tabs + tool sidebar + detail)
