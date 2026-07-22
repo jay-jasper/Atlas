@@ -31,9 +31,21 @@ struct MenuPanelView: View {
 
     private var header: some View {
         HStack(spacing: 12) {
-            Text(loc("组件", "Widgets"))
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.secondary)
+            Button(action: onQuit) {
+                Image(systemName: "power")
+                    .font(.system(size: 13, weight: .medium))
+            }
+            .buttonStyle(.plain)
+            .focusable(false)
+            .help(loc("退出", "Quit"))
+
+            Button(action: onOpenMainWindow) {
+                Image(systemName: "macwindow")
+                    .font(.system(size: 13, weight: .medium))
+            }
+            .buttonStyle(.plain)
+            .focusable(false)
+            .help(loc("打开主窗口", "Open Main Window"))
 
             Spacer()
 
@@ -59,22 +71,6 @@ struct MenuPanelView: View {
                     isShowingThemePicker = false
                 }
             }
-
-            Button(action: onOpenMainWindow) {
-                Image(systemName: "macwindow")
-                    .font(.system(size: 13, weight: .medium))
-            }
-            .buttonStyle(.plain)
-            .focusable(false)
-            .help(loc("打开主窗口", "Open Main Window"))
-
-            Button(action: onQuit) {
-                Image(systemName: "power")
-                    .font(.system(size: 13, weight: .medium))
-            }
-            .buttonStyle(.plain)
-            .focusable(false)
-            .help(loc("退出", "Quit"))
         }
         .frame(height: 24)
     }
