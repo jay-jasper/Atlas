@@ -78,7 +78,7 @@ pub const CLI_KINDS: &[CliKind] = &[
     },
     CliKind {
         id: "antigravity",
-        binary: "antigravity",
+        binary: "agy",
         display: "Antigravity",
         subtitle: "Google Antigravity CLI",
         default_models: &[],

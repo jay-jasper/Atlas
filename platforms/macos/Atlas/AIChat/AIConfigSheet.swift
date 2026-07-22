@@ -109,7 +109,6 @@ struct AIConfigSheet: View {
 
     @State private var clis: [AiDetectedCli] = CliScanCache.load()
     @State private var selectedModel: [String: String] = [:]
-    @State private var testResult: [String: String] = [:]
     @State private var isScanning = false
     @State private var expandedPresetID: String?
     @State private var expandedCliID: String?
@@ -201,13 +200,15 @@ struct AIConfigSheet: View {
                         .foregroundColor(.secondary)
                 }
                 Spacer()
-                if let result = testResult[cli.kindId] {
-                    Text(result)
+                if cli.version.isEmpty {
+                    Text(loc("异常", "Unavailable"))
                         .font(.caption)
-                        .foregroundColor(result.hasPrefix("✓") ? .green : .red)
+                        .foregroundColor(.orange)
+                } else {
+                    Text(loc("✓ 可用", "✓ Available"))
+                        .font(.caption)
+                        .foregroundColor(.green)
                 }
-                Button(loc("测试", "Test")) { test(cli) }
-                    .font(.callout)
             }
 
             if expandedCliID == cli.kindId, !cli.defaultModels.isEmpty {
@@ -283,32 +284,6 @@ struct AIConfigSheet: View {
                 clis = found
                 CliScanCache.save(found)
                 isScanning = false
-            }
-        }
-    }
-
-    private func test(_ cli: AiDetectedCli) {
-        testResult[cli.kindId] = "…"
-        DispatchQueue.global().async {
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: cli.path)
-            process.arguments = ["--version"]
-            let pipe = Pipe()
-            process.standardOutput = pipe
-            process.standardError = pipe
-            do {
-                try process.run()
-                process.waitUntilExit()
-                let ok = process.terminationStatus == 0
-                let data = pipe.fileHandleForReading.readDataToEndOfFile()
-                let output = String(data: data, encoding: .utf8) ?? ""
-                DispatchQueue.main.async {
-                    testResult[cli.kindId] = ok ? "✓ 可用" : "失败:\(output.prefix(200))"
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    testResult[cli.kindId] = "失败:\(error.localizedDescription)"
-                }
             }
         }
     }
