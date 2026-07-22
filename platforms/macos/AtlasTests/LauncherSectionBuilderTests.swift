@@ -144,4 +144,31 @@ final class LauncherSectionBuilderTests: XCTestCase {
         )
         XCTAssertEqual(sections.first?.items.map(\.id), ["Tools|Alpha"])
     }
+
+    func testEmptyRootCandidatesFallBackToProviderFiltered() {
+        // provider 空查询返回空、有查询才吐结果(AppLauncher 型):必须仍可搜到。
+        let providerStyle = StubSource(sourceID: "apps") { query in
+            query.isEmpty ? [] : [self.toolA]
+        }
+        let sections = LauncherSectionBuilder.build(
+            query: "alpha",
+            sources: [providerStyle],
+            favorites: [],
+            records: [:]
+        )
+        XCTAssertEqual(sections.flatMap(\.items).map(\.id), ["Tools|Alpha"])
+    }
+
+    func testSearchIsGloballyRankedSingleSection() {
+        let sections = LauncherSectionBuilder.build(
+            query: "a",
+            sources: [source([toolA, appX])],
+            favorites: [],
+            records: [:]
+        )
+        // 非空查询:一个「结果」区,跨分类合并。
+        XCTAssertEqual(sections.count, 1)
+        XCTAssertEqual(sections[0].id, .results("Results"))
+        XCTAssertEqual(Set(sections[0].items.map(\.category)), ["Tools", "Applications"])
+    }
 }

@@ -20,12 +20,32 @@ enum LauncherSectionBuilder {
         for source in sources {
             switch source.searchMode {
             case .commandList:
-                let annotated = LauncherSearchEngine.annotate(
-                    items: source.items(for: ""),
+                // 候选 = 空查询全量 ∪ provider 自筛结果(部分 provider 空查询返回空,
+                // 只有喂 query 才吐候选;两路并集去重后交给引擎)。
+                var pool = source.items(for: "")
+                var seenIDs = Set(pool.map(\.id))
+                var providerMatched: [LauncherItem] = []
+                if !trimmed.isEmpty {
+                    providerMatched = source.items(for: trimmed)
+                    for item in providerMatched where !seenIDs.contains(item.id) {
+                        pool.append(item)
+                        seenIDs.insert(item.id)
+                    }
+                }
+                var annotated = LauncherSearchEngine.annotate(
+                    items: pool,
                     query: trimmed,
                     records: records,
                     now: now
                 )
+                // provider 认了但引擎没认(匹配口径不同,如 provider 自己的模糊):
+                // 保留,排在引擎结果后面。
+                if !trimmed.isEmpty {
+                    let annotatedIDs = Set(annotated.map(\.id))
+                    for item in providerMatched where !annotatedIDs.contains(item.id) {
+                        annotated.append(item)
+                    }
+                }
                 items.append(contentsOf: annotated)
             case .queryDriven:
                 var raw = source.items(for: trimmed)
@@ -131,12 +151,18 @@ enum LauncherSectionBuilder {
             appendSection(.favorites, title: "Favorites", items: pinnedMatches)
         }
 
-        // Per-category result sections, ranked by combined search score.
-        let grouped = Dictionary(grouping: allItems.filter { !$0.isAnswer }, by: \.category)
-        let categoryOrder = allItems.map(\.category).uniqued()
-        for category in categoryOrder {
-            guard let categoryItems = grouped[category] else { continue }
-            let ranked = categoryItems.enumerated()
+        if trimmed.isEmpty {
+            // 根页:仍按分类分组浏览。
+            let grouped = Dictionary(grouping: allItems.filter { !$0.isAnswer }, by: \.category)
+            let categoryOrder = allItems.map(\.category).uniqued()
+            for category in categoryOrder {
+                guard let categoryItems = grouped[category] else { continue }
+                appendSection(.results(category), title: category, items: categoryItems)
+            }
+        } else {
+            // 搜索:Raycast 式全局单列表,按综合分排序;分类只做行尾徽标。
+            let ranked = allItems.filter { !$0.isAnswer }
+                .enumerated()
                 .sorted { lhs, rhs in
                     if lhs.element.searchScore != rhs.element.searchScore {
                         return lhs.element.searchScore > rhs.element.searchScore
@@ -144,7 +170,7 @@ enum LauncherSectionBuilder {
                     return lhs.offset < rhs.offset
                 }
                 .map(\.element)
-            appendSection(.results(category), title: category, items: ranked)
+            appendSection(.results("Results"), title: "结果", items: ranked)
         }
 
         if !trimmed.isEmpty, !fallbackItems.isEmpty {
