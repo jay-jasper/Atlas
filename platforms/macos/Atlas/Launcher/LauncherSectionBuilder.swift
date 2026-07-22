@@ -32,20 +32,15 @@ enum LauncherSectionBuilder {
                         seenIDs.insert(item.id)
                     }
                 }
-                var annotated = LauncherSearchEngine.annotate(
+                // 引擎统一裁决(子序列+拼音,比 provider 的 contains 更宽):
+                // provider 匹配过宽的条目在这里被正确剔除。
+                _ = providerMatched
+                let annotated = LauncherSearchEngine.annotate(
                     items: pool,
                     query: trimmed,
                     records: records,
                     now: now
                 )
-                // provider 认了但引擎没认(匹配口径不同,如 provider 自己的模糊):
-                // 保留,排在引擎结果后面。
-                if !trimmed.isEmpty {
-                    let annotatedIDs = Set(annotated.map(\.id))
-                    for item in providerMatched where !annotatedIDs.contains(item.id) {
-                        annotated.append(item)
-                    }
-                }
                 items.append(contentsOf: annotated)
             case .queryDriven:
                 var raw = source.items(for: trimmed)
