@@ -127,16 +127,3 @@ struct SettingsPanelsHost: View {
             .joined()
     }
 }
-
-@MainActor
-struct AtlasSettingsView: View {
-    @ObservedObject var paletteState: CommandPaletteState
-
-    var body: some View {
-        ScrollView {
-            SettingsPanelsHost(paletteState: paletteState)
-                .padding()
-        }
-        .frame(width: 340)
-    }
-}

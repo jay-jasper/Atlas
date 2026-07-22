@@ -57,9 +57,34 @@ struct AtlasApp: App {
     @NSApplicationDelegateAdaptor(AtlasAppDelegate.self) private var appDelegate
 
     var body: some Scene {
+        // 旧独立设置窗已废弃:Settings scene 只做重定向 —— 系统 ⌘, 一触发
+        // 就关掉自己并打开主界面(设置在通用 tab)。
         Settings {
-            AtlasSettingsView(paletteState: AtlasServices.shared.paletteState)
+            SettingsRedirectView()
         }
+    }
+}
+
+/// Settings scene 占位:出现即转跳主窗口并自我关闭。
+private struct SettingsRedirectView: View {
+    var body: some View {
+        Color.clear
+            .frame(width: 1, height: 1)
+            .onAppear {
+                AtlasServices.shared.openMainWindow?()
+                DispatchQueue.main.async {
+                    for window in NSApp.windows
+                    where window.contentViewController is NSHostingController<SettingsRedirectView> {
+                        window.close()
+                    }
+                    // SwiftUI settings window content is wrapped; fallback: close by title.
+                    for window in NSApp.windows where window.title.contains("Settings") || window.title.contains("设置") {
+                        if window.frameAutosaveName != "AtlasMainWindow" {
+                            window.close()
+                        }
+                    }
+                }
+            }
     }
 }
 
@@ -70,6 +95,11 @@ final class AtlasAppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         NSApp.mainMenu = makeMainMenu()
+        // SwiftUI 稍后可能重建主菜单(Settings scene),下一拍再夺回。
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            NSApp.mainMenu = self.makeMainMenu()
+        }
         menuBar.install()
         DockIconStore.shared.apply()
         // Dev/automation affordance: `open Atlas.app --args --main-window`.
