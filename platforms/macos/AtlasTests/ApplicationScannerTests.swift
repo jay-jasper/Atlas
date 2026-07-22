@@ -25,7 +25,7 @@ final class ApplicationScannerTests: XCTestCase {
         _ = try makeDirectory("NotAnApp")
         try "text".write(to: root.appendingPathComponent("Notes.txt"), atomically: true, encoding: .utf8)
 
-        let scanner = FileSystemApplicationScanner(directories: [root])
+        let scanner = FileSystemApplicationScanner(directories: [root], extraAppPaths: [])
 
         XCTAssertEqual(scanner.scanApplications().map { AppEntry(name: $0.name, url: $0.url) }, [
             AppEntry(name: "Safari", url: appURL),
@@ -34,7 +34,7 @@ final class ApplicationScannerTests: XCTestCase {
 
     func testScannerDeduplicatesByURL() throws {
         let appURL = try makeDirectory("Xcode.app")
-        let scanner = FileSystemApplicationScanner(directories: [root, root])
+        let scanner = FileSystemApplicationScanner(directories: [root, root], extraAppPaths: [])
 
         XCTAssertEqual(scanner.scanApplications().map { AppEntry(name: $0.name, url: $0.url) }, [
             AppEntry(name: "Xcode", url: appURL),
@@ -46,7 +46,7 @@ final class ApplicationScannerTests: XCTestCase {
         let arcURL = try makeDirectory("Arc.app")
         let xcodeURL = try makeDirectory("Xcode.app")
 
-        let scanner = FileSystemApplicationScanner(directories: [root])
+        let scanner = FileSystemApplicationScanner(directories: [root], extraAppPaths: [])
 
         XCTAssertEqual(scanner.scanApplications().map { AppEntry(name: $0.name, url: $0.url) }, [
             AppEntry(name: "Arc", url: arcURL),
@@ -58,7 +58,7 @@ final class ApplicationScannerTests: XCTestCase {
     func testScannerSkipsMissingDirectories() throws {
         let existingURL = try makeDirectory("Terminal.app")
         let missing = root.appendingPathComponent("Missing", isDirectory: true)
-        let scanner = FileSystemApplicationScanner(directories: [missing, root])
+        let scanner = FileSystemApplicationScanner(directories: [missing, root], extraAppPaths: [])
 
         XCTAssertEqual(scanner.scanApplications().map { AppEntry(name: $0.name, url: $0.url) }, [
             AppEntry(name: "Terminal", url: existingURL),

@@ -13,14 +13,22 @@ struct FileSystemApplicationScanner: ApplicationScanning {
         URL(fileURLWithPath: (NSHomeDirectory() as NSString).appendingPathComponent("Applications")),
     ]
 
+    /// CoreServices 里只收白名单(整个目录都是系统内部 app,不能全量进搜索)。
+    static let extraAppPaths = [
+        "/System/Library/CoreServices/Finder.app",
+    ]
+
     private let directories: [URL]
+    private let extraApps: [String]
     private let fileManager: FileManager
 
     init(
         directories: [URL] = Self.defaultDirectories,
+        extraAppPaths: [String] = Self.extraAppPaths,
         fileManager: FileManager = .default
     ) {
         self.directories = directories
+        self.extraApps = extraAppPaths
         self.fileManager = fileManager
     }
 
@@ -47,6 +55,19 @@ struct FileSystemApplicationScanner: ApplicationScanning {
                     localizedName: localized
                 ))
             }
+        }
+
+        for path in extraApps where fileManager.fileExists(atPath: path) {
+            let url = URL(fileURLWithPath: path)
+            var localized = fileManager.displayName(atPath: path)
+            if localized.hasSuffix(".app") {
+                localized = String(localized.dropLast(4))
+            }
+            entries.append(AppEntry(
+                name: url.deletingPathExtension().lastPathComponent,
+                url: url,
+                localizedName: localized
+            ))
         }
 
         var seen = Set<URL>()
