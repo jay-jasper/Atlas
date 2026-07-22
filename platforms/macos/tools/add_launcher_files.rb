@@ -26,15 +26,19 @@ def add_file(group, target, filename)
 end
 
 atlas_group = project.main_group["Atlas"] or abort "Atlas group missing"
-launcher_group = ensure_group(atlas_group, "Launcher", "Launcher")
 
-Dir.glob(File.join(repo_macos, "Atlas", "Launcher", "*.swift")).sort.each do |file|
-  add_file(launcher_group, app, File.basename(file))
+%w[Launcher MainShell AIChat].each do |dir|
+  group = ensure_group(atlas_group, dir, dir)
+  Dir.glob(File.join(repo_macos, "Atlas", dir, "*.swift")).sort.each do |file|
+    add_file(group, app, File.basename(file))
+  end
 end
 
 tests_group = project.main_group["AtlasTests"] or abort "AtlasTests group missing"
-Dir.glob(File.join(repo_macos, "AtlasTests", "Launcher*Tests.swift")).sort.each do |file|
-  add_file(tests_group, tests, File.basename(file))
+["Launcher*Tests.swift", "ShellTab*Tests.swift", "AI*Tests.swift"].each do |pattern|
+  Dir.glob(File.join(repo_macos, "AtlasTests", pattern)).sort.each do |file|
+    add_file(tests_group, tests, File.basename(file))
+  end
 end
 
 # Drop references to palette view layer files once they are deleted from disk;

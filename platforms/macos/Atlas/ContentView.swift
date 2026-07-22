@@ -734,6 +734,7 @@ struct ContentView: View {
     @Environment(\.colorScheme) private var systemColorScheme
     @State private var selectedShellTool: PrimaryPanelSection = .screenshot
     @State private var selectedShellTab: ShellToolTab = .overview
+    @State private var shellTab: ShellTab = .general
     @State private var shellPage: ShellPage = .dashboard
     @State private var isShowingThemePicker = false
     @State private var shellReturnPage: ShellPage = .dashboard
@@ -1006,13 +1007,29 @@ struct ContentView: View {
                 shellTitlebarAccessory
                     .frame(height: 28)
                 Group {
-                    switch shellPage {
-                    case .dashboard:
-                        shellDashboard
-                    case .library:
-                        shellLibrary
-                    case .tool:
-                        shellToolPage
+                    switch shellTab {
+                    case .general:
+                        switch shellPage {
+                        case .dashboard:
+                            shellDashboard
+                        case .library:
+                            shellLibrary
+                        case .tool:
+                            shellToolPage
+                        }
+                    case .plugins:
+                        ScrollView {
+                            PluginsPanel(service: pluginsService)
+                                .glassCard(padding: 12)
+                                .frame(maxWidth: 760, alignment: .leading)
+                                .frame(maxWidth: .infinity)
+                        }
+                    case .ai:
+                        AITabView()
+                    case .settings:
+                        SettingsTabView(shellThemeRaw: $shellThemeRaw)
+                    case .about:
+                        AboutTabView()
                     }
                 }
                 .padding(.horizontal, 14)
@@ -1284,6 +1301,22 @@ struct ContentView: View {
     private var shellTitlebarAccessory: some View {
         HStack(spacing: 12) {
             Spacer()
+
+            ShellTabBar(selection: $shellTab)
+
+            Spacer()
+
+            // Hidden ⌘1-⌘5 tab switchers.
+            ForEach(ShellTab.allCases) { tab in
+                Button("") { shellTab = tab }
+                    .keyboardShortcut(
+                        KeyEquivalent(Character("\(tab.shortcutDigit)")),
+                        modifiers: .command
+                    )
+                    .frame(width: 0, height: 0)
+                    .opacity(0)
+                    .accessibilityHidden(true)
+            }
 
             Button {
                 isShowingThemePicker.toggle()

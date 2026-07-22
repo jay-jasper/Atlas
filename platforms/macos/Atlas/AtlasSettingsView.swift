@@ -1,7 +1,9 @@
 import SwiftUI
 
+/// Shared body used by the standalone settings window AND the main-window
+/// 设置 tab. Owns panel state/load/save so the two hosts never diverge.
 @MainActor
-struct AtlasSettingsView: View {
+struct SettingsPanelsHost: View {
     private let featureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigStore = ScreenshotTranslationConfigurationStore()
     private let tokenBarConfigStore = TokenBarConfigurationStore()
@@ -16,46 +18,42 @@ struct AtlasSettingsView: View {
     @State private var featureSettingsIdentity: String = ""
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                ScreenshotFeatureSettingsPanel(
-                    settings: screenshotFeatureSettings,
-                    onSave: saveFeatureSettings
-                )
-                .id(featureSettingsIdentity)
+        VStack(alignment: .leading, spacing: 16) {
+            ScreenshotFeatureSettingsPanel(
+                settings: screenshotFeatureSettings,
+                onSave: saveFeatureSettings
+            )
+            .id(featureSettingsIdentity)
 
-                Divider()
+            Divider()
 
-                TranslationSettingsPanel(
-                    draft: translationSettingsDraft,
-                    isConfigured: isTranslationConfigured,
-                    onSave: saveTranslationSettings,
-                    onClear: clearTranslationSettings
-                )
+            TranslationSettingsPanel(
+                draft: translationSettingsDraft,
+                isConfigured: isTranslationConfigured,
+                onSave: saveTranslationSettings,
+                onClear: clearTranslationSettings
+            )
 
-                Divider()
+            Divider()
 
-                TokenBarSettingsPanel(
-                    configuration: tokenBarConfiguration,
-                    onSave: saveTokenBarSettings,
-                    onClear: clearTokenBarSettings
-                )
+            TokenBarSettingsPanel(
+                configuration: tokenBarConfiguration,
+                onSave: saveTokenBarSettings,
+                onClear: clearTokenBarSettings
+            )
 
-                Divider()
+            Divider()
 
-                commandPaletteSection
+            commandPaletteSection
 
-                Divider()
+            Divider()
 
-                AutomationSettingsView(store: CustomAutomationStore())
+            AutomationSettingsView(store: CustomAutomationStore())
 
-                Divider()
+            Divider()
 
-                SkillSettingsView()
-            }
-            .padding()
+            SkillSettingsView()
         }
-        .frame(width: 340)
         .onAppear { load() }
     }
 
@@ -124,5 +122,18 @@ struct AtlasSettingsView: View {
         ScreenshotSubfeature.allCases
             .map { screenshotFeatureSettings.isEnabled($0) ? "1" : "0" }
             .joined()
+    }
+}
+
+@MainActor
+struct AtlasSettingsView: View {
+    @ObservedObject var paletteState: CommandPaletteState
+
+    var body: some View {
+        ScrollView {
+            SettingsPanelsHost(paletteState: paletteState)
+                .padding()
+        }
+        .frame(width: 340)
     }
 }
