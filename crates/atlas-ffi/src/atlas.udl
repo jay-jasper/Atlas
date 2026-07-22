@@ -118,6 +118,16 @@ dictionary AiProviderConfig {
     string name;
     string base_url;
     string model;
+    u32? max_tokens;
+};
+
+dictionary AiDetectedCli {
+    string kind_id;
+    string display;
+    string subtitle;
+    string path;
+    string version;
+    sequence<string> default_models;
 };
 
 dictionary AiChatMessage {
@@ -270,4 +280,11 @@ namespace atlas {
     u64 ai_send_message(string session_id, AiProviderConfig provider, string api_key, string? system_prompt, AiChatStreamDelegate delegate);
 
     void ai_cancel(u64 request_id);
+
+    /// Detects installed agent CLIs in the given search directories.
+    sequence<AiDetectedCli> ai_detect_clis(sequence<string> search_dirs);
+
+    /// Streams a prompt through a local agent CLI subprocess.
+    [Throws=AtlasError]
+    u64 ai_send_via_cli(string session_id, string cli_id, string cli_path, string? model, AiChatStreamDelegate delegate);
 };

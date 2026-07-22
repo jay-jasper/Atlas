@@ -321,6 +321,11 @@ void uniffi_atlas_ffi_fn_func_ai_delete_provider(RustBuffer id, RustCallStatus *
 void uniffi_atlas_ffi_fn_func_ai_delete_session(RustBuffer id, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_DETECT_CLIS
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_DETECT_CLIS
+RustBuffer uniffi_atlas_ffi_fn_func_ai_detect_clis(RustBuffer search_dirs, RustCallStatus *_Nonnull out_status
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_EXPORT_SESSION_MARKDOWN
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_EXPORT_SESSION_MARKDOWN
 RustBuffer uniffi_atlas_ffi_fn_func_ai_export_session_markdown(RustBuffer id, RustCallStatus *_Nonnull out_status
@@ -367,6 +372,11 @@ void uniffi_atlas_ffi_fn_func_ai_save_session(RustBuffer session, RustCallStatus
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_SEND_MESSAGE
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_SEND_MESSAGE
 uint64_t uniffi_atlas_ffi_fn_func_ai_send_message(RustBuffer session_id, RustBuffer provider, RustBuffer api_key, RustBuffer system_prompt, uint64_t delegate, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_SEND_VIA_CLI
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_SEND_VIA_CLI
+uint64_t uniffi_atlas_ffi_fn_func_ai_send_via_cli(RustBuffer session_id, RustBuffer cli_id, RustBuffer cli_path, RustBuffer model, uint64_t delegate, RustCallStatus *_Nonnull out_status
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_SET_STORAGE_DIR
@@ -759,6 +769,12 @@ uint16_t uniffi_atlas_ffi_checksum_func_ai_delete_session(void
 
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_DETECT_CLIS
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_DETECT_CLIS
+uint16_t uniffi_atlas_ffi_checksum_func_ai_detect_clis(void
+
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_EXPORT_SESSION_MARKDOWN
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_EXPORT_SESSION_MARKDOWN
 uint16_t uniffi_atlas_ffi_checksum_func_ai_export_session_markdown(void
@@ -810,6 +826,12 @@ uint16_t uniffi_atlas_ffi_checksum_func_ai_save_session(void
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_SEND_MESSAGE
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_SEND_MESSAGE
 uint16_t uniffi_atlas_ffi_checksum_func_ai_send_message(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_SEND_VIA_CLI
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_SEND_VIA_CLI
+uint16_t uniffi_atlas_ffi_checksum_func_ai_send_via_cli(void
 
 );
 #endif

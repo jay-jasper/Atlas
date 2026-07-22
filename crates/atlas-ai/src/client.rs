@@ -14,6 +14,7 @@ pub struct SendRequest {
     pub extra_headers: Vec<HeaderPair>,
     pub system_prompt: Option<String>,
     pub messages: Vec<ChatMessage>,
+    pub max_tokens: Option<u32>,
 }
 
 /// Streaming sink implemented by the FFI layer (delegates to the UI).
@@ -71,11 +72,15 @@ pub fn build_body(req: &SendRequest) -> serde_json::Value {
         }));
     }
 
-    serde_json::json!({
+    let mut body = serde_json::json!({
         "model": req.model,
         "messages": messages,
         "stream": true,
-    })
+    });
+    if let Some(max_tokens) = req.max_tokens {
+        body["max_tokens"] = serde_json::json!(max_tokens);
+    }
+    body
 }
 
 fn mime_for(path: &str) -> &'static str {
@@ -201,6 +206,7 @@ mod tests {
             extra_headers: vec![],
             system_prompt: system.map(Into::into),
             messages,
+            max_tokens: None,
         }
     }
 

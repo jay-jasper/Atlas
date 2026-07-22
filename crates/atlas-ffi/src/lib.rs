@@ -751,6 +751,16 @@ pub struct AiProviderConfig {
     pub name: String,
     pub base_url: String,
     pub model: String,
+    pub max_tokens: Option<u32>,
+}
+
+pub struct AiDetectedCli {
+    pub kind_id: String,
+    pub display: String,
+    pub subtitle: String,
+    pub path: String,
+    pub version: String,
+    pub default_models: Vec<String>,
 }
 
 pub struct AiChatMessage {
@@ -798,13 +808,33 @@ impl From<atlas_ai::AiError> for AtlasError {
 
 impl From<atlas_ai::ProviderConfig> for AiProviderConfig {
     fn from(p: atlas_ai::ProviderConfig) -> Self {
-        Self { id: p.id, name: p.name, base_url: p.base_url, model: p.model }
+        Self { id: p.id, name: p.name, base_url: p.base_url, model: p.model, max_tokens: p.max_tokens }
     }
 }
 
 impl From<AiProviderConfig> for atlas_ai::ProviderConfig {
     fn from(p: AiProviderConfig) -> Self {
-        Self { id: p.id, name: p.name, base_url: p.base_url, model: p.model, extra_headers: vec![] }
+        Self {
+            id: p.id,
+            name: p.name,
+            base_url: p.base_url,
+            model: p.model,
+            extra_headers: vec![],
+            max_tokens: p.max_tokens,
+        }
+    }
+}
+
+impl From<atlas_ai::DetectedCli> for AiDetectedCli {
+    fn from(c: atlas_ai::DetectedCli) -> Self {
+        Self {
+            kind_id: c.kind_id,
+            display: c.display,
+            subtitle: c.subtitle,
+            path: c.path,
+            version: c.version,
+            default_models: c.default_models,
+        }
     }
 }
 
@@ -979,6 +1009,7 @@ pub fn ai_send_message(
         extra_headers: provider.extra_headers,
         system_prompt,
         messages: session.messages,
+        max_tokens: provider.max_tokens,
     };
 
     let request_id = AI_REQUEST_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
@@ -1002,4 +1033,44 @@ pub fn ai_cancel(request_id: u64) {
             token.cancel();
         }
     }
+}
+
+
+pub fn ai_detect_clis(search_dirs: Vec<String>) -> Vec<AiDetectedCli> {
+    atlas_ai::detect_clis(&search_dirs)
+        .into_iter()
+        .map(Into::into)
+        .collect()
+}
+
+pub fn ai_send_via_cli(
+    session_id: String,
+    cli_id: String,
+    cli_path: String,
+    model: Option<String>,
+    delegate: Box<dyn AiChatStreamDelegate>,
+) -> Result<u64, AtlasError> {
+    let session = with_ai_store(|s| s.load_session(&session_id))?;
+    // Local CLIs are single-turn: send the latest user message as the prompt.
+    let prompt = session
+        .messages
+        .iter()
+        .rev()
+        .find(|message| message.role == atlas_ai::ChatRole::User)
+        .map(|message| message.text.clone())
+        .ok_or_else(|| AtlasError::AiError("session has no user message".to_string()))?;
+
+    let request_id = AI_REQUEST_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let cancel = tokio_util::sync::CancellationToken::new();
+    AI_REQUESTS
+        .lock()
+        .map_err(|_| AtlasError::LockPoisoned)?
+        .insert(request_id, cancel.clone());
+
+    let sink = std::sync::Arc::new(DelegateSink { request_id, delegate });
+    RUNTIME.spawn(async move {
+        atlas_ai::run_prompt_via_cli(&cli_id, &cli_path, model, prompt, sink, cancel).await;
+    });
+
+    Ok(request_id)
 }

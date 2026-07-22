@@ -106,7 +106,7 @@ struct AIProviderSettingsView: View {
 
     private func save() {
         let id = selectedID ?? UUID().uuidString.lowercased()
-        let provider = AiProviderConfig(id: id, name: name, baseUrl: baseURL, model: model)
+        let provider = AiProviderConfig(id: id, name: name, baseUrl: baseURL, model: model, maxTokens: nil)
         bridge.saveProvider(provider)
         try? bridge.vault.setKey(apiKey.isEmpty ? nil : apiKey, providerID: id)
         selectedID = id

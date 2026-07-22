@@ -3,12 +3,14 @@
 //! UI-free by design — every frontend (macOS SwiftUI today) talks to this
 //! crate through the FFI layer.
 
+pub mod cli;
 pub mod client;
 pub mod export;
 pub mod models;
 pub mod sse;
 pub mod storage;
 
+pub use cli::{detect_clis, run_prompt_via_cli, DetectedCli};
 pub use client::{build_body, send_streaming, SendRequest, StreamSink};
 pub use export::export_markdown;
 pub use models::*;

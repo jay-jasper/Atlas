@@ -739,6 +739,74 @@ public func FfiConverterTypeAiChatSession_lower(_ value: AiChatSession) -> RustB
 }
 
 
+public struct AiDetectedCli: Equatable, Hashable {
+    public var kindId: String
+    public var display: String
+    public var subtitle: String
+    public var path: String
+    public var version: String
+    public var defaultModels: [String]
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(kindId: String, display: String, subtitle: String, path: String, version: String, defaultModels: [String]) {
+        self.kindId = kindId
+        self.display = display
+        self.subtitle = subtitle
+        self.path = path
+        self.version = version
+        self.defaultModels = defaultModels
+    }
+
+
+}
+
+#if compiler(>=6)
+extension AiDetectedCli: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeAiDetectedCli: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AiDetectedCli {
+        return
+            try AiDetectedCli(
+                kindId: FfiConverterString.read(from: &buf),
+                display: FfiConverterString.read(from: &buf),
+                subtitle: FfiConverterString.read(from: &buf),
+                path: FfiConverterString.read(from: &buf),
+                version: FfiConverterString.read(from: &buf),
+                defaultModels: FfiConverterSequenceString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: AiDetectedCli, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.kindId, into: &buf)
+        FfiConverterString.write(value.display, into: &buf)
+        FfiConverterString.write(value.subtitle, into: &buf)
+        FfiConverterString.write(value.path, into: &buf)
+        FfiConverterString.write(value.version, into: &buf)
+        FfiConverterSequenceString.write(value.defaultModels, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiDetectedCli_lift(_ buf: RustBuffer) throws -> AiDetectedCli {
+    return try FfiConverterTypeAiDetectedCli.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiDetectedCli_lower(_ value: AiDetectedCli) -> RustBuffer {
+    return FfiConverterTypeAiDetectedCli.lower(value)
+}
+
+
 public struct AiPromptPreset: Equatable, Hashable {
     public var id: String
     public var name: String
@@ -800,14 +868,16 @@ public struct AiProviderConfig: Equatable, Hashable {
     public var name: String
     public var baseUrl: String
     public var model: String
+    public var maxTokens: UInt32?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(id: String, name: String, baseUrl: String, model: String) {
+    public init(id: String, name: String, baseUrl: String, model: String, maxTokens: UInt32?) {
         self.id = id
         self.name = name
         self.baseUrl = baseUrl
         self.model = model
+        self.maxTokens = maxTokens
     }
 
 
@@ -827,7 +897,8 @@ public struct FfiConverterTypeAiProviderConfig: FfiConverterRustBuffer {
                 id: FfiConverterString.read(from: &buf),
                 name: FfiConverterString.read(from: &buf),
                 baseUrl: FfiConverterString.read(from: &buf),
-                model: FfiConverterString.read(from: &buf)
+                model: FfiConverterString.read(from: &buf),
+                maxTokens: FfiConverterOptionUInt32.read(from: &buf)
         )
     }
 
@@ -836,6 +907,7 @@ public struct FfiConverterTypeAiProviderConfig: FfiConverterRustBuffer {
         FfiConverterString.write(value.name, into: &buf)
         FfiConverterString.write(value.baseUrl, into: &buf)
         FfiConverterString.write(value.model, into: &buf)
+        FfiConverterOptionUInt32.write(value.maxTokens, into: &buf)
     }
 }
 
@@ -2474,6 +2546,31 @@ fileprivate struct FfiConverterSequenceTypeAiChatMessage: FfiConverterRustBuffer
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterSequenceTypeAiDetectedCli: FfiConverterRustBuffer {
+    typealias SwiftType = [AiDetectedCli]
+
+    public static func write(_ value: [AiDetectedCli], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeAiDetectedCli.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [AiDetectedCli] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [AiDetectedCli]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeAiDetectedCli.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeAiPromptPreset: FfiConverterRustBuffer {
     typealias SwiftType = [AiPromptPreset]
 
@@ -2744,6 +2841,16 @@ public func aiDeleteSession(id: String)throws   {try rustCallWithError(FfiConver
     )
 }
 }
+/**
+ * Detects installed agent CLIs in the given search directories.
+ */
+public func aiDetectClis(searchDirs: [String]) -> [AiDetectedCli]  {
+    return try!  FfiConverterSequenceTypeAiDetectedCli.lift(try! rustCall() {
+    uniffi_atlas_ffi_fn_func_ai_detect_clis(
+        FfiConverterSequenceString.lower(searchDirs),$0
+    )
+})
+}
 public func aiExportSessionMarkdown(id: String)throws  -> String  {
     return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_ai_export_session_markdown(
@@ -2805,6 +2912,20 @@ public func aiSendMessage(sessionId: String, provider: AiProviderConfig, apiKey:
         FfiConverterTypeAiProviderConfig_lower(provider),
         FfiConverterString.lower(apiKey),
         FfiConverterOptionString.lower(systemPrompt),
+        FfiConverterCallbackInterfaceAiChatStreamDelegate_lower(delegate),$0
+    )
+})
+}
+/**
+ * Streams a prompt through a local agent CLI subprocess.
+ */
+public func aiSendViaCli(sessionId: String, cliId: String, cliPath: String, model: String?, delegate: AiChatStreamDelegate)throws  -> UInt64  {
+    return try  FfiConverterUInt64.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_send_via_cli(
+        FfiConverterString.lower(sessionId),
+        FfiConverterString.lower(cliId),
+        FfiConverterString.lower(cliPath),
+        FfiConverterOptionString.lower(model),
         FfiConverterCallbackInterfaceAiChatStreamDelegate_lower(delegate),$0
     )
 })
@@ -3003,6 +3124,9 @@ private let initializationResult: InitializationResult = {
     if (uniffi_atlas_ffi_checksum_func_ai_delete_session() != 13186) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_atlas_ffi_checksum_func_ai_detect_clis() != 36185) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_atlas_ffi_checksum_func_ai_export_session_markdown() != 64005) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -3028,6 +3152,9 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_ai_send_message() != 8107) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_send_via_cli() != 53622) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_ai_set_storage_dir() != 49523) {

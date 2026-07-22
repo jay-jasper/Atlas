@@ -176,6 +176,7 @@ mod tests {
             base_url: "https://api.openai.com/v1".into(),
             model: "gpt-4o".into(),
             extra_headers: vec![],
+            max_tokens: None,
         };
         store.save_provider(&provider).unwrap();
         provider.model = "gpt-4o-mini".into();

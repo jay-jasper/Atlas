@@ -14,6 +14,8 @@ pub struct ProviderConfig {
     pub model: String,
     #[serde(default)]
     pub extra_headers: Vec<HeaderPair>,
+    #[serde(default)]
+    pub max_tokens: Option<u32>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
