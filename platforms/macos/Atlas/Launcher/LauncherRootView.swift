@@ -159,8 +159,8 @@ struct LauncherRootView: View {
                 .focused($isSearchFocused)
                 .onChange(of: nav.query) { _ in nav.selectedIndex = 0 }
         }
-        .padding(.horizontal, 14)
-        .frame(height: 52)
+        .padding(.horizontal, 16)
+        .frame(height: 64)
     }
 
     // MARK: Root list

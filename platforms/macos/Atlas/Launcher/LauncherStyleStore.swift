@@ -20,6 +20,10 @@ final class LauncherStyleStore: ObservableObject {
             if migrated.background == .material(opacity: 0.85) {
                 migrated.background = .theme
             }
+            // 旧默认宽度 680 迁移为新默认 560(手动调过其他值的不动)。
+            if migrated.panelWidth == 680 {
+                migrated.panelWidth = 560
+            }
             style = migrated
         } else {
             style = .default

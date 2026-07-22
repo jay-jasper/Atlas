@@ -61,7 +61,7 @@ struct LauncherStyle: Codable, Equatable {
         borderColor: .clear,
         borderWidth: 0,
         cornerRadius: 16,
-        panelWidth: 680,
+        panelWidth: 560,
         maxVisibleRows: 8,
         topOffsetRatio: 0.2,
         rowDensity: .regular,

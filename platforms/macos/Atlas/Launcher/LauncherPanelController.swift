@@ -96,7 +96,7 @@ final class LauncherPanelController {
         )
 
         let panelWidth = style.panelWidth
-        let panelHeight: CGFloat = 52 + CGFloat(style.maxVisibleRows) * style.rowHeight + 20 + 40 + 2
+        let panelHeight: CGFloat = 64 + CGFloat(style.maxVisibleRows) * style.rowHeight + 20 + 40 + 2
         // 顶对齐 + 尾部 Spacer:空闲态只渲染搜索条,面板剩余区域保持透明。
         let hostingView = NSHostingView(rootView: VStack(spacing: 0) {
             rootView
