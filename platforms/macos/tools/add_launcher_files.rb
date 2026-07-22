@@ -27,15 +27,21 @@ end
 
 atlas_group = project.main_group["Atlas"] or abort "Atlas group missing"
 
-%w[Launcher MainShell AIChat].each do |dir|
+%w[Launcher MainShell AIChat MenuPanel].each do |dir|
   group = ensure_group(atlas_group, dir, dir)
   Dir.glob(File.join(repo_macos, "Atlas", dir, "*.swift")).sort.each do |file|
     add_file(group, app, File.basename(file))
   end
 end
 
+widgets_parent = atlas_group["MenuPanel"]
+widgets_group = ensure_group(widgets_parent, "Widgets", "Widgets")
+Dir.glob(File.join(repo_macos, "Atlas", "MenuPanel", "Widgets", "*.swift")).sort.each do |file|
+  add_file(widgets_group, app, File.basename(file))
+end
+
 tests_group = project.main_group["AtlasTests"] or abort "AtlasTests group missing"
-["Launcher*Tests.swift", "ShellTab*Tests.swift", "AI*Tests.swift"].each do |pattern|
+["Launcher*Tests.swift", "ShellTab*Tests.swift", "AI*Tests.swift", "MenuPanel*Tests.swift"].each do |pattern|
   Dir.glob(File.join(repo_macos, "AtlasTests", pattern)).sort.each do |file|
     add_file(tests_group, tests, File.basename(file))
   end
