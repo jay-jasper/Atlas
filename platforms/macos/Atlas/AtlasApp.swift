@@ -264,6 +264,8 @@ final class AtlasMainWindowController: NSObject, NSWindowDelegate {
         }
 
         NSApp.setActivationPolicy(.regular)
+        // Accessory→regular 切换会重置 Dock 图标,这里重新套用预设。
+        DockIconStore.shared.apply()
         window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }

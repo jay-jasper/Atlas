@@ -104,12 +104,17 @@ final class GlobalHotkeyService {
                     nil,
                     &hotKeyID
                 )
-                guard hotKeyID.signature == GlobalHotkeyService.signature else { return noErr }
-                let service = Unmanaged<GlobalHotkeyService>.fromOpaque(userData).takeUnretainedValue()
-                MainActor.assumeIsolated {
-                    service.fire(id: hotKeyID.id)
+                // 未命中必须放行(eventNotHandledErr),事件才会继续传给
+                // 同 target 上其他实例/管理器安装的回调。
+                guard hotKeyID.signature == GlobalHotkeyService.signature else {
+                    return OSStatus(eventNotHandledErr)
                 }
-                return noErr
+                let service = Unmanaged<GlobalHotkeyService>.fromOpaque(userData).takeUnretainedValue()
+                var handled = false
+                MainActor.assumeIsolated {
+                    handled = service.fire(id: hotKeyID.id)
+                }
+                return handled ? noErr : OSStatus(eventNotHandledErr)
             },
             1,
             &eventType,
@@ -160,8 +165,11 @@ final class GlobalHotkeyService {
 
     // MARK: - Carbon plumbing
 
-    private func fire(id: UInt32) {
-        registrations.first { $0.id == id }?.handler()
+    @discardableResult
+    private func fire(id: UInt32) -> Bool {
+        guard let registration = registrations.first(where: { $0.id == id }) else { return false }
+        registration.handler()
+        return true
     }
 
     private func registerWithCarbon(_ registration: Registration) -> EventHotKeyRef? {

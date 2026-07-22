@@ -46,9 +46,14 @@ final class GlobalHotkeyManager {
             var hkID = EventHotKeyID()
             GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID),
                               nil, MemoryLayout<EventHotKeyID>.size, nil, &hkID)
-            guard hkID.signature == GlobalHotkeyManager.signature else { return noErr }
+            guard hkID.signature == GlobalHotkeyManager.signature else {
+                return OSStatus(eventNotHandledErr)
+            }
             let manager = Unmanaged<GlobalHotkeyManager>.fromOpaque(userData).takeUnretainedValue()
-            manager.handlers[hkID.id]?()
+            guard let handler = manager.handlers[hkID.id] else {
+                return OSStatus(eventNotHandledErr)
+            }
+            handler()
             return noErr
         }, 1, &spec, Unmanaged.passUnretained(self).toOpaque(), nil)
     }
