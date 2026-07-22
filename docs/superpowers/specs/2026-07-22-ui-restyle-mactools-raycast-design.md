@@ -1,7 +1,7 @@
 # 主窗口 UI 重设计(MacTools + Raycast 截图对标)
 
 日期:2026-07-22
-状态:已确认
+状态:已实现(2026-07-22)
 参考:用户提供 10 张截图(MacTools 通用/插件市场/功能面板/插件设置页;Raycast General/Extensions/AI;某工具 AI 配置「本机 CLI / BYOK」)
 
 ## 目标
