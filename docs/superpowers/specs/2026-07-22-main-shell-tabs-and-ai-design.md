@@ -1,7 +1,7 @@
 # 主窗口五 Tab 重构 + AI 中心设计
 
 日期:2026-07-22
-状态:已确认
+状态:已实现(2026-07-22;备注:通用 tab 的 dashboard/library/tool 视图仍在 ContentView.swift 内,完整抽离为后续工作)
 参考:MacTools(设置窗 通用/插件/关于 TabView 结构)、Raycast 主面板
 
 ## 目标

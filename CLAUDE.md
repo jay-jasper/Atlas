@@ -41,6 +41,10 @@ crates/atlas-ffi/  ← FFI bridge (exposes Rust to Swift)
 crates/atlas-core/ ← Core logic (capture, monitoring, features)
 ```
 
+### `crates/atlas-ai`
+
+Cross-platform AI center core (UI-free): provider/session/preset JSON storage (root dir injected by host), OpenAI-compatible SSE streaming client with cancellation, Markdown export. Exposed to Swift via `ai_*` functions + `AiChatStreamDelegate` callback in `atlas.udl`. API keys never enter this crate's persistence — the host passes them per request (macOS keeps them SecureLocalData-sealed, see `AIChat/AIKeyVault.swift`).
+
 ### `crates/atlas-core`
 
 Pure Rust logic with no FFI concerns:
@@ -67,6 +71,7 @@ UniFFI bridge that exposes `atlas-core` to Swift:
 SwiftUI app structured as a `MenuBarExtra` with `.window` style:
 
 - `AtlasApp.swift` — app entry point; registers the menu bar item.
+- `MainShell/` + `AIChat/` — main window top-level tabs (通用/插件/AI/设置/关于, ⌘1-⌘5, `ShellTab`/`ShellTabBar`) and the AI center UI (`AITabView` sessions+chat, `AIProviderSettingsView`, `AIChatBridge` FFI wrapper, `AIKeyVault`). The 通用 tab still renders ContentView's dashboard/library/tool shell; `SettingsPanelsHost` is shared between the settings window and the 设置 tab. Register new files with `platforms/macos/tools/add_launcher_files.rb`.
 - `Launcher/` — Raycast-style launcher (replaces the old CommandPalette view layer): `LauncherPanelController` (NSPanel + global hotkey), navigation stack, sectioned root search (Favorites/Recents/categories/Fallback), ⌘K action panel, detail pane, emoji grid, quicklinks, aliases, per-command hotkeys, menu-bar item search, fully customizable style (`LauncherStyleStore`). The 44 `CommandProviding` providers in `CommandPalette/` are reused via `CommandProviderAdapter`; new files must be registered with `platforms/macos/tools/add_launcher_files.rb`.
 - `ContentView.swift` — main panel with sections for screenshot capture, system monitoring, port master, and feature toggles. `AtlasBridge` now delegates to real provider singletons (`MonitoringService.live`, `FeatureService.live`, `AtlasCaptureService.live`) that call the generated UniFFI bindings; mock data survives only in DesignSystem preview files and test injection.
 - `SelectionOverlay.swift` — full-screen drag gesture overlay for region capture; calls back with a `CGRect` on release.
