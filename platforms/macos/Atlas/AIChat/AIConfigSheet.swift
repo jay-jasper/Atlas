@@ -84,9 +84,10 @@ private struct CliEnginePage: View {
     @ObservedObject var bridge: AIChatBridge
     @ObservedObject var engineStore: AIEngineStore
 
-    @State private var clis: [AiDetectedCli] = []
+    @State private var clis: [AiDetectedCli] = CliScanCache.load()
     @State private var selectedModel: [String: String] = [:]
     @State private var testResult: [String: String] = [:]
+    @State private var isScanning = false
 
     private var selectedCliID: String? {
         if case .cli(let id, _, _) = engineStore.engine { return id }
@@ -102,13 +103,17 @@ private struct CliEnginePage: View {
             HStack {
                 Text("你的 CLI(\(clis.count))")
                     .font(.callout.weight(.semibold))
+                if isScanning {
+                    ProgressView().controlSize(.small)
+                }
                 Spacer()
                 Button {
-                    scan()
+                    scan(manual: true)
                 } label: {
                     Label("重新扫描", systemImage: "arrow.clockwise")
                         .font(.callout)
                 }
+                .disabled(isScanning)
             }
 
             if clis.isEmpty {
@@ -116,7 +121,7 @@ private struct CliEnginePage: View {
                     Image(systemName: "terminal")
                         .font(.system(size: 30))
                         .foregroundColor(.secondary)
-                    Text("未检测到已安装的 agent CLI。安装 Claude Code / Codex 等后点「重新扫描」。")
+                    Text(isScanning ? "扫描中…" : "尚未扫描。点「重新扫描」检测已安装的 agent CLI(Claude Code / Codex 等)。")
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -133,7 +138,12 @@ private struct CliEnginePage: View {
                 }
             }
         }
-        .onAppear { scan() }
+        .onAppear {
+            // 默认不扫描:有缓存列表时才后台静默刷新;首次由用户点「重新扫描」。
+            if !clis.isEmpty {
+                scan(manual: false)
+            }
+        }
     }
 
     private func cliCard(_ cli: AiDetectedCli) -> some View {
@@ -204,8 +214,17 @@ private struct CliEnginePage: View {
         }
     }
 
-    private func scan() {
-        clis = aiDetectClis(searchDirs: Self.searchDirs())
+    private func scan(manual: Bool) {
+        if manual { isScanning = true }
+        let dirs = Self.searchDirs()
+        Task.detached(priority: .userInitiated) {
+            let found = aiDetectClis(searchDirs: dirs)
+            await MainActor.run {
+                clis = found
+                CliScanCache.save(found)
+                isScanning = false
+            }
+        }
     }
 
     private func test(_ cli: AiDetectedCli) {

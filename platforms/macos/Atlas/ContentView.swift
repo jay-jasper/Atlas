@@ -838,6 +838,33 @@ struct ContentView: View {
 
     /// The designed Shell (`Atlas Shell.dc.html`) as the menu bar home, backed by
     /// real monitoring/feature/scene data and wired to real actions.
+    @State private var visitedShellTabs: Set<ShellTab> = [.general]
+
+    @ViewBuilder
+    private func shellTabBody(_ tab: ShellTab) -> some View {
+        switch tab {
+        case .general:
+            if let paletteState {
+                GeneralSettingsTab(
+                    shellThemeRaw: $shellThemeRaw,
+                    paletteState: paletteState,
+                    onOpenCommands: {
+                        shellTab = .plugins
+                        pluginsSelection = .commands
+                    }
+                )
+            } else {
+                Text("初始化中…").foregroundColor(.secondary)
+            }
+        case .plugins:
+            pluginsTabView
+        case .ai:
+            AITabView()
+        case .about:
+            AboutTabView()
+        }
+    }
+
     // MARK: - Plugins tab (sidebar layout)
 
     @ViewBuilder
@@ -1014,28 +1041,19 @@ struct ContentView: View {
                 shellTitlebarAccessory
                     .frame(height: 44)
                     .padding(.top, 8)
-                Group {
-                    switch shellTab {
-                    case .general:
-                        if let paletteState {
-                            GeneralSettingsTab(
-                                shellThemeRaw: $shellThemeRaw,
-                                paletteState: paletteState,
-                                onOpenCommands: {
-                                    shellTab = .plugins
-                                    pluginsSelection = .commands
-                                }
-                            )
-                        } else {
-                            Text("初始化中…").foregroundColor(.secondary)
+                // 访问过的 tab 常驻视图树,切换只改透明度 —— 避免整棵重建卡顿。
+                ZStack(alignment: .topLeading) {
+                    ForEach(ShellTab.allCases) { tab in
+                        if visitedShellTabs.contains(tab) {
+                            shellTabBody(tab)
+                                .opacity(shellTab == tab ? 1 : 0)
+                                .allowsHitTesting(shellTab == tab)
+                                .accessibilityHidden(shellTab != tab)
                         }
-                    case .plugins:
-                        pluginsTabView
-                    case .ai:
-                        AITabView()
-                    case .about:
-                        AboutTabView()
                     }
+                }
+                .onChange(of: shellTab) { tab in
+                    visitedShellTabs.insert(tab)
                 }
                 .padding(.horizontal, 14)
                 .padding(.bottom, 14)

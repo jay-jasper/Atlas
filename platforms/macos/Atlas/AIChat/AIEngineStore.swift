@@ -17,6 +17,51 @@ enum AiEngine: Codable, Equatable {
     }
 }
 
+/// CLI 扫描结果缓存:面板秒开,后台再静默刷新。
+enum CliScanCache {
+    private static let storageKey = "ai.cli.cache"
+
+    private struct Entry: Codable {
+        let kindId: String
+        let display: String
+        let subtitle: String
+        let path: String
+        let version: String
+        let defaultModels: [String]
+    }
+
+    static func load(defaults: UserDefaults = .standard) -> [AiDetectedCli] {
+        guard let data = defaults.data(forKey: storageKey),
+              let entries = try? JSONDecoder().decode([Entry].self, from: data) else { return [] }
+        return entries.map {
+            AiDetectedCli(
+                kindId: $0.kindId,
+                display: $0.display,
+                subtitle: $0.subtitle,
+                path: $0.path,
+                version: $0.version,
+                defaultModels: $0.defaultModels
+            )
+        }
+    }
+
+    static func save(_ clis: [AiDetectedCli], defaults: UserDefaults = .standard) {
+        let entries = clis.map {
+            Entry(
+                kindId: $0.kindId,
+                display: $0.display,
+                subtitle: $0.subtitle,
+                path: $0.path,
+                version: $0.version,
+                defaultModels: $0.defaultModels
+            )
+        }
+        if let data = try? JSONEncoder().encode(entries) {
+            defaults.set(data, forKey: storageKey)
+        }
+    }
+}
+
 @MainActor
 final class AIEngineStore: ObservableObject {
     private static let storageKey = "ai.engine"

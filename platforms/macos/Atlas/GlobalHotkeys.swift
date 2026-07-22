@@ -109,6 +109,14 @@ enum ScreenshotHotkeys {
 
     private static func bind(_ m: GlobalHotkeyManager, _ b: HotkeyBinding, _ handler: @escaping () -> Void) {
         guard b.isValid else { return }
+        // 冲突让位:与命令面板全局热键相同的组合跳过注册,面板优先。
+        let palette = HotkeyConfig.load()
+        let paletteCarbon = HotkeyBinding.carbonModifiers(
+            NSEvent.ModifierFlags(rawValue: palette.modifiers)
+        )
+        if b.keyCode == UInt32(palette.keyCode), b.modifiers == paletteCarbon {
+            return
+        }
         m.register(keyCode: b.keyCode, modifiers: b.modifiers, handler)
     }
 

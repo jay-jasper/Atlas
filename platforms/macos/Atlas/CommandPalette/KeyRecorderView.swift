@@ -7,9 +7,18 @@ struct HotkeyConfig {
     let modifiers: UInt
 
     static func load(from defaults: UserDefaults = .standard) -> HotkeyConfig {
-        let keyCode = defaults.object(forKey: "palette.hotkey.keyCode") as? Int ?? 49
-        let modifiers = defaults.object(forKey: "palette.hotkey.modifiers") as? UInt
+        var keyCode = defaults.object(forKey: "palette.hotkey.keyCode") as? Int ?? 49
+        var modifiers = defaults.object(forKey: "palette.hotkey.modifiers") as? UInt
             ?? NSEvent.ModifierFlags.option.rawValue
+
+        // 一次性迁移:历史上被记成 ⌘K 的面板热键重置回默认 ⌥Space。
+        if keyCode == kVK_ANSI_K,
+           NSEvent.ModifierFlags(rawValue: modifiers)
+               .intersection(.deviceIndependentFlagsMask) == .command {
+            keyCode = 49
+            modifiers = NSEvent.ModifierFlags.option.rawValue
+            HotkeyConfig(keyCode: keyCode, modifiers: modifiers).save(to: defaults)
+        }
         return HotkeyConfig(keyCode: keyCode, modifiers: modifiers)
     }
 
