@@ -6,4 +6,4 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0"
 camino = "1.1"
-uniffi_bindgen = { version = "0.28.3", features = ["cargo-metadata"] }
+uniffi_bindgen = { version = "0.30", features = ["cargo-metadata"] }

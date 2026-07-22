@@ -6,15 +6,34 @@ enum KeyPressResultCompatible {
     case ignored
 }
 
+enum CompatibleKey {
+    case escape
+    case upArrow
+    case downArrow
+    case `return`
+    case tab
+
+    @available(macOS 14.0, *)
+    var keyEquivalent: KeyEquivalent {
+        switch self {
+        case .escape: .escape
+        case .upArrow: .upArrow
+        case .downArrow: .downArrow
+        case .return: .return
+        case .tab: .tab
+        }
+    }
+}
+
 struct KeyPressModifier: ViewModifier {
-    let key: KeyEquivalent
+    let key: CompatibleKey
     let action: () -> KeyPressResultCompatible
 
     @State private var monitor: Any?
 
     func body(content: Content) -> some View {
         if #available(macOS 14.0, *) {
-            content.onKeyPress(key) {
+            content.onKeyPress(key.keyEquivalent) {
                 action() == .handled ? .handled : .ignored
             }
         } else {
@@ -52,14 +71,12 @@ struct KeyPressModifier: ViewModifier {
             return event.keyCode == 36 || event.keyCode == 76
         case .tab:
             return event.keyCode == 48
-        default:
-            return false
         }
     }
 }
 
 extension View {
-    func onKeyPressCompatible(_ key: KeyEquivalent, action: @escaping () -> KeyPressResultCompatible) -> some View {
+    func onKeyPressCompatible(_ key: CompatibleKey, action: @escaping () -> KeyPressResultCompatible) -> some View {
         self.modifier(KeyPressModifier(key: key, action: action))
     }
 }
@@ -345,14 +362,9 @@ private struct AppIconView: View {
         }
         .frame(width: 32, height: 32)
         .task(id: url) {
-            // Offload disk I/O and icon rendering from the Main Actor to avoid UI stutters.
-            let loadedIcon = await Task.detached(priority: .userInitiated) {
-                let icon = NSWorkspace.shared.icon(forFile: url.path)
-                icon.size = CGSize(width: 32, height: 32)
-                return icon
-            }.value
-            
-            self.image = loadedIcon
+            let icon = NSWorkspace.shared.icon(forFile: url.path)
+            icon.size = CGSize(width: 32, height: 32)
+            image = icon
         }
     }
 }

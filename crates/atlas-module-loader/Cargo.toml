@@ -1,0 +1,12 @@
+[package]
+name = "atlas-module-loader"
+version = "0.1.0"
+edition = "2021"
+description = "Versioned dylib loader and registry for trusted Atlas modules."
+
+[dependencies]
+atlas-module-sdk = { path = "../atlas-module-sdk" }
+libloading = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+thiserror = "1.0"
+toml = "0.8"

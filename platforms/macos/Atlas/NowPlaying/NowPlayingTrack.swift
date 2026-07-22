@@ -42,7 +42,7 @@ protocol NowPlayingProviding {
     func current() -> NowPlayingTrack?
 }
 
-/// Placeholder provider — returns nil until a MediaRemote-backed reader is wired.
+/// Privacy-safe provider used when system-wide media access is unavailable.
 struct UnavailableNowPlayingProvider: NowPlayingProviding {
     func current() -> NowPlayingTrack? { nil }
 }

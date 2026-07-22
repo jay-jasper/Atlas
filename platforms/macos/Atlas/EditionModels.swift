@@ -30,6 +30,16 @@ enum AtlasEdition: String, CaseIterable, Identifiable, Codable, Equatable {
     }
 }
 
+extension AtlasEdition {
+    var coreEdition: CoreEdition {
+        switch self {
+        case .free: .free
+        case .pro: .pro
+        case .community: .community
+        }
+    }
+}
+
 struct EditionFeaturePackage: Equatable {
     let featureName: String
     let includedEditions: Set<AtlasEdition>
@@ -47,6 +57,8 @@ struct EditionFeaturePackage: Equatable {
 enum EntitlementSource: Equatable {
     case bundled
     case localOverride
+    case storeKit
+    case directLicense
     case unavailable
 }
 

@@ -23,11 +23,12 @@ fn main() -> Result<()> {
         generate_swift_sources: true,
         generate_headers: true,
         generate_modulemap: true,
-        library_path,
+        source: library_path,
         out_dir,
         xcframework: false,
         module_name: Some("atlasFFI".to_string()),
         modulemap_filename: Some("atlas_ffi.modulemap".to_string()),
         metadata_no_deps: false,
+        link_frameworks: Vec::new(),
     })
 }

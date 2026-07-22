@@ -69,7 +69,6 @@ final class ColorPickerServiceTests: XCTestCase {
 
     func testClearHistory() {
         let store = makeStore()
-        let service = ColorPickerService(store: store)
         store.save([PickedColor(red: 1, green: 0, blue: 0)])
         // Reload service state via a new init
         let service2 = ColorPickerService(store: store)

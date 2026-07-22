@@ -181,10 +181,10 @@ struct LiveAppAudioEngine: AppAudioEngineProtocol {
             mScope: kAudioObjectPropertyScopeGlobal,
             mElement: kAudioObjectPropertyElementMain
         )
-        var name: CFString = "" as CFString
-        var size = UInt32(MemoryLayout<CFString>.size)
+        var name: Unmanaged<CFString>?
+        var size = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
         guard AudioObjectGetPropertyData(deviceID, &addr, 0, nil, &size, &name) == noErr else { return nil }
-        return name as String
+        return name?.takeUnretainedValue() as String?
     }
 
     private func deviceVolume(_ deviceID: AudioObjectID) -> Float? {

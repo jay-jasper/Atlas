@@ -1,5 +1,6 @@
 import Foundation
 
+#if !ATLAS_STORE
 /// Reads system-wide now-playing info from the private MediaRemote framework via
 /// dlopen (no fictional symbols — these exist; the provider degrades gracefully
 /// to nil if the framework or symbols are unavailable, e.g. on macOS versions
@@ -51,3 +52,4 @@ final class MediaRemoteNowPlayingProvider: NowPlayingProviding {
         return unsafeBitCast(sym, to: T.self)
     }
 }
+#endif

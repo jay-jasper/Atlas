@@ -10,8 +10,25 @@ protocol RecordingSourceDetecting {
 /// detection is best-effort and reported separately by the screenshot module.
 struct LiveRecordingSourceDetector: RecordingSourceDetecting {
     func currentStatus() -> RecordingStatus {
-        let mic = AVCaptureDevice.devices(for: .audio).contains { $0.isInUseByAnotherApplication }
-        let cam = AVCaptureDevice.devices(for: .video).contains { $0.isInUseByAnotherApplication }
+        let microphoneTypes: [AVCaptureDevice.DeviceType]
+        let cameraTypes: [AVCaptureDevice.DeviceType]
+        if #available(macOS 14.0, *) {
+            microphoneTypes = [.microphone]
+            cameraTypes = [.builtInWideAngleCamera, .external]
+        } else {
+            microphoneTypes = [.builtInMicrophone]
+            cameraTypes = [.builtInWideAngleCamera, .externalUnknown]
+        }
+        let mic = AVCaptureDevice.DiscoverySession(
+            deviceTypes: microphoneTypes,
+            mediaType: .audio,
+            position: .unspecified
+        ).devices.contains { $0.isInUseByAnotherApplication }
+        let cam = AVCaptureDevice.DiscoverySession(
+            deviceTypes: cameraTypes,
+            mediaType: .video,
+            position: .unspecified
+        ).devices.contains { $0.isInUseByAnotherApplication }
         return RecordingStatus(microphone: mic, camera: cam, screen: false)
     }
 }

@@ -16,15 +16,18 @@
 pub mod capabilities;
 pub mod dist;
 pub mod hub;
+#[cfg(feature = "lua")]
 pub mod lua;
 pub mod manifest;
 pub mod mcp;
 pub mod mcp_transport;
 pub mod registry;
+pub mod runtime;
 pub mod ui;
 pub mod wasm_host;
 
 pub use capabilities::{CapabilityError, CapabilityGuard};
 pub use manifest::{Capabilities, ManifestError, PluginManifest, Runtime, RuntimeKind};
 pub use registry::{PluginRegistry, RegistryError};
-pub use ui::{UiError, UiEvent, UiNode};
+pub use runtime::{PluginRuntimeEntry, PluginRuntimeError, PluginRuntimeHost};
+pub use ui::{UiError, UiEvent, UiNode, UiPatch};

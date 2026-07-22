@@ -50,9 +50,9 @@ typedef void (*UniffiRustFutureContinuationCallback)(uint64_t, int8_t
     );
 
 #endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_FREE
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE_FREE
-typedef void (*UniffiForeignFutureFree)(uint64_t
+#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_DROPPED_CALLBACK
+#define UNIFFI_FFIDEF_FOREIGN_FUTURE_DROPPED_CALLBACK
+typedef void (*UniffiForeignFutureDroppedCallback)(uint64_t
     );
 
 #endif
@@ -62,198 +62,190 @@ typedef void (*UniffiCallbackInterfaceFree)(uint64_t
     );
 
 #endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE
-typedef struct UniffiForeignFuture {
-    uint64_t handle;
-    UniffiForeignFutureFree _Nonnull free;
-} UniffiForeignFuture;
+#ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_CLONE
+#define UNIFFI_FFIDEF_CALLBACK_INTERFACE_CLONE
+typedef uint64_t (*UniffiCallbackInterfaceClone)(uint64_t
+    );
 
 #endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_U8
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_U8
-typedef struct UniffiForeignFutureStructU8 {
+#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_DROPPED_CALLBACK_STRUCT
+#define UNIFFI_FFIDEF_FOREIGN_FUTURE_DROPPED_CALLBACK_STRUCT
+typedef struct UniffiForeignFutureDroppedCallbackStruct {
+    uint64_t handle;
+    UniffiForeignFutureDroppedCallback _Nonnull free;
+} UniffiForeignFutureDroppedCallbackStruct;
+
+#endif
+#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_U8
+#define UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_U8
+typedef struct UniffiForeignFutureResultU8 {
     uint8_t returnValue;
     RustCallStatus callStatus;
-} UniffiForeignFutureStructU8;
+} UniffiForeignFutureResultU8;
 
 #endif
 #ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_U8
 #define UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_U8
-typedef void (*UniffiForeignFutureCompleteU8)(uint64_t, UniffiForeignFutureStructU8
+typedef void (*UniffiForeignFutureCompleteU8)(uint64_t, UniffiForeignFutureResultU8
     );
 
 #endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_I8
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_I8
-typedef struct UniffiForeignFutureStructI8 {
+#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_I8
+#define UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_I8
+typedef struct UniffiForeignFutureResultI8 {
     int8_t returnValue;
     RustCallStatus callStatus;
-} UniffiForeignFutureStructI8;
+} UniffiForeignFutureResultI8;
 
 #endif
 #ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_I8
 #define UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_I8
-typedef void (*UniffiForeignFutureCompleteI8)(uint64_t, UniffiForeignFutureStructI8
+typedef void (*UniffiForeignFutureCompleteI8)(uint64_t, UniffiForeignFutureResultI8
     );
 
 #endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_U16
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_U16
-typedef struct UniffiForeignFutureStructU16 {
+#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_U16
+#define UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_U16
+typedef struct UniffiForeignFutureResultU16 {
     uint16_t returnValue;
     RustCallStatus callStatus;
-} UniffiForeignFutureStructU16;
+} UniffiForeignFutureResultU16;
 
 #endif
 #ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_U16
 #define UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_U16
-typedef void (*UniffiForeignFutureCompleteU16)(uint64_t, UniffiForeignFutureStructU16
+typedef void (*UniffiForeignFutureCompleteU16)(uint64_t, UniffiForeignFutureResultU16
     );
 
 #endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_I16
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_I16
-typedef struct UniffiForeignFutureStructI16 {
+#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_I16
+#define UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_I16
+typedef struct UniffiForeignFutureResultI16 {
     int16_t returnValue;
     RustCallStatus callStatus;
-} UniffiForeignFutureStructI16;
+} UniffiForeignFutureResultI16;
 
 #endif
 #ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_I16
 #define UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_I16
-typedef void (*UniffiForeignFutureCompleteI16)(uint64_t, UniffiForeignFutureStructI16
+typedef void (*UniffiForeignFutureCompleteI16)(uint64_t, UniffiForeignFutureResultI16
     );
 
 #endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_U32
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_U32
-typedef struct UniffiForeignFutureStructU32 {
+#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_U32
+#define UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_U32
+typedef struct UniffiForeignFutureResultU32 {
     uint32_t returnValue;
     RustCallStatus callStatus;
-} UniffiForeignFutureStructU32;
+} UniffiForeignFutureResultU32;
 
 #endif
 #ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_U32
 #define UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_U32
-typedef void (*UniffiForeignFutureCompleteU32)(uint64_t, UniffiForeignFutureStructU32
+typedef void (*UniffiForeignFutureCompleteU32)(uint64_t, UniffiForeignFutureResultU32
     );
 
 #endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_I32
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_I32
-typedef struct UniffiForeignFutureStructI32 {
+#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_I32
+#define UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_I32
+typedef struct UniffiForeignFutureResultI32 {
     int32_t returnValue;
     RustCallStatus callStatus;
-} UniffiForeignFutureStructI32;
+} UniffiForeignFutureResultI32;
 
 #endif
 #ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_I32
 #define UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_I32
-typedef void (*UniffiForeignFutureCompleteI32)(uint64_t, UniffiForeignFutureStructI32
+typedef void (*UniffiForeignFutureCompleteI32)(uint64_t, UniffiForeignFutureResultI32
     );
 
 #endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_U64
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_U64
-typedef struct UniffiForeignFutureStructU64 {
+#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_U64
+#define UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_U64
+typedef struct UniffiForeignFutureResultU64 {
     uint64_t returnValue;
     RustCallStatus callStatus;
-} UniffiForeignFutureStructU64;
+} UniffiForeignFutureResultU64;
 
 #endif
 #ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_U64
 #define UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_U64
-typedef void (*UniffiForeignFutureCompleteU64)(uint64_t, UniffiForeignFutureStructU64
+typedef void (*UniffiForeignFutureCompleteU64)(uint64_t, UniffiForeignFutureResultU64
     );
 
 #endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_I64
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_I64
-typedef struct UniffiForeignFutureStructI64 {
+#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_I64
+#define UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_I64
+typedef struct UniffiForeignFutureResultI64 {
     int64_t returnValue;
     RustCallStatus callStatus;
-} UniffiForeignFutureStructI64;
+} UniffiForeignFutureResultI64;
 
 #endif
 #ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_I64
 #define UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_I64
-typedef void (*UniffiForeignFutureCompleteI64)(uint64_t, UniffiForeignFutureStructI64
+typedef void (*UniffiForeignFutureCompleteI64)(uint64_t, UniffiForeignFutureResultI64
     );
 
 #endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_F32
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_F32
-typedef struct UniffiForeignFutureStructF32 {
+#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_F32
+#define UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_F32
+typedef struct UniffiForeignFutureResultF32 {
     float returnValue;
     RustCallStatus callStatus;
-} UniffiForeignFutureStructF32;
+} UniffiForeignFutureResultF32;
 
 #endif
 #ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_F32
 #define UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_F32
-typedef void (*UniffiForeignFutureCompleteF32)(uint64_t, UniffiForeignFutureStructF32
+typedef void (*UniffiForeignFutureCompleteF32)(uint64_t, UniffiForeignFutureResultF32
     );
 
 #endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_F64
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_F64
-typedef struct UniffiForeignFutureStructF64 {
+#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_F64
+#define UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_F64
+typedef struct UniffiForeignFutureResultF64 {
     double returnValue;
     RustCallStatus callStatus;
-} UniffiForeignFutureStructF64;
+} UniffiForeignFutureResultF64;
 
 #endif
 #ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_F64
 #define UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_F64
-typedef void (*UniffiForeignFutureCompleteF64)(uint64_t, UniffiForeignFutureStructF64
+typedef void (*UniffiForeignFutureCompleteF64)(uint64_t, UniffiForeignFutureResultF64
     );
 
 #endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_POINTER
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_POINTER
-typedef struct UniffiForeignFutureStructPointer {
-    void*_Nonnull returnValue;
-    RustCallStatus callStatus;
-} UniffiForeignFutureStructPointer;
-
-#endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_POINTER
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_POINTER
-typedef void (*UniffiForeignFutureCompletePointer)(uint64_t, UniffiForeignFutureStructPointer
-    );
-
-#endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_RUST_BUFFER
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_RUST_BUFFER
-typedef struct UniffiForeignFutureStructRustBuffer {
+#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_RUST_BUFFER
+#define UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_RUST_BUFFER
+typedef struct UniffiForeignFutureResultRustBuffer {
     RustBuffer returnValue;
     RustCallStatus callStatus;
-} UniffiForeignFutureStructRustBuffer;
+} UniffiForeignFutureResultRustBuffer;
 
 #endif
 #ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_RUST_BUFFER
 #define UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_RUST_BUFFER
-typedef void (*UniffiForeignFutureCompleteRustBuffer)(uint64_t, UniffiForeignFutureStructRustBuffer
+typedef void (*UniffiForeignFutureCompleteRustBuffer)(uint64_t, UniffiForeignFutureResultRustBuffer
     );
 
 #endif
-#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_VOID
-#define UNIFFI_FFIDEF_FOREIGN_FUTURE_STRUCT_VOID
-typedef struct UniffiForeignFutureStructVoid {
+#ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_VOID
+#define UNIFFI_FFIDEF_FOREIGN_FUTURE_RESULT_VOID
+typedef struct UniffiForeignFutureResultVoid {
     RustCallStatus callStatus;
-} UniffiForeignFutureStructVoid;
+} UniffiForeignFutureResultVoid;
 
 #endif
 #ifndef UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_VOID
 #define UNIFFI_FFIDEF_FOREIGN_FUTURE_COMPLETE_VOID
-typedef void (*UniffiForeignFutureCompleteVoid)(uint64_t, UniffiForeignFutureStructVoid
+typedef void (*UniffiForeignFutureCompleteVoid)(uint64_t, UniffiForeignFutureResultVoid
     );
 
 #endif
 #ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_SYSTEM_MONITOR_CALLBACK_METHOD0
 #define UNIFFI_FFIDEF_CALLBACK_INTERFACE_SYSTEM_MONITOR_CALLBACK_METHOD0
-typedef void (*UniffiCallbackInterfaceSystemMonitorCallbackMethod0)(uint64_t, RustBuffer, void* _Nonnull, 
+typedef void (*UniffiCallbackInterfaceSystemMonitorCallbackMethod0)(uint64_t, RustBuffer, void* _Nonnull,
         RustCallStatus *_Nonnull uniffiCallStatus
     );
 
@@ -261,20 +253,21 @@ typedef void (*UniffiCallbackInterfaceSystemMonitorCallbackMethod0)(uint64_t, Ru
 #ifndef UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_SYSTEM_MONITOR_CALLBACK
 #define UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_SYSTEM_MONITOR_CALLBACK
 typedef struct UniffiVTableCallbackInterfaceSystemMonitorCallback {
-    UniffiCallbackInterfaceSystemMonitorCallbackMethod0 _Nonnull onSnapshot;
     UniffiCallbackInterfaceFree _Nonnull uniffiFree;
+    UniffiCallbackInterfaceClone _Nonnull uniffiClone;
+    UniffiCallbackInterfaceSystemMonitorCallbackMethod0 _Nonnull onSnapshot;
 } UniffiVTableCallbackInterfaceSystemMonitorCallback;
 
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_INIT_CALLBACK_VTABLE_SYSTEMMONITORCALLBACK
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_INIT_CALLBACK_VTABLE_SYSTEMMONITORCALLBACK
-void uniffi_atlas_ffi_fn_init_callback_vtable_systemmonitorcallback(UniffiVTableCallbackInterfaceSystemMonitorCallback* _Nonnull vtable
+void uniffi_atlas_ffi_fn_init_callback_vtable_systemmonitorcallback(const UniffiVTableCallbackInterfaceSystemMonitorCallback* _Nonnull vtable
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_CAPTURE_FULL_SCREEN
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_CAPTURE_FULL_SCREEN
 RustBuffer uniffi_atlas_ffi_fn_func_capture_full_screen(RustCallStatus *_Nonnull out_status
-    
+
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_CAPTURE_REGION
@@ -282,10 +275,20 @@ RustBuffer uniffi_atlas_ffi_fn_func_capture_full_screen(RustCallStatus *_Nonnull
 RustBuffer uniffi_atlas_ffi_fn_func_capture_region(int32_t x, int32_t y, uint32_t width, uint32_t height, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_CONFIGURE_ENTITLEMENT
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_CONFIGURE_ENTITLEMENT
+void uniffi_atlas_ffi_fn_func_configure_entitlement(RustBuffer edition, RustCallStatus *_Nonnull out_status
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_CURRENT_BATTERY
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_CURRENT_BATTERY
 RustBuffer uniffi_atlas_ffi_fn_func_current_battery(RustCallStatus *_Nonnull out_status
-    
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_DISPATCH_PLUGIN_EVENT
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_DISPATCH_PLUGIN_EVENT
+RustBuffer uniffi_atlas_ffi_fn_func_dispatch_plugin_event(RustBuffer id, RustBuffer event_json, RustCallStatus *_Nonnull out_status
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_EVALUATE_EXPRESSION
@@ -296,7 +299,27 @@ RustBuffer uniffi_atlas_ffi_fn_func_evaluate_expression(RustBuffer input, RustCa
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_GET_CORE_STATUS
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_GET_CORE_STATUS
 RustBuffer uniffi_atlas_ffi_fn_func_get_core_status(RustCallStatus *_Nonnull out_status
-    
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_INSPECT_PLUGIN_MANIFEST
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_INSPECT_PLUGIN_MANIFEST
+RustBuffer uniffi_atlas_ffi_fn_func_inspect_plugin_manifest(RustBuffer manifest_toml, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_INSTALL_JS_PLUGIN
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_INSTALL_JS_PLUGIN
+RustBuffer uniffi_atlas_ffi_fn_func_install_js_plugin(RustBuffer manifest_toml, RustBuffer source, RustBuffer ui_json, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_INSTALL_MCP_PLUGIN
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_INSTALL_MCP_PLUGIN
+RustBuffer uniffi_atlas_ffi_fn_func_install_mcp_plugin(RustBuffer manifest_toml, RustBuffer ui_json, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_INSTALL_WASM_PLUGIN
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_INSTALL_WASM_PLUGIN
+RustBuffer uniffi_atlas_ffi_fn_func_install_wasm_plugin(RustBuffer manifest_toml, RustBuffer wasm_bytes, RustBuffer ui_json, RustCallStatus *_Nonnull out_status
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_KILL_PORT_PROCESS
@@ -307,7 +330,13 @@ int8_t uniffi_atlas_ffi_fn_func_kill_port_process(uint32_t pid, RustCallStatus *
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_LIST_FEATURES
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_LIST_FEATURES
 RustBuffer uniffi_atlas_ffi_fn_func_list_features(RustCallStatus *_Nonnull out_status
-    
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_LIST_PLUGINS
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_LIST_PLUGINS
+RustBuffer uniffi_atlas_ffi_fn_func_list_plugins(RustCallStatus *_Nonnull out_status
+
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_LOOKUP_PORT
@@ -323,12 +352,17 @@ void uniffi_atlas_ffi_fn_func_start_monitoring(uint64_t callback, RustCallStatus
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_STOP_MONITORING
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_STOP_MONITORING
 void uniffi_atlas_ffi_fn_func_stop_monitoring(RustCallStatus *_Nonnull out_status
-    
+
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_TOGGLE_FEATURE
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_TOGGLE_FEATURE
 int8_t uniffi_atlas_ffi_fn_func_toggle_feature(RustBuffer name, int8_t enabled, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_UNINSTALL_PLUGIN
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_UNINSTALL_PLUGIN
+int8_t uniffi_atlas_ffi_fn_func_uninstall_plugin(RustBuffer id, RustCallStatus *_Nonnull out_status
 );
 #endif
 #ifndef UNIFFI_FFIDEF_FFI_ATLAS_FFI_RUSTBUFFER_ALLOC
@@ -551,26 +585,6 @@ void ffi_atlas_ffi_rust_future_free_f64(uint64_t handle
 double ffi_atlas_ffi_rust_future_complete_f64(uint64_t handle, RustCallStatus *_Nonnull out_status
 );
 #endif
-#ifndef UNIFFI_FFIDEF_FFI_ATLAS_FFI_RUST_FUTURE_POLL_POINTER
-#define UNIFFI_FFIDEF_FFI_ATLAS_FFI_RUST_FUTURE_POLL_POINTER
-void ffi_atlas_ffi_rust_future_poll_pointer(uint64_t handle, UniffiRustFutureContinuationCallback _Nonnull callback, uint64_t callback_data
-);
-#endif
-#ifndef UNIFFI_FFIDEF_FFI_ATLAS_FFI_RUST_FUTURE_CANCEL_POINTER
-#define UNIFFI_FFIDEF_FFI_ATLAS_FFI_RUST_FUTURE_CANCEL_POINTER
-void ffi_atlas_ffi_rust_future_cancel_pointer(uint64_t handle
-);
-#endif
-#ifndef UNIFFI_FFIDEF_FFI_ATLAS_FFI_RUST_FUTURE_FREE_POINTER
-#define UNIFFI_FFIDEF_FFI_ATLAS_FFI_RUST_FUTURE_FREE_POINTER
-void ffi_atlas_ffi_rust_future_free_pointer(uint64_t handle
-);
-#endif
-#ifndef UNIFFI_FFIDEF_FFI_ATLAS_FFI_RUST_FUTURE_COMPLETE_POINTER
-#define UNIFFI_FFIDEF_FFI_ATLAS_FFI_RUST_FUTURE_COMPLETE_POINTER
-void*_Nonnull ffi_atlas_ffi_rust_future_complete_pointer(uint64_t handle, RustCallStatus *_Nonnull out_status
-);
-#endif
 #ifndef UNIFFI_FFIDEF_FFI_ATLAS_FFI_RUST_FUTURE_POLL_RUST_BUFFER
 #define UNIFFI_FFIDEF_FFI_ATLAS_FFI_RUST_FUTURE_POLL_RUST_BUFFER
 void ffi_atlas_ffi_rust_future_poll_rust_buffer(uint64_t handle, UniffiRustFutureContinuationCallback _Nonnull callback, uint64_t callback_data
@@ -614,79 +628,127 @@ void ffi_atlas_ffi_rust_future_complete_void(uint64_t handle, RustCallStatus *_N
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_CAPTURE_FULL_SCREEN
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_CAPTURE_FULL_SCREEN
 uint16_t uniffi_atlas_ffi_checksum_func_capture_full_screen(void
-    
+
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_CAPTURE_REGION
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_CAPTURE_REGION
 uint16_t uniffi_atlas_ffi_checksum_func_capture_region(void
-    
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_CONFIGURE_ENTITLEMENT
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_CONFIGURE_ENTITLEMENT
+uint16_t uniffi_atlas_ffi_checksum_func_configure_entitlement(void
+
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_CURRENT_BATTERY
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_CURRENT_BATTERY
 uint16_t uniffi_atlas_ffi_checksum_func_current_battery(void
-    
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_DISPATCH_PLUGIN_EVENT
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_DISPATCH_PLUGIN_EVENT
+uint16_t uniffi_atlas_ffi_checksum_func_dispatch_plugin_event(void
+
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_EVALUATE_EXPRESSION
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_EVALUATE_EXPRESSION
 uint16_t uniffi_atlas_ffi_checksum_func_evaluate_expression(void
-    
+
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_GET_CORE_STATUS
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_GET_CORE_STATUS
 uint16_t uniffi_atlas_ffi_checksum_func_get_core_status(void
-    
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_INSPECT_PLUGIN_MANIFEST
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_INSPECT_PLUGIN_MANIFEST
+uint16_t uniffi_atlas_ffi_checksum_func_inspect_plugin_manifest(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_INSTALL_JS_PLUGIN
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_INSTALL_JS_PLUGIN
+uint16_t uniffi_atlas_ffi_checksum_func_install_js_plugin(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_INSTALL_MCP_PLUGIN
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_INSTALL_MCP_PLUGIN
+uint16_t uniffi_atlas_ffi_checksum_func_install_mcp_plugin(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_INSTALL_WASM_PLUGIN
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_INSTALL_WASM_PLUGIN
+uint16_t uniffi_atlas_ffi_checksum_func_install_wasm_plugin(void
+
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_KILL_PORT_PROCESS
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_KILL_PORT_PROCESS
 uint16_t uniffi_atlas_ffi_checksum_func_kill_port_process(void
-    
+
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_LIST_FEATURES
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_LIST_FEATURES
 uint16_t uniffi_atlas_ffi_checksum_func_list_features(void
-    
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_LIST_PLUGINS
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_LIST_PLUGINS
+uint16_t uniffi_atlas_ffi_checksum_func_list_plugins(void
+
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_LOOKUP_PORT
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_LOOKUP_PORT
 uint16_t uniffi_atlas_ffi_checksum_func_lookup_port(void
-    
+
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_START_MONITORING
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_START_MONITORING
 uint16_t uniffi_atlas_ffi_checksum_func_start_monitoring(void
-    
+
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_STOP_MONITORING
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_STOP_MONITORING
 uint16_t uniffi_atlas_ffi_checksum_func_stop_monitoring(void
-    
+
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_TOGGLE_FEATURE
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_TOGGLE_FEATURE
 uint16_t uniffi_atlas_ffi_checksum_func_toggle_feature(void
-    
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_UNINSTALL_PLUGIN
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_UNINSTALL_PLUGIN
+uint16_t uniffi_atlas_ffi_checksum_func_uninstall_plugin(void
+
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_METHOD_SYSTEMMONITORCALLBACK_ON_SNAPSHOT
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_METHOD_SYSTEMMONITORCALLBACK_ON_SNAPSHOT
 uint16_t uniffi_atlas_ffi_checksum_method_systemmonitorcallback_on_snapshot(void
-    
+
 );
 #endif
 #ifndef UNIFFI_FFIDEF_FFI_ATLAS_FFI_UNIFFI_CONTRACT_VERSION
 #define UNIFFI_FFIDEF_FFI_ATLAS_FFI_UNIFFI_CONTRACT_VERSION
 uint32_t ffi_atlas_ffi_uniffi_contract_version(void
-    
+
 );
 #endif
 

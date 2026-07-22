@@ -10,7 +10,7 @@ pub fn get_temperatures() -> Vec<TemperatureSnapshot> {
         .iter()
         .filter_map(|c| {
             let celsius = c.temperature();
-            if celsius >= 0.0 && celsius < 150.0 {
+            if (0.0..150.0).contains(&celsius) {
                 Some(TemperatureSnapshot {
                     label: c.label().to_string(),
                     celsius,
@@ -32,7 +32,7 @@ mod tests {
         for t in &temps {
             assert!(!t.label.is_empty());
             assert!(
-                t.celsius >= 0.0 && t.celsius < 150.0,
+                (0.0..150.0).contains(&t.celsius),
                 "Suspicious temperature for {}: {}°C",
                 t.label,
                 t.celsius

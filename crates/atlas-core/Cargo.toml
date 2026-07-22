@@ -3,13 +3,19 @@ name = "atlas-core"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["dynamic-modules"]
+dynamic-modules = ["dep:atlas-module-loader"]
+
 [dependencies]
+atlas-module-loader = { path = "../atlas-module-loader", optional = true }
 sysinfo = "0.30"
 tokio = { version = "1.36", features = ["full"] }
 anyhow = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-screenshots = "0.8"
-image = "0.24"
+xcap = "0.9.7"
+image = { version = "0.25", default-features = false, features = ["png"] }
 uuid = { version = "1.7", features = ["v4"] }
-battery = "0.7"
+battery = { package = "starship-battery", version = "0.11.1" }
 evalexpr = "11"
+thiserror = "1.0"

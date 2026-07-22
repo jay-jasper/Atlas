@@ -10,6 +10,14 @@ final class TranscriptionModelTests: XCTestCase {
         XCTAssertLessThan(WhisperModel.tiny.accuracyRank, WhisperModel.large.accuracyRank)
     }
 
+    func testWhisperModelStoreUsesStableModelFilename() {
+        let directory = URL(fileURLWithPath: "/tmp/atlas-whisper-tests", isDirectory: true)
+        let store = WhisperModelStore(directory: directory)
+
+        XCTAssertEqual(store.url(for: .base).lastPathComponent, "ggml-base.bin")
+        XCTAssertFalse(store.isInstalled(.base))
+    }
+
     func testSRTExportReusesSubtitleSerializer() {
         let segments = [
             TranscriptSegment(startMs: 0, endMs: 2000, text: "Hello"),

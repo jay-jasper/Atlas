@@ -14,6 +14,7 @@ private final class FakeFeatureProvider: FeatureProviding {
     var toggledName: String?
     var toggledEnabled: Bool?
     var toggleResult = true
+    var configuredEdition: AtlasEdition?
 
     func listFeatures() throws -> [AtlasFeature] {
         listCount += 1
@@ -24,6 +25,10 @@ private final class FakeFeatureProvider: FeatureProviding {
         toggledName = name
         toggledEnabled = enabled
         return toggleResult
+    }
+
+    func configureEntitlement(_ edition: AtlasEdition) throws {
+        configuredEdition = edition
     }
 }
 
@@ -65,5 +70,14 @@ final class AtlasBridgeFeatureTests: XCTestCase {
         XCTAssertEqual(provider.toggledName, "unknown")
         XCTAssertEqual(provider.toggledEnabled, true)
         XCTAssertFalse(result)
+    }
+
+    func testConfigureEntitlementUsesProvider() throws {
+        let provider = FakeFeatureProvider()
+        AtlasBridge.featureService = provider
+
+        try AtlasBridge.configureEntitlement(.pro)
+
+        XCTAssertEqual(provider.configuredEdition, .pro)
     }
 }

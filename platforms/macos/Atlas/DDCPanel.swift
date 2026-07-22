@@ -10,7 +10,7 @@ struct DDCPanel: View {
                     .font(.headline)
                 Spacer()
                 Button {
-                    try? service.refreshDisplays()
+                    _ = try? service.refreshDisplays()
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
@@ -44,7 +44,7 @@ struct DDCPanel: View {
         }
         .padding()
         .onAppear {
-            try? service.refreshDisplays()
+            _ = try? service.refreshDisplays()
             service.displays.filter { $0.supportsDDC }.forEach {
                 service.refreshBrightness(for: $0)
             }

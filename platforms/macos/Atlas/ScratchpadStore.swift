@@ -13,13 +13,16 @@ final class ScratchpadStore: ScratchpadStoring {
     private let dateProvider: () -> Date
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
+    private let secureData: SecureLocalData
 
     init(
         fileURL: URL = ScratchpadStore.defaultFileURL(),
-        dateProvider: @escaping () -> Date = Date.init
+        dateProvider: @escaping () -> Date = Date.init,
+        secureData: SecureLocalData = .shared
     ) {
         self.fileURL = fileURL
         self.dateProvider = dateProvider
+        self.secureData = secureData
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
         decoder.dateDecodingStrategy = .iso8601
@@ -27,8 +30,9 @@ final class ScratchpadStore: ScratchpadStoring {
 
     func loadNotes() throws -> [ScratchpadNote] {
         guard FileManager.default.fileExists(atPath: fileURL.path) else { return [] }
-        let data = try Data(contentsOf: fileURL)
-        guard !data.isEmpty else { return [] }
+        let stored = try Data(contentsOf: fileURL)
+        guard !stored.isEmpty else { return [] }
+        let data = try secureData.open(stored)
         return try decoder.decode([ScratchpadNote].self, from: data)
             .sorted { $0.updatedAt > $1.updatedAt }
     }
@@ -93,7 +97,8 @@ final class ScratchpadStore: ScratchpadStoring {
             withIntermediateDirectories: true
         )
         let data = try encoder.encode(notes.sorted { $0.updatedAt > $1.updatedAt })
-        try data.write(to: fileURL, options: [.atomic])
+        let sealed = try secureData.seal(data)
+        try sealed.write(to: fileURL, options: [.atomic, .completeFileProtection])
     }
 
     private func title(for draft: ScratchpadDraft) -> String {

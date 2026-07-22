@@ -74,7 +74,7 @@ SwiftUI app structured as a `MenuBarExtra` with `.window` style:
 
 The UniFFI bridge is **wired** (verified 2026-06-17). Generated bindings live at `platforms/macos/Generated/AtlasFFI/atlas.swift` (+ `atlasFFI.h`, modulemap, prebuilt `libatlas_ffi.a`) and are compiled into the `Atlas` target. Services call the generated module functions directly — e.g. `Atlas.startMonitoring`, `Atlas.lookupPort`, `Atlas.listFeatures`, `Atlas.captureFullScreen`. The protocol-provider seam (`MonitoringProviding`, `FeatureProviding`, …) remains, but its default is `.live` (real FFI); mocks are injected only in tests.
 
-> Modularity note: features are still **statically linked** into `atlas-core`. The dynamic `.dylib` module loader and third-party plugin runtime are designed but not yet built. See `docs/superpowers/specs/2026-06-17-modular-distribution-unified.md` for the unified packaging/distribution plan and current build-vs-design status.
+> Modularity note: features are still **statically linked** into `atlas-core`. The dynamic `.dylib` module loader and third-party plugin runtime are designed but not yet built. See `docs/superpowers/specs/2026-06-17-modular-distribution-unified.md` for the unified packaging/distribution plan and current build-vs-design status, and `docs/superpowers/specs/2026-07-20-js-plugin-track-and-cross-platform-ui.md` for the JS plugin track (QuickJS), cross-platform UI-schema strategy, and Raycast-compat plan.
 
 ## Key conventions
 

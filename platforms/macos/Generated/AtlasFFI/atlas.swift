@@ -284,7 +284,7 @@ private func makeRustCall<T, E: Swift.Error>(
     _ callback: (UnsafeMutablePointer<RustCallStatus>) -> T,
     errorHandler: ((RustBuffer) throws -> E)?
 ) throws -> T {
-    uniffiEnsureInitialized()
+    uniffiEnsureAtlasFfiInitialized()
     var callStatus = RustCallStatus.init()
     let returnedVal = callback(&callStatus)
     try uniffiCheckCallStatus(callStatus: callStatus, errorHandler: errorHandler)
@@ -355,18 +355,29 @@ private func uniffiTraitInterfaceCallWithError<T, E>(
         callStatus.pointee.errorBuf = FfiConverterString.lower(String(describing: error))
     }
 }
-fileprivate class UniffiHandleMap<T> {
-    private var map: [UInt64: T] = [:]
+// Initial value and increment amount for handles.
+// These ensure that SWIFT handles always have the lowest bit set
+fileprivate let UNIFFI_HANDLEMAP_INITIAL: UInt64 = 1
+fileprivate let UNIFFI_HANDLEMAP_DELTA: UInt64 = 2
+
+fileprivate final class UniffiHandleMap<T>: @unchecked Sendable {
+    // All mutation happens with this lock held, which is why we implement @unchecked Sendable.
     private let lock = NSLock()
-    private var currentHandle: UInt64 = 1
+    private var map: [UInt64: T] = [:]
+    private var currentHandle: UInt64 = UNIFFI_HANDLEMAP_INITIAL
 
     func insert(obj: T) -> UInt64 {
         lock.withLock {
-            let handle = currentHandle
-            currentHandle += 1
-            map[handle] = obj
-            return handle
+            return doInsert(obj)
         }
+    }
+
+    // Low-level insert function, this assumes `lock` is held.
+    private func doInsert(_ obj: T) -> UInt64 {
+        let handle = currentHandle
+        currentHandle += UNIFFI_HANDLEMAP_DELTA
+        map[handle] = obj
+        return handle
     }
 
      func get(handle: UInt64) throws -> T {
@@ -375,6 +386,15 @@ fileprivate class UniffiHandleMap<T> {
                 throw UniffiInternalError.unexpectedStaleHandle
             }
             return obj
+        }
+    }
+
+     func clone(handle: UInt64) throws -> UInt64 {
+        try lock.withLock {
+            guard let obj = map[handle] else {
+                throw UniffiInternalError.unexpectedStaleHandle
+            }
+            return doInsert(obj)
         }
     }
 
@@ -397,7 +417,13 @@ fileprivate class UniffiHandleMap<T> {
 
 
 // Public interface members begin here.
-
+// Magic number for the Rust proxy to call using the same mechanism as every other method,
+// to free the callback once it's dropped by Rust.
+private let IDX_CALLBACK_FREE: Int32 = 0
+// Callback return codes
+private let UNIFFI_CALLBACK_SUCCESS: Int32 = 0
+private let UNIFFI_CALLBACK_ERROR: Int32 = 1
+private let UNIFFI_CALLBACK_UNEXPECTED_ERROR: Int32 = 2
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
@@ -577,7 +603,7 @@ fileprivate struct FfiConverterString: FfiConverter {
 }
 
 
-public struct BatterySnapshot {
+public struct BatterySnapshot: Equatable, Hashable {
     public var chargePercent: Float
     public var isCharging: Bool
     public var timeToEmptySecs: Int64?
@@ -595,43 +621,13 @@ public struct BatterySnapshot {
         self.healthPercent = healthPercent
         self.cycleCount = cycleCount
     }
+
+
 }
 
-
-
-extension BatterySnapshot: Equatable, Hashable {
-    public static func ==(lhs: BatterySnapshot, rhs: BatterySnapshot) -> Bool {
-        if lhs.chargePercent != rhs.chargePercent {
-            return false
-        }
-        if lhs.isCharging != rhs.isCharging {
-            return false
-        }
-        if lhs.timeToEmptySecs != rhs.timeToEmptySecs {
-            return false
-        }
-        if lhs.timeToFullSecs != rhs.timeToFullSecs {
-            return false
-        }
-        if lhs.healthPercent != rhs.healthPercent {
-            return false
-        }
-        if lhs.cycleCount != rhs.cycleCount {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(chargePercent)
-        hasher.combine(isCharging)
-        hasher.combine(timeToEmptySecs)
-        hasher.combine(timeToFullSecs)
-        hasher.combine(healthPercent)
-        hasher.combine(cycleCount)
-    }
-}
-
+#if compiler(>=6)
+extension BatterySnapshot: Sendable {}
+#endif
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
@@ -640,11 +636,11 @@ public struct FfiConverterTypeBatterySnapshot: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> BatterySnapshot {
         return
             try BatterySnapshot(
-                chargePercent: FfiConverterFloat.read(from: &buf), 
-                isCharging: FfiConverterBool.read(from: &buf), 
-                timeToEmptySecs: FfiConverterOptionInt64.read(from: &buf), 
-                timeToFullSecs: FfiConverterOptionInt64.read(from: &buf), 
-                healthPercent: FfiConverterFloat.read(from: &buf), 
+                chargePercent: FfiConverterFloat.read(from: &buf),
+                isCharging: FfiConverterBool.read(from: &buf),
+                timeToEmptySecs: FfiConverterOptionInt64.read(from: &buf),
+                timeToFullSecs: FfiConverterOptionInt64.read(from: &buf),
+                healthPercent: FfiConverterFloat.read(from: &buf),
                 cycleCount: FfiConverterOptionUInt32.read(from: &buf)
         )
     }
@@ -675,7 +671,7 @@ public func FfiConverterTypeBatterySnapshot_lower(_ value: BatterySnapshot) -> R
 }
 
 
-public struct CpuCoreSnapshot {
+public struct CpuCoreSnapshot: Equatable, Hashable {
     public var name: String
     public var usage: Float
     public var frequencyMhz: UInt64
@@ -687,31 +683,13 @@ public struct CpuCoreSnapshot {
         self.usage = usage
         self.frequencyMhz = frequencyMhz
     }
+
+
 }
 
-
-
-extension CpuCoreSnapshot: Equatable, Hashable {
-    public static func ==(lhs: CpuCoreSnapshot, rhs: CpuCoreSnapshot) -> Bool {
-        if lhs.name != rhs.name {
-            return false
-        }
-        if lhs.usage != rhs.usage {
-            return false
-        }
-        if lhs.frequencyMhz != rhs.frequencyMhz {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(name)
-        hasher.combine(usage)
-        hasher.combine(frequencyMhz)
-    }
-}
-
+#if compiler(>=6)
+extension CpuCoreSnapshot: Sendable {}
+#endif
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
@@ -720,8 +698,8 @@ public struct FfiConverterTypeCpuCoreSnapshot: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> CpuCoreSnapshot {
         return
             try CpuCoreSnapshot(
-                name: FfiConverterString.read(from: &buf), 
-                usage: FfiConverterFloat.read(from: &buf), 
+                name: FfiConverterString.read(from: &buf),
+                usage: FfiConverterFloat.read(from: &buf),
                 frequencyMhz: FfiConverterUInt64.read(from: &buf)
         )
     }
@@ -749,7 +727,7 @@ public func FfiConverterTypeCpuCoreSnapshot_lower(_ value: CpuCoreSnapshot) -> R
 }
 
 
-public struct DiskSnapshot {
+public struct DiskSnapshot: Equatable, Hashable {
     public var name: String
     public var mountPoint: String
     public var totalBytes: UInt64
@@ -765,39 +743,13 @@ public struct DiskSnapshot {
         self.usedBytes = usedBytes
         self.availableBytes = availableBytes
     }
+
+
 }
 
-
-
-extension DiskSnapshot: Equatable, Hashable {
-    public static func ==(lhs: DiskSnapshot, rhs: DiskSnapshot) -> Bool {
-        if lhs.name != rhs.name {
-            return false
-        }
-        if lhs.mountPoint != rhs.mountPoint {
-            return false
-        }
-        if lhs.totalBytes != rhs.totalBytes {
-            return false
-        }
-        if lhs.usedBytes != rhs.usedBytes {
-            return false
-        }
-        if lhs.availableBytes != rhs.availableBytes {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(name)
-        hasher.combine(mountPoint)
-        hasher.combine(totalBytes)
-        hasher.combine(usedBytes)
-        hasher.combine(availableBytes)
-    }
-}
-
+#if compiler(>=6)
+extension DiskSnapshot: Sendable {}
+#endif
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
@@ -806,10 +758,10 @@ public struct FfiConverterTypeDiskSnapshot: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DiskSnapshot {
         return
             try DiskSnapshot(
-                name: FfiConverterString.read(from: &buf), 
-                mountPoint: FfiConverterString.read(from: &buf), 
-                totalBytes: FfiConverterUInt64.read(from: &buf), 
-                usedBytes: FfiConverterUInt64.read(from: &buf), 
+                name: FfiConverterString.read(from: &buf),
+                mountPoint: FfiConverterString.read(from: &buf),
+                totalBytes: FfiConverterUInt64.read(from: &buf),
+                usedBytes: FfiConverterUInt64.read(from: &buf),
                 availableBytes: FfiConverterUInt64.read(from: &buf)
         )
     }
@@ -842,7 +794,7 @@ public func FfiConverterTypeDiskSnapshot_lower(_ value: DiskSnapshot) -> RustBuf
 /**
  * Represents a feature and its current status.
  */
-public struct FeatureEntry {
+public struct FeatureEntry: Equatable, Hashable {
     public var name: String
     public var status: FeatureStatus
 
@@ -852,27 +804,13 @@ public struct FeatureEntry {
         self.name = name
         self.status = status
     }
+
+
 }
 
-
-
-extension FeatureEntry: Equatable, Hashable {
-    public static func ==(lhs: FeatureEntry, rhs: FeatureEntry) -> Bool {
-        if lhs.name != rhs.name {
-            return false
-        }
-        if lhs.status != rhs.status {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(name)
-        hasher.combine(status)
-    }
-}
-
+#if compiler(>=6)
+extension FeatureEntry: Sendable {}
+#endif
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
@@ -881,7 +819,7 @@ public struct FfiConverterTypeFeatureEntry: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FeatureEntry {
         return
             try FeatureEntry(
-                name: FfiConverterString.read(from: &buf), 
+                name: FfiConverterString.read(from: &buf),
                 status: FfiConverterTypeFeatureStatus.read(from: &buf)
         )
     }
@@ -908,7 +846,7 @@ public func FfiConverterTypeFeatureEntry_lower(_ value: FeatureEntry) -> RustBuf
 }
 
 
-public struct NetworkInterfaceSnapshot {
+public struct NetworkInterfaceSnapshot: Equatable, Hashable {
     public var name: String
     public var uploadBps: UInt64
     public var downloadBps: UInt64
@@ -920,31 +858,13 @@ public struct NetworkInterfaceSnapshot {
         self.uploadBps = uploadBps
         self.downloadBps = downloadBps
     }
+
+
 }
 
-
-
-extension NetworkInterfaceSnapshot: Equatable, Hashable {
-    public static func ==(lhs: NetworkInterfaceSnapshot, rhs: NetworkInterfaceSnapshot) -> Bool {
-        if lhs.name != rhs.name {
-            return false
-        }
-        if lhs.uploadBps != rhs.uploadBps {
-            return false
-        }
-        if lhs.downloadBps != rhs.downloadBps {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(name)
-        hasher.combine(uploadBps)
-        hasher.combine(downloadBps)
-    }
-}
-
+#if compiler(>=6)
+extension NetworkInterfaceSnapshot: Sendable {}
+#endif
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
@@ -953,8 +873,8 @@ public struct FfiConverterTypeNetworkInterfaceSnapshot: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NetworkInterfaceSnapshot {
         return
             try NetworkInterfaceSnapshot(
-                name: FfiConverterString.read(from: &buf), 
-                uploadBps: FfiConverterUInt64.read(from: &buf), 
+                name: FfiConverterString.read(from: &buf),
+                uploadBps: FfiConverterUInt64.read(from: &buf),
                 downloadBps: FfiConverterUInt64.read(from: &buf)
         )
     }
@@ -982,7 +902,150 @@ public func FfiConverterTypeNetworkInterfaceSnapshot_lower(_ value: NetworkInter
 }
 
 
-public struct PortProcessInfo {
+public struct PluginEntry: Equatable, Hashable {
+    public var id: String
+    public var name: String
+    public var version: String
+    public var runtime: PluginRuntime
+    public var uiJson: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, name: String, version: String, runtime: PluginRuntime, uiJson: String) {
+        self.id = id
+        self.name = name
+        self.version = version
+        self.runtime = runtime
+        self.uiJson = uiJson
+    }
+
+
+}
+
+#if compiler(>=6)
+extension PluginEntry: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypePluginEntry: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PluginEntry {
+        return
+            try PluginEntry(
+                id: FfiConverterString.read(from: &buf),
+                name: FfiConverterString.read(from: &buf),
+                version: FfiConverterString.read(from: &buf),
+                runtime: FfiConverterTypePluginRuntime.read(from: &buf),
+                uiJson: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: PluginEntry, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterString.write(value.name, into: &buf)
+        FfiConverterString.write(value.version, into: &buf)
+        FfiConverterTypePluginRuntime.write(value.runtime, into: &buf)
+        FfiConverterString.write(value.uiJson, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginEntry_lift(_ buf: RustBuffer) throws -> PluginEntry {
+    return try FfiConverterTypePluginEntry.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginEntry_lower(_ value: PluginEntry) -> RustBuffer {
+    return FfiConverterTypePluginEntry.lower(value)
+}
+
+
+/**
+ * Validated metadata shown before an executable plugin is installed.
+ */
+public struct PluginInstallPreview: Equatable, Hashable {
+    public var name: String
+    public var version: String
+    public var networkHosts: [String]
+    public var storage: Bool
+    public var clipboard: Bool
+    public var webview: Bool
+    public var webviewBridge: Bool
+    public var exposedTools: [String]
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(name: String, version: String, networkHosts: [String], storage: Bool, clipboard: Bool, webview: Bool, webviewBridge: Bool, exposedTools: [String]) {
+        self.name = name
+        self.version = version
+        self.networkHosts = networkHosts
+        self.storage = storage
+        self.clipboard = clipboard
+        self.webview = webview
+        self.webviewBridge = webviewBridge
+        self.exposedTools = exposedTools
+    }
+
+
+}
+
+#if compiler(>=6)
+extension PluginInstallPreview: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypePluginInstallPreview: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PluginInstallPreview {
+        return
+            try PluginInstallPreview(
+                name: FfiConverterString.read(from: &buf),
+                version: FfiConverterString.read(from: &buf),
+                networkHosts: FfiConverterSequenceString.read(from: &buf),
+                storage: FfiConverterBool.read(from: &buf),
+                clipboard: FfiConverterBool.read(from: &buf),
+                webview: FfiConverterBool.read(from: &buf),
+                webviewBridge: FfiConverterBool.read(from: &buf),
+                exposedTools: FfiConverterSequenceString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: PluginInstallPreview, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.name, into: &buf)
+        FfiConverterString.write(value.version, into: &buf)
+        FfiConverterSequenceString.write(value.networkHosts, into: &buf)
+        FfiConverterBool.write(value.storage, into: &buf)
+        FfiConverterBool.write(value.clipboard, into: &buf)
+        FfiConverterBool.write(value.webview, into: &buf)
+        FfiConverterBool.write(value.webviewBridge, into: &buf)
+        FfiConverterSequenceString.write(value.exposedTools, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginInstallPreview_lift(_ buf: RustBuffer) throws -> PluginInstallPreview {
+    return try FfiConverterTypePluginInstallPreview.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginInstallPreview_lower(_ value: PluginInstallPreview) -> RustBuffer {
+    return FfiConverterTypePluginInstallPreview.lower(value)
+}
+
+
+public struct PortProcessInfo: Equatable, Hashable {
     public var port: UInt16
     public var pid: UInt32
     public var processName: String
@@ -994,31 +1057,13 @@ public struct PortProcessInfo {
         self.pid = pid
         self.processName = processName
     }
+
+
 }
 
-
-
-extension PortProcessInfo: Equatable, Hashable {
-    public static func ==(lhs: PortProcessInfo, rhs: PortProcessInfo) -> Bool {
-        if lhs.port != rhs.port {
-            return false
-        }
-        if lhs.pid != rhs.pid {
-            return false
-        }
-        if lhs.processName != rhs.processName {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(port)
-        hasher.combine(pid)
-        hasher.combine(processName)
-    }
-}
-
+#if compiler(>=6)
+extension PortProcessInfo: Sendable {}
+#endif
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
@@ -1027,8 +1072,8 @@ public struct FfiConverterTypePortProcessInfo: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PortProcessInfo {
         return
             try PortProcessInfo(
-                port: FfiConverterUInt16.read(from: &buf), 
-                pid: FfiConverterUInt32.read(from: &buf), 
+                port: FfiConverterUInt16.read(from: &buf),
+                pid: FfiConverterUInt32.read(from: &buf),
                 processName: FfiConverterString.read(from: &buf)
         )
     }
@@ -1056,7 +1101,7 @@ public func FfiConverterTypePortProcessInfo_lower(_ value: PortProcessInfo) -> R
 }
 
 
-public struct ProcessSnapshot {
+public struct ProcessSnapshot: Equatable, Hashable {
     public var pid: UInt32
     public var name: String
     public var cpuUsage: Float
@@ -1070,35 +1115,13 @@ public struct ProcessSnapshot {
         self.cpuUsage = cpuUsage
         self.memBytes = memBytes
     }
+
+
 }
 
-
-
-extension ProcessSnapshot: Equatable, Hashable {
-    public static func ==(lhs: ProcessSnapshot, rhs: ProcessSnapshot) -> Bool {
-        if lhs.pid != rhs.pid {
-            return false
-        }
-        if lhs.name != rhs.name {
-            return false
-        }
-        if lhs.cpuUsage != rhs.cpuUsage {
-            return false
-        }
-        if lhs.memBytes != rhs.memBytes {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(pid)
-        hasher.combine(name)
-        hasher.combine(cpuUsage)
-        hasher.combine(memBytes)
-    }
-}
-
+#if compiler(>=6)
+extension ProcessSnapshot: Sendable {}
+#endif
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
@@ -1107,9 +1130,9 @@ public struct FfiConverterTypeProcessSnapshot: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ProcessSnapshot {
         return
             try ProcessSnapshot(
-                pid: FfiConverterUInt32.read(from: &buf), 
-                name: FfiConverterString.read(from: &buf), 
-                cpuUsage: FfiConverterFloat.read(from: &buf), 
+                pid: FfiConverterUInt32.read(from: &buf),
+                name: FfiConverterString.read(from: &buf),
+                cpuUsage: FfiConverterFloat.read(from: &buf),
                 memBytes: FfiConverterUInt64.read(from: &buf)
         )
     }
@@ -1138,7 +1161,7 @@ public func FfiConverterTypeProcessSnapshot_lower(_ value: ProcessSnapshot) -> R
 }
 
 
-public struct SystemSnapshot {
+public struct SystemSnapshot: Equatable, Hashable {
     public var cpuUsage: Float
     public var memUsedBytes: UInt64
     public var memTotalBytes: UInt64
@@ -1176,83 +1199,13 @@ public struct SystemSnapshot {
         self.battery = battery
         self.temperatures = temperatures
     }
+
+
 }
 
-
-
-extension SystemSnapshot: Equatable, Hashable {
-    public static func ==(lhs: SystemSnapshot, rhs: SystemSnapshot) -> Bool {
-        if lhs.cpuUsage != rhs.cpuUsage {
-            return false
-        }
-        if lhs.memUsedBytes != rhs.memUsedBytes {
-            return false
-        }
-        if lhs.memTotalBytes != rhs.memTotalBytes {
-            return false
-        }
-        if lhs.netUploadBps != rhs.netUploadBps {
-            return false
-        }
-        if lhs.netDownloadBps != rhs.netDownloadBps {
-            return false
-        }
-        if lhs.cpuCores != rhs.cpuCores {
-            return false
-        }
-        if lhs.memFreeBytes != rhs.memFreeBytes {
-            return false
-        }
-        if lhs.memAvailableBytes != rhs.memAvailableBytes {
-            return false
-        }
-        if lhs.swapUsedBytes != rhs.swapUsedBytes {
-            return false
-        }
-        if lhs.swapTotalBytes != rhs.swapTotalBytes {
-            return false
-        }
-        if lhs.topCpuProcesses != rhs.topCpuProcesses {
-            return false
-        }
-        if lhs.topMemProcesses != rhs.topMemProcesses {
-            return false
-        }
-        if lhs.networkInterfaces != rhs.networkInterfaces {
-            return false
-        }
-        if lhs.disks != rhs.disks {
-            return false
-        }
-        if lhs.battery != rhs.battery {
-            return false
-        }
-        if lhs.temperatures != rhs.temperatures {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(cpuUsage)
-        hasher.combine(memUsedBytes)
-        hasher.combine(memTotalBytes)
-        hasher.combine(netUploadBps)
-        hasher.combine(netDownloadBps)
-        hasher.combine(cpuCores)
-        hasher.combine(memFreeBytes)
-        hasher.combine(memAvailableBytes)
-        hasher.combine(swapUsedBytes)
-        hasher.combine(swapTotalBytes)
-        hasher.combine(topCpuProcesses)
-        hasher.combine(topMemProcesses)
-        hasher.combine(networkInterfaces)
-        hasher.combine(disks)
-        hasher.combine(battery)
-        hasher.combine(temperatures)
-    }
-}
-
+#if compiler(>=6)
+extension SystemSnapshot: Sendable {}
+#endif
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
@@ -1261,21 +1214,21 @@ public struct FfiConverterTypeSystemSnapshot: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SystemSnapshot {
         return
             try SystemSnapshot(
-                cpuUsage: FfiConverterFloat.read(from: &buf), 
-                memUsedBytes: FfiConverterUInt64.read(from: &buf), 
-                memTotalBytes: FfiConverterUInt64.read(from: &buf), 
-                netUploadBps: FfiConverterUInt64.read(from: &buf), 
-                netDownloadBps: FfiConverterUInt64.read(from: &buf), 
-                cpuCores: FfiConverterSequenceTypeCpuCoreSnapshot.read(from: &buf), 
-                memFreeBytes: FfiConverterUInt64.read(from: &buf), 
-                memAvailableBytes: FfiConverterUInt64.read(from: &buf), 
-                swapUsedBytes: FfiConverterUInt64.read(from: &buf), 
-                swapTotalBytes: FfiConverterUInt64.read(from: &buf), 
-                topCpuProcesses: FfiConverterSequenceTypeProcessSnapshot.read(from: &buf), 
-                topMemProcesses: FfiConverterSequenceTypeProcessSnapshot.read(from: &buf), 
-                networkInterfaces: FfiConverterSequenceTypeNetworkInterfaceSnapshot.read(from: &buf), 
-                disks: FfiConverterSequenceTypeDiskSnapshot.read(from: &buf), 
-                battery: FfiConverterOptionTypeBatterySnapshot.read(from: &buf), 
+                cpuUsage: FfiConverterFloat.read(from: &buf),
+                memUsedBytes: FfiConverterUInt64.read(from: &buf),
+                memTotalBytes: FfiConverterUInt64.read(from: &buf),
+                netUploadBps: FfiConverterUInt64.read(from: &buf),
+                netDownloadBps: FfiConverterUInt64.read(from: &buf),
+                cpuCores: FfiConverterSequenceTypeCpuCoreSnapshot.read(from: &buf),
+                memFreeBytes: FfiConverterUInt64.read(from: &buf),
+                memAvailableBytes: FfiConverterUInt64.read(from: &buf),
+                swapUsedBytes: FfiConverterUInt64.read(from: &buf),
+                swapTotalBytes: FfiConverterUInt64.read(from: &buf),
+                topCpuProcesses: FfiConverterSequenceTypeProcessSnapshot.read(from: &buf),
+                topMemProcesses: FfiConverterSequenceTypeProcessSnapshot.read(from: &buf),
+                networkInterfaces: FfiConverterSequenceTypeNetworkInterfaceSnapshot.read(from: &buf),
+                disks: FfiConverterSequenceTypeDiskSnapshot.read(from: &buf),
+                battery: FfiConverterOptionTypeBatterySnapshot.read(from: &buf),
                 temperatures: FfiConverterSequenceTypeTemperatureSnapshot.read(from: &buf)
         )
     }
@@ -1316,7 +1269,7 @@ public func FfiConverterTypeSystemSnapshot_lower(_ value: SystemSnapshot) -> Rus
 }
 
 
-public struct TemperatureSnapshot {
+public struct TemperatureSnapshot: Equatable, Hashable {
     public var label: String
     public var celsius: Float
 
@@ -1326,27 +1279,13 @@ public struct TemperatureSnapshot {
         self.label = label
         self.celsius = celsius
     }
+
+
 }
 
-
-
-extension TemperatureSnapshot: Equatable, Hashable {
-    public static func ==(lhs: TemperatureSnapshot, rhs: TemperatureSnapshot) -> Bool {
-        if lhs.label != rhs.label {
-            return false
-        }
-        if lhs.celsius != rhs.celsius {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(label)
-        hasher.combine(celsius)
-    }
-}
-
+#if compiler(>=6)
+extension TemperatureSnapshot: Sendable {}
+#endif
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
@@ -1355,7 +1294,7 @@ public struct FfiConverterTypeTemperatureSnapshot: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TemperatureSnapshot {
         return
             try TemperatureSnapshot(
-                label: FfiConverterString.read(from: &buf), 
+                label: FfiConverterString.read(from: &buf),
                 celsius: FfiConverterFloat.read(from: &buf)
         )
     }
@@ -1382,20 +1321,37 @@ public func FfiConverterTypeTemperatureSnapshot_lower(_ value: TemperatureSnapsh
 }
 
 
-public enum AtlasError {
+public enum AtlasError: Swift.Error, Equatable, Hashable, Foundation.LocalizedError {
 
-    
-    
+
+
     case LockPoisoned(message: String)
-    
+
     case MonitoringError(message: String)
-    
+
     case ProcessError(message: String)
-    
+
     case CaptureError(message: String)
-    
+
+    case FeatureDisabled(message: String)
+
+    case EntitlementDenied(message: String)
+
+    case PluginError(message: String)
+
+
+
+
+
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+
 }
 
+#if compiler(>=6)
+extension AtlasError: Sendable {}
+#endif
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
@@ -1407,25 +1363,37 @@ public struct FfiConverterTypeAtlasError: FfiConverterRustBuffer {
         let variant: Int32 = try readInt(&buf)
         switch variant {
 
-        
 
-        
+
+
         case 1: return .LockPoisoned(
             message: try FfiConverterString.read(from: &buf)
         )
-        
+
         case 2: return .MonitoringError(
             message: try FfiConverterString.read(from: &buf)
         )
-        
+
         case 3: return .ProcessError(
             message: try FfiConverterString.read(from: &buf)
         )
-        
+
         case 4: return .CaptureError(
             message: try FfiConverterString.read(from: &buf)
         )
-        
+
+        case 5: return .FeatureDisabled(
+            message: try FfiConverterString.read(from: &buf)
+        )
+
+        case 6: return .EntitlementDenied(
+            message: try FfiConverterString.read(from: &buf)
+        )
+
+        case 7: return .PluginError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+
 
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -1434,9 +1402,9 @@ public struct FfiConverterTypeAtlasError: FfiConverterRustBuffer {
     public static func write(_ value: AtlasError, into buf: inout [UInt8]) {
         switch value {
 
-        
 
-        
+
+
         case .LockPoisoned(_ /* message is ignored*/):
             writeInt(&buf, Int32(1))
         case .MonitoringError(_ /* message is ignored*/):
@@ -1445,20 +1413,104 @@ public struct FfiConverterTypeAtlasError: FfiConverterRustBuffer {
             writeInt(&buf, Int32(3))
         case .CaptureError(_ /* message is ignored*/):
             writeInt(&buf, Int32(4))
+        case .FeatureDisabled(_ /* message is ignored*/):
+            writeInt(&buf, Int32(5))
+        case .EntitlementDenied(_ /* message is ignored*/):
+            writeInt(&buf, Int32(6))
+        case .PluginError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(7))
 
-        
+
         }
     }
 }
 
 
-extension AtlasError: Equatable, Hashable {}
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAtlasError_lift(_ buf: RustBuffer) throws -> AtlasError {
+    return try FfiConverterTypeAtlasError.lift(buf)
+}
 
-extension AtlasError: Foundation.LocalizedError {
-    public var errorDescription: String? {
-        String(reflecting: self)
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAtlasError_lower(_ value: AtlasError) -> RustBuffer {
+    return FfiConverterTypeAtlasError.lower(value)
+}
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum CoreEdition: Equatable, Hashable {
+
+    case free
+    case pro
+    case community
+
+
+
+}
+
+#if compiler(>=6)
+extension CoreEdition: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeCoreEdition: FfiConverterRustBuffer {
+    typealias SwiftType = CoreEdition
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> CoreEdition {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        case 1: return .free
+
+        case 2: return .pro
+
+        case 3: return .community
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: CoreEdition, into buf: inout [UInt8]) {
+        switch value {
+
+
+        case .free:
+            writeInt(&buf, Int32(1))
+
+
+        case .pro:
+            writeInt(&buf, Int32(2))
+
+
+        case .community:
+            writeInt(&buf, Int32(3))
+
+        }
     }
 }
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeCoreEdition_lift(_ buf: RustBuffer) throws -> CoreEdition {
+    return try FfiConverterTypeCoreEdition.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeCoreEdition_lower(_ value: CoreEdition) -> RustBuffer {
+    return FfiConverterTypeCoreEdition.lower(value)
+}
+
 
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
@@ -1466,12 +1518,18 @@ extension AtlasError: Foundation.LocalizedError {
  * Represents the state of a feature module.
  */
 
-public enum FeatureStatus {
-    
+public enum FeatureStatus: Equatable, Hashable {
+
     case enabled
     case disabled
+
+
+
 }
 
+#if compiler(>=6)
+extension FeatureStatus: Sendable {}
+#endif
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
@@ -1482,26 +1540,26 @@ public struct FfiConverterTypeFeatureStatus: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FeatureStatus {
         let variant: Int32 = try readInt(&buf)
         switch variant {
-        
+
         case 1: return .enabled
-        
+
         case 2: return .disabled
-        
+
         default: throw UniffiInternalError.unexpectedEnumCase
         }
     }
 
     public static func write(_ value: FeatureStatus, into buf: inout [UInt8]) {
         switch value {
-        
-        
+
+
         case .enabled:
             writeInt(&buf, Int32(1))
-        
-        
+
+
         case .disabled:
             writeInt(&buf, Int32(2))
-        
+
         }
     }
 }
@@ -1522,34 +1580,111 @@ public func FfiConverterTypeFeatureStatus_lower(_ value: FeatureStatus) -> RustB
 }
 
 
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
-extension FeatureStatus: Equatable, Hashable {}
+public enum PluginRuntime: Equatable, Hashable {
+
+    case wasm
+    case mcp
+    case js
 
 
 
-
-
-
-public protocol SystemMonitorCallback : AnyObject {
-    
-    func onSnapshot(snapshot: SystemSnapshot) 
-    
 }
 
-// Magic number for the Rust proxy to call using the same mechanism as every other method,
-// to free the callback once it's dropped by Rust.
-private let IDX_CALLBACK_FREE: Int32 = 0
-// Callback return codes
-private let UNIFFI_CALLBACK_SUCCESS: Int32 = 0
-private let UNIFFI_CALLBACK_ERROR: Int32 = 1
-private let UNIFFI_CALLBACK_UNEXPECTED_ERROR: Int32 = 2
+#if compiler(>=6)
+extension PluginRuntime: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypePluginRuntime: FfiConverterRustBuffer {
+    typealias SwiftType = PluginRuntime
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PluginRuntime {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        case 1: return .wasm
+
+        case 2: return .mcp
+
+        case 3: return .js
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: PluginRuntime, into buf: inout [UInt8]) {
+        switch value {
+
+
+        case .wasm:
+            writeInt(&buf, Int32(1))
+
+
+        case .mcp:
+            writeInt(&buf, Int32(2))
+
+
+        case .js:
+            writeInt(&buf, Int32(3))
+
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginRuntime_lift(_ buf: RustBuffer) throws -> PluginRuntime {
+    return try FfiConverterTypePluginRuntime.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginRuntime_lower(_ value: PluginRuntime) -> RustBuffer {
+    return FfiConverterTypePluginRuntime.lower(value)
+}
+
+
+
+
+
+public protocol SystemMonitorCallback: AnyObject, Sendable {
+
+    func onSnapshot(snapshot: SystemSnapshot)
+
+}
+
 
 // Put the implementation in a struct so we don't pollute the top-level namespace
 fileprivate struct UniffiCallbackInterfaceSystemMonitorCallback {
 
     // Create the VTable using a series of closures.
     // Swift automatically converts these into C callback functions.
-    static var vtable: UniffiVTableCallbackInterfaceSystemMonitorCallback = UniffiVTableCallbackInterfaceSystemMonitorCallback(
+    //
+    // This creates 1-element array, since this seems to be the only way to construct a const
+    // pointer that we can pass to the Rust code.
+    static let vtable: [UniffiVTableCallbackInterfaceSystemMonitorCallback] = [UniffiVTableCallbackInterfaceSystemMonitorCallback(
+        uniffiFree: { (uniffiHandle: UInt64) -> () in
+            do {
+                try FfiConverterCallbackInterfaceSystemMonitorCallback.handleMap.remove(handle: uniffiHandle)
+            } catch {
+                print("Uniffi callback interface SystemMonitorCallback: handle missing in uniffiFree")
+            }
+        },
+        uniffiClone: { (uniffiHandle: UInt64) -> UInt64 in
+            do {
+                return try FfiConverterCallbackInterfaceSystemMonitorCallback.handleMap.clone(handle: uniffiHandle)
+            } catch {
+                fatalError("Uniffi callback interface SystemMonitorCallback: handle missing in uniffiClone")
+            }
+        },
         onSnapshot: { (
             uniffiHandle: UInt64,
             snapshot: RustBuffer,
@@ -1562,29 +1697,23 @@ fileprivate struct UniffiCallbackInterfaceSystemMonitorCallback {
                     throw UniffiInternalError.unexpectedStaleHandle
                 }
                 return uniffiObj.onSnapshot(
-                     snapshot: try FfiConverterTypeSystemSnapshot.lift(snapshot)
+                     snapshot: try FfiConverterTypeSystemSnapshot_lift(snapshot)
                 )
             }
 
-            
+
             let writeReturn = { () }
             uniffiTraitInterfaceCall(
                 callStatus: uniffiCallStatus,
                 makeCall: makeCall,
                 writeReturn: writeReturn
             )
-        },
-        uniffiFree: { (uniffiHandle: UInt64) -> () in
-            let result = try? FfiConverterCallbackInterfaceSystemMonitorCallback.handleMap.remove(handle: uniffiHandle)
-            if result == nil {
-                print("Uniffi callback interface SystemMonitorCallback: handle missing in uniffiFree")
-            }
         }
-    )
+    )]
 }
 
 private func uniffiCallbackInitSystemMonitorCallback() {
-    uniffi_atlas_ffi_fn_init_callback_vtable_systemmonitorcallback(&UniffiCallbackInterfaceSystemMonitorCallback.vtable)
+    uniffi_atlas_ffi_fn_init_callback_vtable_systemmonitorcallback(UniffiCallbackInterfaceSystemMonitorCallback.vtable)
 }
 
 // FfiConverter protocol for callback interfaces
@@ -1592,7 +1721,7 @@ private func uniffiCallbackInitSystemMonitorCallback() {
 @_documentation(visibility: private)
 #endif
 fileprivate struct FfiConverterCallbackInterfaceSystemMonitorCallback {
-    fileprivate static var handleMap = UniffiHandleMap<SystemMonitorCallback>()
+    fileprivate static let handleMap = UniffiHandleMap<SystemMonitorCallback>()
 }
 
 #if swift(>=5.8)
@@ -1630,6 +1759,21 @@ extension FfiConverterCallbackInterfaceSystemMonitorCallback : FfiConverter {
     public static func write(_ v: SwiftType, into buf: inout [UInt8]) {
         writeInt(&buf, lower(v))
     }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterCallbackInterfaceSystemMonitorCallback_lift(_ handle: UInt64) throws -> SystemMonitorCallback {
+    return try FfiConverterCallbackInterfaceSystemMonitorCallback.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterCallbackInterfaceSystemMonitorCallback_lower(_ v: SystemMonitorCallback) -> UInt64 {
+    return FfiConverterCallbackInterfaceSystemMonitorCallback.lower(v)
 }
 
 #if swift(>=5.8)
@@ -1780,6 +1924,31 @@ fileprivate struct FfiConverterSequenceUInt8: FfiConverterRustBuffer {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterSequenceString: FfiConverterRustBuffer {
+    typealias SwiftType = [String]
+
+    public static func write(_ value: [String], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterString.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [String] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [String]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterString.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeCpuCoreSnapshot: FfiConverterRustBuffer {
     typealias SwiftType = [CpuCoreSnapshot]
 
@@ -1880,6 +2049,31 @@ fileprivate struct FfiConverterSequenceTypeNetworkInterfaceSnapshot: FfiConverte
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterSequenceTypePluginEntry: FfiConverterRustBuffer {
+    typealias SwiftType = [PluginEntry]
+
+    public static func write(_ value: [PluginEntry], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypePluginEntry.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [PluginEntry] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [PluginEntry]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypePluginEntry.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeProcessSnapshot: FfiConverterRustBuffer {
     typealias SwiftType = [ProcessSnapshot]
 
@@ -1926,14 +2120,14 @@ fileprivate struct FfiConverterSequenceTypeTemperatureSnapshot: FfiConverterRust
         return seq
     }
 }
-public func captureFullScreen()throws  -> [UInt8] {
-    return try  FfiConverterSequenceUInt8.lift(try rustCallWithError(FfiConverterTypeAtlasError.lift) {
+public func captureFullScreen()throws  -> [UInt8]  {
+    return try  FfiConverterSequenceUInt8.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_capture_full_screen($0
     )
 })
 }
-public func captureRegion(x: Int32, y: Int32, width: UInt32, height: UInt32)throws  -> [UInt8] {
-    return try  FfiConverterSequenceUInt8.lift(try rustCallWithError(FfiConverterTypeAtlasError.lift) {
+public func captureRegion(x: Int32, y: Int32, width: UInt32, height: UInt32)throws  -> [UInt8]  {
+    return try  FfiConverterSequenceUInt8.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_capture_region(
         FfiConverterInt32.lower(x),
         FfiConverterInt32.lower(y),
@@ -1943,12 +2137,29 @@ public func captureRegion(x: Int32, y: Int32, width: UInt32, height: UInt32)thro
 })
 }
 /**
+ * Configures the product edition enforced by the Rust core.
+ */
+public func configureEntitlement(edition: CoreEdition)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_configure_entitlement(
+        FfiConverterTypeCoreEdition_lower(edition),$0
+    )
+}
+}
+/**
  * Returns a one-shot snapshot of the primary battery, or null when there is
  * no battery (desktop) or it cannot be read.
  */
-public func currentBattery() -> BatterySnapshot? {
+public func currentBattery() -> BatterySnapshot?  {
     return try!  FfiConverterOptionTypeBatterySnapshot.lift(try! rustCall() {
     uniffi_atlas_ffi_fn_func_current_battery($0
+    )
+})
+}
+public func dispatchPluginEvent(id: String, eventJson: String)throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_dispatch_plugin_event(
+        FfiConverterString.lower(id),
+        FfiConverterString.lower(eventJson),$0
     )
 })
 }
@@ -1956,7 +2167,7 @@ public func currentBattery() -> BatterySnapshot? {
  * Evaluates a mathematical expression, returning a formatted result string,
  * or null when the input does not evaluate to a finite number.
  */
-public func evaluateExpression(input: String) -> String? {
+public func evaluateExpression(input: String) -> String?  {
     return try!  FfiConverterOptionString.lift(try! rustCall() {
     uniffi_atlas_ffi_fn_func_evaluate_expression(
         FfiConverterString.lower(input),$0
@@ -1966,14 +2177,50 @@ public func evaluateExpression(input: String) -> String? {
 /**
  * Returns the current status of the Atlas core as a string.
  */
-public func getCoreStatus()throws  -> String {
-    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeAtlasError.lift) {
+public func getCoreStatus()throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_get_core_status($0
     )
 })
 }
-public func killPortProcess(pid: UInt32)throws  -> Bool {
-    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeAtlasError.lift) {
+/**
+ * Parses and validates a plugin manifest for the install-consent screen.
+ */
+public func inspectPluginManifest(manifestToml: String)throws  -> PluginInstallPreview  {
+    return try  FfiConverterTypePluginInstallPreview_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_inspect_plugin_manifest(
+        FfiConverterString.lower(manifestToml),$0
+    )
+})
+}
+public func installJsPlugin(manifestToml: String, source: String, uiJson: String)throws  -> PluginEntry  {
+    return try  FfiConverterTypePluginEntry_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_install_js_plugin(
+        FfiConverterString.lower(manifestToml),
+        FfiConverterString.lower(source),
+        FfiConverterString.lower(uiJson),$0
+    )
+})
+}
+public func installMcpPlugin(manifestToml: String, uiJson: String)throws  -> PluginEntry  {
+    return try  FfiConverterTypePluginEntry_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_install_mcp_plugin(
+        FfiConverterString.lower(manifestToml),
+        FfiConverterString.lower(uiJson),$0
+    )
+})
+}
+public func installWasmPlugin(manifestToml: String, wasmBytes: [UInt8], uiJson: String)throws  -> PluginEntry  {
+    return try  FfiConverterTypePluginEntry_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_install_wasm_plugin(
+        FfiConverterString.lower(manifestToml),
+        FfiConverterSequenceUInt8.lower(wasmBytes),
+        FfiConverterString.lower(uiJson),$0
+    )
+})
+}
+public func killPortProcess(pid: UInt32)throws  -> Bool  {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_kill_port_process(
         FfiConverterUInt32.lower(pid),$0
     )
@@ -1982,26 +2229,32 @@ public func killPortProcess(pid: UInt32)throws  -> Bool {
 /**
  * Returns a list of all available feature entries.
  */
-public func listFeatures()throws  -> [FeatureEntry] {
-    return try  FfiConverterSequenceTypeFeatureEntry.lift(try rustCallWithError(FfiConverterTypeAtlasError.lift) {
+public func listFeatures()throws  -> [FeatureEntry]  {
+    return try  FfiConverterSequenceTypeFeatureEntry.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_list_features($0
     )
 })
 }
-public func lookupPort(port: UInt16)throws  -> PortProcessInfo? {
-    return try  FfiConverterOptionTypePortProcessInfo.lift(try rustCallWithError(FfiConverterTypeAtlasError.lift) {
+public func listPlugins()throws  -> [PluginEntry]  {
+    return try  FfiConverterSequenceTypePluginEntry.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_list_plugins($0
+    )
+})
+}
+public func lookupPort(port: UInt16)throws  -> PortProcessInfo?  {
+    return try  FfiConverterOptionTypePortProcessInfo.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_lookup_port(
         FfiConverterUInt16.lower(port),$0
     )
 })
 }
-public func startMonitoring(callback: SystemMonitorCallback)throws  {try rustCallWithError(FfiConverterTypeAtlasError.lift) {
+public func startMonitoring(callback: SystemMonitorCallback)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_start_monitoring(
-        FfiConverterCallbackInterfaceSystemMonitorCallback.lower(callback),$0
+        FfiConverterCallbackInterfaceSystemMonitorCallback_lower(callback),$0
     )
 }
 }
-public func stopMonitoring()throws  {try rustCallWithError(FfiConverterTypeAtlasError.lift) {
+public func stopMonitoring()throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_stop_monitoring($0
     )
 }
@@ -2009,11 +2262,18 @@ public func stopMonitoring()throws  {try rustCallWithError(FfiConverterTypeAtlas
 /**
  * Toggles a feature state. Returns true if the feature existed and was toggled.
  */
-public func toggleFeature(name: String, enabled: Bool)throws  -> Bool {
-    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeAtlasError.lift) {
+public func toggleFeature(name: String, enabled: Bool)throws  -> Bool  {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_toggle_feature(
         FfiConverterString.lower(name),
         FfiConverterBool.lower(enabled),$0
+    )
+})
+}
+public func uninstallPlugin(id: String)throws  -> Bool  {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_uninstall_plugin(
+        FfiConverterString.lower(id),$0
     )
 })
 }
@@ -2025,9 +2285,9 @@ private enum InitializationResult {
 }
 // Use a global variable to perform the versioning checks. Swift ensures that
 // the code inside is only computed once.
-private var initializationResult: InitializationResult = {
+private let initializationResult: InitializationResult = {
     // Get the bindings contract version from our ComponentInterface
-    let bindings_contract_version = 26
+    let bindings_contract_version = 30
     // Get the scaffolding contract version by calling the into the dylib
     let scaffolding_contract_version = ffi_atlas_ffi_uniffi_contract_version()
     if bindings_contract_version != scaffolding_contract_version {
@@ -2039,7 +2299,13 @@ private var initializationResult: InitializationResult = {
     if (uniffi_atlas_ffi_checksum_func_capture_region() != 38160) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_atlas_ffi_checksum_func_configure_entitlement() != 47253) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_atlas_ffi_checksum_func_current_battery() != 3146) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_dispatch_plugin_event() != 48432) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_evaluate_expression() != 32376) {
@@ -2048,10 +2314,25 @@ private var initializationResult: InitializationResult = {
     if (uniffi_atlas_ffi_checksum_func_get_core_status() != 12365) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_atlas_ffi_checksum_func_inspect_plugin_manifest() != 40322) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_install_js_plugin() != 807) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_install_mcp_plugin() != 14355) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_install_wasm_plugin() != 16289) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_atlas_ffi_checksum_func_kill_port_process() != 29545) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_list_features() != 13646) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_list_plugins() != 60906) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_lookup_port() != 23978) {
@@ -2066,7 +2347,10 @@ private var initializationResult: InitializationResult = {
     if (uniffi_atlas_ffi_checksum_func_toggle_feature() != 41012) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_atlas_ffi_checksum_method_systemmonitorcallback_on_snapshot() != 13855) {
+    if (uniffi_atlas_ffi_checksum_func_uninstall_plugin() != 59064) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_method_systemmonitorcallback_on_snapshot() != 29966) {
         return InitializationResult.apiChecksumMismatch
     }
 
@@ -2074,7 +2358,9 @@ private var initializationResult: InitializationResult = {
     return InitializationResult.ok
 }()
 
-private func uniffiEnsureInitialized() {
+// Make the ensure init function public so that other modules which have external type references to
+// our types can call it.
+public func uniffiEnsureAtlasFfiInitialized() {
     switch initializationResult {
     case .ok:
         break

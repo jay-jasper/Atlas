@@ -46,7 +46,7 @@ crates/atlas-core/ ← Core logic (capture, monitoring, features)
 Pure Rust logic with no FFI concerns:
 
 - `features.rs` — `FeatureManager`: a `HashMap`-backed toggle system for named modules (`monitoring`, `screenshot`, `window-manager`). All features start `Disabled`.
-- `capture/engine.rs` — `CaptureEngine`: screen capture using the `screenshots` crate. Returns raw PNG bytes. Currently supports primary monitor only.
+- `capture/engine.rs` — `CaptureEngine`: screen capture using `xcap`. Returns raw PNG bytes and supports display composition.
 - `monitor/collector.rs` — `Collector`: polls CPU, memory, and network delta bytes per second using `sysinfo`. Requires two successive calls to compute meaningful CPU and network rates.
 - `monitor/port_master.rs` — Port-to-process lookup via `lsof -sTCP:LISTEN`, process kill via `kill -9`. macOS-only.
 - `monitor/models.rs` — shared data structs (`SystemSnapshot`, `PortProcessInfo`).
@@ -67,12 +67,12 @@ UniFFI bridge that exposes `atlas-core` to Swift:
 SwiftUI app structured as a `MenuBarExtra` with `.window` style:
 
 - `AtlasApp.swift` — app entry point; registers the menu bar item.
-- `ContentView.swift` — main panel with sections for screenshot capture, system monitoring, port master, and feature toggles. **The `AtlasBridge` class currently uses mock data** (random values, print statements) and is not yet wired to the real UniFFI-generated bindings.
+- `ContentView.swift` — canonical menu bar panel. `AtlasBridge` delegates to the generated UniFFI bindings and restores persisted, entitlement-checked feature state.
 - `SelectionOverlay.swift` — full-screen drag gesture overlay for region capture; calls back with a `CGRect` on release.
 
 ### FFI integration status
 
-The Rust side is fully implemented and tested. The Swift side uses a placeholder `AtlasBridge` class. The next integration step is to import the UniFFI-generated Swift module (`AtlasFFI`) into the Xcode project and replace `AtlasBridge` with the real generated bindings.
+Rust and Swift are integrated through committed, generated UniFFI bindings in `platforms/macos/Generated/AtlasFFI`. Run `scripts/generate_uniffi_swift.sh` after every UDL change.
 
 ## Key conventions
 

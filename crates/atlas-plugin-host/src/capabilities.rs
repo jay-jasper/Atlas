@@ -13,6 +13,8 @@ pub enum CapabilityError {
     ClipboardDenied,
     #[error("webview capability is not granted")]
     WebViewDenied,
+    #[error("MCP tool '{0}' is not exposed by the plugin manifest")]
+    ToolDenied(String),
 }
 
 /// Enforces capability checks at the host API boundary.
@@ -63,6 +65,19 @@ impl<'a> CapabilityGuard<'a> {
             Err(CapabilityError::WebViewDenied)
         }
     }
+
+    pub fn check_tool(&self, tool: &str) -> Result<(), CapabilityError> {
+        if self
+            .capabilities
+            .exposed_tools
+            .iter()
+            .any(|allowed| allowed == tool)
+        {
+            Ok(())
+        } else {
+            Err(CapabilityError::ToolDenied(tool.to_string()))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -109,7 +124,14 @@ mod tests {
         let caps = caps();
         let guard = CapabilityGuard::new(&caps);
         assert!(guard.check_storage().is_ok());
-        assert_eq!(guard.check_clipboard(), Err(CapabilityError::ClipboardDenied));
+        assert_eq!(
+            guard.check_clipboard(),
+            Err(CapabilityError::ClipboardDenied)
+        );
         assert_eq!(guard.check_webview(), Err(CapabilityError::WebViewDenied));
+        assert_eq!(
+            guard.check_tool("delete_everything"),
+            Err(CapabilityError::ToolDenied("delete_everything".into()))
+        );
     }
 }

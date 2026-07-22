@@ -53,7 +53,10 @@ mod tests {
 
     #[test]
     fn evaluates_sqrt() {
-        assert_eq!(evaluate_expression("math::sqrt(144.0)"), Some("12".to_string()));
+        assert_eq!(
+            evaluate_expression("math::sqrt(144.0)"),
+            Some("12".to_string())
+        );
     }
 
     #[test]

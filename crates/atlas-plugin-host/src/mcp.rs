@@ -41,7 +41,11 @@ pub fn list_tools(id: i64) -> Value {
 }
 
 pub fn call_tool(id: i64, name: &str, arguments: Value) -> Value {
-    request(id, "tools/call", json!({ "name": name, "arguments": arguments }))
+    request(
+        id,
+        "tools/call",
+        json!({ "name": name, "arguments": arguments }),
+    )
 }
 
 pub fn list_resources(id: i64) -> Value {
@@ -157,7 +161,13 @@ mod tests {
         });
         let tools = parse_tools(&response).unwrap();
         assert_eq!(tools.len(), 2);
-        assert_eq!(tools[0], McpTool { name: "create_pr".into(), description: "Open a PR".into() });
+        assert_eq!(
+            tools[0],
+            McpTool {
+                name: "create_pr".into(),
+                description: "Open a PR".into()
+            }
+        );
         assert_eq!(tools[1].description, "");
     }
 
@@ -182,12 +192,18 @@ mod tests {
         });
         assert_eq!(
             parse_tools(&response),
-            Err(McpError::Server { code: -32601, message: "Method not found".into() })
+            Err(McpError::Server {
+                code: -32601,
+                message: "Method not found".into()
+            })
         );
     }
 
     #[test]
     fn invalid_shape_is_error() {
-        assert!(matches!(parse_tools(&json!({ "result": {} })), Err(McpError::Invalid(_))));
+        assert!(matches!(
+            parse_tools(&json!({ "result": {} })),
+            Err(McpError::Invalid(_))
+        ));
     }
 }

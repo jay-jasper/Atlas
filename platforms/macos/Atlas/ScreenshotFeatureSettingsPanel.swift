@@ -13,9 +13,9 @@ struct ScreenshotFeatureSettingsPanelState: Equatable {
 
     var summaryText: String {
         if enabledCount == totalCount {
-            return "\(enabledCount) enabled"
+            return "已启用 \(enabledCount) 项"
         }
-        return "\(enabledCount) of \(totalCount) enabled"
+        return "已启用 \(enabledCount)/\(totalCount) 项"
     }
 
     var hasDisabledFeatures: Bool {
@@ -46,7 +46,7 @@ struct ScreenshotFeatureSettingsPanel: View {
 
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Screenshot Features")
+                Text("截图功能")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 Spacer()
@@ -63,8 +63,8 @@ struct ScreenshotFeatureSettingsPanel: View {
                             .foregroundColor(.secondary)
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(feature.title)
-                            Text(feature.detail)
+                            Text(feature.localizedTitle)
+                            Text(feature.localizedDetail)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -74,7 +74,7 @@ struct ScreenshotFeatureSettingsPanel: View {
 
             HStack {
                 Spacer()
-                Button("Save") {
+                Button("保存") {
                     onSave(draft)
                 }
                 .buttonStyle(.borderedProminent)

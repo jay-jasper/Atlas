@@ -73,7 +73,7 @@ private enum CaptureStatusKind {
     case error
 }
 
-private enum PrimaryPanelSection: Hashable {
+private enum PrimaryPanelSection: Hashable, CaseIterable {
     case sceneCenter
     case audioHub
     case flowInbox
@@ -134,6 +134,374 @@ private enum PrimaryPanelSection: Hashable {
     case transcription
     case recordingEditor
     case scripting
+}
+
+
+/// Press feedback shared by shell buttons: scale to 0.98 and tighten shadow.
+private struct GlassPressButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .shadow(color: .black.opacity(configuration.isPressed ? 0.05 : 0.12), radius: configuration.isPressed ? 3 : 8, y: configuration.isPressed ? 1 : 3)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
+private struct ShellTabButton: View {
+    let title: String
+    let icon: String
+    let isSelected: Bool
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Label(title, systemImage: icon)
+                .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    isSelected
+                        ? AnyShapeStyle(.ultraThinMaterial)
+                        : AnyShapeStyle(Color.white.opacity(isHovered ? 0.10 : 0)),
+                    in: Capsule()
+                )
+                .overlay(
+                    Capsule()
+                        .strokeBorder(
+                            Color.white.opacity(isSelected ? 0.45 : (isHovered ? 0.25 : 0)),
+                            lineWidth: 1
+                        )
+                )
+                .foregroundStyle(isSelected ? Color.primary : Color.primary.opacity(0.75))
+        }
+        .buttonStyle(GlassPressButtonStyle())
+        .onHover { hovering in
+            withAnimation(.easeOut(duration: 0.15)) {
+                isHovered = hovering
+            }
+        }
+    }
+}
+
+/// Fine-grained sidebar groups for the main window shell (first level of the
+/// two-level sidebar). Ordered arrays double as the tool order inside a group.
+private enum ShellToolGroup: String, CaseIterable, Identifiable {
+    case captureRecording
+    case audio
+    case speech
+    case systemMonitor
+    case hardware
+    case inputFeedback
+    case systemTools
+    case windowing
+    case productivity
+    case color
+    case network
+    case extensions
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .captureRecording: return "截图录制"
+        case .audio: return "音频"
+        case .speech: return "字幕转写"
+        case .systemMonitor: return "系统监控"
+        case .hardware: return "硬件设备"
+        case .inputFeedback: return "键盘反馈"
+        case .systemTools: return "系统工具"
+        case .windowing: return "窗口管理"
+        case .productivity: return "效率"
+        case .color: return "颜色"
+        case .network: return "网络"
+        case .extensions: return "扩展"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .captureRecording: return "camera.viewfinder"
+        case .audio: return "waveform"
+        case .speech: return "captions.bubble"
+        case .systemMonitor: return "gauge"
+        case .hardware: return "cpu"
+        case .inputFeedback: return "keyboard"
+        case .systemTools: return "wrench.and.screwdriver"
+        case .windowing: return "macwindow.on.rectangle"
+        case .productivity: return "square.and.pencil"
+        case .color: return "paintpalette"
+        case .network: return "network"
+        case .extensions: return "puzzlepiece.extension"
+        }
+    }
+
+    var sections: [PrimaryPanelSection] {
+        switch self {
+        case .captureRecording:
+            return [
+                .screenshot, .gifProcessing, .watermark, .recordingIndicator,
+                .recordingEditor, .obsControl, .teleprompter, .chapterMarker,
+            ]
+        case .audio:
+            return [.audioHub, .appAudio, .audioMeter, .audioRecording, .noiseGate, .nowPlaying]
+        case .speech:
+            return [.subtitles, .transcription, .liveCaption, .translation]
+        case .systemMonitor:
+            return [.sceneCenter, .monitoring, .aiLoad, .tokenBar, .privacy, .systemUtilities]
+        case .hardware:
+            return [.batteryHealth, .bluetoothBattery, .ddcControl, .diskUsage]
+        case .inputFeedback:
+            return [.fnKey, .keyboardDisplay, .keyboardSounds, .soundFeedback]
+        case .systemTools:
+            return [.envManager, .hosts, .appCleaner]
+        case .windowing:
+            return [
+                .windowManager, .altTab, .quickSwitches, .aspectGuide, .notch,
+                .scrollSmoothing, .webWallpaper, .dragShelf,
+            ]
+        case .productivity:
+            return [
+                .flowInbox, .clipboard, .scratchpad, .textExpansion, .totp,
+                .pomodoro, .calendar, .rss,
+            ]
+        case .color:
+            return [.colorPicker, .colorSampler]
+        case .network:
+            return [.networkMonitor, .packetMonitor, .proxy, .browserRouter, .lanTransfer]
+        case .extensions:
+            return [.plugins, .scripting]
+        }
+    }
+
+    static func group(containing section: PrimaryPanelSection) -> ShellToolGroup {
+        allCases.first { $0.sections.contains(section) } ?? .captureRecording
+    }
+}
+
+/// Top tab bar entries for the currently selected tool: its live panel plus
+/// its settings pages.
+private enum ShellToolTab: Hashable {
+    case overview
+    case library
+    case settings
+    case translation
+
+    var title: String {
+        switch self {
+        case .overview: return "功能"
+        case .library: return "截图库"
+        case .settings: return "设置"
+        case .translation: return "翻译"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .overview: return "slider.horizontal.3"
+        case .library: return "photo.stack"
+        case .settings: return "gearshape"
+        case .translation: return "character.bubble"
+        }
+    }
+}
+
+/// Per-tool shell preferences persisted in UserDefaults (favorites and
+/// menu-bar-panel visibility), keyed by feature name.
+private enum ShellToolPrefs {
+    private static let favoritesKey = "atlas.shell.favorites"
+    private static let hiddenInPopoverKey = "atlas.shell.hiddenInPopover"
+    private static let dashboardKey = "atlas.shell.dashboard"
+
+    /// Starter set for first launch: the everyday tools.
+    private static let defaultDashboard = ["screenshot", "clipboard", "monitoring", "color-picker"]
+
+    static func loadDashboard() -> [String] {
+        UserDefaults.standard.stringArray(forKey: dashboardKey) ?? defaultDashboard
+    }
+
+    static func saveDashboard(_ values: [String]) {
+        UserDefaults.standard.set(values, forKey: dashboardKey)
+    }
+
+    static func loadFavorites() -> Set<String> {
+        Set(UserDefaults.standard.stringArray(forKey: favoritesKey) ?? [])
+    }
+
+    static func saveFavorites(_ values: Set<String>) {
+        UserDefaults.standard.set(Array(values).sorted(), forKey: favoritesKey)
+    }
+
+    static func loadHiddenInPopover() -> Set<String> {
+        Set(UserDefaults.standard.stringArray(forKey: hiddenInPopoverKey) ?? [])
+    }
+
+    static func saveHiddenInPopover(_ values: Set<String>) {
+        UserDefaults.standard.set(Array(values).sorted(), forKey: hiddenInPopoverKey)
+    }
+}
+
+extension AtlasModule {
+    /// Chinese display title for the main window shell (the module's `title`
+    /// stays English for existing panels/tests).
+    fileprivate var localizedTitle: String {
+        switch self {
+        case .aiLoadMonitor: return "AI 负载"
+        case .altTab: return "窗口切换器"
+        case .appAudio: return "应用音频"
+        case .appCleaner: return "应用清理"
+        case .aspectGuide: return "宽高比参考线"
+        case .audioHub: return "音频中心"
+        case .audioMeter: return "音量电平表"
+        case .audioRecording: return "录音"
+        case .automation: return "自动化"
+        case .batteryHealth: return "电池健康"
+        case .bluetoothBattery: return "蓝牙电量"
+        case .browserRouter: return "浏览器分流"
+        case .calendar: return "日历"
+        case .chapterMarker: return "章节标记"
+        case .clipboard: return "剪贴板历史"
+        case .colorPicker: return "取色器"
+        case .colorSampler: return "颜色采样"
+        case .ddcControl: return "DDC 显示器控制"
+        case .diskUsage: return "磁盘用量"
+        case .dragShelf: return "拖拽暂存架"
+        case .envManager: return "环境变量"
+        case .flowInbox: return "流转收件箱"
+        case .fnKey: return "Fn 键切换"
+        case .gifProcessing: return "GIF 后处理"
+        case .hosts: return "Hosts 编辑器"
+        case .keyboardDisplay: return "按键显示"
+        case .keyboardSounds: return "键盘音效"
+        case .lanTransfer: return "局域网传输"
+        case .liveCaption: return "实时字幕"
+        case .monitoring: return "系统监控"
+        case .networkMonitor: return "网络监控"
+        case .noiseGate: return "麦克风噪声门"
+        case .notch: return "刘海岛"
+        case .nowPlaying: return "正在播放"
+        case .obsControl: return "OBS 控制"
+        case .packetMonitor: return "抓包监控"
+        case .plugins: return "插件"
+        case .pomodoro: return "番茄钟"
+        case .privacy: return "隐私监测"
+        case .proxy: return "代理切换"
+        case .quickSwitches: return "快捷开关"
+        case .recordingEditor: return "录制剪辑"
+        case .recordingIndicator: return "录制指示器"
+        case .rss: return "RSS 阅读器"
+        case .sceneSystem: return "场景系统"
+        case .scratchpad: return "速记板"
+        case .screenshot: return "截图"
+        case .scripting: return "脚本"
+        case .scrollSmoothing: return "平滑滚动"
+        case .skills: return "AI 技能"
+        case .soundFeedback: return "声音反馈"
+        case .subtitles: return "字幕工具"
+        case .systemUtilities: return "系统实用工具"
+        case .teleprompter: return "提词器"
+        case .textExpansion: return "文本扩展"
+        case .tokenbar: return "TokenBar"
+        case .totp: return "TOTP 两步验证"
+        case .transcription: return "转写"
+        case .translation: return "翻译"
+        case .watermark: return "水印"
+        case .webWallpaper: return "网页壁纸"
+        case .windowManager: return "窗口管理"
+        }
+    }
+}
+
+/// Main window pages: dashboard (card grid of the user's tools), the full
+/// tool library (browse/add), and a single tool's detail.
+private enum ShellPage: Hashable {
+    case dashboard
+    case library
+    case tool
+}
+
+extension PrimaryPanelSection {
+    fileprivate static func section(forFeatureName name: String) -> PrimaryPanelSection? {
+        allCases.first { $0.module.featureName == name }
+    }
+
+    /// Top tabs available for this tool.
+    fileprivate var tabs: [ShellToolTab] {
+        switch self {
+        case .screenshot:
+            return [.overview, .library, .settings, .translation]
+        case .translation:
+            return [.overview, .settings]
+        default:
+            return [.overview, .settings]
+        }
+    }
+
+    /// 1:1 module behind each panel section (title, feature name, availability).
+    fileprivate var module: AtlasModule {
+        switch self {
+        case .sceneCenter: return .sceneSystem
+        case .audioHub: return .audioHub
+        case .flowInbox: return .flowInbox
+        case .screenshot: return .screenshot
+        case .monitoring: return .monitoring
+        case .clipboard: return .clipboard
+        case .privacy: return .privacy
+        case .aiLoad: return .aiLoadMonitor
+        case .scratchpad: return .scratchpad
+        case .systemUtilities: return .systemUtilities
+        case .tokenBar: return .tokenbar
+        case .windowManager: return .windowManager
+        case .colorPicker: return .colorPicker
+        case .ddcControl: return .ddcControl
+        case .calendar: return .calendar
+        case .networkMonitor: return .networkMonitor
+        case .appAudio: return .appAudio
+        case .fnKey: return .fnKey
+        case .totp: return .totp
+        case .pomodoro: return .pomodoro
+        case .subtitles: return .subtitles
+        case .textExpansion: return .textExpansion
+        case .hosts: return .hosts
+        case .browserRouter: return .browserRouter
+        case .envManager: return .envManager
+        case .diskUsage: return .diskUsage
+        case .proxy: return .proxy
+        case .rss: return .rss
+        case .quickSwitches: return .quickSwitches
+        case .chapterMarker: return .chapterMarker
+        case .appCleaner: return .appCleaner
+        case .aspectGuide: return .aspectGuide
+        case .dragShelf: return .dragShelf
+        case .batteryHealth: return .batteryHealth
+        case .watermark: return .watermark
+        case .obsControl: return .obsControl
+        case .teleprompter: return .teleprompter
+        case .webWallpaper: return .webWallpaper
+        case .keyboardDisplay: return .keyboardDisplay
+        case .scrollSmoothing: return .scrollSmoothing
+        case .gifProcessing: return .gifProcessing
+        case .altTab: return .altTab
+        case .colorSampler: return .colorSampler
+        case .recordingIndicator: return .recordingIndicator
+        case .soundFeedback: return .soundFeedback
+        case .keyboardSounds: return .keyboardSounds
+        case .audioMeter: return .audioMeter
+        case .audioRecording: return .audioRecording
+        case .lanTransfer: return .lanTransfer
+        case .translation: return .translation
+        case .bluetoothBattery: return .bluetoothBattery
+        case .noiseGate: return .noiseGate
+        case .packetMonitor: return .packetMonitor
+        case .nowPlaying: return .nowPlaying
+        case .liveCaption: return .liveCaption
+        case .plugins: return .plugins
+        case .notch: return .notch
+        case .transcription: return .transcription
+        case .recordingEditor: return .recordingEditor
+        case .scripting: return .scripting
+        }
+    }
 }
 
 private struct AudioHubSceneModule: SceneControllableModule {
@@ -227,7 +595,7 @@ private struct ScratchpadSceneModule: SceneControllableModule {
 }
 
 struct ContentView: View {
-    @State private var statusText: String = "Initializing..."
+    @State private var statusText: String = "正在初始化…"
     @State private var features: [AtlasFeature] = []
     @State private var enabledFeatures: [String: Bool] = [:]
     @State private var snapshot: MonitoringSystemSnapshot? = nil
@@ -297,6 +665,7 @@ struct ContentView: View {
     @StateObject private var altTabService = AltTabService()
     @StateObject private var colorSamplerService = ColorSamplerService()
     @StateObject private var recordingIndicatorService = RecordingIndicatorService()
+    @StateObject private var screenRecordingService = ScreenRecordingService()
     @StateObject private var soundFeedbackService = SoundFeedbackService()
     @StateObject private var keyboardSoundService = KeyboardSoundService()
     @StateObject private var audioMeterService = AudioMeterService()
@@ -336,6 +705,7 @@ struct ContentView: View {
     private let tokenBarLedger = TokenBarLedger()
     private let localAILoadRefreshService = LocalAILoadRefreshService()
     private let entitlementService: EntitlementService
+    private let featureStateStore: FeatureStateStoring
     private var sceneCoordinator: SceneCoordinator? {
         paletteState?.sceneCoordinator
     }
@@ -358,19 +728,34 @@ struct ContentView: View {
     let windowManager: WindowManaging
     let windowPermissionChecker: WindowManagementPermissionChecking
     var paletteState: CommandPaletteState?
+    /// Where this view is hosted right now (menu bar popover vs. main window).
+    /// The same view instance migrates between the two, so layout must react.
+    @ObservedObject var shellMode: ShellModeModel
+    @Environment(\.colorScheme) private var systemColorScheme
+    @State private var selectedShellTool: PrimaryPanelSection = .screenshot
+    @State private var selectedShellTab: ShellToolTab = .overview
+    @State private var shellPage: ShellPage = .dashboard
+    @State private var isShowingThemePicker = false
+    @State private var shellReturnPage: ShellPage = .dashboard
+    @State private var shellLibraryQuery: String = ""
+    @State private var dashboardTools: [String] = ShellToolPrefs.loadDashboard()
+    @State private var favoriteShellTools: Set<String> = ShellToolPrefs.loadFavorites()
+    @State private var popoverHiddenTools: Set<String> = ShellToolPrefs.loadHiddenInPopover()
     private let privacyPulseService: PrivacyPulseService
     private let privacyAccessLogger: PrivacyPulseAccessLogging
 
     init(
         windowManager: WindowManaging = AccessibilityWindowManager(),
         windowPermissionChecker: WindowManagementPermissionChecking = AccessibilityPermissionChecker(),
-        entitlementService: EntitlementService = EntitlementService(provider: LocalEntitlementProvider()),
+        entitlementService: EntitlementService = EntitlementService(provider: EntitlementProviderFactory.make()),
+        featureStateStore: FeatureStateStoring = FeatureStateStore(),
         paletteState: CommandPaletteState? = nil,
         privacyPulseService: PrivacyPulseService = PrivacyPulseService(
             statusProvider: PrivacyPulseSystemStatusProvider(),
             eventStore: PrivacyPulseAccessLogger()
         ),
-        privacyAccessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()
+        privacyAccessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger(),
+        shellMode: ShellModeModel = ShellModeModel()
     ) {
         let keepAwakeService = KeepAwakeService()
         _keepAwakeService = StateObject(wrappedValue: keepAwakeService)
@@ -378,15 +763,19 @@ struct ContentView: View {
         self.windowManager = windowManager
         self.windowPermissionChecker = windowPermissionChecker
         self.entitlementService = entitlementService
+        self.featureStateStore = featureStateStore
         self.paletteState = paletteState
         self.privacyPulseService = privacyPulseService
         self.privacyAccessLogger = privacyAccessLogger
         self.hotkeyService = GlobalHotkeyService(accessLogger: privacyAccessLogger)
+        self.shellMode = shellMode
     }
 
     var body: some View {
         ZStack {
-            if showsHome {
+            if shellMode.isMainWindow {
+                mainShellView
+            } else if showsHome {
                 homeView
             } else {
                 fullPanelView
@@ -436,6 +825,9 @@ struct ContentView: View {
             if let summary = notification.object as? TokenBarSummary {
                 tokenBarSummary = summary
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .atlasEntitlementDidChange)) { _ in
+            refreshEntitlement()
         }
         .onReceive(NotificationCenter.default.publisher(for: .tokenBarCommandStatusDidChange)) { notification in
             if let status = notification.object as? TokenBarCommandStatus {
@@ -518,6 +910,14 @@ struct ContentView: View {
                         }
                         .buttonStyle(.plain)
                         Spacer()
+                        Button {
+                            AtlasServices.shared.openMainWindow?()
+                        } label: {
+                            Image(systemName: "macwindow")
+                                .font(.system(size: 12, weight: .medium))
+                        }
+                        .buttonStyle(.plain)
+                        .help("打开主窗口")
                     }
 
                     Text(statusText).font(.headline)
@@ -585,6 +985,549 @@ struct ContentView: View {
         .frame(minWidth: 360, minHeight: 500)
     }
 
+    // MARK: - Main window shell (top category tabs + tool sidebar + detail)
+
+    @AppStorage("atlas.shell.theme") private var shellThemeRaw = ShellThemeKind.aurora.rawValue
+
+    private var shellTheme: ShellThemeKind {
+        ShellThemeKind(rawValue: shellThemeRaw) ?? .aurora
+    }
+
+    private var shellThemeColorScheme: ColorScheme {
+        shellTheme.spec.colorScheme ?? systemColorScheme
+    }
+
+    private var mainShellView: some View {
+        ZStack {
+            shellThemeBackground
+            VStack(alignment: .leading, spacing: 8) {
+                // Lives in the transparent titlebar zone, right-aligned with
+                // the traffic lights.
+                shellTitlebarAccessory
+                    .frame(height: 28)
+                Group {
+                    switch shellPage {
+                    case .dashboard:
+                        shellDashboard
+                    case .library:
+                        shellLibrary
+                    case .tool:
+                        shellToolPage
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 14)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
+            .ignoresSafeArea(edges: .top)
+        }
+        .environment(\.shellThemeKind, shellTheme)
+        // Stage-locked themes override the system appearance: 3D Elements is
+        // always a dark stage, Biophilic always a sunlit light one.
+        .environment(\.colorScheme, shellThemeColorScheme)
+        .frame(minWidth: 960, minHeight: 620)
+        .onChange(of: selectedShellTool) { newTool in
+            if newTool.tabs.contains(selectedShellTab) == false {
+                selectedShellTab = .overview
+            }
+        }
+    }
+
+    private func openShellTool(_ section: PrimaryPanelSection) {
+        selectedShellTool = section
+        selectedShellTab = .overview
+        shellReturnPage = shellPage == .tool ? shellReturnPage : shellPage
+        shellPage = .tool
+    }
+
+    private func shellBackButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Image(systemName: "chevron.left")
+                Text(title)
+            }
+            .font(.system(size: 12, weight: .medium))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(Capsule().strokeBorder(Color.white.opacity(0.25), lineWidth: 1))
+        }
+        .buttonStyle(GlassPressButtonStyle())
+    }
+
+    // MARK: Dashboard
+
+    private var dashboardSections: [PrimaryPanelSection] {
+        dashboardTools.compactMap { PrimaryPanelSection.section(forFeatureName: $0) }
+    }
+
+    private var shellDashboard: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("工具台")
+                    .font(.title2.weight(.semibold))
+
+                if showCaptureStatus {
+                    CaptureStatusBanner(message: captureStatus, kind: captureStatusKind)
+                        .glassCard(padding: 10)
+                }
+
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 210), spacing: 12)], alignment: .leading, spacing: 12) {
+                    ForEach(dashboardSections, id: \.self) { section in
+                        dashboardCard(section)
+                    }
+                    dashboardAddCard
+                }
+            }
+            .padding(.vertical, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func dashboardCard(_ section: PrimaryPanelSection) -> some View {
+        Button {
+            openShellTool(section)
+        } label: {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 8) {
+                    Image(systemName: ShellToolGroup.group(containing: section).icon)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.secondary)
+                    Text(section.module.localizedTitle)
+                        .font(.system(size: 13, weight: .semibold))
+                        .lineLimit(1)
+                    Spacer()
+                    Circle()
+                        .fill(isFeatureEnabled(section.module) ? Color.green.opacity(0.9) : Color.secondary.opacity(0.3))
+                        .frame(width: 6, height: 6)
+                }
+
+                dashboardCardBody(section)
+                    .frame(maxWidth: .infinity, minHeight: 34, alignment: .leading)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(GlassPressButtonStyle())
+        .glassCard(cornerRadius: 14, padding: 14)
+        .contextMenu {
+            Button("从工具台移除") {
+                dashboardTools.removeAll { $0 == section.module.featureName }
+                ShellToolPrefs.saveDashboard(dashboardTools)
+            }
+            Button("打开设置") {
+                openShellTool(section)
+                selectedShellTab = .settings
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func dashboardCardBody(_ section: PrimaryPanelSection) -> some View {
+        if isFeatureEnabled(section.module) {
+            switch section {
+            case .screenshot:
+                HStack(spacing: 6) {
+                    dashboardQuickAction("全屏", action: captureDesktop)
+                    dashboardQuickAction("区域", action: showSelectionWindow)
+                    dashboardQuickAction("窗口", action: showWindowSelection)
+                }
+            case .monitoring:
+                if let snapshot {
+                    Text("CPU \(Int(snapshot.cpuUsage.rounded()))% · 内存 \(String(format: "%.1f", Double(snapshot.memUsedBytes) / 1_073_741_824)) GB")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("采集中…")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            case .clipboard:
+                Text("\(clipboardHistoryItems.count) 条记录")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            default:
+                Text("已启用")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } else {
+            Text("未启用 · 点击进入开启")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func dashboardQuickAction(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(title, action: action)
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+    }
+
+    private var dashboardAddCard: some View {
+        Button {
+            shellPage = .library
+        } label: {
+            VStack(spacing: 8) {
+                Image(systemName: "plus")
+                    .font(.system(size: 18, weight: .medium))
+                Text("添加工具")
+                    .font(.system(size: 12))
+            }
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, minHeight: 78)
+            .contentShape(Rectangle())
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .strokeBorder(Color.white.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [5, 4]))
+            )
+        }
+        .buttonStyle(GlassPressButtonStyle())
+    }
+
+    // MARK: Library
+
+    private var shellLibrary: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                shellBackButton("工具台") {
+                    shellPage = .dashboard
+                }
+                Text("全部工具")
+                    .font(.headline)
+                Spacer()
+                TextField("搜索工具…", text: $shellLibraryQuery)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 220)
+            }
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    ForEach(ShellToolGroup.allCases) { group in
+                        let sections = librarySections(in: group)
+                        if sections.isEmpty == false {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Label(group.title, systemImage: group.icon)
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(.secondary)
+                                ForEach(sections, id: \.self) { section in
+                                    libraryRow(section)
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    private func librarySections(in group: ShellToolGroup) -> [PrimaryPanelSection] {
+        let query = shellLibraryQuery.trimmingCharacters(in: .whitespaces)
+        guard query.isEmpty == false else { return group.sections }
+        return group.sections.filter {
+            $0.module.localizedTitle.localizedCaseInsensitiveContains(query)
+                || $0.module.title.localizedCaseInsensitiveContains(query)
+        }
+    }
+
+    private func libraryRow(_ section: PrimaryPanelSection) -> some View {
+        let isAdded = dashboardTools.contains(section.module.featureName)
+        return HStack(spacing: 10) {
+            Circle()
+                .fill(isFeatureEnabled(section.module) ? Color.green.opacity(0.9) : Color.secondary.opacity(0.3))
+                .frame(width: 6, height: 6)
+            Button {
+                openShellTool(section)
+            } label: {
+                Text(section.module.localizedTitle)
+                    .foregroundStyle(Color.primary)
+            }
+            .buttonStyle(.plain)
+            if favoriteShellTools.contains(section.module.featureName) {
+                Image(systemName: "star.fill")
+                    .font(.system(size: 8))
+                    .foregroundStyle(.yellow)
+            }
+            Spacer()
+            Button(isAdded ? "移除" : "添加") {
+                if isAdded {
+                    dashboardTools.removeAll { $0 == section.module.featureName }
+                } else {
+                    dashboardTools.append(section.module.featureName)
+                }
+                ShellToolPrefs.saveDashboard(dashboardTools)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .glassCard(cornerRadius: 10, padding: 2)
+    }
+
+    // MARK: Tool page
+
+    private var shellToolPage: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                shellBackButton(shellReturnPage == .library ? "全部工具" : "工具台") {
+                    shellPage = shellReturnPage
+                }
+                shellToolTabBar
+            }
+            shellDetail
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    private var shellTitlebarAccessory: some View {
+        HStack(spacing: 12) {
+            Spacer()
+
+            Button {
+                isShowingThemePicker.toggle()
+            } label: {
+                Image(systemName: shellTheme.spec.icon)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: shellTheme.spec.swatchColors,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .shadow(color: .black.opacity(0.25), radius: 2)
+            }
+            .buttonStyle(.plain)
+            .help("主题")
+            .popover(isPresented: $isShowingThemePicker, arrowEdge: .bottom) {
+                ShellThemePickerPanel(selectionRaw: $shellThemeRaw) {
+                    isShowingThemePicker = false
+                }
+            }
+
+            Button {
+                Self.openPreferencesWindow()
+            } label: {
+                Image(systemName: "gearshape")
+            }
+            .buttonStyle(.plain)
+            .help("全局偏好设置 (⌘,)")
+        }
+        .padding(.trailing, 14)
+    }
+
+    private var shellThemeBackground: some View {
+        shellTheme.spec.makeBackground()
+    }
+
+    /// Per-tool tabs, top-aligned with the sidebar columns.
+    private var shellToolTabBar: some View {
+        HStack(spacing: 6) {
+            ForEach(selectedShellTool.tabs, id: \.self) { tab in
+                ShellTabButton(
+                    title: tab.title,
+                    icon: tab.icon,
+                    isSelected: selectedShellTab == tab
+                ) {
+                    selectedShellTab = tab
+                }
+            }
+
+            Spacer()
+        }
+        .frame(height: 28)
+    }
+
+    private var shellDetail: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                shellDetailHeader
+                    .glassCard()
+
+                if showCaptureStatus {
+                    CaptureStatusBanner(message: captureStatus, kind: captureStatusKind)
+                        .glassCard(padding: 10)
+                }
+
+                shellTabContent
+            }
+            .padding(.vertical, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    @ViewBuilder
+    private var shellTabContent: some View {
+        switch selectedShellTab {
+        case .overview:
+            if isFeatureEnabled(selectedShellTool.module) {
+                VStack(alignment: .leading, spacing: 12) {
+                    primaryPanelSection(selectedShellTool)
+                }
+                .glassCard()
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("此工具未启用")
+                        .font(.headline)
+                    Text(shellDisabledHint(for: selectedShellTool.module))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 12)
+                .glassCard()
+            }
+        case .library:
+            ScreenshotLibraryPanel(
+                items: screenshotLibraryItems,
+                onOpen: openLibraryItem,
+                onDelete: deleteLibraryItem,
+                pngURL: { screenshotLibraryStore.pngURL(for: $0) },
+                onRunOCR: screenshotFeatureSettings.editorCapabilities.ocr ? runBackgroundOCR : nil,
+                onRunTranslation: screenshotFeatureSettings.editorCapabilities.translation && isTranslationConfigured ? runBackgroundTranslation : nil,
+                onUpdateTags: updateLibraryItemTags,
+                onCopyText: { text in
+                    copyTextToClipboard(text, detail: "Screenshot library copied recognized text to the pasteboard")
+                    showStatus("Copied text")
+                },
+                query: $screenshotLibraryQuery
+            )
+            .glassCard()
+        case .settings:
+            shellToolSettings
+                .glassCard()
+        case .translation:
+            TranslationSettingsPanel(
+                draft: translationSettingsDraft,
+                isConfigured: isTranslationConfigured,
+                onSave: saveTranslationSettings,
+                onClear: clearTranslationSettings
+            )
+            .id(translationSettingsPanelIdentity)
+            .glassCard()
+        }
+    }
+
+    private var shellDetailHeader: some View {
+        HStack(spacing: 12) {
+            Text(selectedShellTool.module.localizedTitle)
+                .font(.title2.weight(.semibold))
+
+            let availability = featureAvailability(selectedShellTool.module.featureName)
+            if availability.isAvailable == false {
+                Text(availability.displayLabel)
+                    .font(.caption)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.orange.opacity(0.15), in: Capsule())
+                    .foregroundStyle(.orange)
+            }
+
+            Spacer()
+
+            Toggle("启用", isOn: shellFeatureBinding(for: selectedShellTool.module))
+                .toggleStyle(.switch)
+                .disabled(featureAvailability(selectedShellTool.module.featureName).isAvailable == false)
+        }
+    }
+
+    private var shellToolSettings: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("通用")
+                .font(.headline)
+
+            Toggle("启用此工具", isOn: shellFeatureBinding(for: selectedShellTool.module))
+                .toggleStyle(.switch)
+                .disabled(featureAvailability(selectedShellTool.module.featureName).isAvailable == false)
+
+            Toggle("收藏（工具列表显示星标）", isOn: shellFavoriteBinding(for: selectedShellTool.module))
+                .toggleStyle(.switch)
+
+            Toggle("在菜单栏面板中显示", isOn: shellPopoverVisibilityBinding(for: selectedShellTool.module))
+                .toggleStyle(.switch)
+
+            shellToolSettingsBody
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private var shellToolSettingsBody: some View {
+        switch selectedShellTool {
+        case .screenshot:
+            Divider()
+
+            Text("截图设置")
+                .font(.headline)
+
+            ScreenshotFeatureSettingsPanel(
+                settings: screenshotFeatureSettings,
+                onSave: saveScreenshotFeatureSettings
+            )
+            .id(screenshotFeatureSettingsIdentity)
+        case .translation:
+            Divider()
+
+            Text("翻译设置")
+                .font(.headline)
+
+            TranslationSettingsPanel(
+                draft: translationSettingsDraft,
+                isConfigured: isTranslationConfigured,
+                onSave: saveTranslationSettings,
+                onClear: clearTranslationSettings
+            )
+            .id(translationSettingsPanelIdentity)
+        default:
+            EmptyView()
+        }
+    }
+
+    private func shellFeatureBinding(for module: AtlasModule) -> Binding<Bool> {
+        Binding(
+            get: { enabledFeatures[module.featureName, default: false] },
+            set: { handleFeatureChange(module.featureName, enabled: $0) }
+        )
+    }
+
+    private func shellFavoriteBinding(for module: AtlasModule) -> Binding<Bool> {
+        Binding(
+            get: { favoriteShellTools.contains(module.featureName) },
+            set: { isOn in
+                if isOn {
+                    favoriteShellTools.insert(module.featureName)
+                } else {
+                    favoriteShellTools.remove(module.featureName)
+                }
+                ShellToolPrefs.saveFavorites(favoriteShellTools)
+            }
+        )
+    }
+
+    private func shellPopoverVisibilityBinding(for module: AtlasModule) -> Binding<Bool> {
+        Binding(
+            get: { popoverHiddenTools.contains(module.featureName) == false },
+            set: { isVisible in
+                if isVisible {
+                    popoverHiddenTools.remove(module.featureName)
+                } else {
+                    popoverHiddenTools.insert(module.featureName)
+                }
+                ShellToolPrefs.saveHiddenInPopover(popoverHiddenTools)
+            }
+        )
+    }
+
+    private func shellDisabledHint(for module: AtlasModule) -> String {
+        let availability = featureAvailability(module.featureName)
+        guard availability.isAvailable else {
+            return "当前版本不可用：\(availability.displayLabel)"
+        }
+        return "使用右上角开关启用「\(module.localizedTitle)」。"
+    }
+
     private static let historyMaxCount = 60
 
     /// Connects the Pomodoro timer to the Scene System: starting a focus session
@@ -599,6 +1542,19 @@ struct ContentView: View {
         }
     }
 
+    /// Screen recording start/stop; keeps the Recording Indicator's screen
+    /// flag in sync (its detector can't see our own capture).
+    private func toggleScreenRecording() {
+        screenRecordingService.onRecordingStateChanged = { [weak recordingIndicatorService] isRecording in
+            recordingIndicatorService?.setScreenRecording(isRecording)
+        }
+        if screenRecordingService.isRecording {
+            screenRecordingService.stop()
+        } else {
+            screenRecordingService.start()
+        }
+    }
+
     private func startModules() {
         // `onAppear` fires every time the menu bar panel opens. Only run this
         // once per launch so the global hotkey + monitoring stay alive while the
@@ -606,18 +1562,29 @@ struct ContentView: View {
         guard !Self.didStartModules else { return }
         Self.didStartModules = true
 
+        refreshEntitlement()
+
         loadScreenshotFeatureSettings()
         loadTranslationSettings()
         loadScreenshotLibrary()
         cleanupScreenshotDragOutput()
+        CloudUploadHistoryStore().prune(expiryDays: CloudUploadConfigurationStore().load().historyExpiryDays)
         startHotkeys()
         wirePomodoroToSceneSystem()
 
         do {
-            let loadedFeatures = try AtlasBridge.listFeatures()
             entitlementState = entitlementService.currentState()
-            features = entitlementService.applyAvailability(to: loadedFeatures)
-            enabledFeatures = FeatureStateReducer.enabledMap(from: loadedFeatures)
+            try AtlasBridge.configureEntitlement(entitlementState.edition)
+            let loadedFeatures = try AtlasBridge.listFeatures()
+            let synchronizedFeatures = try FeatureStateSynchronizer.restore(
+                features: loadedFeatures,
+                storedStates: featureStateStore.loadFeatureStates(),
+                isAvailable: { entitlementService.availability(for: $0).isAvailable },
+                toggle: AtlasBridge.toggleFeature
+            )
+            features = entitlementService.applyAvailability(to: synchronizedFeatures)
+            enabledFeatures = FeatureStateReducer.enabledMap(from: synchronizedFeatures)
+            featureStateStore.saveFeatureStates(enabledFeatures)
             configureSceneRuntime()
             paletteState?.setWindowManagementEnabled(isFeatureEnabled(.windowManager))
             paletteState?.setAudioHubEnabled(isFeatureEnabled(.audioHub))
@@ -632,7 +1599,7 @@ struct ContentView: View {
                 sceneNetworkStatusService.stop()
             }
             tokenBarSummary = isFeatureEnabled(.tokenbar) ? ((try? tokenBarLedger.summary()) ?? .empty) : .empty
-            statusText = "Atlas is Ready"
+            statusText = "Atlas 已就绪"
             if isFeatureEnabled(.monitoring) {
                 startMonitoring()
             }
@@ -643,8 +1610,17 @@ struct ContentView: View {
                 refreshPrivacyPulse()
             }
         } catch {
-            statusText = "Atlas feature loading failed"
+            statusText = "Atlas 功能加载失败"
             showStatus(error.localizedDescription, kind: .error, autoHide: false)
+        }
+    }
+
+    private func refreshEntitlement() {
+        Task { @MainActor in
+            await entitlementService.refresh()
+            entitlementState = entitlementService.currentState()
+            try? AtlasBridge.configureEntitlement(entitlementState.edition)
+            features = entitlementService.applyAvailability(to: features)
         }
     }
 
@@ -863,6 +1839,7 @@ struct ContentView: View {
             }
 
             enabledFeatures[feature] = enabled
+            featureStateStore.saveFeatureStates(enabledFeatures)
             refreshFeature(feature, enabled: enabled)
         } catch {
             enabledFeatures[feature] = FeatureStateReducer.rolledBackValue(forRequestedEnabled: enabled)
@@ -1388,6 +2365,12 @@ struct ContentView: View {
     }
 
     private func orderedPrimarySections() -> [PrimaryPanelSection] {
+        orderedPrimarySectionsUnfiltered().filter {
+            popoverHiddenTools.contains($0.module.featureName) == false
+        }
+    }
+
+    private func orderedPrimarySectionsUnfiltered() -> [PrimaryPanelSection] {
         let baseOrder: [PrimaryPanelSection] = [
             .sceneCenter,
             .audioHub,
@@ -1571,8 +2554,16 @@ struct ContentView: View {
                     onCaptureWindow: showWindowSelection,
                     onCaptureArea: showSelectionWindow,
                     onCaptureScrolling: startScrollingWindowCapture,
-                    onRecordGIF: startGIFRegionSelection
+                    onRecordGIF: startGIFRegionSelection,
+                    isScreenRecording: screenRecordingService.isRecording,
+                    onToggleScreenRecording: toggleScreenRecording
                 )
+
+                if let recordingError = screenRecordingService.errorMessage {
+                    Text(recordingError)
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                }
 
                 if isRecordingGIF {
                     HStack {

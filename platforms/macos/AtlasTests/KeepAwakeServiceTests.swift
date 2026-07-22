@@ -37,6 +37,27 @@ final class KeepAwakeServiceTests: XCTestCase {
         }
         XCTAssertTrue(message.contains("test error 1"))
     }
+
+    func testCommandRunnerDrainsAndCapsLargeOutput() throws {
+        let runner = LiveSystemCommandRunner(timeout: 2, outputLimit: 1_024)
+
+        let result = try runner.run(
+            "/bin/sh",
+            arguments: ["-c", "yes x | head -c 200000"]
+        )
+
+        XCTAssertEqual(result.terminationStatus, 0)
+        XCTAssertLessThanOrEqual(result.standardOutput.utf8.count, 1_044)
+        XCTAssertTrue(result.standardOutput.hasSuffix("[output truncated]"))
+    }
+
+    func testCommandRunnerTerminatesTimedOutProcess() {
+        let runner = LiveSystemCommandRunner(timeout: 0.05)
+
+        XCTAssertThrowsError(try runner.run("/bin/sleep", arguments: ["5"])) { error in
+            XCTAssertEqual(error as? SystemCommandRunnerError, .timedOut(seconds: 0.05))
+        }
+    }
 }
 
 final class FakeSystemCommandProcess: SystemCommandProcess {

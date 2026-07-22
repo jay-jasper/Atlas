@@ -107,22 +107,38 @@ final class ClipboardHistoryStore: ClipboardHistoryStoring {
 
     private let defaults: UserDefaults
     private let maxHistoryCount: Int
+    private let retentionInterval: TimeInterval?
+    private let now: () -> Date
+    private let secureData: SecureLocalData
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
-    init(defaults: UserDefaults = .standard, maxHistoryCount: Int = 50) {
+    init(
+        defaults: UserDefaults = .standard,
+        maxHistoryCount: Int = 50,
+        retentionInterval: TimeInterval? = nil,
+        now: @escaping () -> Date = Date.init,
+        secureData: SecureLocalData = .shared
+    ) {
         self.defaults = defaults
         self.maxHistoryCount = maxHistoryCount
+        self.retentionInterval = retentionInterval ?? (defaults === UserDefaults.standard ? 7 * 24 * 60 * 60 : nil)
+        self.now = now
+        self.secureData = secureData
         encoder.dateEncodingStrategy = .iso8601
         decoder.dateDecodingStrategy = .iso8601
     }
 
     func items() -> [ClipboardHistoryItem] {
-        guard let data = defaults.data(forKey: Self.storageKey),
+        guard let stored = defaults.data(forKey: Self.storageKey),
+              let data = try? secureData.open(stored),
               let decoded = try? decoder.decode([ClipboardHistoryItem].self, from: data) else {
             return []
         }
-        return Array(decoded.prefix(maxHistoryCount))
+        let retained = retentionInterval.map { interval in
+            decoded.filter { now().timeIntervalSince($0.capturedAt) <= interval }
+        } ?? decoded
+        return Array(retained.prefix(maxHistoryCount))
     }
 
     func search(_ query: String) -> [ClipboardHistoryItem] {
@@ -133,6 +149,7 @@ final class ClipboardHistoryStore: ClipboardHistoryStoring {
 
     func addText(_ text: String, capturedAt: Date) {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        guard !SensitiveClipboardFilter.shouldExclude(text) else { return }
         let item = ClipboardHistoryItem(id: UUID(), content: .text(text), capturedAt: capturedAt)
         save(inserted: item) { existing in
             existing.textValue == text
@@ -161,8 +178,9 @@ final class ClipboardHistoryStore: ClipboardHistoryStoring {
 
     private func save(_ newItems: [ClipboardHistoryItem]) {
         let retained = Array(newItems.prefix(maxHistoryCount))
-        if let data = try? encoder.encode(retained) {
-            defaults.set(data, forKey: Self.storageKey)
+        if let data = try? encoder.encode(retained),
+           let sealed = try? secureData.seal(data) {
+            defaults.set(sealed, forKey: Self.storageKey)
         }
     }
 }

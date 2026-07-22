@@ -4,10 +4,42 @@ enum FeatureStatus {
     "Disabled",
 };
 
+enum CoreEdition {
+    "Free",
+    "Pro",
+    "Community",
+};
+
 /// Represents a feature and its current status.
 dictionary FeatureEntry {
     string name;
     FeatureStatus status;
+};
+
+enum PluginRuntime {
+    "Wasm",
+    "Mcp",
+    "Js",
+};
+
+dictionary PluginEntry {
+    string id;
+    string name;
+    string version;
+    PluginRuntime runtime;
+    string ui_json;
+};
+
+/// Validated metadata shown before an executable plugin is installed.
+dictionary PluginInstallPreview {
+    string name;
+    string version;
+    sequence<string> network_hosts;
+    boolean storage;
+    boolean clipboard;
+    boolean webview;
+    boolean webview_bridge;
+    sequence<string> exposed_tools;
 };
 
 dictionary CpuCoreSnapshot {
@@ -87,6 +119,9 @@ enum AtlasError {
     "MonitoringError",
     "ProcessError",
     "CaptureError",
+    "FeatureDisabled",
+    "EntitlementDenied",
+    "PluginError",
 };
 
 /// The `atlas` namespace contains the core functions exposed to other languages.
@@ -99,9 +134,35 @@ namespace atlas {
     [Throws=AtlasError]
     boolean toggle_feature(string name, boolean enabled);
 
+    /// Configures the product edition enforced by the Rust core.
+    [Throws=AtlasError]
+    void configure_entitlement(CoreEdition edition);
+
     /// Returns a list of all available feature entries.
     [Throws=AtlasError]
     sequence<FeatureEntry> list_features();
+
+    [Throws=AtlasError]
+    PluginEntry install_wasm_plugin(string manifest_toml, sequence<u8> wasm_bytes, string ui_json);
+
+    /// Parses and validates a plugin manifest for the install-consent screen.
+    [Throws=AtlasError]
+    PluginInstallPreview inspect_plugin_manifest(string manifest_toml);
+
+    [Throws=AtlasError]
+    PluginEntry install_mcp_plugin(string manifest_toml, string ui_json);
+
+    [Throws=AtlasError]
+    PluginEntry install_js_plugin(string manifest_toml, string source, string ui_json);
+
+    [Throws=AtlasError]
+    sequence<PluginEntry> list_plugins();
+
+    [Throws=AtlasError]
+    boolean uninstall_plugin(string id);
+
+    [Throws=AtlasError]
+    string dispatch_plugin_event(string id, string event_json);
 
     [Throws=AtlasError]
     void start_monitoring(SystemMonitorCallback callback);

@@ -7,9 +7,9 @@ final class BatteryHealthService: ObservableObject {
 
     /// Reads a one-shot battery snapshot. Injected for testing; the live
     /// implementation calls the Rust core via FFI.
-    private let read: () -> MonitoringBatterySnapshot?
+    private let read: @MainActor () -> MonitoringBatterySnapshot?
 
-    init(read: @escaping () -> MonitoringBatterySnapshot? = BatteryHealthService.liveRead) {
+    init(read: @escaping @MainActor () -> MonitoringBatterySnapshot? = BatteryHealthService.liveRead) {
         self.read = read
         refresh()
     }

@@ -1,0 +1,5 @@
+[package]
+name = "atlas-module-sdk"
+version = "0.1.0"
+edition = "2021"
+description = "Stable C ABI shared by the Atlas kernel and first-party dynamic modules."

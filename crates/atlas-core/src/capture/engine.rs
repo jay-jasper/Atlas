@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use image::RgbaImage;
-use screenshots::Screen;
 use std::io::Cursor;
+use xcap::Monitor;
 
 pub struct CaptureEngine;
 
@@ -14,22 +14,22 @@ struct CapturedDisplay {
 impl CaptureEngine {
     /// Captures the desktop across all available displays and returns PNG bytes.
     pub fn capture_full_screen() -> Result<Vec<u8>> {
-        let screens =
-            Screen::all().map_err(|e| anyhow::anyhow!("Failed to retrieve screens: {}", e))?;
-        if screens.is_empty() {
+        let monitors =
+            Monitor::all().map_err(|e| anyhow::anyhow!("Failed to retrieve screens: {}", e))?;
+        if monitors.is_empty() {
             anyhow::bail!("No monitor found to capture");
         }
 
-        let displays = screens
+        let displays = monitors
             .iter()
-            .map(|screen| {
-                let img = screen.capture().map_err(|e| {
-                    anyhow::anyhow!("Failed to capture screen {}: {}", screen.display_info.id, e)
+            .map(|monitor| {
+                let img = monitor.capture_image().map_err(|e| {
+                    anyhow::anyhow!("Failed to capture screen {:?}: {}", monitor.id(), e)
                 })?;
 
                 Ok(CapturedDisplay {
-                    x: screen.display_info.x,
-                    y: screen.display_info.y,
+                    x: monitor.x().context("Failed to read monitor x coordinate")?,
+                    y: monitor.y().context("Failed to read monitor y coordinate")?,
                     image: img,
                 })
             })
@@ -38,7 +38,7 @@ impl CaptureEngine {
         let img = compose_displays(&displays)?;
 
         let mut buffer = Cursor::new(Vec::new());
-        img.write_to(&mut buffer, image::ImageOutputFormat::Png)
+        img.write_to(&mut buffer, image::ImageFormat::Png)
             .context("Failed to encode screen capture to PNG")?;
         Ok(buffer.into_inner())
     }
@@ -48,22 +48,26 @@ impl CaptureEngine {
     /// # Note
     /// Currently, this only supports the primary monitor (the first screen found).
     pub fn capture_region(x: i32, y: i32, width: u32, height: u32) -> Result<Vec<u8>> {
-        let screens =
-            Screen::all().map_err(|e| anyhow::anyhow!("Failed to retrieve screens: {}", e))?;
-        let screen = screens.first().context("No monitor found to capture")?;
-        let img = screen.capture_area(x, y, width, height).map_err(|e| {
-            anyhow::anyhow!(
-                "Failed to capture region ({}, {}, {}, {}): {}",
-                x,
-                y,
-                width,
-                height,
-                e
-            )
-        })?;
+        let monitors =
+            Monitor::all().map_err(|e| anyhow::anyhow!("Failed to retrieve screens: {}", e))?;
+        let monitor = monitors.first().context("No monitor found to capture")?;
+        let relative_x = u32::try_from(x).context("Capture x coordinate must be non-negative")?;
+        let relative_y = u32::try_from(y).context("Capture y coordinate must be non-negative")?;
+        let img = monitor
+            .capture_region(relative_x, relative_y, width, height)
+            .map_err(|e| {
+                anyhow::anyhow!(
+                    "Failed to capture region ({}, {}, {}, {}): {}",
+                    x,
+                    y,
+                    width,
+                    height,
+                    e
+                )
+            })?;
 
         let mut buffer = Cursor::new(Vec::new());
-        img.write_to(&mut buffer, image::ImageOutputFormat::Png)
+        img.write_to(&mut buffer, image::ImageFormat::Png)
             .context("Failed to encode region capture to PNG")?;
         Ok(buffer.into_inner())
     }

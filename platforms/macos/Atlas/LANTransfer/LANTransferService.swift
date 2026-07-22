@@ -73,7 +73,9 @@ final class LANTransferService: ObservableObject {
             if let data, !data.isEmpty {
                 Task { @MainActor in _ = self?.handleIncoming(data) }
             }
-            if error == nil { self?.receive(on: connection) }
+            if error == nil {
+                Task { @MainActor in self?.receive(on: connection) }
+            }
         }
     }
 }

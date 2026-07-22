@@ -7,11 +7,36 @@ final class TranscriptionService: ObservableObject {
     @Published private(set) var segments: [TranscriptSegment] = []
     @Published private(set) var isTranscribing = false
     @Published private(set) var statusMessage = ""
+    @Published private(set) var isDownloadingModel = false
 
     private let transcriber: Transcribing
+    private let modelStore: WhisperModelStore
 
-    init(transcriber: Transcribing = SpeechFileTranscriber()) {
+    init(
+        transcriber: Transcribing = WhisperCLITranscriber(),
+        modelStore: WhisperModelStore = WhisperModelStore()
+    ) {
         self.transcriber = transcriber
+        self.modelStore = modelStore
+    }
+
+    var isSelectedModelInstalled: Bool { modelStore.isInstalled(model) }
+
+    func downloadSelectedModel() {
+        let selectedModel = model
+        isDownloadingModel = true
+        statusMessage = "Downloading \(selectedModel.displayName) model…"
+        modelStore.download(selectedModel) { [weak self] result in
+            Task { @MainActor [weak self] in
+                self?.isDownloadingModel = false
+                switch result {
+                case .success:
+                    self?.statusMessage = "\(selectedModel.displayName) model is ready."
+                case .failure(let error):
+                    self?.statusMessage = error.localizedDescription
+                }
+            }
+        }
     }
 
     func transcribe(url: URL) {
@@ -30,7 +55,7 @@ final class TranscriptionService: ObservableObject {
             } catch {
                 await MainActor.run {
                     self.isTranscribing = false
-                    self.statusMessage = "Transcription unavailable — download the \(model.displayName) model."
+                    self.statusMessage = error.localizedDescription
                 }
             }
         }
@@ -41,8 +66,8 @@ final class TranscriptionService: ObservableObject {
 
     func copySRT() {
         guard !segments.isEmpty else { return }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(exportSRT(), forType: .string)
+        _ = NSPasteboard.general.clearContents()
+        _ = NSPasteboard.general.setString(exportSRT(), forType: .string)
     }
 }
 

@@ -116,22 +116,24 @@ final class ColorPickerService: ObservableObject {
     func pickColor() {
         let sampler = NSColorSampler()
         sampler.show { [weak self] nsColor in
-            guard let self else { return }
-            guard let nsColor,
-                  let rgb = nsColor.usingColorSpace(.deviceRGB) else {
-                self.statusMessage = "Cancelled"
-                return
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                guard let nsColor,
+                      let rgb = nsColor.usingColorSpace(.deviceRGB) else {
+                    self.statusMessage = "Cancelled"
+                    return
+                }
+                let picked = PickedColor(
+                    red: rgb.redComponent,
+                    green: rgb.greenComponent,
+                    blue: rgb.blueComponent,
+                    alpha: rgb.alphaComponent
+                )
+                self.lastPicked = picked
+                self.addToHistory(picked)
+                self.copyToClipboard(picked.hex)
+                self.statusMessage = "Copied \(picked.hex)"
             }
-            let picked = PickedColor(
-                red: rgb.redComponent,
-                green: rgb.greenComponent,
-                blue: rgb.blueComponent,
-                alpha: rgb.alphaComponent
-            )
-            self.lastPicked = picked
-            self.addToHistory(picked)
-            self.copyToClipboard(picked.hex)
-            self.statusMessage = "Copied \(picked.hex)"
         }
     }
 

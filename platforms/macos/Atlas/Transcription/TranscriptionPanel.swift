@@ -20,7 +20,13 @@ struct TranscriptionPanel: View {
             HStack {
                 Button("Choose Audio…") { chooseFile() }
                     .buttonStyle(.borderedProminent)
+                    .disabled(!service.isSelectedModelInstalled || service.isDownloadingModel)
+                if !service.isSelectedModelInstalled {
+                    Button("Download \(service.model.displayName)") { service.downloadSelectedModel() }
+                        .controlSize(.small)
+                }
                 if service.isTranscribing { ProgressView().controlSize(.small) }
+                if service.isDownloadingModel { ProgressView().controlSize(.small) }
                 if !service.segments.isEmpty {
                     Button("Copy SRT") { service.copySRT() }.controlSize(.small)
                 }

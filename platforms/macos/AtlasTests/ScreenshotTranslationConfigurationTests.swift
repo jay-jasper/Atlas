@@ -67,15 +67,13 @@ final class ScreenshotTranslationConfigurationTests: XCTestCase {
         }
     }
 
-    func testLiveFactoryFallsBackWithoutEndpoint() {
+    func testLiveFactoryUsesLocalTranslationWithoutEndpoint() throws {
         let service = ScreenshotTranslationServiceFactory.live(defaults: defaults)
 
-        XCTAssertThrowsError(try service.translate("Hello", targetLanguage: "fr")) { error in
-            XCTAssertEqual(
-                error.localizedDescription,
-                "Local screenshot translation is not supported yet"
-            )
-        }
+        let result = try service.translate("Hello world", targetLanguage: "fr")
+
+        XCTAssertEqual(result.translatedText, "bonjour monde")
+        XCTAssertEqual(result.targetLanguage, "fr")
     }
 
     func testConfiguredServiceUsesFallbackWithoutEndpoint() throws {

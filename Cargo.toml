@@ -2,7 +2,11 @@
 members = [
     "crates/atlas-core",
     "crates/atlas-ffi",
+    "crates/atlas-module-loader",
+    "crates/atlas-module-sdk",
     "crates/atlas-plugin-host",
+    "crates/atlas-plugin-js",
+    "crates/atlas-ui-schema",
     "tools/uniffi-swift-bindgen",
 ]
 resolver = "2"

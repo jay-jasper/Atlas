@@ -2,7 +2,12 @@
 //! modules via wasmtime. This is the real engine; the WIT component bindings and
 //! richer host-API surface layer on top.
 
-use wasmtime::{Engine, Instance, Module, Store, TypedFunc, Val};
+use std::sync::mpsc;
+use std::time::Duration;
+
+use wasmtime::{
+    Config, Engine, Instance, Module, Store, StoreLimits, StoreLimitsBuilder, TypedFunc, Val,
+};
 
 #[derive(Debug, thiserror::Error)]
 pub enum WasmError {
@@ -16,21 +21,87 @@ pub enum WasmError {
     Trap(String),
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct WasmLimits {
+    pub max_memory_bytes: usize,
+    pub fuel_per_call: u64,
+    pub call_timeout: Duration,
+}
+
+impl Default for WasmLimits {
+    fn default() -> Self {
+        Self {
+            max_memory_bytes: 64 * 1024 * 1024,
+            fuel_per_call: 10_000_000,
+            call_timeout: Duration::from_secs(2),
+        }
+    }
+}
+
+struct HostState {
+    limits: StoreLimits,
+}
+
 /// A loaded, instantiated WASM plugin module.
 pub struct WasmHost {
-    store: Store<()>,
+    engine: Engine,
+    store: Store<HostState>,
     instance: Instance,
+    limits: WasmLimits,
 }
 
 impl WasmHost {
     /// Compiles and instantiates a module from `.wasm` bytes (no imports).
     pub fn load(bytes: &[u8]) -> Result<Self, WasmError> {
-        let engine = Engine::default();
+        Self::load_with_limits(bytes, WasmLimits::default())
+    }
+
+    pub fn load_with_limits(bytes: &[u8], limits: WasmLimits) -> Result<Self, WasmError> {
+        let mut config = Config::new();
+        config.consume_fuel(true);
+        config.epoch_interruption(true);
+        let engine = Engine::new(&config).map_err(|e| WasmError::Compile(e.to_string()))?;
         let module = Module::new(&engine, bytes).map_err(|e| WasmError::Compile(e.to_string()))?;
-        let mut store = Store::new(&engine, ());
+        let store_limits = StoreLimitsBuilder::new()
+            .memory_size(limits.max_memory_bytes)
+            .instances(1)
+            .memories(1)
+            .build();
+        let mut store = Store::new(
+            &engine,
+            HostState {
+                limits: store_limits,
+            },
+        );
+        store.limiter(|state| &mut state.limits);
+        store
+            .set_fuel(limits.fuel_per_call)
+            .map_err(|e| WasmError::Instantiate(e.to_string()))?;
+        store.set_epoch_deadline(1);
         let instance = Instance::new(&mut store, &module, &[])
             .map_err(|e| WasmError::Instantiate(e.to_string()))?;
-        Ok(Self { store, instance })
+        Ok(Self {
+            engine,
+            store,
+            instance,
+            limits,
+        })
+    }
+
+    fn prepare_call(&mut self) -> Result<mpsc::Sender<()>, WasmError> {
+        self.store
+            .set_fuel(self.limits.fuel_per_call)
+            .map_err(|e| WasmError::Trap(e.to_string()))?;
+        self.store.set_epoch_deadline(1);
+        let (cancel, receiver) = mpsc::channel();
+        let engine = self.engine.clone();
+        let timeout = self.limits.call_timeout;
+        std::thread::spawn(move || {
+            if receiver.recv_timeout(timeout).is_err() {
+                engine.increment_epoch();
+            }
+        });
+        Ok(cancel)
     }
 
     /// Returns the names of all exported functions.
@@ -51,8 +122,12 @@ impl WasmHost {
             .instance
             .get_typed_func(&mut self.store, name)
             .map_err(|_| WasmError::MissingExport(name.to_string()))?;
-        func.call(&mut self.store, (a, b))
-            .map_err(|e| WasmError::Trap(e.to_string()))
+        let cancel = self.prepare_call()?;
+        let result = func
+            .call(&mut self.store, (a, b))
+            .map_err(|e| WasmError::Trap(e.to_string()));
+        let _ = cancel.send(());
+        result
     }
 
     /// Calls an exported function dynamically with i32 args, returning the first
@@ -64,8 +139,12 @@ impl WasmHost {
             .ok_or_else(|| WasmError::MissingExport(name.to_string()))?;
         let params: Vec<Val> = args.iter().map(|a| Val::I32(*a)).collect();
         let mut results = vec![Val::I32(0)];
-        func.call(&mut self.store, &params, &mut results)
-            .map_err(|e| WasmError::Trap(e.to_string()))?;
+        let cancel = self.prepare_call()?;
+        let result = func
+            .call(&mut self.store, &params, &mut results)
+            .map_err(|e| WasmError::Trap(e.to_string()));
+        let _ = cancel.send(());
+        result?;
         Ok(results.first().and_then(|v| v.i32()).unwrap_or(0))
     }
 }
@@ -114,12 +193,18 @@ mod tests {
     #[test]
     fn missing_export_errors() {
         let mut host = WasmHost::load(&wasm(ADD_MODULE)).unwrap();
-        assert!(matches!(host.call_i32("nope", 1, 1), Err(WasmError::MissingExport(_))));
+        assert!(matches!(
+            host.call_i32("nope", 1, 1),
+            Err(WasmError::MissingExport(_))
+        ));
     }
 
     #[test]
     fn invalid_wasm_errors() {
-        assert!(matches!(WasmHost::load(b"not wasm"), Err(WasmError::Compile(_))));
+        assert!(matches!(
+            WasmHost::load(b"not wasm"),
+            Err(WasmError::Compile(_))
+        ));
     }
 
     #[test]
@@ -130,6 +215,42 @@ mod tests {
                  local.get 0 local.get 1 i32.div_s))"#,
         );
         let mut host = WasmHost::load(&module).unwrap();
-        assert!(matches!(host.call_i32("boom", 1, 0), Err(WasmError::Trap(_))));
+        assert!(matches!(
+            host.call_i32("boom", 1, 0),
+            Err(WasmError::Trap(_))
+        ));
+    }
+
+    #[test]
+    fn rejects_memory_over_limit() {
+        let module = wasm("(module (memory 2000))");
+        assert!(matches!(
+            WasmHost::load_with_limits(
+                &module,
+                WasmLimits {
+                    max_memory_bytes: 1024 * 1024,
+                    ..WasmLimits::default()
+                }
+            ),
+            Err(WasmError::Instantiate(_))
+        ));
+    }
+
+    #[test]
+    fn fuel_interrupts_infinite_loop() {
+        let module = wasm("(module (func (export \"loop\") (loop br 0)))");
+        let mut host = WasmHost::load_with_limits(
+            &module,
+            WasmLimits {
+                fuel_per_call: 10_000,
+                call_timeout: Duration::from_millis(100),
+                ..WasmLimits::default()
+            },
+        )
+        .unwrap();
+        assert!(matches!(
+            host.call_dynamic("loop", &[]),
+            Err(WasmError::Trap(_))
+        ));
     }
 }

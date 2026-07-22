@@ -51,11 +51,9 @@ impl Collector {
         self.sys.refresh_processes();
         self.networks.refresh();
 
-        if self.tick % 30 == 0 {
+        if self.tick.is_multiple_of(30) {
             self.cached_disks = crate::monitor::disk::get_disk_info();
-            self.cached_battery = crate::monitor::battery::get_battery_info()
-                .ok()
-                .flatten();
+            self.cached_battery = crate::monitor::battery::get_battery_info().ok().flatten();
             self.cached_temps = crate::monitor::sensors::get_temperatures();
         }
         self.tick += 1;
@@ -97,7 +95,7 @@ impl Collector {
             })
             .collect();
 
-        processes.sort_by(|a, b| b.memory().cmp(&a.memory()));
+        processes.sort_by_key(|process| std::cmp::Reverse(process.memory()));
         let top_mem_processes: Vec<ProcessSnapshot> = processes
             .iter()
             .take(5)
@@ -119,8 +117,10 @@ impl Collector {
             let upload_bps = data.transmitted().saturating_sub(prev_up);
             let download_bps = data.received().saturating_sub(prev_dn);
 
-            self.last_iface_upload.insert(name.clone(), data.transmitted());
-            self.last_iface_download.insert(name.clone(), data.received());
+            self.last_iface_upload
+                .insert(name.clone(), data.transmitted());
+            self.last_iface_download
+                .insert(name.clone(), data.received());
 
             total_upload += upload_bps;
             total_download += download_bps;
@@ -185,7 +185,10 @@ mod tests {
     fn test_snapshot_has_processes() {
         let mut c = Collector::new();
         let s = c.take_snapshot();
-        assert!(!s.top_cpu_processes.is_empty(), "Should find running processes");
+        assert!(
+            !s.top_cpu_processes.is_empty(),
+            "Should find running processes"
+        );
         assert!(s.top_cpu_processes.len() <= 5);
         assert!(s.top_mem_processes.len() <= 5);
     }

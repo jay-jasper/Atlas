@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        type: choice
+        options: [direct, store]
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  archive:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - run: ./scripts/generate_uniffi_swift.sh
+      - name: Import signing certificate
+        env:
+          CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_PROVISIONING_PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
+        run: ./scripts/import_signing_certificate.sh
+      - run: ./scripts/build_release.sh "${{ inputs.channel }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Atlas-${{ inputs.channel }}-archive
+          path: |
+            build/*.xcarchive
+            build/export-*

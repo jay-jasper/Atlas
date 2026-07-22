@@ -180,7 +180,7 @@ enum ScreenshotTranslationServiceFactory {
             providerFactory: { config in
                 ScreenshotHTTPTranslationProvider(config: config)
             },
-            fallback: LocalPlaceholderScreenshotTranslationService()
+            fallback: LocalDictionaryScreenshotTranslationService()
         )
     }
 }

@@ -1,6 +1,12 @@
 import AppKit
 import SwiftUI
 
+/// Where the shared content host is currently presented. Drives ContentView's
+/// layout: compact popover stack vs. main-window shell (tabs + sidebar + detail).
+final class ShellModeModel: ObservableObject {
+    @Published var isMainWindow = false
+}
+
 /// Process-wide services, built once. Shared by the menu bar popover content and
 /// the Settings scene so both drive the same palette / window / scene state.
 @MainActor
@@ -12,6 +18,11 @@ final class AtlasServices {
     let windowPermissionChecker = AccessibilityPermissionChecker()
     let privacyPulseService: PrivacyPulseService
     let paletteState: CommandPaletteState
+    let shellMode = ShellModeModel()
+    /// Single hosting controller that migrates between the popover and the main
+    /// window, so the 60+ module services and their state exist once per process.
+    private(set) lazy var contentHost = NSHostingController(rootView: makeContentView())
+    var openMainWindow: (() -> Void)?
 
     private init() {
         let logger = PrivacyPulseAccessLogger()
@@ -34,22 +45,17 @@ final class AtlasServices {
             windowPermissionChecker: windowPermissionChecker,
             paletteState: paletteState,
             privacyPulseService: privacyPulseService,
-            privacyAccessLogger: privacyAccessLogger
+            privacyAccessLogger: privacyAccessLogger,
+            shellMode: shellMode
         )
     }
 }
 
 @main
 struct AtlasApp: App {
-    var body: some Scene {
-        // Show the main program in a normal window on launch (menu bar set aside
-        // for now). The same ContentView the popover hosted.
-        Window("Atlas", id: "atlas-main") {
-            AtlasMainView()
-                .frame(minWidth: 640, minHeight: 480)
-        }
-        .defaultSize(width: 760, height: 560)
+    @NSApplicationDelegateAdaptor(AtlasAppDelegate.self) private var appDelegate
 
+    var body: some Scene {
         Settings {
             AtlasSettingsView(paletteController: AtlasServices.shared.paletteState.controller)
         }
@@ -61,7 +67,14 @@ final class AtlasAppDelegate: NSObject, NSApplicationDelegate {
     private let menuBar = AtlasMenuBarController()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.setActivationPolicy(.accessory)
         menuBar.install()
+        // Dev/automation affordance: `open Atlas.app --args --main-window`.
+        if ProcessInfo.processInfo.arguments.contains("--main-window") {
+            DispatchQueue.main.async {
+                AtlasServices.shared.openMainWindow?()
+            }
+        }
     }
 }
 
@@ -71,6 +84,7 @@ final class AtlasAppDelegate: NSObject, NSApplicationDelegate {
 final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
     private var statusItem: NSStatusItem?
     private let popover = NSPopover()
+    private let mainWindow = AtlasMainWindowController()
 
     func install() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -92,9 +106,12 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
         // Explicit size: self-sizing SwiftUI content otherwise leaves the popover
         // with a zero/ambiguous size and it never appears.
         popover.contentSize = NSSize(width: 460, height: 560)
-        let host = NSHostingController(rootView: AtlasServices.shared.makeContentView())
-        popover.contentViewController = host
+        popover.contentViewController = AtlasServices.shared.contentHost
         popover.delegate = self
+        mainWindow.popover = popover
+        AtlasServices.shared.openMainWindow = { [weak self] in
+            self?.mainWindow.show()
+        }
     }
 
     @objc private func statusButtonClicked(_ sender: NSStatusBarButton) {
@@ -109,9 +126,16 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
     }
 
     private func togglePopover(from sender: NSStatusBarButton) {
+        if mainWindow.isVisible {
+            mainWindow.focus()
+            return
+        }
         if popover.isShown {
             popover.performClose(nil)
         } else {
+            if popover.contentViewController == nil {
+                popover.contentViewController = AtlasServices.shared.contentHost
+            }
             popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
             NSApp.activate(ignoringOtherApps: true)
@@ -123,10 +147,22 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
 
         let menu = NSMenu()
         menu.addItem(menuItem("打开 Atlas", #selector(openPanel)))
+        menu.addItem(menuItem("打开主窗口", #selector(openMainWindow)))
 
         let palette = menuItem("命令面板", #selector(openPalette), key: "k")
         palette.keyEquivalentModifierMask = [.command]
         menu.addItem(palette)
+
+        let delayItem = NSMenuItem(title: "延时截图", action: nil, keyEquivalent: "")
+        let delayMenu = NSMenu()
+        for seconds in [3, 5, 10] {
+            let item = NSMenuItem(title: "\(seconds) 秒后截图", action: #selector(delayedCapture(_:)), keyEquivalent: "")
+            item.target = self
+            item.tag = seconds
+            delayMenu.addItem(item)
+        }
+        delayItem.submenu = delayMenu
+        menu.addItem(delayItem)
 
         menu.addItem(.separator())
 
@@ -155,6 +191,14 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
         togglePopover(from: button)
     }
 
+    @objc private func openMainWindow() {
+        mainWindow.show()
+    }
+
+    @objc private func delayedCapture(_ sender: NSMenuItem) {
+        ScreenshotActions.captureRegionDelayed(seconds: sender.tag)
+    }
+
     @objc private func openPalette() {
         AtlasServices.shared.paletteState.controller.show()
     }
@@ -171,6 +215,71 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
 
     @objc private func quitApp() {
         NSApp.terminate(nil)
+    }
+}
+
+/// Hosts the shared ContentView in a standard resizable main window. The single
+/// NSHostingController migrates between the popover and this window so all
+/// module services and state stay in one live view tree; `ShellModeModel`
+/// switches ContentView between the compact popover layout and the shell
+/// layout (category tabs + tool sidebar + detail).
+@MainActor
+final class AtlasMainWindowController: NSObject, NSWindowDelegate {
+    weak var popover: NSPopover?
+    private var window: NSWindow?
+
+    var isVisible: Bool {
+        window?.isVisible == true
+    }
+
+    func show() {
+        let services = AtlasServices.shared
+        if popover?.isShown == true {
+            popover?.performClose(nil)
+        }
+
+        if window == nil {
+            let created = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 1080, height: 700),
+                styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+                backing: .buffered,
+                defer: false
+            )
+            created.title = "Atlas"
+            // Aurora theme: content (background bands) extends under a
+            // transparent titlebar for a seamless glass look.
+            created.titlebarAppearsTransparent = true
+            created.titleVisibility = .visible
+            created.isMovableByWindowBackground = true
+            created.isReleasedWhenClosed = false
+            created.center()
+            created.setFrameAutosaveName("AtlasMainWindow")
+            created.delegate = self
+            window = created
+        }
+
+        if window?.contentViewController !== services.contentHost {
+            popover?.contentViewController = nil
+            services.shellMode.isMainWindow = true
+            window?.contentViewController = services.contentHost
+        }
+
+        NSApp.setActivationPolicy(.regular)
+        window?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func focus() {
+        window?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        let services = AtlasServices.shared
+        window?.contentViewController = nil
+        services.shellMode.isMainWindow = false
+        popover?.contentViewController = services.contentHost
+        NSApp.setActivationPolicy(.accessory)
     }
 }
 

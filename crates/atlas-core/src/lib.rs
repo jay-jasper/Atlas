@@ -1,8 +1,10 @@
+pub mod calculator;
+pub mod capture;
 pub mod features;
 pub mod monitor;
-pub mod capture;
-pub mod calculator;
-use features::FeatureManager;
+#[cfg(feature = "dynamic-modules")]
+pub use atlas_module_loader::{ModuleManifest, ModuleRegistry};
+use features::{Edition, FeatureManager};
 
 /// Core structure for the Atlas system.
 pub struct AtlasCore {
@@ -10,6 +12,8 @@ pub struct AtlasCore {
     version: String,
     /// Manager for dynamic features.
     feature_manager: FeatureManager,
+    #[cfg(feature = "dynamic-modules")]
+    module_registry: ModuleRegistry,
 }
 
 impl Default for AtlasCore {
@@ -24,6 +28,8 @@ impl AtlasCore {
         Self {
             version: env!("CARGO_PKG_VERSION").to_string(),
             feature_manager: FeatureManager::new(),
+            #[cfg(feature = "dynamic-modules")]
+            module_registry: ModuleRegistry::new(),
         }
     }
 
@@ -45,6 +51,20 @@ impl AtlasCore {
     /// Returns a mutable reference to the feature manager.
     pub fn feature_manager_mut(&mut self) -> &mut FeatureManager {
         &mut self.feature_manager
+    }
+
+    pub fn set_edition(&mut self, edition: Edition) {
+        self.feature_manager.set_edition(edition);
+    }
+
+    #[cfg(feature = "dynamic-modules")]
+    pub fn module_registry(&self) -> &ModuleRegistry {
+        &self.module_registry
+    }
+
+    #[cfg(feature = "dynamic-modules")]
+    pub fn module_registry_mut(&mut self) -> &mut ModuleRegistry {
+        &mut self.module_registry
     }
 }
 

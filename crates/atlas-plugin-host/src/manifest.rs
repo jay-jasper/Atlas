@@ -11,6 +11,8 @@ pub enum RuntimeKind {
     Wasm,
     /// Track B — Model Context Protocol subprocess.
     Mcp,
+    /// Track C — embedded, sandboxed QuickJS runtime.
+    Js,
 }
 
 /// Runtime configuration. For MCP plugins, `command`/`args` launch the server.
@@ -167,10 +169,27 @@ mod tests {
     }
 
     #[test]
+    fn parses_js_manifest() {
+        let manifest = PluginManifest::parse(
+            r#"
+            name = "palette-helper"
+            version = "0.1.0"
+            [runtime]
+            type = "js"
+            "#,
+        )
+        .unwrap();
+        assert_eq!(manifest.runtime.kind, RuntimeKind::Js);
+    }
+
+    #[test]
     fn rejects_missing_name() {
         let err = PluginManifest::parse("version = \"1.0.0\"").unwrap_err();
         // serde reports the missing field before our own validation.
-        assert!(matches!(err, ManifestError::Toml(_) | ManifestError::MissingField("name")));
+        assert!(matches!(
+            err,
+            ManifestError::Toml(_) | ManifestError::MissingField("name")
+        ));
     }
 
     #[test]

@@ -49,13 +49,17 @@ impl LuaEngine {
                         other => format!("{other:?}"),
                     })
                     .collect();
-                log.lock().unwrap().push(format!("{name_owned}({})", string_args.join(",")));
+                log.lock()
+                    .unwrap()
+                    .push(format!("{name_owned}({})", string_args.join(",")));
                 Ok(command(string_args))
             })
             .map_err(|e| LuaError::Runtime(e.to_string()))?;
 
         let atlas = self.atlas_table()?;
-        atlas.set(name, func).map_err(|e| LuaError::Runtime(e.to_string()))?;
+        atlas
+            .set(name, func)
+            .map_err(|e| LuaError::Runtime(e.to_string()))?;
         Ok(())
     }
 
@@ -81,13 +85,18 @@ impl LuaEngine {
         self.log.lock().unwrap().clone()
     }
 
-    fn atlas_table(&self) -> Result<mlua::Table, LuaError> {
+    fn atlas_table(&self) -> Result<mlua::Table<'_>, LuaError> {
         let globals = self.lua.globals();
         if let Ok(table) = globals.get::<_, mlua::Table>("atlas") {
             return Ok(table);
         }
-        let table = self.lua.create_table().map_err(|e| LuaError::Runtime(e.to_string()))?;
-        globals.set("atlas", &table).map_err(|e| LuaError::Runtime(e.to_string()))?;
+        let table = self
+            .lua
+            .create_table()
+            .map_err(|e| LuaError::Runtime(e.to_string()))?;
+        globals
+            .set("atlas", &table)
+            .map_err(|e| LuaError::Runtime(e.to_string()))?;
         Ok(table)
     }
 }
@@ -123,11 +132,19 @@ mod tests {
     fn calls_registered_host_command() {
         let engine = LuaEngine::new();
         engine
-            .register("notify", Arc::new(|args| format!("notified: {}", args.join(" "))))
+            .register(
+                "notify",
+                Arc::new(|args| format!("notified: {}", args.join(" "))),
+            )
             .unwrap();
-        let result = engine.run(r#"return atlas.notify("hello", "world")"#).unwrap();
+        let result = engine
+            .run(r#"return atlas.notify("hello", "world")"#)
+            .unwrap();
         assert_eq!(result, "notified: hello world");
-        assert_eq!(engine.invocations(), vec!["notify(hello,world)".to_string()]);
+        assert_eq!(
+            engine.invocations(),
+            vec!["notify(hello,world)".to_string()]
+        );
     }
 
     #[test]
@@ -136,10 +153,13 @@ mod tests {
         let calls = Arc::new(Mutex::new(0));
         let calls2 = calls.clone();
         engine
-            .register("tick", Arc::new(move |_| {
-                *calls2.lock().unwrap() += 1;
-                "ok".into()
-            }))
+            .register(
+                "tick",
+                Arc::new(move |_| {
+                    *calls2.lock().unwrap() += 1;
+                    "ok".into()
+                }),
+            )
             .unwrap();
         engine.run("for i = 1, 3 do atlas.tick() end").unwrap();
         assert_eq!(*calls.lock().unwrap(), 3);
@@ -148,6 +168,9 @@ mod tests {
     #[test]
     fn syntax_error_is_reported() {
         let engine = LuaEngine::new();
-        assert!(matches!(engine.run("this is not lua !!"), Err(LuaError::Runtime(_))));
+        assert!(matches!(
+            engine.run("this is not lua !!"),
+            Err(LuaError::Runtime(_))
+        ));
     }
 }

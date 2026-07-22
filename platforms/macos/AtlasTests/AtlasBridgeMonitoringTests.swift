@@ -14,7 +14,9 @@ private final class FakeMonitoringProvider: MonitoringProviding {
     var lookupResult: MonitoringPortProcess?
     var killResult = true
 
-    func startMonitoring(callback: @escaping (MonitoringSystemSnapshot) -> Void) throws {
+    func startMonitoring(
+        callback: @escaping (MonitoringSystemSnapshot) -> Void
+    ) throws {
         startCount += 1
         callback(callbackSnapshot)
     }

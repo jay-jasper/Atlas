@@ -18,7 +18,13 @@ class AtlasBridge {
         try featureService.toggleFeature(name: name, enabled: enabled)
     }
 
-    static func startMonitoring(callback: @escaping (MonitoringSystemSnapshot) -> Void) throws {
+    static func configureEntitlement(_ edition: AtlasEdition) throws {
+        try featureService.configureEntitlement(edition)
+    }
+
+    static func startMonitoring(
+        callback: @escaping (MonitoringSystemSnapshot) -> Void
+    ) throws {
         try monitoringService.startMonitoring(callback: callback)
     }
 

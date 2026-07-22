@@ -27,8 +27,8 @@ final class SystemAutomationProcessRunner: AutomationProcessRunning {
         let process = Process()
         let outputPipe = Pipe()
         let errorPipe = Pipe()
-        let outputBuffer = LockedDataBuffer()
-        let errorBuffer = LockedDataBuffer()
+        let outputBuffer = LockedDataBuffer(limit: 1_048_576)
+        let errorBuffer = LockedDataBuffer(limit: 1_048_576)
 
         switch command.kind {
         case .shell:
@@ -115,12 +115,20 @@ final class SystemAutomationProcessRunner: AutomationProcessRunning {
 
 private final class LockedDataBuffer: @unchecked Sendable {
     private let lock = NSLock()
+    private let limit: Int
     private var storage = Data()
+
+    init(limit: Int) {
+        self.limit = max(0, limit)
+    }
 
     func append(_ data: Data) {
         guard !data.isEmpty else { return }
         lock.lock()
-        storage.append(data)
+        let remaining = max(0, limit - storage.count)
+        if remaining > 0 {
+            storage.append(data.prefix(remaining))
+        }
         lock.unlock()
     }
 

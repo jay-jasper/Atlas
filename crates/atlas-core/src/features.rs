@@ -1,4 +1,28 @@
 use std::collections::HashMap;
+use thiserror::Error;
+
+/// Product edition enforced by the core feature gate.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Edition {
+    Free,
+    Pro,
+    Community,
+}
+
+impl Edition {
+    fn includes(self, required: Self) -> bool {
+        matches!(
+            (self, required),
+            (Self::Community, _) | (Self::Pro, Self::Free | Self::Pro) | (Self::Free, Self::Free)
+        )
+    }
+}
+
+#[derive(Debug, Error, PartialEq, Eq)]
+pub enum FeatureToggleError {
+    #[error("feature '{feature}' requires the {required:?} edition")]
+    EntitlementDenied { feature: String, required: Edition },
+}
 
 /// Represents the state of a feature module.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -12,6 +36,7 @@ pub enum FeatureStatus {
 /// Manages the registration and state of Atlas feature modules.
 pub struct FeatureManager {
     features: HashMap<String, FeatureStatus>,
+    edition: Edition,
 }
 
 impl Default for FeatureManager {
@@ -87,12 +112,29 @@ impl FeatureManager {
         features.insert("watermark".to_string(), FeatureStatus::Disabled);
         features.insert("web-wallpaper".to_string(), FeatureStatus::Disabled);
         features.insert("window-manager".to_string(), FeatureStatus::Disabled);
-        Self { features }
+        Self {
+            features,
+            edition: Edition::Free,
+        }
     }
 
     /// Toggles a feature state. Returns true if the feature existed and was toggled.
-    pub fn toggle_feature(&mut self, name: &str, enabled: bool) -> bool {
-        if let Some(status) = self.features.get_mut(name) {
+    pub fn toggle_feature(
+        &mut self,
+        name: &str,
+        enabled: bool,
+    ) -> Result<bool, FeatureToggleError> {
+        if enabled {
+            let required = Self::required_edition(name);
+            if self.features.contains_key(name) && !self.edition.includes(required) {
+                return Err(FeatureToggleError::EntitlementDenied {
+                    feature: name.to_string(),
+                    required,
+                });
+            }
+        }
+
+        Ok(if let Some(status) = self.features.get_mut(name) {
             *status = if enabled {
                 FeatureStatus::Enabled
             } else {
@@ -101,6 +143,37 @@ impl FeatureManager {
             true
         } else {
             false
+        })
+    }
+
+    /// Updates the authoritative edition and disables features no longer allowed.
+    pub fn set_edition(&mut self, edition: Edition) {
+        self.edition = edition;
+        let disallowed: Vec<String> = self
+            .features
+            .keys()
+            .filter(|name| !edition.includes(Self::required_edition(name)))
+            .cloned()
+            .collect();
+        for name in disallowed {
+            if let Some(status) = self.features.get_mut(&name) {
+                *status = FeatureStatus::Disabled;
+            }
+        }
+    }
+
+    pub fn edition(&self) -> Edition {
+        self.edition
+    }
+
+    pub fn is_enabled(&self, name: &str) -> bool {
+        self.get_feature_status(name) == Some(FeatureStatus::Enabled)
+    }
+
+    pub fn required_edition(name: &str) -> Edition {
+        match name {
+            "window-manager" | "tokenbar" | "skills" => Edition::Pro,
+            _ => Edition::Free,
         }
     }
 
@@ -129,13 +202,13 @@ mod tests {
             Some(FeatureStatus::Disabled)
         );
 
-        fm.toggle_feature("monitoring", true);
+        assert!(fm.toggle_feature("monitoring", true).unwrap());
         assert_eq!(
             fm.get_feature_status("monitoring"),
             Some(FeatureStatus::Enabled)
         );
 
-        fm.toggle_feature("monitoring", false);
+        assert!(fm.toggle_feature("monitoring", false).unwrap());
         assert_eq!(
             fm.get_feature_status("monitoring"),
             Some(FeatureStatus::Disabled)
@@ -145,13 +218,42 @@ mod tests {
     #[test]
     fn test_toggle_non_existent_feature() {
         let mut fm = FeatureManager::new();
-        assert!(!fm.toggle_feature("non-existent", true));
+        assert!(!fm.toggle_feature("non-existent", true).unwrap());
+    }
+
+    #[test]
+    fn free_edition_rejects_pro_feature() {
+        let mut fm = FeatureManager::new();
+
+        assert_eq!(
+            fm.toggle_feature("window-manager", true),
+            Err(FeatureToggleError::EntitlementDenied {
+                feature: "window-manager".to_string(),
+                required: Edition::Pro,
+            })
+        );
+        assert!(!fm.is_enabled("window-manager"));
+    }
+
+    #[test]
+    fn edition_downgrade_disables_pro_features() {
+        let mut fm = FeatureManager::new();
+        fm.set_edition(Edition::Pro);
+        assert!(fm.toggle_feature("skills", true).unwrap());
+
+        fm.set_edition(Edition::Free);
+
+        assert!(!fm.is_enabled("skills"));
     }
 
     #[test]
     fn test_list_features_is_sorted_by_name() {
         let fm = FeatureManager::new();
-        let names: Vec<_> = fm.list_features().into_iter().map(|(name, _)| name).collect();
+        let names: Vec<_> = fm
+            .list_features()
+            .into_iter()
+            .map(|(name, _)| name)
+            .collect();
 
         assert_eq!(
             names,

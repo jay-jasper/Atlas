@@ -2,6 +2,11 @@ import Foundation
 
 protocol EntitlementProviding {
     func currentEntitlement() -> LocalEntitlementState
+    func refreshEntitlement() async
+}
+
+extension EntitlementProviding {
+    func refreshEntitlement() async {}
 }
 
 struct LocalEntitlementProvider: EntitlementProviding {
@@ -57,6 +62,10 @@ final class EntitlementService {
 
     func currentState() -> LocalEntitlementState {
         provider.currentEntitlement()
+    }
+
+    func refresh() async {
+        await provider.refreshEntitlement()
     }
 
     func availability(for featureName: String) -> FeatureAvailability {

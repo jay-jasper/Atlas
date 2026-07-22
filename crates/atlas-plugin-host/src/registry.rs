@@ -46,7 +46,7 @@ impl PluginRegistry {
     /// All installed plugins, sorted by id for deterministic listing.
     pub fn list(&self) -> Vec<&PluginManifest> {
         let mut all: Vec<_> = self.plugins.values().collect();
-        all.sort_by(|a, b| a.id().cmp(&b.id()));
+        all.sort_by_key(|plugin| plugin.id());
         all
     }
 
@@ -68,7 +68,7 @@ impl PluginRegistry {
             .values()
             .filter(|m| m.runtime.kind == kind)
             .collect();
-        all.sort_by(|a, b| a.id().cmp(&b.id()));
+        all.sort_by_key(|plugin| plugin.id());
         all
     }
 }

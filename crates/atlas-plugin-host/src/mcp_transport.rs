@@ -1,8 +1,10 @@
 //! MCP subprocess transport (Phase δ, #59): spawns an MCP server process and
 //! exchanges newline-delimited JSON-RPC messages over stdio.
 
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::process::{Child, ChildStdin, Command, Stdio};
+use std::sync::{mpsc, Arc, Mutex};
+use std::time::Duration;
 
 use serde_json::Value;
 
@@ -44,28 +46,103 @@ pub enum TransportError {
     Io(String),
     #[error("server closed the connection")]
     Closed,
+    #[error("timed out waiting for MCP server response")]
+    Timeout,
+    #[error("MCP message exceeds {0} bytes")]
+    MessageTooLarge(usize),
 }
 
 /// A spawned MCP server process with line-framed JSON-RPC stdio.
 pub struct McpProcess {
     child: Child,
     stdin: ChildStdin,
-    stdout: BufReader<std::process::ChildStdout>,
+    messages: mpsc::Receiver<Result<Value, TransportError>>,
+    timeout: Duration,
+    stderr: Arc<Mutex<Vec<u8>>>,
 }
 
 impl McpProcess {
     /// Spawns `command` with `args`, piping stdio.
     pub fn spawn(command: &str, args: &[&str]) -> Result<Self, TransportError> {
+        Self::spawn_with_limits(
+            command,
+            args,
+            Duration::from_secs(30),
+            1024 * 1024,
+            64 * 1024,
+        )
+    }
+
+    pub fn spawn_with_limits(
+        command: &str,
+        args: &[&str],
+        timeout: Duration,
+        max_message_bytes: usize,
+        max_stderr_bytes: usize,
+    ) -> Result<Self, TransportError> {
         let mut child = Command::new(command)
             .args(args)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
-            .stderr(Stdio::null())
+            .stderr(Stdio::piped())
             .spawn()
             .map_err(|e| TransportError::Spawn(e.to_string()))?;
         let stdin = child.stdin.take().ok_or(TransportError::Closed)?;
-        let stdout = BufReader::new(child.stdout.take().ok_or(TransportError::Closed)?);
-        Ok(Self { child, stdin, stdout })
+        let stdout = child.stdout.take().ok_or(TransportError::Closed)?;
+        let stderr_pipe = child.stderr.take().ok_or(TransportError::Closed)?;
+        let (sender, messages) = mpsc::channel();
+        std::thread::spawn(move || {
+            let mut reader = BufReader::new(stdout);
+            loop {
+                let mut line = Vec::new();
+                match read_limited_line(&mut reader, &mut line, max_message_bytes) {
+                    Ok(0) => {
+                        let _ = sender.send(Err(TransportError::Closed));
+                        break;
+                    }
+                    Ok(size) if size > max_message_bytes => {
+                        let _ =
+                            sender.send(Err(TransportError::MessageTooLarge(max_message_bytes)));
+                    }
+                    Ok(_) => {
+                        let parsed = serde_json::from_slice::<Value>(&line)
+                            .map_err(|e| TransportError::Io(e.to_string()));
+                        if sender.send(parsed).is_err() {
+                            break;
+                        }
+                    }
+                    Err(error) => {
+                        let _ = sender.send(Err(TransportError::Io(error.to_string())));
+                        break;
+                    }
+                }
+            }
+        });
+
+        let stderr = Arc::new(Mutex::new(Vec::new()));
+        let stderr_buffer = Arc::clone(&stderr);
+        std::thread::spawn(move || {
+            let mut reader = BufReader::new(stderr_pipe);
+            let mut chunk = [0_u8; 4096];
+            while let Ok(count) = reader.read(&mut chunk) {
+                if count == 0 {
+                    break;
+                }
+                let mut buffer = match stderr_buffer.lock() {
+                    Ok(buffer) => buffer,
+                    Err(_) => break,
+                };
+                let remaining = max_stderr_bytes.saturating_sub(buffer.len());
+                buffer.extend_from_slice(&chunk[..count.min(remaining)]);
+            }
+        });
+        Ok(Self {
+            child,
+            stdin,
+            messages,
+            timeout,
+            stderr,
+        })
     }
 
     /// Writes one JSON-RPC message as a newline-terminated line.
@@ -80,20 +157,62 @@ impl McpProcess {
 
     /// Reads the next complete JSON-RPC message (blocking).
     pub fn recv(&mut self) -> Result<Value, TransportError> {
-        let mut line = String::new();
-        let n = self
-            .stdout
-            .read_line(&mut line)
-            .map_err(|e| TransportError::Io(e.to_string()))?;
-        if n == 0 {
-            return Err(TransportError::Closed);
+        match self.messages.recv_timeout(self.timeout) {
+            Ok(result) => result,
+            Err(mpsc::RecvTimeoutError::Timeout) => Err(TransportError::Timeout),
+            Err(mpsc::RecvTimeoutError::Disconnected) => Err(TransportError::Closed),
         }
-        serde_json::from_str(line.trim()).map_err(|e| TransportError::Io(e.to_string()))
+    }
+
+    pub fn stderr_output(&self) -> String {
+        self.stderr
+            .lock()
+            .map(|bytes| String::from_utf8_lossy(&bytes).into_owned())
+            .unwrap_or_default()
+    }
+
+    fn cleanup(&mut self) {
+        let _ = self.child.kill();
+        let _ = self.child.wait();
     }
 
     pub fn shutdown(mut self) {
-        let _ = self.child.kill();
-        let _ = self.child.wait();
+        self.cleanup();
+    }
+}
+
+impl Drop for McpProcess {
+    fn drop(&mut self) {
+        self.cleanup();
+    }
+}
+
+fn read_limited_line<R: BufRead>(
+    reader: &mut R,
+    output: &mut Vec<u8>,
+    limit: usize,
+) -> std::io::Result<usize> {
+    let mut total = 0_usize;
+    loop {
+        let available = reader.fill_buf()?;
+        if available.is_empty() {
+            return Ok(total);
+        }
+        let consumed = available
+            .iter()
+            .position(|byte| *byte == b'\n')
+            .map_or(available.len(), |index| index + 1);
+        total = total.saturating_add(consumed);
+        let remaining = limit.saturating_add(1).saturating_sub(output.len());
+        output.extend_from_slice(&available[..consumed.min(remaining)]);
+        let found_newline = available.get(consumed.saturating_sub(1)) == Some(&b'\n');
+        reader.consume(consumed);
+        if found_newline {
+            while matches!(output.last(), Some(b'\n' | b'\r')) {
+                output.pop();
+            }
+            return Ok(total);
+        }
     }
 }
 
@@ -145,5 +264,48 @@ mod tests {
             McpProcess::spawn("/nonexistent/binary/xyz", &[]),
             Err(TransportError::Spawn(_))
         ));
+    }
+
+    #[test]
+    fn receive_times_out() {
+        let mut process = McpProcess::spawn_with_limits(
+            "/bin/sleep",
+            &["5"],
+            Duration::from_millis(20),
+            1024,
+            1024,
+        )
+        .unwrap();
+        assert!(matches!(process.recv(), Err(TransportError::Timeout)));
+    }
+
+    #[test]
+    fn rejects_oversized_message() {
+        let mut process = McpProcess::spawn_with_limits(
+            "/bin/sh",
+            &["-c", "printf '{\"data\":\"1234567890\"}\\n'"],
+            Duration::from_secs(1),
+            8,
+            1024,
+        )
+        .unwrap();
+        assert!(matches!(
+            process.recv(),
+            Err(TransportError::MessageTooLarge(8))
+        ));
+    }
+
+    #[test]
+    fn captures_capped_stderr() {
+        let process = McpProcess::spawn_with_limits(
+            "/bin/sh",
+            &["-c", "printf 'abcdefghij' >&2; sleep 0.05"],
+            Duration::from_secs(1),
+            1024,
+            4,
+        )
+        .unwrap();
+        std::thread::sleep(Duration::from_millis(30));
+        assert_eq!(process.stderr_output(), "abcd");
     }
 }

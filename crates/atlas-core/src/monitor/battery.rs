@@ -18,12 +18,8 @@ pub fn get_battery_info() -> Result<Option<BatterySnapshot>> {
 
     let charge_percent = battery.state_of_charge().get::<percent>();
     let is_charging = matches!(battery.state(), State::Charging | State::Full);
-    let time_to_empty_secs = battery
-        .time_to_empty()
-        .map(|t| t.get::<second>() as i64);
-    let time_to_full_secs = battery
-        .time_to_full()
-        .map(|t| t.get::<second>() as i64);
+    let time_to_empty_secs = battery.time_to_empty().map(|t| t.get::<second>() as i64);
+    let time_to_full_secs = battery.time_to_full().map(|t| t.get::<second>() as i64);
     let health_percent = battery.state_of_health().get::<percent>();
     let cycle_count = battery.cycle_count();
 
@@ -44,7 +40,11 @@ mod tests {
     #[test]
     fn test_battery_info_does_not_panic() {
         let result = get_battery_info();
-        assert!(result.is_ok(), "get_battery_info() should not error: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "get_battery_info() should not error: {:?}",
+            result.err()
+        );
     }
 
     #[test]

@@ -4,14 +4,24 @@ version = "0.1.0"
 edition = "2021"
 description = "Host runtime for Atlas plugins (WASM Track A + MCP Track B): manifest parsing, capability gating, and registry."
 
+[features]
+default = []
+lua = ["dep:mlua"]
+
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 toml = "0.8"
 thiserror = "1.0"
 sha2 = "0.10"
-mlua = { version = "0.9", features = ["lua54", "vendored"] }
-wasmtime = { version = "26", default-features = false, features = ["cranelift", "runtime", "gc"] }
+mlua = { version = "0.9", features = ["lua54", "vendored"], optional = true }
+wasmtime = { version = "43.0.1", default-features = false, features = ["cranelift", "runtime"] }
+semver = "1.0"
+base64 = "0.22"
+ed25519-dalek = "2.2"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+atlas-ui-schema = { path = "../atlas-ui-schema" }
+atlas-plugin-js = { path = "../atlas-plugin-js" }
 
 [dev-dependencies]
 wat = "1"
