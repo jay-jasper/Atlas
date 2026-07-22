@@ -206,6 +206,10 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
         }
     }
 
+    func popoverDidClose(_ notification: Notification) {
+        removePopoverDismissMonitors()
+    }
+
     @objc private func statusButtonClicked(_ sender: NSStatusBarButton) {
         let event = NSApp.currentEvent
         let isRightClick = event?.type == .rightMouseUp
@@ -220,6 +224,31 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
     /// Lightweight popover host used while the main window owns the shared
     /// ContentView host — the menu bar panel stays clickable in parallel.
     private lazy var standalonePanelHost = NSHostingController(rootView: StandaloneMenuPanelView())
+    private var popoverDismissMonitors: [Any] = []
+
+    /// transient 行为在自家窗口前台时不可靠:显式监听,点到面板外一律收起。
+    private func installPopoverDismissMonitors() {
+        removePopoverDismissMonitors()
+        let local = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            guard let self, self.popover.isShown else { return event }
+            if event.window != self.popover.contentViewController?.view.window {
+                self.popover.performClose(nil)
+            }
+            return event
+        }
+        let global = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self, self.popover.isShown else { return }
+                self.popover.performClose(nil)
+            }
+        }
+        popoverDismissMonitors = [local, global].compactMap { $0 }
+    }
+
+    private func removePopoverDismissMonitors() {
+        popoverDismissMonitors.forEach { NSEvent.removeMonitor($0) }
+        popoverDismissMonitors = []
+    }
 
     private func togglePopover(from sender: NSStatusBarButton) {
         if popover.isShown {
@@ -235,6 +264,7 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
         popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
         popover.contentViewController?.view.window?.makeKey()
         NSApp.activate(ignoringOtherApps: true)
+        installPopoverDismissMonitors()
     }
 
     private func showQuickMenu(from sender: NSStatusBarButton) {
