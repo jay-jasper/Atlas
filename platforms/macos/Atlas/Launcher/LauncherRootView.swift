@@ -89,7 +89,6 @@ struct LauncherRootView: View {
                 }
             }
             .fixedSize(horizontal: false, vertical: true)
-            .frame(maxHeight: .infinity, alignment: .top)
 
             if nav.isActionPanelOpen, let selected, !selected.actions.isEmpty {
                 ActionPanelView(
