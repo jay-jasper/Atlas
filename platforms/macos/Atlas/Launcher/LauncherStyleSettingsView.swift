@@ -109,50 +109,6 @@ struct LauncherStyleControls: View {
         var id: String { rawValue }
     }
 
-    /// 成套预设:一键套用 背景+边框+圆角,其余项(尺寸/字体)不动。
-    struct StylePreset: Identifiable {
-        let id: String
-        let name: String
-        let apply: (inout LauncherStyle) -> Void
-    }
-
-    static let presets: [StylePreset] = [
-        StylePreset(id: "theme", name: "跟随主题") { style in
-            style.background = .theme
-            style.borderColor = .clear
-            style.borderWidth = 0
-            style.cornerRadius = 16
-        },
-        StylePreset(id: "glass", name: "玻璃") { style in
-            style.background = .material(opacity: 0.8)
-            style.borderColor = RGBAColor(r: 1, g: 1, b: 1, a: 0.35)
-            style.borderWidth = 1
-            style.cornerRadius = 18
-        },
-        StylePreset(id: "night", name: "暗夜") { style in
-            style.background = .solid(RGBAColor(r: 0.10, g: 0.10, b: 0.12, a: 1))
-            style.borderColor = RGBAColor(r: 1, g: 1, b: 1, a: 0.15)
-            style.borderWidth = 1
-            style.cornerRadius = 14
-        },
-        StylePreset(id: "aurora", name: "极光渐变") { style in
-            style.background = .gradient(
-                RGBAColor(r: 0.30, g: 0.20, b: 0.60, a: 1),
-                RGBAColor(r: 0.10, g: 0.35, b: 0.60, a: 1),
-                angleDegrees: 135
-            )
-            style.borderColor = RGBAColor(r: 1, g: 1, b: 1, a: 0.25)
-            style.borderWidth = 1
-            style.cornerRadius = 20
-        },
-        StylePreset(id: "minimal", name: "极简白") { style in
-            style.background = .solid(RGBAColor(r: 0.98, g: 0.98, b: 0.98, a: 1))
-            style.borderColor = RGBAColor(r: 0, g: 0, b: 0, a: 0.12)
-            style.borderWidth = 1
-            style.cornerRadius = 10
-        },
-    ]
-
     private var backgroundKind: BackgroundKind {
         switch styleStore.style.background {
         case .theme: return .theme
@@ -165,22 +121,6 @@ struct LauncherStyleControls: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                Text(loc("预设", "Presets"))
-                    .font(.caption)
-                    .frame(width: 96, alignment: .leading)
-                ForEach(Self.presets) { preset in
-                    Button(preset.name) {
-                        preset.apply(&styleStore.style)
-                    }
-                    .font(.caption)
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .focusable(false)
-                }
-                Spacer()
-            }
-
             Picker(loc("背景", "Background"), selection: Binding(
                 get: { backgroundKind },
                 set: { kind in
