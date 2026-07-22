@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "crates/atlas-ai",
     "crates/atlas-core",
     "crates/atlas-ffi",
     "crates/atlas-module-loader",
