@@ -734,6 +734,7 @@ struct ContentView: View {
     @State private var selectedShellTool: PrimaryPanelSection = .screenshot
     @State private var selectedShellTab: ShellToolTab = .overview
     @State private var shellTab: ShellTab = .general
+    @State private var pluginsSelection: PluginsTab.Selection = .dashboard
     @State private var shellPage: ShellPage = .dashboard
     @StateObject private var menuWidgetStore = WidgetStore()
     @StateObject private var menuBluetoothBattery = BluetoothBatteryService()
@@ -838,6 +839,84 @@ struct ContentView: View {
 
     /// The designed Shell (`Atlas Shell.dc.html`) as the menu bar home, backed by
     /// real monitoring/feature/scene data and wired to real actions.
+    // MARK: - Plugins tab (sidebar layout)
+
+    @ViewBuilder
+    private var pluginsTabView: some View {
+        if let paletteState {
+            PluginsTab(
+                selection: $pluginsSelection,
+                toolEntries: orderedPrimarySections().map { section in
+                    PluginsTab.ToolEntry(
+                        id: AnyHashable(section),
+                        title: section.module.localizedTitle,
+                        icon: ShellToolGroup.group(containing: section).icon
+                    )
+                },
+                dashboardView: { AnyView(self.pluginsDashboard) },
+                menuPanelConfigView: { AnyView(MenuPanelConfigView(store: self.menuWidgetStore)) },
+                commandsView: {
+                    AnyView(CommandsTableView(
+                        aliases: paletteState.launcherAliases,
+                        hotkeys: paletteState.launcherCommandHotkeys,
+                        favorites: paletteState.launcherFavorites,
+                        hotkeyConflicts: paletteState.commandHotkeyConflicts,
+                        rootItems: { [weak controller = paletteState.controller] in
+                            controller?.allRootItems() ?? []
+                        }
+                    ))
+                },
+                marketView: { AnyView(MarketView(service: self.pluginsService)) },
+                toolView: { tag in AnyView(self.pluginsToolPage(tag)) }
+            )
+        } else {
+            Text("初始化中…").foregroundColor(.secondary)
+        }
+    }
+
+    private var pluginsDashboard: some View {
+        Group {
+            switch shellPage {
+            case .dashboard:
+                shellDashboard
+            case .library:
+                shellLibrary
+            case .tool:
+                shellToolPage
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func pluginsToolPage(_ tag: AnyHashable) -> some View {
+        if let section = tag.base as? PrimaryPanelSection {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    PermissionStatusSection(permissions: Self.permissions(for: section))
+                    primaryPanelSection(section)
+                        .glassCard(padding: 12)
+                }
+                .padding(14)
+                .frame(maxWidth: 720, alignment: .leading)
+            }
+        } else {
+            EmptyView()
+        }
+    }
+
+    private static func permissions(for section: PrimaryPanelSection) -> [ToolPermission] {
+        switch section {
+        case .windowManager, .altTab:
+            return [.accessibility]
+        case .screenshot, .recordingIndicator, .recordingEditor:
+            return [.screenRecording]
+        case .liveCaption, .subtitles:
+            return [.screenRecording]
+        default:
+            return []
+        }
+    }
+
     // MARK: - MacTools-style menu bar panel
 
     private var menuPanelView: some View {
@@ -1018,20 +1097,16 @@ struct ContentView: View {
                             GeneralSettingsTab(
                                 shellThemeRaw: $shellThemeRaw,
                                 paletteState: paletteState,
-                                onOpenCommands: { shellTab = .plugins }
+                                onOpenCommands: {
+                                    shellTab = .plugins
+                                    pluginsSelection = .commands
+                                }
                             )
                         } else {
                             Text("初始化中…").foregroundColor(.secondary)
                         }
                     case .plugins:
-                        switch shellPage {
-                        case .dashboard:
-                            shellDashboard
-                        case .library:
-                            shellLibrary
-                        case .tool:
-                            shellToolPage
-                        }
+                        pluginsTabView
                     case .ai:
                         AITabView()
                     case .about:
