@@ -12,6 +12,9 @@ final class GlobalHotkeyManager {
     private var handlers: [UInt32: () -> Void] = [:]
     private var nextID: UInt32 = 1
     private var installed = false
+    /// 'ATSS' — screenshot hotkeys. Distinct from GlobalHotkeyService('ATLS')
+    /// so the two Carbon handlers never fire each other's registrations.
+    static let signature: OSType = 0x41545353
 
     @discardableResult
     func register(keyCode: UInt32, modifiers: UInt32, _ handler: @escaping () -> Void) -> UInt32 {
@@ -19,7 +22,7 @@ final class GlobalHotkeyManager {
         let id = nextID
         nextID += 1
         var ref: EventHotKeyRef?
-        let hotKeyID = EventHotKeyID(signature: OSType(0x41544C53), id: id) // 'ATLS'
+        let hotKeyID = EventHotKeyID(signature: GlobalHotkeyManager.signature, id: id) // 'ATSS'
         let status = RegisterEventHotKey(keyCode, modifiers, hotKeyID, GetApplicationEventTarget(), 0, &ref)
         if status == noErr, let ref {
             refs[id] = ref
@@ -43,6 +46,7 @@ final class GlobalHotkeyManager {
             var hkID = EventHotKeyID()
             GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID),
                               nil, MemoryLayout<EventHotKeyID>.size, nil, &hkID)
+            guard hkID.signature == GlobalHotkeyManager.signature else { return noErr }
             let manager = Unmanaged<GlobalHotkeyManager>.fromOpaque(userData).takeUnretainedValue()
             manager.handlers[hkID.id]?()
             return noErr

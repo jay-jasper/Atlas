@@ -102,6 +102,7 @@ final class GlobalHotkeyService {
                     nil,
                     &hotKeyID
                 )
+                guard hotKeyID.signature == GlobalHotkeyService.signature else { return noErr }
                 let service = Unmanaged<GlobalHotkeyService>.fromOpaque(userData).takeUnretainedValue()
                 MainActor.assumeIsolated {
                     service.fire(id: hotKeyID.id)
@@ -175,7 +176,7 @@ final class GlobalHotkeyService {
         return status == noErr ? ref : nil
     }
 
-    private static let signature: OSType = {
+    static let signature: OSType = {
         // "ATLS"
         OSType(0x41544C53)
     }()
