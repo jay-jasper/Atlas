@@ -1511,11 +1511,6 @@ struct InkWashBackgroundView: View {
                     .blur(radius: 60)
                     .position(x: size.width * 0.85, y: size.height * 0.80)
 
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(Color(red: 0.769, green: 0.118, blue: 0.227).opacity(0.55))
-                    .frame(width: 18, height: 18)
-                    .position(x: size.width - 40, y: size.height - 44)
-
                 ShellNoiseOverlay(dotColor: Color(red: 0.35, green: 0.32, blue: 0.28))
                     .opacity(0.35)
             }
