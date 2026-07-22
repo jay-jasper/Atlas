@@ -13,6 +13,7 @@ struct GeneralSettingsTab: View {
     @AppStorage(AppLanguage.storageKey) private var languageRaw = AppLanguage.system.rawValue
     @State private var languageChanged = false
     @ObservedObject private var menuBarIcon = MenuBarIconStore.shared
+    @ObservedObject private var dockIcon = DockIconStore.shared
 
     var body: some View {
         ScrollView {
@@ -167,6 +168,47 @@ struct GeneralSettingsTab: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.bottom, 8)
+            }
+
+            SettingsRowDivider()
+
+            VStack(alignment: .leading, spacing: 6) {
+                SettingsRow(
+                    icon: "dock.rectangle",
+                    tint: .indigo,
+                    title: loc("Dock 图标", "Dock Icon"),
+                    description: loc("9 款预设,主窗口打开时生效于 Dock。", "9 presets, shown in the Dock while the main window is open.")
+                ) {
+                    if dockIcon.presetID != nil {
+                        Button(loc("恢复默认", "Restore Default")) {
+                            dockIcon.select(nil)
+                        }
+                        .font(.callout)
+                    }
+                }
+
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 9), spacing: 8) {
+                    ForEach(DockIconStore.presets) { preset in
+                        Button {
+                            dockIcon.select(preset.id)
+                        } label: {
+                            Image(nsImage: DockIconStore.render(preset, size: 64))
+                                .resizable()
+                                .frame(width: 44, height: 44)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10).stroke(
+                                        dockIcon.presetID == preset.id ? Color.accentColor : Color.clear,
+                                        lineWidth: 2
+                                    )
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .focusable(false)
+                        .help(preset.name)
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.bottom, 10)
             }
         }
     }

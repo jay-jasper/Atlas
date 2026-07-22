@@ -195,6 +195,7 @@
 		6D248500F216A8D65A7523D4 /* LauncherSectionBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B03CC0507B7DAAE353DAF87 /* LauncherSectionBuilder.swift */; };
 		6D25AD121C9FEB8659F7D05B /* BluetoothBatteryPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4932E83B1A7887CBBFB6EBD7 /* BluetoothBatteryPanel.swift */; };
 		6DF451F0D839EF9E9E4A3FD5 /* PluginsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22D92B79173885B97F04FE5D /* PluginsPanel.swift */; };
+		6DF92C1282C396C2402A56D0 /* DockIconStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FC1748F36732DDDB733B546 /* DockIconStore.swift */; };
 		6E54B7B81BA7BE6955D1CDF0 /* MenuBarItemSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA2395B1D3CC4A1D4FC7F3D5 /* MenuBarItemSource.swift */; };
 		6F2C2324BB44B07A6739D437 /* ClipboardHistoryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920B22C57AF5F1BF6EF6666E /* ClipboardHistoryStoreTests.swift */; };
 		712B94C3C038F44186A540D9 /* ProductionEntitlementProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93C7777BA6AE2ED91D4D1A18 /* ProductionEntitlementProviders.swift */; };
@@ -897,6 +898,7 @@
 		8DE8C692301948D9A1E44D75 /* AutomationProcessRunner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutomationProcessRunner.swift; sourceTree = "<group>"; };
 		8E2871FEEE64F42C8DEC50A7 /* EmojiProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EmojiProvider.swift; sourceTree = "<group>"; };
 		8E579A42BA6F560BDEF26793 /* AtlasTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasTheme.swift; sourceTree = "<group>"; };
+		8FC1748F36732DDDB733B546 /* DockIconStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DockIconStore.swift; sourceTree = "<group>"; };
 		90CE9A2410A0B2E60F2C15DE /* CalendarWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarWidget.swift; sourceTree = "<group>"; };
 		920B22C57AF5F1BF6EF6666E /* ClipboardHistoryStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryStoreTests.swift; sourceTree = "<group>"; };
 		92409F2ED0AF8A50BF6CCB56 /* DiskUsageScanner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DiskUsageScanner.swift; sourceTree = "<group>"; };
@@ -1481,6 +1483,7 @@
 				16CAD513D0AD011428DF1573 /* PluginsTab.swift */,
 				C8E1258F84049593DD3E09AF /* AppLanguage.swift */,
 				0C66F2DB29D1E4E03FB317D8 /* MenuBarIconStore.swift */,
+				8FC1748F36732DDDB733B546 /* DockIconStore.swift */,
 			);
 			name = MainShell;
 			path = MainShell;
@@ -2755,6 +2758,7 @@
 				CF858251380CD230A65D7358 /* AppLanguage.swift in Sources */,
 				7D80F1181ABFD7F5542DF851 /* MenuBarIconStore.swift in Sources */,
 				46287A40B6909BE916B09090 /* QuickMenuPanel.swift in Sources */,
+				6DF92C1282C396C2402A56D0 /* DockIconStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -70,6 +70,7 @@ final class AtlasAppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         menuBar.install()
+        DockIconStore.shared.apply()
         // Dev/automation affordance: `open Atlas.app --args --main-window`.
         if ProcessInfo.processInfo.arguments.contains("--main-window") {
             DispatchQueue.main.async {
