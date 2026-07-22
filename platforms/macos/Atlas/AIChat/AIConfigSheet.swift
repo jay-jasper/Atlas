@@ -28,6 +28,7 @@ struct ByokPreset: Identifiable, Equatable {
 struct AIConfigSheet: View {
     @ObservedObject var bridge: AIChatBridge
     @ObservedObject var engineStore: AIEngineStore
+    var embedded: Bool = false
     @Environment(\.dismiss) private var dismiss
 
     private enum Mode: String, CaseIterable, Identifiable {
@@ -44,12 +45,14 @@ struct AIConfigSheet: View {
                 Text("AI 引擎")
                     .font(.title3.weight(.semibold))
                 Spacer()
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
+                if !embedded {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
             Text("在本机 CLI 与 BYOK 之间选择。")
                 .font(.caption)
@@ -71,7 +74,8 @@ struct AIConfigSheet: View {
             }
         }
         .padding(16)
-        .frame(width: 640, height: 560)
+        .frame(width: embedded ? nil : 640, height: embedded ? nil : 560)
+        .frame(maxWidth: embedded ? 760 : nil, maxHeight: embedded ? .infinity : nil, alignment: .topLeading)
         .onAppear {
             if case .byok = engineStore.engine { mode = .byok }
         }

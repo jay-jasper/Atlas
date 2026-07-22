@@ -47,7 +47,10 @@ struct LauncherRootView: View {
     }
 
     var body: some View {
-        let sections = nav.stack.isEmpty ? buildSections(nav.query) : []
+        // 默认只显示搜索框:空查询不出结果列表,输入后才展开。
+        let isRootIdle = nav.stack.isEmpty
+            && nav.query.trimmingCharacters(in: .whitespaces).isEmpty
+        let sections = (nav.stack.isEmpty && !isRootIdle) ? buildSections(nav.query) : []
         let rows = flattenedRows(sections)
         let selected: LauncherItem? = {
             if nav.stack.isEmpty {
@@ -60,9 +63,13 @@ struct LauncherRootView: View {
             VStack(spacing: 0) {
                 searchBar
 
-                Divider().opacity(0.4)
+                if !isRootIdle {
+                    Divider().opacity(0.4)
+                }
 
-                if nav.stack.isEmpty {
+                if isRootIdle {
+                    EmptyView()
+                } else if nav.stack.isEmpty {
                     rootList(rows: rows, selected: selected)
                 } else if let page = nav.currentPage {
                     LauncherPageView(
@@ -76,10 +83,13 @@ struct LauncherRootView: View {
                     .frame(maxHeight: CGFloat(style.maxVisibleRows) * style.rowHeight + 20)
                 }
 
-                Divider().opacity(0.4)
-
-                footerBar(selected: selected)
+                if !isRootIdle {
+                    Divider().opacity(0.4)
+                    footerBar(selected: selected)
+                }
             }
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxHeight: .infinity, alignment: .top)
 
             if nav.isActionPanelOpen, let selected, !selected.actions.isEmpty {
                 ActionPanelView(
