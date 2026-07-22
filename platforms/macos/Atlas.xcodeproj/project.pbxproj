@@ -291,6 +291,7 @@
 		886B7362DBD5DBAA6DEF7A4A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 593DD9B7AC0764BE268E75AD /* Cocoa.framework */; };
 		8872C0113BE59FC39B494E98 /* PresentationModeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4369F91C3158EA84ADCD15D /* PresentationModeService.swift */; };
 		8909E1D5DE07DA956392B285 /* AtlasCommandProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBDF9E2A609A5F89E4AB4EB4 /* AtlasCommandProvider.swift */; };
+		893B79FDA11895AC86E4AD33 /* LauncherItemSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3615E911C3BE0F13F8CCBCC5 /* LauncherItemSource.swift */; };
 		89D1D0FE14B4443787820294 /* ColorPickerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94361E3983074A22820A1D9B /* ColorPickerService.swift */; };
 		8A0CC41C5BEF824280F9044E /* PomodoroService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 409EE94BC8EC06ABED8266B9 /* PomodoroService.swift */; };
 		8A23C343760A4B7E967C6B61 /* TextToolboxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9340623ECDE46B583F67623 /* TextToolboxTests.swift */; };
@@ -377,6 +378,7 @@
 		B18F3D9274FB0D8980DFB97A /* KeepAwakeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E613269397434B9767C7202F /* KeepAwakeService.swift */; };
 		B2693753B7EFC4F6EA69249F /* AltTabService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E409459D2338D3EB38129C57 /* AltTabService.swift */; };
 		B31F3F74B436BFCB806BE134 /* TextExpansionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFD109CDC208DBAB7AD34845 /* TextExpansionService.swift */; };
+		B434395042190E4256AF449D /* LauncherAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 235B33D76035119B9C0C8391 /* LauncherAdapterTests.swift */; };
 		B43FDB7B55FAD8058B26BA1F /* ScrollSmoothingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C56605DB4C3C90DFF0D60C /* ScrollSmoothingTests.swift */; };
 		B5609DB0657808A5DC08F16C /* SoundFeedbackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EBD591C1EBC8CBE38672F1A /* SoundFeedbackService.swift */; };
 		B5B5459AA567D2B460157786 /* ScratchpadStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F7A649749AC86889896CCB8 /* ScratchpadStoreTests.swift */; };
@@ -551,6 +553,7 @@
 		227FB8773DCC103E01BBA767 /* LocalAIProcessSnapshotTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocalAIProcessSnapshotTests.swift; sourceTree = "<group>"; };
 		22A44260F6FC0C2D4643BD94 /* ScratchpadSummaryServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ScratchpadSummaryServiceTests.swift; path = ScratchpadSummaryServiceTests.swift; sourceTree = "<group>"; };
 		22D92B79173885B97F04FE5D /* PluginsPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PluginsPanel.swift; sourceTree = "<group>"; };
+		235B33D76035119B9C0C8391 /* LauncherAdapterTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherAdapterTests.swift; sourceTree = "<group>"; };
 		24CBC7B224EC0A0BB1539D46 /* WindowSwitcherTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WindowSwitcherTests.swift; sourceTree = "<group>"; };
 		24E25FECF18A7F3CCDE9A68E /* WindowGridPanelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WindowGridPanelTests.swift; sourceTree = "<group>"; };
 		252F2FD5229D5621736092CD /* PrivacyPulseReporterTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrivacyPulseReporterTests.swift; sourceTree = "<group>"; };
@@ -578,6 +581,7 @@
 		3307C1236032CD46473096AA /* BatteryHealthFormatter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BatteryHealthFormatter.swift; sourceTree = "<group>"; };
 		334BD4D2F1517A0C737DAB95 /* ScrollSmoothingEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScrollSmoothingEngine.swift; sourceTree = "<group>"; };
 		34EB499B8503D80D687FCC0D /* CurrencyService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CurrencyService.swift; sourceTree = "<group>"; };
+		3615E911C3BE0F13F8CCBCC5 /* LauncherItemSource.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherItemSource.swift; sourceTree = "<group>"; };
 		362AE9591CCD0A6003674E83 /* PacketMonitorService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PacketMonitorService.swift; sourceTree = "<group>"; };
 		38B7331557AC1DD1412B270B /* TokenBarCommandProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarCommandProviderTests.swift; sourceTree = "<group>"; };
 		398205EB68794093864D6724 /* FlowInboxStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FlowInboxStoreTests.swift; sourceTree = "<group>"; };
@@ -1713,6 +1717,7 @@
 				A46968AE085E8C4D57C52C4D /* AtlasThemeTests.swift */,
 				8BA86FD6FCF027407486EE2C /* ProductionSecurityTests.swift */,
 				507231465C6C56190E6E11F9 /* LauncherModelsTests.swift */,
+				235B33D76035119B9C0C8391 /* LauncherAdapterTests.swift */,
 			);
 			path = AtlasTests;
 			sourceTree = "<group>";
@@ -1853,6 +1858,7 @@
 			isa = PBXGroup;
 			children = (
 				886C13FF43F453D3AB5F633A /* LauncherModels.swift */,
+				3615E911C3BE0F13F8CCBCC5 /* LauncherItemSource.swift */,
 			);
 			name = Launcher;
 			path = Launcher;
@@ -2491,6 +2497,7 @@
 				CB37AA14507419739E7BA3DB /* LauncherModels.swift in Sources */,
 				435B50904D24C6646C52F7A2 /* CommandPaletteView.swift in Sources */,
 				03C90DCF6429A96BD0C7854C /* CommandPaletteController.swift in Sources */,
+				893B79FDA11895AC86E4AD33 /* LauncherItemSource.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2656,6 +2663,7 @@
 				3EED67F5C3718F6F65FD938D /* AtlasThemeTests.swift in Sources */,
 				E018938C70E5F312CFA473F2 /* ProductionSecurityTests.swift in Sources */,
 				95D8875CD9A5A4102066F6DC /* LauncherModelsTests.swift in Sources */,
+				B434395042190E4256AF449D /* LauncherAdapterTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
