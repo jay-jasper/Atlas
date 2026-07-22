@@ -1,0 +1,59 @@
+#!/usr/bin/env ruby
+# Registers Launcher module sources + tests in Atlas.xcodeproj. Idempotent.
+require "xcodeproj"
+
+project_path = File.expand_path(File.join(__dir__, "..", "Atlas.xcodeproj"))
+repo_macos = File.expand_path(File.join(__dir__, ".."))
+project = Xcodeproj::Project.open(project_path)
+
+app = project.targets.find { |t| t.name == "Atlas" } or abort "Atlas target missing"
+tests = project.targets.find { |t| t.name == "AtlasTests" } or abort "AtlasTests target missing"
+
+REMOVED_FILES = [
+  "CommandPaletteView.swift",
+  "CommandPaletteController.swift",
+].freeze
+
+def ensure_group(parent, name, path)
+  parent[name] || parent.new_group(name, path)
+end
+
+def add_file(group, target, filename)
+  reference = group.files.find { |f| f.path == filename } || group.new_reference(filename)
+  unless target.source_build_phase.files_references.include?(reference)
+    target.add_file_references([reference])
+  end
+end
+
+atlas_group = project.main_group["Atlas"] or abort "Atlas group missing"
+launcher_group = ensure_group(atlas_group, "Launcher", "Launcher")
+
+Dir.glob(File.join(repo_macos, "Atlas", "Launcher", "*.swift")).sort.each do |file|
+  add_file(launcher_group, app, File.basename(file))
+end
+
+tests_group = project.main_group["AtlasTests"] or abort "AtlasTests group missing"
+Dir.glob(File.join(repo_macos, "AtlasTests", "Launcher*Tests.swift")).sort.each do |file|
+  add_file(tests_group, tests, File.basename(file))
+end
+
+# Drop references to palette view layer files once they are deleted from disk;
+# re-add them while they still exist.
+palette_group = atlas_group["CommandPalette"]
+if palette_group
+  REMOVED_FILES.each do |name|
+    next unless File.exist?(File.join(repo_macos, "Atlas", "CommandPalette", name))
+    add_file(palette_group, app, name)
+  end
+  stale = palette_group.files.select do |f|
+    REMOVED_FILES.include?(f.path) &&
+      !File.exist?(File.join(repo_macos, "Atlas", "CommandPalette", f.path))
+  end
+  stale.each do |reference|
+    reference.build_files.each(&:remove_from_project)
+    reference.remove_from_project
+  end
+end
+
+project.save
+puts "Launcher files registered"
