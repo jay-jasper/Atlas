@@ -11,6 +11,7 @@ final class LauncherPanelController {
     private var panel: NSPanel?
     private var mouseMonitor: Any?
     private var keyMonitor: Any?
+    private var resizeObserver: NSObjectProtocol?
 
     private let sources: [LauncherItemSource]
     private let usageRecorder: CommandUsageRecording
@@ -96,7 +97,10 @@ final class LauncherPanelController {
         )
 
         let panelWidth = style.panelWidth
-        let panelHeight: CGFloat = 64 + CGFloat(style.maxVisibleRows) * style.rowHeight + 20 + 40 + 2
+        let defaultHeight: CGFloat = 64 + CGFloat(style.maxVisibleRows) * style.rowHeight + 20 + 40 + 2
+        // 上次拖拽保存的高度优先(夹在上下限内)。
+        let savedHeight = UserDefaults.standard.double(forKey: "launcher.panel.height")
+        let panelHeight = savedHeight > 0 ? min(max(savedHeight, 220), 900) : defaultHeight
         // 顶对齐 + 尾部 Spacer:空闲态只渲染搜索条,面板剩余区域保持透明。
         let hostingView = NSHostingView(rootView: VStack(spacing: 0) {
             rootView
@@ -106,10 +110,13 @@ final class LauncherPanelController {
 
         let newPanel = LauncherPanel(
             contentRect: CGRect(x: 0, y: 0, width: panelWidth, height: panelHeight),
-            styleMask: [.borderless, .nonactivatingPanel],
+            styleMask: [.borderless, .nonactivatingPanel, .resizable],
             backing: .buffered,
             defer: false
         )
+        // 可拖边缘调整大小,限制最小/最大。
+        newPanel.minSize = NSSize(width: 480, height: 220)
+        newPanel.maxSize = NSSize(width: 960, height: 900)
         newPanel.level = .modalPanel
         newPanel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         newPanel.backgroundColor = .clear
@@ -123,10 +130,30 @@ final class LauncherPanelController {
         newPanel.orderFrontRegardless()
         panel = newPanel
 
+        resizeObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didEndLiveResizeNotification,
+            object: newPanel,
+            queue: .main
+        ) { [weak self] notification in
+            Task { @MainActor [weak self] in
+                guard let self, let window = notification.object as? NSWindow else { return }
+                let size = window.frame.size
+                UserDefaults.standard.set(Double(size.height), forKey: "launcher.panel.height")
+                let clampedWidth = min(max(size.width, 480), 960)
+                if abs(self.styleStore.style.panelWidth - clampedWidth) > 1 {
+                    self.styleStore.style.panelWidth = clampedWidth
+                }
+            }
+        }
+
         installMonitors()
     }
 
     func hide() {
+        if let resizeObserver {
+            NotificationCenter.default.removeObserver(resizeObserver)
+        }
+        resizeObserver = nil
         panel?.close()
         panel = nil
         removeMonitors()
