@@ -746,6 +746,8 @@ extension View {
 struct ShellThemePickerPanel: View {
     @Binding var selectionRaw: String
     var onSelect: () -> Void = {}
+    /// true = 固定宽度(popover 弹出);false = 撑满容器(内嵌设置页,两边留白均衡)。
+    var fixedWidth: Bool = true
 
     private var selection: ShellThemeKind {
         ShellThemeKind(rawValue: selectionRaw) ?? .plain
@@ -778,7 +780,8 @@ struct ShellThemePickerPanel: View {
             }
         }
         .padding(12)
-        .frame(width: 520)
+        .frame(width: fixedWidth ? 520 : nil)
+        .frame(maxWidth: fixedWidth ? nil : .infinity)
     }
 }
 

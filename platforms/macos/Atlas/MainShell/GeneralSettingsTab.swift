@@ -74,7 +74,7 @@ struct GeneralSettingsTab: View {
                     title: loc("主题", "Theme"),
                     description: "主窗口与菜单栏面板的整体观感,共 \(ShellThemeKind.allCases.count) 套。"
                 ) { EmptyView() }
-                ShellThemePickerPanel(selectionRaw: $shellThemeRaw) {}
+                ShellThemePickerPanel(selectionRaw: $shellThemeRaw, onSelect: {}, fixedWidth: false)
                     .padding(.horizontal, 10)
                     .padding(.bottom, 8)
             }
