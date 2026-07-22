@@ -354,6 +354,8 @@ final class AtlasMainWindowController: NSObject, NSWindowDelegate {
         if popover?.isShown == true {
             popover?.performClose(nil)
         }
+        // 打开主界面时收起命令面板,避免浮层叠在主窗口上。
+        services.paletteState.controller.hide()
 
         if window == nil {
             let created = NSWindow(

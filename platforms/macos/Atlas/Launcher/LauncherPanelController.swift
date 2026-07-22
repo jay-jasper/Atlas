@@ -270,6 +270,13 @@ final class LauncherPanelController {
                 return nil
             }
 
+            // ⌘, 关闭面板并打开主界面(设置在通用 tab)。
+            if flags == .command, event.charactersIgnoringModifiers == "," {
+                self.hide()
+                AtlasServices.shared.openMainWindow?()
+                return nil
+            }
+
             // ⌘↵ runs the second action of the selected root item.
             if flags == .command, event.keyCode == 36 || event.keyCode == 76 {
                 if let item = self.selectedRootItem(), item.actions.count > 1 {
