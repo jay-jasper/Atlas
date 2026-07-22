@@ -5,7 +5,7 @@ import SwiftUI
 struct LauncherRootView: View {
     @ObservedObject var nav: LauncherNavigationModel
     @ObservedObject var styleStore: LauncherStyleStore
-    let buildSections: (String) -> [LauncherSectionData]
+    @ObservedObject var coordinator: LauncherSearchCoordinator
     let legacyViewBuilder: (PaletteDestination) -> AnyView
     let onOutcome: (LauncherItem, LauncherActionOutcome) -> Void
     let onDismiss: () -> Void
@@ -15,6 +15,7 @@ struct LauncherRootView: View {
 
     @AppStorage("atlas.shell.theme") private var shellThemeRaw = ShellThemeKind.plain.rawValue
     @FocusState private var isSearchFocused: Bool
+    @State private var emptyPulse = false
 
     private var shellTheme: ShellThemeKind {
         ShellThemeKind(rawValue: shellThemeRaw) ?? .plain
@@ -51,7 +52,7 @@ struct LauncherRootView: View {
         // 默认只显示搜索框:空查询不出结果列表,输入后才展开。
         let isRootIdle = nav.stack.isEmpty
             && nav.query.trimmingCharacters(in: .whitespaces).isEmpty
-        let sections = (nav.stack.isEmpty && !isRootIdle) ? buildSections(nav.query) : []
+        let sections = (nav.stack.isEmpty && !isRootIdle) ? coordinator.sections : []
         let rows = flattenedRows(sections)
         let selected: LauncherItem? = {
             if nav.stack.isEmpty {
@@ -157,7 +158,10 @@ struct LauncherRootView: View {
                 .textFieldStyle(.plain)
                 .font(.system(size: style.fontSize + 3))
                 .focused($isSearchFocused)
-                .onChange(of: nav.query) { _ in nav.selectedIndex = 0 }
+                .onChange(of: nav.query) { query in
+                    nav.selectedIndex = 0
+                    coordinator.updateQuery(query)
+                }
         }
         .padding(.horizontal, 16)
         .frame(height: 64)
@@ -189,15 +193,47 @@ struct LauncherRootView: View {
                                         item: row.item,
                                         isSelected: index == nav.selectedIndex,
                                         style: style,
-                                        accent: accent
+                                        accent: accent,
+                                        indexBadge: nav.showIndexBadges && index < 9 ? index + 1 : nil
                                     )
                                     .onTapGesture { runPrimary(row.item) }
                                 }
                             }
                             .id(index)
                         }
+
+                        if !coordinator.loadingSources.isEmpty {
+                            HStack(spacing: 8) {
+                                ProgressView().controlSize(.small)
+                                Text("搜索中…")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                        }
+
+                        if rows.isEmpty && coordinator.loadingSources.isEmpty {
+                            VStack(spacing: 8) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 28))
+                                    .foregroundColor(.secondary)
+                                    .scaleEffect(emptyPulse ? 1.08 : 0.94)
+                                    .animation(
+                                        .easeInOut(duration: 1.2).repeatForever(autoreverses: true),
+                                        value: emptyPulse
+                                    )
+                                    .onAppear { emptyPulse = true }
+                                Text("没有匹配的结果")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 24)
+                        }
                     }
                     .padding(.vertical, 4)
+                    .animation(.spring(response: 0.25, dampingFraction: 0.9), value: rows.count)
                 }
                 .frame(maxHeight: CGFloat(style.maxVisibleRows) * style.rowHeight + 20)
                 .onKeyPressCompatible(.upArrow) {

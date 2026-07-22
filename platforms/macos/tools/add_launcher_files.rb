@@ -50,6 +50,12 @@ Dir.glob(File.join(repo_macos, "Atlas", "AIChat", "ProviderIcons", "*.svg")).sor
   end
 end
 
+launcher_parent = atlas_group["Launcher"]
+search_group = ensure_group(launcher_parent, "Search", "Search")
+Dir.glob(File.join(repo_macos, "Atlas", "Launcher", "Search", "*.swift")).sort.each do |file|
+  add_file(search_group, app, File.basename(file))
+end
+
 widgets_parent = atlas_group["MenuPanel"]
 widgets_group = ensure_group(widgets_parent, "Widgets", "Widgets")
 Dir.glob(File.join(repo_macos, "Atlas", "MenuPanel", "Widgets", "*.swift")).sort.each do |file|

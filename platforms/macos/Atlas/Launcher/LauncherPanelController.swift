@@ -11,6 +11,7 @@ final class LauncherPanelController {
     private var panel: NSPanel?
     private var mouseMonitor: Any?
     private var keyMonitor: Any?
+    private var flagsMonitor: Any?
     private var resizeObserver: NSObjectProtocol?
 
     private let sources: [LauncherItemSource]
@@ -23,6 +24,18 @@ final class LauncherPanelController {
     // Optional stores wired in later phases.
     var fallbackItemsProvider: ((String) -> [LauncherItem])?
     var aliasResolver: AliasResolving?
+
+    /// 搜索总控(懒建:等 alias/fallback 接线完成后第一次 show 时创建)。
+    private(set) lazy var searchCoordinator = LauncherSearchCoordinator(
+        sources: sources,
+        favorites: { [weak self] in self?.favorites.pinnedKeys ?? [] },
+        records: { [weak self] in self?.usageRecorder.usageRecords() ?? [:] },
+        fallbackItems: { [weak self] query in self?.fallbackItemsProvider?(query) ?? [] },
+        aliases: aliasResolver,
+        aliasName: { [weak self] key in
+            (self?.aliasResolver as? AliasStore)?.alias(for: key)
+        }
+    )
 
     // Injected closure builders for legacy sub-views (same contract as the old palette).
     var screenshotLibraryViewBuilder: (() -> AnyView)?
@@ -84,10 +97,11 @@ final class LauncherPanelController {
         nav.resetToRoot()
 
         let style = styleStore.style.sanitized()
+        searchCoordinator.updateQuery("")
         let rootView = LauncherRootView(
             nav: nav,
             styleStore: styleStore,
-            buildSections: { [weak self] query in self?.buildSections(query: query) ?? [] },
+            coordinator: searchCoordinator,
             legacyViewBuilder: { [weak self] destination in
                 self?.legacyView(for: destination) ?? AnyView(Text("Unavailable").padding())
             },
@@ -148,6 +162,15 @@ final class LauncherPanelController {
         }
 
         installMonitors()
+        flagsMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+            guard let self, self.panel?.isVisible == true else { return event }
+            let holdingCommand = event.modifierFlags
+                .intersection(.deviceIndependentFlagsMask) == .command
+            if self.nav.showIndexBadges != holdingCommand {
+                self.nav.showIndexBadges = holdingCommand
+            }
+            return event
+        }
     }
 
     func hide() {
@@ -176,7 +199,7 @@ final class LauncherPanelController {
 
     private func selectedRootItem() -> LauncherItem? {
         guard nav.stack.isEmpty else { return nil }
-        let flattened = buildSections(query: nav.query).flatMap(\.items)
+        let flattened = searchCoordinator.sections.flatMap(\.items)
         return flattened.indices.contains(nav.selectedIndex) ? flattened[nav.selectedIndex] : nil
     }
 
@@ -277,6 +300,53 @@ final class LauncherPanelController {
                 return nil
             }
 
+            // ⌘1-⌘9 直达第 N 条。
+            if flags == .command,
+               let char = event.charactersIgnoringModifiers,
+               let digit = Int(char), (1...9).contains(digit) {
+                let flattened = self.searchCoordinator.sections.flatMap(\.items)
+                if flattened.indices.contains(digit - 1) {
+                    let item = flattened[digit - 1]
+                    if let primary = item.primaryAction {
+                        self.handle(item: item, outcome: primary.perform())
+                    }
+                }
+                return nil
+            }
+
+            // PageDown(121)/PageUp(116):按可见行数翻页。
+            if event.keyCode == 121 || event.keyCode == 116 {
+                let flattened = self.searchCoordinator.sections.flatMap(\.items)
+                guard !flattened.isEmpty else { return nil }
+                let page = self.styleStore.style.sanitized().maxVisibleRows
+                let delta = event.keyCode == 121 ? page : -page
+                self.nav.selectedIndex = min(max(self.nav.selectedIndex + delta, 0), flattened.count - 1)
+                return nil
+            }
+
+            // ⌘↑ / ⌘↓:跳上/下一个分区首行。
+            if flags == .command, event.keyCode == 126 || event.keyCode == 125 {
+                let sections = self.searchCoordinator.sections
+                guard !sections.isEmpty else { return nil }
+                var starts: [Int] = []
+                var offset = 0
+                for section in sections {
+                    starts.append(offset)
+                    offset += section.items.count
+                }
+                let current = self.nav.selectedIndex
+                if event.keyCode == 125 {
+                    if let next = starts.first(where: { $0 > current }) {
+                        self.nav.selectedIndex = next
+                    }
+                } else {
+                    if let previous = starts.last(where: { $0 < current }) {
+                        self.nav.selectedIndex = previous
+                    }
+                }
+                return nil
+            }
+
             // ⌘↵ runs the second action of the selected root item.
             if flags == .command, event.keyCode == 36 || event.keyCode == 76 {
                 if let item = self.selectedRootItem(), item.actions.count > 1 {
@@ -310,8 +380,10 @@ final class LauncherPanelController {
     private func removeMonitors() {
         if let mouseMonitor { NSEvent.removeMonitor(mouseMonitor) }
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
+        if let flagsMonitor { NSEvent.removeMonitor(flagsMonitor) }
         mouseMonitor = nil
         keyMonitor = nil
+        flagsMonitor = nil
     }
 
     private func position(_ panel: NSPanel, topOffsetRatio: Double) {

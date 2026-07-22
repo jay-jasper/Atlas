@@ -7,6 +7,39 @@ struct LauncherSectionData: Identifiable {
 }
 
 enum LauncherSectionBuilder {
+    /// 按源模式产出条目:commandList 走引擎(模糊+拼音+frecency),
+    /// queryDriven 原样传 query + 相关性兜底。
+    static func process(
+        sources: [LauncherItemSource],
+        query: String,
+        records: [String: CommandUsageRecord],
+        now: Date = Date()
+    ) -> [LauncherItem] {
+        let trimmed = query.trimmingCharacters(in: .whitespaces)
+        var items: [LauncherItem] = []
+        for source in sources {
+            switch source.searchMode {
+            case .commandList:
+                let annotated = LauncherSearchEngine.annotate(
+                    items: source.items(for: ""),
+                    query: trimmed,
+                    records: records,
+                    now: now
+                )
+                items.append(contentsOf: annotated)
+            case .queryDriven:
+                var raw = source.items(for: trimmed)
+                if !trimmed.isEmpty {
+                    raw = raw.filter { item in
+                        item.isAnswer || item.acceptsArgument || Self.matches(item, query: trimmed)
+                    }
+                }
+                items.append(contentsOf: raw)
+            }
+        }
+        return items
+    }
+
     static func build(
         query: String,
         sources: [LauncherItemSource],
@@ -16,15 +49,44 @@ enum LauncherSectionBuilder {
         aliases: AliasResolving? = nil,
         recentsLimit: Int = 5
     ) -> [LauncherSectionData] {
+        assemble(
+            items: process(sources: sources, query: query, records: records),
+            query: query,
+            aliasLookup: { key in
+                (aliases as? AliasStore).flatMap { alias in
+                    MainActor.assumeIsolated { alias.alias(for: key) }
+                }
+            },
+            resolveAliasItems: { trimmed in
+                guard let aliases,
+                      let aliasedKey = aliases.commandKey(matching: trimmed.lowercased()) else { return [] }
+                return sources.flatMap { $0.items(for: "") }.filter { $0.id == aliasedKey }
+            },
+            favorites: favorites,
+            records: records,
+            fallbackItems: fallbackItems,
+            recentsLimit: recentsLimit
+        )
+    }
+
+    /// 汇编分区(条目已由 process/coordinator 产出)。
+    static func assemble(
+        items: [LauncherItem],
+        query: String,
+        aliasLookup: (String) -> String? = { _ in nil },
+        resolveAliasItems: (String) -> [LauncherItem] = { _ in [] },
+        favorites: [String],
+        records: [String: CommandUsageRecord],
+        fallbackItems: [LauncherItem] = [],
+        recentsLimit: Int = 5
+    ) -> [LauncherSectionData] {
         let trimmed = query.trimmingCharacters(in: .whitespaces)
-        var allItems = sources.flatMap { $0.items(for: trimmed) }
-        // 兜底过滤:个别 provider 匹配过宽时,不相关条目不得进入结果。
-        // 答案卡与参数命令(quicklink/fallback,自带 head 匹配语义)豁免。
-        if !trimmed.isEmpty {
-            allItems = allItems.filter { item in
-                item.isAnswer || item.acceptsArgument || Self.matches(item, query: trimmed)
-            }
+        var allItems = items.map { item -> LauncherItem in
+            var copy = item
+            copy.aliasBadge = aliasLookup(item.id)
+            return copy
         }
+        _ = allItems
 
         var sections: [LauncherSectionData] = []
         var seen = Set<String>()
@@ -36,13 +98,7 @@ enum LauncherSectionBuilder {
         }
 
         // Alias exact/prefix hit resolves the aliased command to the very top.
-        var aliasItems: [LauncherItem] = []
-        if !trimmed.isEmpty,
-           let aliases,
-           let aliasedKey = aliases.commandKey(matching: trimmed.lowercased()) {
-            let rootItems = sources.flatMap { $0.items(for: "") }
-            aliasItems = rootItems.filter { $0.id == aliasedKey }
-        }
+        let aliasItems: [LauncherItem] = trimmed.isEmpty ? [] : resolveAliasItems(trimmed)
 
         // Answer card (calculator/conversion) comes first.
         if let answer = (aliasItems + allItems).first(where: { $0.isAnswer }) {
@@ -75,12 +131,19 @@ enum LauncherSectionBuilder {
             appendSection(.favorites, title: "Favorites", items: pinnedMatches)
         }
 
-        // Per-category result sections, ranked by usage inside each category.
+        // Per-category result sections, ranked by combined search score.
         let grouped = Dictionary(grouping: allItems.filter { !$0.isAnswer }, by: \.category)
         let categoryOrder = allItems.map(\.category).uniqued()
         for category in categoryOrder {
-            guard let items = grouped[category] else { continue }
-            let ranked = rankByUsage(items, records: records)
+            guard let categoryItems = grouped[category] else { continue }
+            let ranked = categoryItems.enumerated()
+                .sorted { lhs, rhs in
+                    if lhs.element.searchScore != rhs.element.searchScore {
+                        return lhs.element.searchScore > rhs.element.searchScore
+                    }
+                    return lhs.offset < rhs.offset
+                }
+                .map(\.element)
             appendSection(.results(category), title: category, items: ranked)
         }
 
@@ -98,24 +161,6 @@ enum LauncherSectionBuilder {
         return item.keywords.contains { $0.localizedCaseInsensitiveContains(query) }
     }
 
-    private static func rankByUsage(
-        _ items: [LauncherItem],
-        records: [String: CommandUsageRecord]
-    ) -> [LauncherItem] {
-        items.enumerated()
-            .sorted { lhs, rhs in
-                let lhsRecord = records[lhs.element.id]
-                let rhsRecord = records[rhs.element.id]
-                let lhsCount = lhsRecord?.executionCount ?? 0
-                let rhsCount = rhsRecord?.executionCount ?? 0
-                if lhsCount != rhsCount { return lhsCount > rhsCount }
-                let lhsDate = lhsRecord?.lastExecutedAt ?? .distantPast
-                let rhsDate = rhsRecord?.lastExecutedAt ?? .distantPast
-                if lhsDate != rhsDate { return lhsDate > rhsDate }
-                return lhs.offset < rhs.offset
-            }
-            .map(\.element)
-    }
 }
 
 /// Implemented by AliasStore (Task 8); protocol lives here so the builder is testable without it.

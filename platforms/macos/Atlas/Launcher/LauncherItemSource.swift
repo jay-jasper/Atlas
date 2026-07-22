@@ -3,9 +3,24 @@ import Foundation
 
 // MARK: - Source protocol
 
+enum SourceSearchMode {
+    /// 命令类:引擎拉全量后统一 模糊+拼音 匹配。
+    case commandList
+    /// 查询驱动:query 原样传给源(计算器/quicklink/文件搜索等)。
+    case queryDriven
+}
+
 protocol LauncherItemSource {
     var sourceID: String { get }
     func items(for query: String) -> [LauncherItem]
+    var searchMode: SourceSearchMode { get }
+    /// 慢源(文件搜索/菜单项):走后台防抖,不阻塞输入。
+    var isSlow: Bool { get }
+}
+
+extension LauncherItemSource {
+    var searchMode: SourceSearchMode { .commandList }
+    var isSlow: Bool { false }
 }
 
 /// Providers may adopt this to contribute extra ⌘K actions per command.
@@ -16,6 +31,7 @@ protocol LauncherActionEnriching {
 /// Wraps a closure (e.g. QuicklinkStore.makeItems) as a source.
 struct ClosureItemSource: LauncherItemSource {
     let sourceID: String
+    var searchMode: SourceSearchMode = .queryDriven
     let makeItems: (String) -> [LauncherItem]
 
     func items(for query: String) -> [LauncherItem] {
@@ -78,16 +94,22 @@ struct EmojiGridSource: LauncherItemSource {
 
 struct CommandProviderAdapter: LauncherItemSource {
     let sourceID: String
+    let searchMode: SourceSearchMode
+    let isSlow: Bool
     private let provider: CommandProviding
     private let onLegacyPush: (PaletteDestination) -> LauncherPage
 
     init(
         provider: CommandProviding,
         sourceID: String,
+        searchMode: SourceSearchMode = .commandList,
+        isSlow: Bool = false,
         onLegacyPush: @escaping (PaletteDestination) -> LauncherPage = { .legacy($0) }
     ) {
         self.provider = provider
         self.sourceID = sourceID
+        self.searchMode = searchMode
+        self.isSlow = isSlow
         self.onLegacyPush = onLegacyPush
     }
 

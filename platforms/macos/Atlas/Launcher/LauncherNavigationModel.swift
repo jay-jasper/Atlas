@@ -6,6 +6,8 @@ final class LauncherNavigationModel: ObservableObject {
     @Published var query: String = ""
     @Published var selectedIndex: Int = 0
     @Published var isActionPanelOpen: Bool = false
+    /// 按住 ⌘ 时显示 1-9 序号角标。
+    @Published var showIndexBadges: Bool = false
 
     var currentPage: LauncherPage? { stack.last }
 

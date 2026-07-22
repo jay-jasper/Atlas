@@ -21,13 +21,32 @@ struct LauncherResultRow: View {
     let isSelected: Bool
     let style: LauncherStyle
     let accent: Color
+    var indexBadge: Int?
+
+    /// 命中字符加粗 + 强调色。
+    private var highlightedTitle: Text {
+        guard let offsets = item.titleHighlightOffsets, !offsets.isEmpty else {
+            return Text(item.title)
+        }
+        let hits = Set(offsets)
+        var attributed = AttributedString()
+        for (index, character) in item.title.enumerated() {
+            var piece = AttributedString(String(character))
+            if hits.contains(index) {
+                piece.foregroundColor = accent
+                piece.font = .system(size: style.fontSize, weight: .bold)
+            }
+            attributed += piece
+        }
+        return Text(attributed)
+    }
 
     var body: some View {
         HStack(spacing: 10) {
             LauncherIconView(icon: item.icon, size: style.iconSize, accent: accent)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(item.title)
+                highlightedTitle
                     .font(.system(size: style.fontSize))
                     .lineLimit(1)
                 if let subtitle = item.subtitle {
@@ -39,6 +58,23 @@ struct LauncherResultRow: View {
             }
 
             Spacer(minLength: 8)
+
+            if let alias = item.aliasBadge {
+                Text(alias)
+                    .font(.system(size: max(style.fontSize - 5, 9), design: .monospaced))
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 1)
+                    .background(accent.opacity(0.15), in: Capsule())
+            }
+
+            if let indexBadge {
+                Text("⌘\(indexBadge)")
+                    .font(.system(size: max(style.fontSize - 5, 9), weight: .semibold))
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 1)
+                    .background(Color.primary.opacity(0.08), in: Capsule())
+            }
 
             Text(item.category)
                 .font(.system(size: max(style.fontSize - 4, 9)))

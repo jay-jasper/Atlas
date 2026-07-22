@@ -568,8 +568,19 @@ final class CommandPaletteState: ObservableObject {
             appLauncherProvider,
         ]
 
-        var sources: [LauncherItemSource] = providers.map {
-            CommandProviderAdapter(provider: $0, sourceID: String(describing: type(of: $0)))
+        var sources: [LauncherItemSource] = providers.map { provider in
+            // 查询驱动源:query 语义在 provider 内部(计算器表达式、emoji 关键词、
+            // 文件/剪贴板内容检索);其余命令类交给引擎做模糊+拼音匹配。
+            let queryDriven = provider is CalculatorCommandProvider
+                || provider is EmojiProvider
+                || provider is FileSearchProvider
+                || provider is ClipboardHistoryProvider
+            return CommandProviderAdapter(
+                provider: provider,
+                sourceID: String(describing: type(of: provider)),
+                searchMode: queryDriven ? .queryDriven : .commandList,
+                isSlow: provider is FileSearchProvider
+            )
         }
         sources.append(ClosureItemSource(sourceID: "quicklinks") { [launcherQuicklinks] query in
             launcherQuicklinks.makeItems(query: query)

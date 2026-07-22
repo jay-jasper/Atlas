@@ -76,6 +76,8 @@ final class AXMenuBarReader: MenuBarReading {
 @MainActor
 final class MenuBarItemSource: LauncherItemSource {
     let sourceID = "menu-bar"
+    let searchMode: SourceSearchMode = .queryDriven
+    let isSlow = true
 
     private let reader: MenuBarReading
     private let isTrusted: () -> Bool

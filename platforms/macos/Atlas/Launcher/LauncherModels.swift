@@ -112,6 +112,14 @@ struct LauncherItem: Identifiable {
     var isAnswer: Bool
     var acceptsArgument: Bool
 
+    // MARK: 搜索标注(引擎填充,瞬态)
+    /// 综合得分(匹配 + frecency),仅在一次搜索管线内有效。
+    var searchScore: Double = 0
+    /// 标题高亮:命中字符的 Character 序号(nil = 无高亮)。
+    var titleHighlightOffsets: [Int]?
+    /// 该命令的 alias(有则行尾显示胶囊)。
+    var aliasBadge: String?
+
     init(
         id: String,
         title: String,
