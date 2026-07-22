@@ -15,10 +15,6 @@ final class MenuPanelRowMappingTests: XCTestCase {
         }
     }
 
-    func testPanelModes() {
-        XCTAssertEqual(PanelMode.allCases.map(\.title), ["功能", "组件"])
-    }
-
     func testNetworkRateFormatting() {
         XCTAssertEqual(NetworkWidget.rateText(nil), "-- KB/s")
         XCTAssertEqual(NetworkWidget.rateText(512_000), "512 KB/s")

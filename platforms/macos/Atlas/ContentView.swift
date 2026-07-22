@@ -921,100 +921,17 @@ struct ContentView: View {
 
     private var menuPanelView: some View {
         MenuPanelView(
-            featureGroups: menuPanelGroups(),
             widgetStore: menuWidgetStore,
             widgetContent: { kind in AnyView(self.menuWidget(for: kind)) },
-            sectionBuilder: { tag in
-                if let section = tag.base as? PrimaryPanelSection {
-                    return AnyView(self.primaryPanelSection(section))
-                }
-                return AnyView(EmptyView())
-            },
-            sectionTitle: { tag in
-                (tag.base as? PrimaryPanelSection)?.module.localizedTitle ?? ""
-            },
             statusBanner: showCaptureStatus
                 ? AnyView(CaptureStatusBanner(message: captureStatus, kind: captureStatusKind))
                 : nil,
             onOpenMainWindow: { AtlasServices.shared.openMainWindow?() },
-            onOpenSettings: { Self.openPreferencesWindow() },
             onQuit: { NSApp.terminate(nil) }
         )
     }
 
-    private func menuPanelGroups() -> [FeatureListPanel.Group] {
-        var groups: [FeatureListPanel.Group] = []
-
-        groups.append(FeatureListPanel.Group(id: "actions", title: "快捷操作", rows: [
-            FeatureRowModel(
-                id: "capture-full", icon: "camera", title: "全屏截图",
-                control: .action(label: "拍", run: { self.captureDesktop() })
-            ),
-            FeatureRowModel(
-                id: "capture-area", icon: "crop", title: "区域截图",
-                control: .action(label: "拍", run: { self.showSelectionWindow() })
-            ),
-            FeatureRowModel(
-                id: "capture-window", icon: "macwindow", title: "窗口截图",
-                control: .action(label: "拍", run: { self.showWindowSelection() })
-            ),
-            FeatureRowModel(
-                id: "clear-clipboard", icon: "trash", title: "清空剪贴板历史",
-                control: .action(label: "清空", run: { self.clearClipboardHistory() })
-            ),
-        ]))
-
-        groups.append(FeatureListPanel.Group(id: "toggles", title: "开关", rows: [
-            FeatureRowModel(
-                id: "keep-awake", icon: "cup.and.saucer", title: "阻止休眠",
-                subtitle: keepAwakeService.status == .running ? "运行中" : nil,
-                control: .toggle(Binding(
-                    get: { self.keepAwakeService.status == .running },
-                    set: { _ in self.toggleKeepAwake() }
-                ))
-            ),
-            FeatureRowModel(
-                id: "presentation", icon: "play.rectangle", title: "演示模式",
-                subtitle: presentationModeService.status == .running ? "运行中" : nil,
-                control: .toggle(Binding(
-                    get: { self.presentationModeService.status == .running },
-                    set: { _ in self.togglePresentationMode() }
-                ))
-            ),
-        ] + featureToggleRows()))
-
-        let sectionRows = orderedPrimarySections().map { section in
-            FeatureRowModel(
-                id: "section-\(String(describing: section))",
-                icon: ShellToolGroup.group(containing: section).icon,
-                title: section.module.localizedTitle,
-                control: .chevron(tag: AnyHashable(section))
-            )
-        }
-        groups.append(FeatureListPanel.Group(id: "tools", title: "工具", rows: sectionRows))
-
-        return groups
-    }
-
-    private func featureToggleRows() -> [FeatureRowModel] {
-        features.map { feature in
-            FeatureRowModel(
-                id: "feature-\(feature.name)",
-                icon: PrimaryPanelSection.section(forFeatureName: feature.name)
-                    .map { ShellToolGroup.group(containing: $0).icon } ?? "switch.2",
-                title: AtlasModule(rawValue: feature.name)?.localizedTitle ?? feature.name,
-                control: .toggle(Binding(
-                    get: { self.enabledFeatures[feature.name, default: feature.isEnabled] },
-                    set: { enabled in
-                        self.enabledFeatures[feature.name] = enabled
-                        self.handleFeatureChange(feature.name, enabled: enabled)
-                    }
-                ))
-            )
-        }
-    }
-
-    @ViewBuilder
+        @ViewBuilder
     private func menuWidget(for kind: WidgetKind) -> some View {
         switch kind {
         case .gauges:

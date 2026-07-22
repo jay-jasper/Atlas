@@ -90,10 +90,7 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
     func install() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = item.button {
-            let image = NSImage(named: "MenuBarIcon")
-            image?.isTemplate = true
-            image?.size = NSSize(width: 18, height: 18)
-            button.image = image
+            button.image = MenuBarIconStore.shared.statusImage()
             button.imageScaling = .scaleProportionallyDown
             button.toolTip = "Atlas"
             button.target = self
@@ -101,6 +98,9 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
         statusItem = item
+        MenuBarIconStore.shared.applyHandler = { [weak self] in
+            self?.statusItem?.button?.image = MenuBarIconStore.shared.statusImage()
+        }
 
         popover.behavior = .transient
         popover.animates = true

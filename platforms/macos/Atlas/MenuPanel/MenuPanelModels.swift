@@ -1,20 +1,5 @@
 import SwiftUI
 
-/// Which face of the menu panel is showing.
-enum PanelMode: String, CaseIterable, Identifiable {
-    case features
-    case widgets
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .features: return "功能"
-        case .widgets: return "组件"
-        }
-    }
-}
-
 /// Widgets available on the 组件面板.
 enum WidgetKind: String, CaseIterable, Codable, Identifiable {
     case gauges
@@ -53,29 +38,5 @@ enum WidgetKind: String, CaseIterable, Codable, Identifiable {
         case .calendar: return "月历与农历"
         case .deviceBattery: return "蓝牙设备电量列表"
         }
-    }
-}
-
-/// One row on the 功能面板. The chevron tag is opaque so this file stays
-/// decoupled from ContentView's private section enum.
-struct FeatureRowModel: Identifiable {
-    enum Control {
-        case toggle(Binding<Bool>)
-        case chevron(tag: AnyHashable)
-        case action(label: String, run: () -> Void)
-    }
-
-    let id: String
-    let icon: String
-    let title: String
-    let subtitle: String?
-    let control: Control
-
-    init(id: String, icon: String, title: String, subtitle: String? = nil, control: Control) {
-        self.id = id
-        self.icon = icon
-        self.title = title
-        self.subtitle = subtitle
-        self.control = control
     }
 }

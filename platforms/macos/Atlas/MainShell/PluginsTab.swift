@@ -38,14 +38,14 @@ struct PluginsTab: View {
     private var sidebar: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 2) {
-                sidebarHeader("插件")
-                sidebarRow(.dashboard, title: "仪表盘", icon: "square.grid.2x2")
-                sidebarRow(.menuPanel, title: "功能面板", icon: "slider.horizontal.3")
-                sidebarRow(.commands, title: "命令", icon: "keyboard")
-                sidebarRow(.market, title: "市场", icon: "shippingbox")
+                sidebarHeader(loc("插件", "Plugins"))
+                sidebarRow(.dashboard, title: loc("仪表盘", "Dashboard"), icon: "square.grid.2x2")
+                sidebarRow(.menuPanel, title: loc("功能面板", "Panel Widgets"), icon: "slider.horizontal.3")
+                sidebarRow(.commands, title: loc("命令", "Commands"), icon: "keyboard")
+                sidebarRow(.market, title: loc("市场", "Market"), icon: "shippingbox")
 
                 if !toolEntries.isEmpty {
-                    sidebarHeader("工具设置")
+                    sidebarHeader(loc("工具设置", "Tool Settings"))
                         .padding(.top, 10)
                     ForEach(toolEntries) { entry in
                         sidebarRow(.tool(entry.id), title: entry.title, icon: entry.icon)

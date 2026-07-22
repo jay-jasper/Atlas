@@ -10,6 +10,9 @@ struct GeneralSettingsTab: View {
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var launchError: String?
     @State private var isStyleExpanded = false
+    @AppStorage(AppLanguage.storageKey) private var languageRaw = AppLanguage.system.rawValue
+    @State private var languageChanged = false
+    @ObservedObject private var menuBarIcon = MenuBarIconStore.shared
 
     var body: some View {
         ScrollView {
@@ -28,12 +31,12 @@ struct GeneralSettingsTab: View {
     // MARK: 启动
 
     private var startupSection: some View {
-        SettingsSection(title: "启动") {
+        SettingsSection(title: loc("启动", "Startup")) {
             SettingsRow(
                 icon: "power",
                 tint: .blue,
-                title: "开机时启动",
-                description: launchError ?? "登录系统时自动启动 Atlas 并显示在菜单栏。"
+                title: loc("开机时启动", "Launch at Login"),
+                description: launchError ?? loc("登录系统时自动启动 Atlas 并显示在菜单栏。", "Start Atlas automatically at login and show it in the menu bar.")
             ) {
                 Toggle("", isOn: Binding(
                     get: { launchAtLogin },
@@ -63,12 +66,12 @@ struct GeneralSettingsTab: View {
     // MARK: 外观
 
     private var appearanceSection: some View {
-        SettingsSection(title: "外观") {
+        SettingsSection(title: loc("外观", "Appearance")) {
             VStack(alignment: .leading, spacing: 8) {
                 SettingsRow(
                     icon: "paintpalette",
                     tint: .purple,
-                    title: "主题",
+                    title: loc("主题", "Theme"),
                     description: "主窗口与菜单栏面板的整体观感,共 \(ShellThemeKind.allCases.count) 套。"
                 ) { EmptyView() }
                 ShellThemePickerPanel(selectionRaw: $shellThemeRaw) {}
@@ -81,24 +84,84 @@ struct GeneralSettingsTab: View {
             SettingsRow(
                 icon: "globe",
                 tint: .teal,
-                title: "语言",
-                description: "默认跟随系统语言。"
+                title: loc("语言", "Language"),
+                description: languageChanged
+                    ? loc("语言已修改,重启应用后生效。", "Language changed — relaunch to apply.")
+                    : loc("默认跟随系统语言,先支持中文与英文。", "Follows the system by default. Chinese and English for now.")
             ) {
-                Text("跟随系统 (中文)")
-                    .font(.callout)
-                    .foregroundColor(.secondary)
+                HStack(spacing: 8) {
+                    Picker("", selection: $languageRaw) {
+                        ForEach(AppLanguage.allCases) { language in
+                            Text(language.title).tag(language.rawValue)
+                        }
+                    }
+                    .labelsHidden()
+                    .frame(width: 140)
+                    .onChange(of: languageRaw) { _ in
+                        languageChanged = languageRaw != AppLanguage.current.rawValue
+                    }
+                    if languageChanged {
+                        Button(loc("立即重启", "Relaunch")) { Self.relaunch() }
+                            .font(.callout)
+                    }
+                }
             }
+
+            SettingsRowDivider()
+
+            SettingsRow(
+                icon: "menubar.rectangle",
+                tint: .cyan,
+                title: loc("菜单栏图标", "Menu Bar Icon"),
+                description: menuBarIcon.hasCustomIcon
+                    ? loc("使用自定义图标,导入时保留原图。", "Using a custom icon.")
+                    : loc("上传本地图片替换默认图标。", "Upload an image to replace the default icon.")
+            ) {
+                HStack(spacing: 8) {
+                    if menuBarIcon.hasCustomIcon {
+                        Button(loc("恢复默认", "Restore Default")) {
+                            menuBarIcon.restoreDefault()
+                        }
+                        .font(.callout)
+                    }
+                    Button(loc("上传", "Upload")) { pickMenuBarIcon() }
+                        .font(.callout)
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                }
+            }
+        }
+    }
+
+    private func pickMenuBarIcon() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.png, .jpeg, .gif, .tiff, .heic, .icns]
+        panel.allowsMultipleSelection = false
+        if panel.runModal() == .OK, let url = panel.url {
+            if !menuBarIcon.setCustomIcon(from: url) {
+                launchError = loc("图片无法读取", "Could not load the image")
+            }
+        }
+    }
+
+    private static func relaunch() {
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        task.arguments = ["-n", Bundle.main.bundleURL.path]
+        try? task.run()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            NSApp.terminate(nil)
         }
     }
 
     // MARK: 启动台
 
     private var launcherSection: some View {
-        SettingsSection(title: "启动台") {
+        SettingsSection(title: loc("启动台", "Launcher")) {
             SettingsRow(
                 icon: "command",
                 tint: .orange,
-                title: "全局热键",
+                title: loc("全局热键", "Global Hotkey"),
                 description: "唤起启动台的快捷键,编辑后立即生效。"
             ) {
                 KeyRecorderView { [weak controller = paletteState.controller] config in
@@ -112,7 +175,7 @@ struct GeneralSettingsTab: View {
             SettingsRow(
                 icon: "paintbrush",
                 tint: .pink,
-                title: "启动台样式",
+                title: loc("启动台样式", "Launcher Style"),
                 description: "背景、边框、圆角、尺寸、字体与强调色。"
             ) {
                 Button(isStyleExpanded ? "收起" : "展开") {
@@ -144,7 +207,7 @@ struct GeneralSettingsTab: View {
             SettingsRow(
                 icon: "keyboard",
                 tint: .green,
-                title: "命令管理",
+                title: loc("命令管理", "Commands"),
                 description: "为启动台命令设置 Alias 与独立热键。"
             ) {
                 Button("打开") { onOpenCommands() }
@@ -158,7 +221,7 @@ struct GeneralSettingsTab: View {
     // MARK: 功能设置
 
     private var featureSection: some View {
-        SettingsSection(title: "功能设置") {
+        SettingsSection(title: loc("功能设置", "Features")) {
             SettingsPanelsHost(paletteState: paletteState, includeLauncherSection: false)
                 .padding(12)
         }

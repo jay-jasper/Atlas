@@ -11,10 +11,10 @@ enum ShellTab: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .general: return "通用"
-        case .plugins: return "插件"
+        case .general: return loc("通用", "General")
+        case .plugins: return loc("插件", "Plugins")
         case .ai: return "AI"
-        case .about: return "关于"
+        case .about: return loc("关于", "About")
         }
     }
 
