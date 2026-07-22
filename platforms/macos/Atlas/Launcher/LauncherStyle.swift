@@ -33,6 +33,10 @@ struct LauncherStyle: Codable, Equatable {
         case material(opacity: Double)
         case solid(RGBAColor)
         case gradient(RGBAColor, RGBAColor, angleDegrees: Double)
+        /// 内置图案背景(纸纹/网格/波点),含边缘晕影修饰。
+        case builtinPattern(String)
+        /// 自定义背景图片(拷贝进 App Support),含边缘晕影修饰。
+        case imageFile(String)
     }
 
     enum RowDensity: String, Codable {
@@ -86,11 +90,11 @@ struct LauncherStyle: Codable, Equatable {
 
 extension LauncherStyle.Background: Codable {
     private enum CodingKeys: String, CodingKey {
-        case kind, opacity, color, from, to, angleDegrees
+        case kind, opacity, color, from, to, angleDegrees, patternID, imagePath
     }
 
     private enum Kind: String, Codable {
-        case theme, material, solid, gradient
+        case theme, material, solid, gradient, builtinPattern, imageFile
     }
 
     init(from decoder: Decoder) throws {
@@ -98,6 +102,10 @@ extension LauncherStyle.Background: Codable {
         switch try container.decode(Kind.self, forKey: .kind) {
         case .theme:
             self = .theme
+        case .builtinPattern:
+            self = .builtinPattern(try container.decode(String.self, forKey: .patternID))
+        case .imageFile:
+            self = .imageFile(try container.decode(String.self, forKey: .imagePath))
         case .material:
             self = .material(opacity: try container.decode(Double.self, forKey: .opacity))
         case .solid:
@@ -116,6 +124,12 @@ extension LauncherStyle.Background: Codable {
         switch self {
         case .theme:
             try container.encode(Kind.theme, forKey: .kind)
+        case .builtinPattern(let id):
+            try container.encode(Kind.builtinPattern, forKey: .kind)
+            try container.encode(id, forKey: .patternID)
+        case .imageFile(let path):
+            try container.encode(Kind.imageFile, forKey: .kind)
+            try container.encode(path, forKey: .imagePath)
         case .material(let opacity):
             try container.encode(Kind.material, forKey: .kind)
             try container.encode(opacity, forKey: .opacity)

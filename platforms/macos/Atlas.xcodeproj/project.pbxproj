@@ -592,6 +592,7 @@
 		F4AE5E2913A18C5A24426022 /* PrivilegedWriteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A79796CC46AA96411377F17 /* PrivilegedWriteTests.swift */; };
 		F58B90A131DB67B2B3B1D0E4 /* PrivilegedFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58178884BF5D5F09771E71AF /* PrivilegedFileWriter.swift */; };
 		F6E350A03D6D467AA5978A01 /* CalendarPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9540E9697878405B8C9A19D9 /* CalendarPanel.swift */; };
+		F6EEF253AD349D41EFDD0A3C /* LauncherBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D892E17D71DE168EF3A07ED9 /* LauncherBackgroundView.swift */; };
 		F716E5A0B284A5B9FE4344E3 /* LocalAILoadPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 602B4B66C6F924212EE16A35 /* LocalAILoadPanel.swift */; };
 		F77325512D69A0EB5E794B05 /* AtlasUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B66BDF487051665C2CEE4E09 /* AtlasUITests.swift */; };
 		F805388C0D309A34750ABDA2 /* ProviderIcon-venice.svg in Resources */ = {isa = PBXBuildFile; fileRef = 014AE4AB95EC9C12675401FD /* ProviderIcon-venice.svg */; };
@@ -1164,6 +1165,7 @@
 		D6AE6DC5E9568A33BD59B7EC /* GIFResizeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GIFResizeTests.swift; sourceTree = "<group>"; };
 		D6B894DAC93B5985449B3EEC /* BrowserRouteStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserRouteStore.swift; sourceTree = "<group>"; };
 		D837CEAC140F7A7B3B2B97BE /* ProviderIcon-mimo.svg */ = {isa = PBXFileReference; includeInIndex = 1; path = "ProviderIcon-mimo.svg"; sourceTree = "<group>"; };
+		D892E17D71DE168EF3A07ED9 /* LauncherBackgroundView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherBackgroundView.swift; sourceTree = "<group>"; };
 		D899845A8F39B4236736FC37 /* SkillStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SkillStoreTests.swift; sourceTree = "<group>"; };
 		D8F413950BDB09AD780A1D51 /* LauncherStyleSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherStyleSettingsView.swift; sourceTree = "<group>"; };
 		D9871729F51F53C6A755514A /* BrowserRoute.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserRoute.swift; sourceTree = "<group>"; };
@@ -2245,6 +2247,7 @@
 				7301BC51016D353A64E1B205 /* QuicklinkStore.swift */,
 				D8F413950BDB09AD780A1D51 /* LauncherStyleSettingsView.swift */,
 				BA2395B1D3CC4A1D4FC7F3D5 /* MenuBarItemSource.swift */,
+				D892E17D71DE168EF3A07ED9 /* LauncherBackgroundView.swift */,
 			);
 			name = Launcher;
 			path = Launcher;
@@ -3004,6 +3007,7 @@
 				7D80F1181ABFD7F5542DF851 /* MenuBarIconStore.swift in Sources */,
 				46287A40B6909BE916B09090 /* QuickMenuPanel.swift in Sources */,
 				6DF92C1282C396C2402A56D0 /* DockIconStore.swift in Sources */,
+				F6EEF253AD349D41EFDD0A3C /* LauncherBackgroundView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

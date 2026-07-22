@@ -124,36 +124,10 @@ struct LauncherRootView: View {
 
     // MARK: Background
 
-    @ViewBuilder
     private var backgroundView: some View {
-        switch style.background {
-        case .theme:
-            shellTheme.spec.makeBackground()
-        case .material(let opacity):
-            ZStack {
-                Rectangle().fill(.ultraThinMaterial)
-                Color(nsColor: .windowBackgroundColor).opacity(1 - opacity)
-            }
-        case .solid(let color):
-            color.color
-        case .gradient(let from, let to, let angleDegrees):
-            LinearGradient(
-                colors: [from.color, to.color],
-                startPoint: startPoint(for: angleDegrees),
-                endPoint: endPoint(for: angleDegrees)
-            )
-        }
+        LauncherBackgroundView(background: style.background, shellTheme: shellTheme)
     }
 
-    private func startPoint(for angle: Double) -> UnitPoint {
-        let radians = angle * .pi / 180
-        return UnitPoint(x: 0.5 - cos(radians) / 2, y: 0.5 - sin(radians) / 2)
-    }
-
-    private func endPoint(for angle: Double) -> UnitPoint {
-        let radians = angle * .pi / 180
-        return UnitPoint(x: 0.5 + cos(radians) / 2, y: 0.5 + sin(radians) / 2)
-    }
 
     // MARK: Search bar
 

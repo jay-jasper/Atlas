@@ -19,9 +19,12 @@ final class LauncherStyleTests: XCTestCase {
 
     func testCodableRoundTripAllBackgrounds() throws {
         let backgrounds: [LauncherStyle.Background] = [
+            .theme,
             .material(opacity: 0.7),
             .solid(RGBAColor(r: 0.1, g: 0.2, b: 0.3, a: 1)),
             .gradient(.white, RGBAColor(r: 0, g: 0, b: 1, a: 1), angleDegrees: 45),
+            .builtinPattern("paper"),
+            .imageFile("/tmp/bg.png"),
         ]
         for background in backgrounds {
             var style = LauncherStyle.default

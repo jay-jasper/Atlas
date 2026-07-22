@@ -85,28 +85,13 @@ struct LauncherStylePreview: View {
         .padding(.vertical, 4)
     }
 
-    @ViewBuilder
     private var previewBackground: some View {
-        switch style.background {
-        case .theme:
-            let theme = ShellThemeKind(
+        LauncherBackgroundView(
+            background: style.background,
+            shellTheme: ShellThemeKind(
                 rawValue: UserDefaults.standard.string(forKey: "atlas.shell.theme") ?? ""
             ) ?? .plain
-            theme.spec.makeBackground()
-        case .material(let opacity):
-            ZStack {
-                Rectangle().fill(.ultraThinMaterial)
-                Color(nsColor: .windowBackgroundColor).opacity(1 - opacity)
-            }
-        case .solid(let color):
-            color.color
-        case .gradient(let from, let to, let angleDegrees):
-            LinearGradient(
-                colors: [from.color, to.color],
-                startPoint: angleDegrees < 90 ? .leading : .top,
-                endPoint: angleDegrees < 90 ? .trailing : .bottom
-            )
-        }
+        )
     }
 }
 
@@ -120,6 +105,7 @@ struct LauncherStyleControls: View {
         case material = "毛玻璃"
         case solid = "纯色"
         case gradient = "渐变"
+        case image = "图片"
         var id: String { rawValue }
     }
 
@@ -173,6 +159,7 @@ struct LauncherStyleControls: View {
         case .material: return .material
         case .solid: return .solid
         case .gradient: return .gradient
+        case .builtinPattern, .imageFile: return .image
         }
     }
 
@@ -210,6 +197,8 @@ struct LauncherStyleControls: View {
                             RGBAColor(r: 0.05, g: 0.12, b: 0.25, a: 1),
                             angleDegrees: 135
                         )
+                    case .image:
+                        styleStore.style.background = .builtinPattern("paper")
                     }
                 }
             )) {
@@ -268,6 +257,32 @@ struct LauncherStyleControls: View {
     @ViewBuilder
     private var backgroundEditors: some View {
         switch styleStore.style.background {
+        case .builtinPattern, .imageFile:
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
+                    Text(loc("内置图案", "Patterns"))
+                        .font(.caption)
+                        .frame(width: 96, alignment: .leading)
+                    ForEach(LauncherBackgroundView.builtinPatterns, id: \.id) { pattern in
+                        Button(pattern.name) {
+                            styleStore.style.background = .builtinPattern(pattern.id)
+                        }
+                        .font(.caption)
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .focusable(false)
+                    }
+                    Button(loc("上传图片…", "Upload…")) { pickBackgroundImage() }
+                        .font(.caption)
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                        .focusable(false)
+                    Spacer()
+                }
+                Text(loc("图案与图片自带边缘晕影,可再叠加边框颜色与宽度。", "Patterns and images get an edge vignette; layer border color/width on top."))
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
         case .theme:
             Text("背景/明暗随主窗口主题自动变化。")
                 .font(.caption)
@@ -295,6 +310,22 @@ struct LauncherStyleControls: View {
                 get: { angle },
                 set: { styleStore.style.background = .gradient(from, to, angleDegrees: $0) }
             ), in: 0...360, step: 15)
+        }
+    }
+
+    private func pickBackgroundImage() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.png, .jpeg, .heic, .tiff, .gif]
+        panel.allowsMultipleSelection = false
+        if panel.runModal() == .OK, let url = panel.url {
+            let dir = FileManager.default
+                .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent("Atlas/launcher", isDirectory: true)
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            let target = dir.appendingPathComponent("bg-\(UUID().uuidString.prefix(8)).\(url.pathExtension.lowercased())")
+            if (try? FileManager.default.copyItem(at: url, to: target)) != nil {
+                styleStore.style.background = .imageFile(target.path)
+            }
         }
     }
 
