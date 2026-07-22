@@ -993,10 +993,10 @@ struct ContentView: View {
 
     // MARK: - Main window shell (top category tabs + tool sidebar + detail)
 
-    @AppStorage("atlas.shell.theme") private var shellThemeRaw = ShellThemeKind.aurora.rawValue
+    @AppStorage("atlas.shell.theme") private var shellThemeRaw = ShellThemeKind.plain.rawValue
 
     private var shellTheme: ShellThemeKind {
-        ShellThemeKind(rawValue: shellThemeRaw) ?? .aurora
+        ShellThemeKind(rawValue: shellThemeRaw) ?? .plain
     }
 
     private var shellThemeColorScheme: ColorScheme {
@@ -1014,6 +1014,8 @@ struct ContentView: View {
                 Group {
                     switch shellTab {
                     case .general:
+                        SettingsTabView(shellThemeRaw: $shellThemeRaw)
+                    case .plugins:
                         switch shellPage {
                         case .dashboard:
                             shellDashboard
@@ -1022,17 +1024,8 @@ struct ContentView: View {
                         case .tool:
                             shellToolPage
                         }
-                    case .plugins:
-                        ScrollView {
-                            PluginsPanel(service: pluginsService)
-                                .glassCard(padding: 12)
-                                .frame(maxWidth: 760, alignment: .leading)
-                                .frame(maxWidth: .infinity)
-                        }
                     case .ai:
                         AITabView()
-                    case .settings:
-                        SettingsTabView(shellThemeRaw: $shellThemeRaw)
                     case .about:
                         AboutTabView()
                     }

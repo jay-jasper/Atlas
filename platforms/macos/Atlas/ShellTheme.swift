@@ -7,6 +7,7 @@ import SwiftUI
 // card tokens, forced appearance), so adding a theme touches only this file.
 
 enum ShellThemeKind: String, CaseIterable, Identifiable {
+    case plain
     case aurora
     case elements3D = "elements-3d"
     case biophilic
@@ -28,6 +29,7 @@ enum ShellThemeKind: String, CaseIterable, Identifiable {
 
     var spec: ShellThemeSpec {
         switch self {
+        case .plain: return .plain
         case .aurora: return .aurora
         case .elements3D: return .elements3D
         case .biophilic: return .biophilic
@@ -97,6 +99,28 @@ struct ShellCardTokens {
 
 extension ShellThemeSpec {
     /// 极光：流动渐变 + 玻璃卡片，跟随系统外观。
+    /// 素雅：MacTools 式扫平观感 —— 素色背景、次级底色卡片、细边框、无玻璃。
+    static let plain = ShellThemeSpec(
+        title: "素雅",
+        subtitle: "扫平简洁 · 跟随系统",
+        icon: "rectangle.grid.2x2",
+        swatchColors: [Color(nsColor: .windowBackgroundColor), Color(nsColor: .controlBackgroundColor), .gray],
+        colorScheme: nil,
+        cardTokens: ShellCardTokens(
+            usesMaterial: false,
+            tintAboveMaterial: false,
+            tint: Color(nsColor: .controlBackgroundColor),
+            tintOpacity: 1.0,
+            tintOpacityHovered: 1.0,
+            strokeColors: [Color.primary.opacity(0.08)],
+            strokeColorsHovered: [Color.primary.opacity(0.16)],
+            shadows: [ShellCardShadow(color: .black.opacity(0.05), radius: 4, y: 2)]
+        ),
+        makeBackground: {
+            AnyView(Color(nsColor: .windowBackgroundColor).ignoresSafeArea())
+        }
+    )
+
     static let aurora = ShellThemeSpec(
         title: "极光",
         subtitle: "流动渐变 · 玻璃质感",
@@ -638,7 +662,7 @@ extension ShellThemeSpec {
 // MARK: - Environment
 
 struct ShellThemeEnvironmentKey: EnvironmentKey {
-    static let defaultValue = ShellThemeKind.aurora
+    static let defaultValue = ShellThemeKind.plain
 }
 
 extension EnvironmentValues {
@@ -740,7 +764,7 @@ struct ShellThemePickerPanel: View {
     var onSelect: () -> Void = {}
 
     private var selection: ShellThemeKind {
-        ShellThemeKind(rawValue: selectionRaw) ?? .aurora
+        ShellThemeKind(rawValue: selectionRaw) ?? .plain
     }
 
     var body: some View {
