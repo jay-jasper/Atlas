@@ -21,7 +21,6 @@ struct GeneralSettingsTab: View {
                 startupSection
                 appearanceSection
                 launcherSection
-                featureSection
             }
             .padding(.vertical, 6)
             .frame(maxWidth: 720, alignment: .leading)
@@ -298,12 +297,4 @@ struct GeneralSettingsTab: View {
         }
     }
 
-    // MARK: 功能设置
-
-    private var featureSection: some View {
-        SettingsSection(title: loc("功能设置", "Features")) {
-            SettingsPanelsHost(paletteState: paletteState, includeLauncherSection: false)
-                .padding(12)
-        }
-    }
 }
