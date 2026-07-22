@@ -69,7 +69,7 @@ final class AtlasAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
-        NSApp.mainMenu = Self.makeMainMenu()
+        NSApp.mainMenu = makeMainMenu()
         menuBar.install()
         DockIconStore.shared.apply()
         // Dev/automation affordance: `open Atlas.app --args --main-window`.
@@ -83,8 +83,12 @@ final class AtlasAppDelegate: NSObject, NSApplicationDelegate {
 
 extension AtlasAppDelegate {
     /// 系统菜单栏(主窗口打开、app 前台时可见):Atlas 应用菜单 + 编辑菜单。
-    /// ⌘, 打开设置、⌘Q 退出;编辑菜单让文本框的 ⌘C/⌘V/⌘A 生效。
-    static func makeMainMenu() -> NSMenu {
+    /// ⌘, 打开主界面(设置在通用 tab)、⌘Q 退出;编辑菜单让文本框的 ⌘C/⌘V/⌘A 生效。
+    @objc func openMainWindowFromMenu() {
+        AtlasServices.shared.openMainWindow?()
+    }
+
+    func makeMainMenu() -> NSMenu {
         let mainMenu = NSMenu()
 
         let appMenuItem = NSMenuItem()
@@ -102,9 +106,10 @@ extension AtlasAppDelegate {
 
         let settings = NSMenuItem(
             title: loc("设置…", "Settings…"),
-            action: Selector(("showSettingsWindow:")),
+            action: #selector(openMainWindowFromMenu),
             keyEquivalent: ","
         )
+        settings.target = self
         appMenu.addItem(settings)
         appMenu.addItem(.separator())
 
@@ -216,8 +221,7 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
                 AtlasServices.shared.paletteState.controller.show()
             },
             .init(id: "prefs", icon: "gearshape", title: loc("偏好设置…", "Preferences…"), shortcutHint: "⌘,") {
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-                NSApp.activate(ignoringOtherApps: true)
+                AtlasServices.shared.openMainWindow?()
             },
             .init(id: "about", icon: "info.circle", title: loc("关于 Atlas", "About Atlas"), shortcutHint: nil) {
                 NSApp.activate(ignoringOtherApps: true)
@@ -258,8 +262,7 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
     }
 
     @objc private func openPreferences() {
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-        NSApp.activate(ignoringOtherApps: true)
+        AtlasServices.shared.openMainWindow?()
     }
 
     @objc private func showAbout() {
@@ -400,8 +403,7 @@ final class CommandPaletteState: ObservableObject {
             onCaptureArea: { [weak self] in self?.onCaptureArea?() },
             onCaptureWindow: { [weak self] in self?.onCaptureWindow?() },
             onOpenSettings: {
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-                NSApp.activate(ignoringOtherApps: true)
+                AtlasServices.shared.openMainWindow?()
             }
         )
         let developerToolsProvider = DeveloperToolsProvider()
@@ -419,8 +421,7 @@ final class CommandPaletteState: ObservableObject {
         let tokenBarProvider = TokenBarCommandProvider(
             isEnabled: Self.isTokenBarFeatureEnabled,
             onOpenSettings: {
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-                NSApp.activate(ignoringOtherApps: true)
+                AtlasServices.shared.openMainWindow?()
             },
             importer: TokenBarProviderUsageImporter(),
             onRefreshSummary: { summary in

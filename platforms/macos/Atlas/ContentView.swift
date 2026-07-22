@@ -1016,8 +1016,8 @@ struct ContentView: View {
     }
 
     private static func openPreferencesWindow() {
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-        NSApp.activate(ignoringOtherApps: true)
+        // 旧独立设置窗已废弃:设置统一进主界面(通用 tab)。
+        AtlasServices.shared.openMainWindow?()
     }
 
     // MARK: - Main window shell (top category tabs + tool sidebar + detail)
