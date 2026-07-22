@@ -30,7 +30,7 @@ struct CommandsTableView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("命令")
                 .font(.title3.weight(.semibold))
-            Text("为启动台命令设置 Alias 与独立热键,收藏的命令置顶显示。")
+            Text("为启动台命令设置 Alias,收藏的命令置顶显示。")
                 .font(.caption)
                 .foregroundColor(.secondary)
 
@@ -103,7 +103,6 @@ struct CommandsTableView: View {
             Text("名称").frame(maxWidth: .infinity, alignment: .leading)
             Text("分类").frame(width: 110, alignment: .leading)
             Text("Alias").frame(width: 110, alignment: .leading)
-            Text("热键").frame(width: 150, alignment: .leading)
             Text("收藏").frame(width: 36, alignment: .center)
         }
         .font(.caption.weight(.semibold))
@@ -143,20 +142,6 @@ private struct CommandTableRow: View {
             .font(.caption.monospaced())
             .frame(width: 110, alignment: .leading)
             .onAppear { aliasDraft = aliases.alias(for: item.id) ?? "" }
-
-            VStack(alignment: .leading, spacing: 2) {
-                KeyRecorderView { config in
-                    hotkeys.set(config, for: item.id)
-                }
-                .frame(width: 140)
-                if let conflict {
-                    Text(conflict)
-                        .font(.system(size: 9))
-                        .foregroundColor(.red)
-                        .lineLimit(1)
-                }
-            }
-            .frame(width: 150, alignment: .leading)
 
             Button {
                 favorites.toggle(item.id)

@@ -156,7 +156,7 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
             .init(id: "main", icon: "macwindow", title: loc("打开主窗口", "Open Main Window"), shortcutHint: nil) { [weak self] in
                 self?.mainWindow.show()
             },
-            .init(id: "palette", icon: "sparkles", title: loc("命令面板", "Command Palette"), shortcutHint: "⌘K") {
+            .init(id: "palette", icon: "sparkles", title: loc("命令面板", "Command Palette"), shortcutHint: nil) {
                 AtlasServices.shared.paletteState.controller.show()
             },
             .init(id: "prefs", icon: "gearshape", title: loc("偏好设置…", "Preferences…"), shortcutHint: "⌘,") {
@@ -489,6 +489,19 @@ final class CommandPaletteState: ObservableObject {
     /// Registers per-command global hotkeys; conflicts with the main palette
     /// hotkey or between commands are reported instead of registered.
     private func registerCommandHotkeys() {
+        // 每命令热键暂时下线(命令页已隐藏该列);清掉历史注册,避免不可见的按键占用。
+        for (_, previous) in registeredCommandHotkeys {
+            hotkeyService.unregister(
+                keyCode: previous.keyCode,
+                modifiers: NSEvent.ModifierFlags(rawValue: previous.modifiers)
+            )
+        }
+        registeredCommandHotkeys = [:]
+        commandHotkeyConflicts = [:]
+        return
+    }
+
+    private func registerCommandHotkeysDisabled() {
         for (_, previous) in registeredCommandHotkeys {
             hotkeyService.unregister(
                 keyCode: previous.keyCode,
