@@ -1,6 +1,7 @@
 import AppKit
 import CoreImage
 import SwiftUI
+import Vision
 
 struct ScreenshotEditorView: View {
     let screenshot: CapturedScreenshot
@@ -46,6 +47,10 @@ struct ScreenshotEditorView: View {
     @State private var isShowingBeautifyPanel = false
     @State private var beautifyOptions = BeautifyOptions.loadLastUsed()
     @State private var isCuttingOut = false
+    @State private var qrResults: [String] = []
+    @State private var isShowingQRResults = false
+    @State private var isUploading = false
+    @State private var isShowingUploadConfig = false
 
     /// One in-flight manipulation of the selected annotation.
     private struct SelectionDragState {
@@ -289,6 +294,55 @@ struct ScreenshotEditorView: View {
                     .disabled(isCuttingOut)
                     .help("抠图（保留主体，透明背景）")
                 }
+
+                if capabilities.qrDetection {
+                    Button { runQRDetection() } label: {
+                        Image(systemName: "qrcode.viewfinder")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("识别二维码/条形码")
+                    .popover(isPresented: $isShowingQRResults, arrowEdge: .bottom) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("识别结果")
+                                .font(.subheadline.weight(.semibold))
+                            ForEach(Array(qrResults.enumerated()), id: \.offset) { _, payload in
+                                HStack(spacing: 8) {
+                                    Text(payload)
+                                        .font(.caption)
+                                        .lineLimit(2)
+                                        .frame(maxWidth: 260, alignment: .leading)
+                                        .textSelection(.enabled)
+                                    Button("复制") {
+                                        NSPasteboard.general.clearContents()
+                                        NSPasteboard.general.setString(payload, forType: .string)
+                                    }
+                                    .controlSize(.small)
+                                    if let url = URL(string: payload), url.scheme?.hasPrefix("http") == true {
+                                        Button("打开") { NSWorkspace.shared.open(url) }
+                                            .controlSize(.small)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(10)
+                    }
+                }
+
+                if capabilities.cloudUpload {
+                    Button { runUpload() } label: {
+                        Image(systemName: "icloud.and.arrow.up")
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(isUploading)
+                    .help("上传到云存储（S3 兼容）")
+                    .popover(isPresented: $isShowingUploadConfig, arrowEdge: .bottom) {
+                        CloudUploadConfigPanel {
+                            isShowingUploadConfig = false
+                            runUpload()
+                        }
+                    }
+                }
+                if isUploading { ProgressView().controlSize(.small) }
 
                 Button { addCapture() } label: {
                     Image(systemName: "plus.viewfinder")
@@ -842,6 +896,55 @@ struct ScreenshotEditorView: View {
     private func scheduleRedactionStatusClear() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
             redactionStatus = nil
+        }
+    }
+
+    /// QR/barcode detection over the base screenshot.
+    private func runQRDetection() {
+        guard let bitmap = NSBitmapImageRep(data: screenshot.pngData), let cgImage = bitmap.cgImage else { return }
+        DispatchQueue.global(qos: .userInitiated).async {
+            let request = VNDetectBarcodesRequest()
+            let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+            try? handler.perform([request])
+            let payloads = (request.results ?? []).compactMap(\.payloadStringValue)
+            DispatchQueue.main.async {
+                qrResults = payloads
+                if payloads.isEmpty {
+                    redactionStatus = "未发现二维码"
+                    scheduleRedactionStatusClear()
+                } else {
+                    isShowingQRResults = true
+                }
+            }
+        }
+    }
+
+    /// Upload the rendered image to the configured S3-compatible bucket and
+    /// copy the public URL. Opens the config panel when unconfigured.
+    private func runUpload() {
+        let configuration = CloudUploadConfigurationStore().load()
+        guard configuration.isConfigured else {
+            isShowingUploadConfig = true
+            return
+        }
+        isUploading = true
+        let data = renderedData()
+        Task {
+            do {
+                let key = CloudUploadService.objectKey(filename: ScreenshotOutput.filename(for: Date()))
+                let url = try await CloudUploadService(configuration: configuration)
+                    .upload(data: data, key: key, contentType: "image/png")
+                CloudUploadHistoryStore().append(
+                    CloudUploadRecord(id: UUID(), key: key, publicURL: url, uploadedAt: Date())
+                )
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(url, forType: .string)
+                redactionStatus = "已上传，链接已复制"
+            } catch {
+                redactionStatus = "上传失败：\(error.localizedDescription)"
+            }
+            isUploading = false
+            scheduleRedactionStatusClear()
         }
     }
 

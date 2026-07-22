@@ -100,6 +100,8 @@ struct SnipasteCaptureOverlay: View {
 
     @State private var selection: CGRect?
     @State private var mode: Mode = .idle
+    /// Aspect-ratio lock (w/h) for new drags; nil = free. Cycled with R.
+    @State private var aspectLock: CGFloat?
     @State private var cursor: CGPoint = .zero
     @State private var viewSize: CGSize = .zero
 
@@ -533,7 +535,11 @@ struct SnipasteCaptureOverlay: View {
         let now = SelectionGeometry.clamp(v.location, bounds: size)
         switch mode {
         case .drawing:
-            selection = SelectionGeometry.normalizedRect(from: start, to: now)
+            if let ratio = aspectLock {
+                selection = Self.aspectConstrainedRect(from: start, to: now, ratio: ratio, bounds: size)
+            } else {
+                selection = SelectionGeometry.normalizedRect(from: start, to: now)
+            }
         case .moving(let origin):
             selection = SelectionGeometry.move(origin, by: v.translation, bounds: size)
         case .resizing(let origin, let h):
@@ -559,6 +565,9 @@ struct SnipasteCaptureOverlay: View {
                     selectedWindowID = item.id
                     captureWindow(item.id)
                 }
+            } else if let ratio = aspectLock {
+                let constrained = Self.aspectConstrainedRect(from: start, to: now, ratio: ratio, bounds: size)
+                selection = SelectionGeometry.isValidSelection(constrained) ? constrained : nil
             } else {
                 selection = SelectionGeometry.isValidSelection(rect) ? rect : nil
             }
@@ -767,7 +776,22 @@ struct SnipasteCaptureOverlay: View {
         case let .nudge(direction, large):
             guard let sel = selection else { return }
             selection = SelectionGeometry.move(sel, by: SelectionGeometry.nudgeDelta(direction, isLargeStep: large), bounds: size)
+        case .cycleAspectLock:
+            let cycle: [CGFloat?] = [nil, 1, 4.0 / 3.0, 16.0 / 9.0]
+            let currentIndex = cycle.firstIndex(where: { $0 == aspectLock }) ?? 0
+            aspectLock = cycle[(currentIndex + 1) % cycle.count]
         }
+    }
+
+    /// Drag rect constrained to `ratio` (w/h), anchored at the drag start and
+    /// following the drag direction; width drives height.
+    static func aspectConstrainedRect(from start: CGPoint, to now: CGPoint, ratio: CGFloat, bounds: CGSize) -> CGRect {
+        let signX: CGFloat = now.x >= start.x ? 1 : -1
+        let signY: CGFloat = now.y >= start.y ? 1 : -1
+        let width = abs(now.x - start.x)
+        let height = width / ratio
+        let rect = CGRect(x: start.x, y: start.y, width: width * signX, height: height * signY).standardized
+        return rect.intersection(CGRect(origin: .zero, size: bounds))
     }
 
     private enum FinishAction { case copy, save, pin }

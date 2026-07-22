@@ -5,6 +5,8 @@ enum SelectionKeyboardCommand {
     case cancel
     case capture
     case nudge(SelectionNudgeDirection, isLargeStep: Bool)
+    /// Cycle the aspect-ratio lock for new selections (free → 1:1 → 4:3 → 16:9).
+    case cycleAspectLock
 }
 
 struct SelectionKeyboardBridge: NSViewRepresentable {
@@ -48,6 +50,8 @@ final class KeyCaptureView: NSView {
             onCommand?(.nudge(.down, isLargeStep: isLargeStep))
         case 126:
             onCommand?(.nudge(.up, isLargeStep: isLargeStep))
+        case 15: // R — ratio lock
+            onCommand?(.cycleAspectLock)
         default:
             super.keyDown(with: event)
         }

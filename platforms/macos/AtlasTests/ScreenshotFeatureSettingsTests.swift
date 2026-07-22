@@ -136,6 +136,9 @@ final class ScreenshotFeatureSettingsTests: XCTestCase {
             "redaction",
             "cutout",
             "beautify",
+            "screen-recording",
+            "cloud-upload",
+            "qr-detection",
         ])
 
         XCTAssertEqual(ScreenshotSubfeature.desktopCapture.title, "Desktop Capture")

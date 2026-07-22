@@ -13,6 +13,9 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
     case redaction
     case cutout
     case beautify
+    case screenRecording = "screen-recording"
+    case cloudUpload = "cloud-upload"
+    case qrDetection = "qr-detection"
 
     var id: String { rawValue }
 
@@ -42,6 +45,12 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "Cutout"
         case .beautify:
             return "Beautify"
+        case .screenRecording:
+            return "Screen Recording"
+        case .cloudUpload:
+            return "Cloud Upload"
+        case .qrDetection:
+            return "QR Detection"
         }
     }
 
@@ -71,6 +80,12 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "Lift the subject onto a transparent background."
         case .beautify:
             return "Wrap exports in a styled backdrop."
+        case .screenRecording:
+            return "Record the screen to MP4 with audio."
+        case .cloudUpload:
+            return "Upload captures to an S3-compatible bucket."
+        case .qrDetection:
+            return "Detect QR/barcodes in screenshots."
         }
     }
 
@@ -102,6 +117,12 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "抠图"
         case .beautify:
             return "美化"
+        case .screenRecording:
+            return "屏幕录制"
+        case .cloudUpload:
+            return "云上传"
+        case .qrDetection:
+            return "二维码识别"
         }
     }
 
@@ -131,6 +152,12 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "识别主体并抠出为透明背景图（macOS 14+）。"
         case .beautify:
             return "导出时套用渐变背景、圆角、投影与窗口边框。"
+        case .screenRecording:
+            return "录制屏幕为 MP4（系统声/麦克风/点击高亮）。"
+        case .cloudUpload:
+            return "截图/录屏一键上传到 S3 兼容存储（R2/AWS/MinIO…）。"
+        case .qrDetection:
+            return "识别截图中的二维码/条形码并可复制打开。"
         }
     }
 
@@ -160,6 +187,12 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "person.and.background.dotted"
         case .beautify:
             return "sparkles.rectangle.stack"
+        case .screenRecording:
+            return "video"
+        case .cloudUpload:
+            return "icloud.and.arrow.up"
+        case .qrDetection:
+            return "qrcode.viewfinder"
         }
     }
 }
@@ -170,13 +203,15 @@ struct ScreenshotCaptureCapabilities: Equatable {
     var area: Bool
     var scrolling: Bool
     var gifRecording: Bool
+    var screenRecording: Bool = true
 
     static let allEnabled = ScreenshotCaptureCapabilities(
         desktop: true,
         window: true,
         area: true,
         scrolling: true,
-        gifRecording: true
+        gifRecording: true,
+        screenRecording: true
     )
 }
 
@@ -188,6 +223,8 @@ struct ScreenshotEditorCapabilities: Equatable {
     var redaction: Bool = true
     var cutout: Bool = true
     var beautify: Bool = true
+    var cloudUpload: Bool = true
+    var qrDetection: Bool = true
 
     static let allEnabled = ScreenshotEditorCapabilities(
         annotations: true,
@@ -196,7 +233,9 @@ struct ScreenshotEditorCapabilities: Equatable {
         translation: true,
         redaction: true,
         cutout: true,
-        beautify: true
+        beautify: true,
+        cloudUpload: true,
+        qrDetection: true
     )
 }
 
@@ -231,7 +270,8 @@ struct ScreenshotFeatureSettings: Equatable {
             window: isEnabled(.windowCapture),
             area: isEnabled(.areaCapture),
             scrolling: isEnabled(.scrollingCapture),
-            gifRecording: isEnabled(.gifRecording)
+            gifRecording: isEnabled(.gifRecording),
+            screenRecording: isEnabled(.screenRecording)
         )
     }
 
@@ -243,7 +283,9 @@ struct ScreenshotFeatureSettings: Equatable {
             translation: isEnabled(.translation),
             redaction: isEnabled(.redaction),
             cutout: isEnabled(.cutout),
-            beautify: isEnabled(.beautify)
+            beautify: isEnabled(.beautify),
+            cloudUpload: isEnabled(.cloudUpload),
+            qrDetection: isEnabled(.qrDetection)
         )
     }
 }

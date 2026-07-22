@@ -1,5 +1,6 @@
 import CryptoKit
 import Foundation
+import SwiftUI
 
 // MARK: - Configuration
 
@@ -328,5 +329,52 @@ struct CloudUploadService {
         formatter.dateFormat = "yyyy/MM"
         formatter.timeZone = TimeZone(identifier: "UTC")
         return "atlas/\(formatter.string(from: date))/\(filename)"
+    }
+}
+
+// MARK: - Config panel
+
+/// Inline S3-compatible upload configuration (shown when uploading while
+/// unconfigured, and reachable from the same popover afterwards).
+struct CloudUploadConfigPanel: View {
+    var onSaved: () -> Void = {}
+
+    @State private var configuration = CloudUploadConfigurationStore().load()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("云上传配置（S3 兼容）")
+                .font(.subheadline.weight(.semibold))
+
+            TextField("端点 https://<account>.r2.cloudflarestorage.com", text: $configuration.endpoint)
+            TextField("区域（R2 填 auto）", text: $configuration.region)
+            TextField("Bucket", text: $configuration.bucket)
+            TextField("Access Key", text: $configuration.accessKey)
+            SecureField("Secret Key（存 Keychain）", text: $configuration.secretKey)
+            TextField("公开 URL 模板（可选，{key} 占位）", text: $configuration.publicURLTemplate)
+
+            HStack {
+                Text("历史保留天数（0=永久）")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                TextField("0", value: $configuration.historyExpiryDays, format: .number)
+                    .frame(width: 60)
+            }
+
+            HStack {
+                Spacer()
+                Button("保存") {
+                    CloudUploadConfigurationStore().save(configuration)
+                    onSaved()
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+                .disabled(configuration.isConfigured == false)
+            }
+        }
+        .textFieldStyle(.roundedBorder)
+        .font(.caption)
+        .padding(12)
+        .frame(width: 340)
     }
 }

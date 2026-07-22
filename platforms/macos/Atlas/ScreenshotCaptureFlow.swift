@@ -25,6 +25,17 @@ enum ScreenshotActions {
         }
     }
 
+    /// One-shot delayed region capture with an explicit delay (menu presets
+    /// 3/5/10s), without touching the user's default delay setting.
+    static func captureRegionDelayed(seconds: Int) {
+        CaptureCountdown.run(seconds: seconds) {
+            InteractiveScreenCapture.capture(.full) { data in
+                guard let data else { return }
+                SnipasteCaptureWindow.show(previewImageData: data)
+            }
+        }
+    }
+
     /// Pin the current clipboard image to the screen (Snipaste 贴图).
     @discardableResult
     static func pinFromClipboard() -> Bool {

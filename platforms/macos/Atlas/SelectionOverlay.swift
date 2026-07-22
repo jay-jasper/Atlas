@@ -336,6 +336,8 @@ struct SelectionOverlay: View {
                 by: SelectionGeometry.nudgeDelta(direction, isLargeStep: isLargeStep),
                 bounds: bounds
             )
+        case .cycleAspectLock:
+            break // Only the Snipaste-style overlay supports ratio lock.
         }
     }
 

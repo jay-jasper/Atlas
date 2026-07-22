@@ -12,6 +12,12 @@ struct RecordingEditorPanel: View {
                     .font(.headline)
                 Spacer()
                 Button("Open…") { chooseFile() }.controlSize(.small)
+                if service.sourceURL != nil {
+                    Button("导出") { service.exportEditedCopy() }
+                        .controlSize(.small)
+                        .buttonStyle(.borderedProminent)
+                        .disabled(service.isExporting)
+                }
             }
 
             if service.sourceURL == nil {
@@ -55,7 +61,7 @@ struct RecordingEditorPanel: View {
         panel.allowedContentTypes = [.movie, .mpeg4Movie, .quickTimeMovie, .audio]
         panel.allowsMultipleSelection = false
         if panel.runModal() == .OK, let url = panel.url {
-            service.load(url: url)
+            Task { await service.load(url: url) }
         }
     }
 }

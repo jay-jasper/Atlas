@@ -7,6 +7,8 @@ struct ScreenshotPanel: View {
     let onCaptureArea: () -> Void
     let onCaptureScrolling: () -> Void
     let onRecordGIF: () -> Void
+    var isScreenRecording: Bool = false
+    var onToggleScreenRecording: (() -> Void)? = nil
 
     var body: some View {
         Group {
@@ -36,6 +38,16 @@ struct ScreenshotPanel: View {
                         Label("GIF", systemImage: "record.circle")
                     }
                     .buttonStyle(.bordered)
+                }
+                if capabilities.screenRecording, let onToggleScreenRecording {
+                    Button(action: onToggleScreenRecording) {
+                        Label(
+                            isScreenRecording ? "停止录屏" : "录屏",
+                            systemImage: isScreenRecording ? "stop.circle.fill" : "video"
+                        )
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(isScreenRecording ? .red : nil)
                 }
             }
         }
