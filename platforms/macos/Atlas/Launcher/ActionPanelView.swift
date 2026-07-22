@@ -1,5 +1,35 @@
 import SwiftUI
 
+private struct ActionPanelRow: View {
+    let action: LauncherAction
+    let isSelected: Bool
+    let fontSize: Double
+    let accent: Color
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: action.systemImage)
+                .frame(width: 18)
+            Text(action.title)
+                .font(.system(size: fontSize - 1))
+            Spacer()
+            if let hint = action.shortcutHint {
+                Text(hint)
+                    .font(.system(size: fontSize - 3))
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.horizontal, 10)
+        .frame(height: 32)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(isSelected ? accent.opacity(0.2) : Color.clear)
+        )
+        .contentShape(Rectangle())
+        .focusable(false)
+    }
+}
+
 struct ActionPanelView: View {
     let actions: [LauncherAction]
     let fontSize: Double
@@ -21,26 +51,12 @@ struct ActionPanelView: View {
                 ScrollView {
                     LazyVStack(spacing: 0) {
                         ForEach(Array(filtered.enumerated()), id: \.element.id) { index, action in
-                            HStack(spacing: 8) {
-                                Image(systemName: action.systemImage)
-                                    .frame(width: 18)
-                                Text(action.title)
-                                    .font(.system(size: fontSize - 1))
-                                Spacer()
-                                if let hint = action.shortcutHint {
-                                    Text(hint)
-                                        .font(.system(size: fontSize - 3))
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                            .padding(.horizontal, 10)
-                            .frame(height: 32)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(index == selectedIndex ? accent.opacity(0.2) : Color.clear)
+                            ActionPanelRow(
+                                action: action,
+                                isSelected: index == selectedIndex,
+                                fontSize: fontSize,
+                                accent: accent
                             )
-                            .contentShape(Rectangle())
-                            .focusable(false)
                             .id(index)
                             .onTapGesture { onRun(action) }
                         }

@@ -285,7 +285,9 @@ final class AtlasMainWindowController: NSObject, NSWindowDelegate {
 
 @MainActor
 final class CommandPaletteState: ObservableObject {
-    private(set) var controller: CommandPaletteController!
+    private(set) var controller: LauncherPanelController!
+    let launcherStyleStore = LauncherStyleStore()
+    let launcherFavorites = FavoritesStore()
     private let hotkeyService: GlobalHotkeyService
     private let windowManager: WindowManaging
     private let workspaceStore = WorkspaceStore()
@@ -407,7 +409,7 @@ final class CommandPaletteState: ObservableObject {
         let bookmarkProvider = BookmarkProvider()
         let shellScriptProvider = ShellScriptProvider()
 
-        self.controller = CommandPaletteController(providers: [
+        let providers: [CommandProviding] = [
             calculatorProvider,
             identifierProvider,
             passwordProvider,
@@ -437,7 +439,15 @@ final class CommandPaletteState: ObservableObject {
             customAutomationProvider,
             skillProvider,
             appLauncherProvider,
-        ])
+        ]
+
+        self.controller = LauncherPanelController(
+            sources: providers.map {
+                CommandProviderAdapter(provider: $0, sourceID: String(describing: type(of: $0)))
+            },
+            styleStore: launcherStyleStore,
+            favorites: launcherFavorites
+        )
 
         self.controller.skillRunViewBuilder = { skill in
             AnyView(SkillPanel(skill: skill, runner: SkillRuntimeFactory.makeDefaultRunner()))

@@ -5,7 +5,7 @@ struct AtlasSettingsView: View {
     private let featureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigStore = ScreenshotTranslationConfigurationStore()
     private let tokenBarConfigStore = TokenBarConfigurationStore()
-    let paletteController: CommandPaletteController
+    let paletteController: LauncherPanelController
 
     @State private var screenshotFeatureSettings: ScreenshotFeatureSettings = .defaultEnabled
     @State private var translationSettingsDraft: ScreenshotTranslationSettingsDraft = .empty
