@@ -28,6 +28,8 @@ struct RGBAColor: Codable, Equatable {
 
 struct LauncherStyle: Codable, Equatable {
     enum Background: Equatable {
+        /// 跟随主窗口 ShellTheme(默认)。
+        case theme
         case material(opacity: Double)
         case solid(RGBAColor)
         case gradient(RGBAColor, RGBAColor, angleDegrees: Double)
@@ -51,7 +53,7 @@ struct LauncherStyle: Codable, Equatable {
     var accent: RGBAColor?
 
     static let `default` = LauncherStyle(
-        background: .material(opacity: 0.85),
+        background: .theme,
         borderColor: .clear,
         borderWidth: 0,
         cornerRadius: 16,
@@ -88,12 +90,14 @@ extension LauncherStyle.Background: Codable {
     }
 
     private enum Kind: String, Codable {
-        case material, solid, gradient
+        case theme, material, solid, gradient
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         switch try container.decode(Kind.self, forKey: .kind) {
+        case .theme:
+            self = .theme
         case .material:
             self = .material(opacity: try container.decode(Double.self, forKey: .opacity))
         case .solid:
@@ -110,6 +114,8 @@ extension LauncherStyle.Background: Codable {
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
+        case .theme:
+            try container.encode(Kind.theme, forKey: .kind)
         case .material(let opacity):
             try container.encode(Kind.material, forKey: .kind)
             try container.encode(opacity, forKey: .opacity)

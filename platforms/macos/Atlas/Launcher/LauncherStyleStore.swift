@@ -15,7 +15,12 @@ final class LauncherStyleStore: ObservableObject {
         self.defaults = defaults
         if let data = defaults.data(forKey: Self.storageKey),
            let decoded = try? JSONDecoder().decode(LauncherStyle.self, from: data) {
-            style = decoded.sanitized()
+            var migrated = decoded.sanitized()
+            // 旧默认背景(material 0.85)迁移为「跟随主题」。
+            if migrated.background == .material(opacity: 0.85) {
+                migrated.background = .theme
+            }
+            style = migrated
         } else {
             style = .default
         }

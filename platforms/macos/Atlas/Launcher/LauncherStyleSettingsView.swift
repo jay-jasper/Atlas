@@ -96,6 +96,11 @@ struct LauncherStylePreview: View {
     @ViewBuilder
     private var previewBackground: some View {
         switch style.background {
+        case .theme:
+            let theme = ShellThemeKind(
+                rawValue: UserDefaults.standard.string(forKey: "atlas.shell.theme") ?? ""
+            ) ?? .plain
+            theme.spec.makeBackground()
         case .material(let opacity):
             ZStack {
                 Rectangle().fill(.ultraThinMaterial)
@@ -119,6 +124,7 @@ struct LauncherStyleControls: View {
     @ObservedObject var styleStore: LauncherStyleStore
 
     private enum BackgroundKind: String, CaseIterable, Identifiable {
+        case theme = "主题"
         case material = "Material"
         case solid = "Solid"
         case gradient = "Gradient"
@@ -127,6 +133,7 @@ struct LauncherStyleControls: View {
 
     private var backgroundKind: BackgroundKind {
         switch styleStore.style.background {
+        case .theme: return .theme
         case .material: return .material
         case .solid: return .solid
         case .gradient: return .gradient
@@ -139,6 +146,8 @@ struct LauncherStyleControls: View {
                 get: { backgroundKind },
                 set: { kind in
                     switch kind {
+                    case .theme:
+                        styleStore.style.background = .theme
                     case .material:
                         styleStore.style.background = .material(opacity: 0.85)
                     case .solid:
@@ -207,6 +216,10 @@ struct LauncherStyleControls: View {
     @ViewBuilder
     private var backgroundEditors: some View {
         switch styleStore.style.background {
+        case .theme:
+            Text("背景/明暗随主窗口主题自动变化。")
+                .font(.caption)
+                .foregroundColor(.secondary)
         case .material(let opacity):
             slider("Material Opacity", value: Binding(
                 get: { opacity },

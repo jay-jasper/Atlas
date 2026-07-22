@@ -13,6 +13,16 @@ struct LauncherRootView: View {
     private var style: LauncherStyle { styleStore.style.sanitized() }
     private var accent: Color { style.accent?.color ?? Color.accentColor }
 
+    @AppStorage("atlas.shell.theme") private var shellThemeRaw = ShellThemeKind.plain.rawValue
+
+    private var shellTheme: ShellThemeKind {
+        ShellThemeKind(rawValue: shellThemeRaw) ?? .plain
+    }
+
+    private var systemColorScheme: ColorScheme {
+        NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? .dark : .light
+    }
+
     private struct FlatRow: Identifiable {
         let id: String
         let item: LauncherItem
@@ -86,6 +96,8 @@ struct LauncherRootView: View {
             }
         }
         .noDefaultFocus()
+        .environment(\.shellThemeKind, shellTheme)
+        .environment(\.colorScheme, shellTheme.spec.colorScheme ?? systemColorScheme)
         .background(backgroundView)
         .clipShape(RoundedRectangle(cornerRadius: style.cornerRadius))
         .overlay(
@@ -106,6 +118,8 @@ struct LauncherRootView: View {
     @ViewBuilder
     private var backgroundView: some View {
         switch style.background {
+        case .theme:
+            shellTheme.spec.makeBackground()
         case .material(let opacity):
             ZStack {
                 Rectangle().fill(.ultraThinMaterial)
