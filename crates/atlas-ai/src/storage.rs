@@ -17,6 +17,10 @@ impl AiStore {
         Ok(Self { root })
     }
 
+    pub fn root_dir(&self) -> &Path {
+        &self.root
+    }
+
     // MARK: providers
 
     pub fn providers(&self) -> Result<Vec<ProviderConfig>, AiError> {

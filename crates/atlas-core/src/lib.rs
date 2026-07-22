@@ -1,7 +1,10 @@
 pub mod calculator;
 pub mod capture;
 pub mod features;
+pub mod focus;
 pub mod monitor;
+pub mod notes;
+pub mod transfer;
 #[cfg(feature = "dynamic-modules")]
 pub use atlas_module_loader::{ModuleManifest, ModuleRegistry};
 use features::{Edition, FeatureManager};

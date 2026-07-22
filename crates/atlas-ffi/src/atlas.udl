@@ -167,6 +167,72 @@ callback interface AiChatStreamDelegate {
     void on_error(u64 request_id, string message);
 };
 
+dictionary NoteMeta {
+    string id;
+    string title;
+    boolean pinned;
+    u64 created_at;
+    u64 updated_at;
+};
+
+dictionary NoteContent {
+    NoteMeta meta;
+    string body_md;
+};
+
+dictionary FocusConfig {
+    string goal;
+    u32 duration_min;
+    sequence<string> blocked_bundle_ids;
+    boolean enable_dnd;
+};
+
+enum FocusPhase {
+    "Idle",
+    "Running",
+    "Paused",
+};
+
+dictionary FocusStatus {
+    FocusPhase phase;
+    FocusConfig? config;
+    u64 remaining_secs;
+};
+
+dictionary FocusSessionRecord {
+    string goal;
+    u32 duration_min;
+    u64 started_at;
+    u64 ended_at;
+    boolean completed;
+};
+
+dictionary TransferPayload {
+    string kind;
+    string json;
+};
+
+dictionary TransferManifest {
+    u32 version;
+    u64 exported_at;
+    sequence<string> kinds;
+};
+
+enum AiCommandOutputMode {
+    "Panel",
+    "Paste",
+    "Copy",
+};
+
+dictionary AiCommandEntry {
+    string id;
+    string name;
+    string icon;
+    string prompt_template;
+    AiCommandOutputMode output;
+    boolean builtin;
+};
+
 [Error]
 enum AtlasError {
     "LockPoisoned",
@@ -287,4 +353,52 @@ namespace atlas {
     /// Streams a prompt through a local agent CLI subprocess.
     [Throws=AtlasError]
     u64 ai_send_via_cli(string session_id, string cli_id, string cli_path, string? model, AiChatStreamDelegate delegate);
+
+    /// Notes: storage root shared with ai_set_storage_dir's parent (host injects).
+    void notes_set_storage_dir(string path);
+    [Throws=AtlasError]
+    sequence<NoteMeta> notes_list();
+    [Throws=AtlasError]
+    NoteContent notes_get(string id);
+    [Throws=AtlasError]
+    string notes_save(string? id, string title, string body_md);
+    [Throws=AtlasError]
+    void notes_delete(string id);
+    [Throws=AtlasError]
+    boolean notes_toggle_pin(string id);
+    [Throws=AtlasError]
+    sequence<NoteMeta> notes_search(string query);
+
+    /// Focus sessions (state machine lives in Rust; blocking runs in Swift).
+    void focus_set_storage_dir(string path);
+    [Throws=AtlasError]
+    FocusStatus focus_start(FocusConfig config);
+    [Throws=AtlasError]
+    FocusStatus focus_pause();
+    [Throws=AtlasError]
+    FocusStatus focus_resume();
+    [Throws=AtlasError]
+    void focus_stop();
+    [Throws=AtlasError]
+    FocusStatus focus_state();
+    [Throws=AtlasError]
+    sequence<FocusSessionRecord> focus_history();
+
+    /// Import/export: host gathers store payloads, Rust packs/unpacks the zip.
+    [Throws=AtlasError]
+    TransferManifest transfer_export(sequence<TransferPayload> payloads, string dest_path);
+    [Throws=AtlasError]
+    TransferManifest transfer_inspect(string path);
+    [Throws=AtlasError]
+    sequence<TransferPayload> transfer_import(string path, sequence<string> kinds);
+
+    /// AI command library (prompt presets over selected text).
+    [Throws=AtlasError]
+    sequence<AiCommandEntry> ai_commands_list();
+    [Throws=AtlasError]
+    void ai_commands_save(AiCommandEntry command);
+    [Throws=AtlasError]
+    void ai_commands_delete(string id);
+    /// Renders the final prompt for a command against the current selection.
+    string ai_commands_render(string template, string selection);
 };

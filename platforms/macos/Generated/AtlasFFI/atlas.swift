@@ -739,6 +739,74 @@ public func FfiConverterTypeAiChatSession_lower(_ value: AiChatSession) -> RustB
 }
 
 
+public struct AiCommandEntry: Equatable, Hashable {
+    public var id: String
+    public var name: String
+    public var icon: String
+    public var promptTemplate: String
+    public var output: AiCommandOutputMode
+    public var builtin: Bool
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, name: String, icon: String, promptTemplate: String, output: AiCommandOutputMode, builtin: Bool) {
+        self.id = id
+        self.name = name
+        self.icon = icon
+        self.promptTemplate = promptTemplate
+        self.output = output
+        self.builtin = builtin
+    }
+
+
+}
+
+#if compiler(>=6)
+extension AiCommandEntry: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeAiCommandEntry: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AiCommandEntry {
+        return
+            try AiCommandEntry(
+                id: FfiConverterString.read(from: &buf),
+                name: FfiConverterString.read(from: &buf),
+                icon: FfiConverterString.read(from: &buf),
+                promptTemplate: FfiConverterString.read(from: &buf),
+                output: FfiConverterTypeAiCommandOutputMode.read(from: &buf),
+                builtin: FfiConverterBool.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: AiCommandEntry, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterString.write(value.name, into: &buf)
+        FfiConverterString.write(value.icon, into: &buf)
+        FfiConverterString.write(value.promptTemplate, into: &buf)
+        FfiConverterTypeAiCommandOutputMode.write(value.output, into: &buf)
+        FfiConverterBool.write(value.builtin, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiCommandEntry_lift(_ buf: RustBuffer) throws -> AiCommandEntry {
+    return try FfiConverterTypeAiCommandEntry.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiCommandEntry_lower(_ value: AiCommandEntry) -> RustBuffer {
+    return FfiConverterTypeAiCommandEntry.lower(value)
+}
+
+
 public struct AiDetectedCli: Equatable, Hashable {
     public var kindId: String
     public var display: String
@@ -1230,6 +1298,186 @@ public func FfiConverterTypeFeatureEntry_lower(_ value: FeatureEntry) -> RustBuf
 }
 
 
+public struct FocusConfig: Equatable, Hashable {
+    public var goal: String
+    public var durationMin: UInt32
+    public var blockedBundleIds: [String]
+    public var enableDnd: Bool
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(goal: String, durationMin: UInt32, blockedBundleIds: [String], enableDnd: Bool) {
+        self.goal = goal
+        self.durationMin = durationMin
+        self.blockedBundleIds = blockedBundleIds
+        self.enableDnd = enableDnd
+    }
+
+
+}
+
+#if compiler(>=6)
+extension FocusConfig: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeFocusConfig: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FocusConfig {
+        return
+            try FocusConfig(
+                goal: FfiConverterString.read(from: &buf),
+                durationMin: FfiConverterUInt32.read(from: &buf),
+                blockedBundleIds: FfiConverterSequenceString.read(from: &buf),
+                enableDnd: FfiConverterBool.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: FocusConfig, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.goal, into: &buf)
+        FfiConverterUInt32.write(value.durationMin, into: &buf)
+        FfiConverterSequenceString.write(value.blockedBundleIds, into: &buf)
+        FfiConverterBool.write(value.enableDnd, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFocusConfig_lift(_ buf: RustBuffer) throws -> FocusConfig {
+    return try FfiConverterTypeFocusConfig.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFocusConfig_lower(_ value: FocusConfig) -> RustBuffer {
+    return FfiConverterTypeFocusConfig.lower(value)
+}
+
+
+public struct FocusSessionRecord: Equatable, Hashable {
+    public var goal: String
+    public var durationMin: UInt32
+    public var startedAt: UInt64
+    public var endedAt: UInt64
+    public var completed: Bool
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(goal: String, durationMin: UInt32, startedAt: UInt64, endedAt: UInt64, completed: Bool) {
+        self.goal = goal
+        self.durationMin = durationMin
+        self.startedAt = startedAt
+        self.endedAt = endedAt
+        self.completed = completed
+    }
+
+
+}
+
+#if compiler(>=6)
+extension FocusSessionRecord: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeFocusSessionRecord: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FocusSessionRecord {
+        return
+            try FocusSessionRecord(
+                goal: FfiConverterString.read(from: &buf),
+                durationMin: FfiConverterUInt32.read(from: &buf),
+                startedAt: FfiConverterUInt64.read(from: &buf),
+                endedAt: FfiConverterUInt64.read(from: &buf),
+                completed: FfiConverterBool.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: FocusSessionRecord, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.goal, into: &buf)
+        FfiConverterUInt32.write(value.durationMin, into: &buf)
+        FfiConverterUInt64.write(value.startedAt, into: &buf)
+        FfiConverterUInt64.write(value.endedAt, into: &buf)
+        FfiConverterBool.write(value.completed, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFocusSessionRecord_lift(_ buf: RustBuffer) throws -> FocusSessionRecord {
+    return try FfiConverterTypeFocusSessionRecord.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFocusSessionRecord_lower(_ value: FocusSessionRecord) -> RustBuffer {
+    return FfiConverterTypeFocusSessionRecord.lower(value)
+}
+
+
+public struct FocusStatus: Equatable, Hashable {
+    public var phase: FocusPhase
+    public var config: FocusConfig?
+    public var remainingSecs: UInt64
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(phase: FocusPhase, config: FocusConfig?, remainingSecs: UInt64) {
+        self.phase = phase
+        self.config = config
+        self.remainingSecs = remainingSecs
+    }
+
+
+}
+
+#if compiler(>=6)
+extension FocusStatus: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeFocusStatus: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FocusStatus {
+        return
+            try FocusStatus(
+                phase: FfiConverterTypeFocusPhase.read(from: &buf),
+                config: FfiConverterOptionTypeFocusConfig.read(from: &buf),
+                remainingSecs: FfiConverterUInt64.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: FocusStatus, into buf: inout [UInt8]) {
+        FfiConverterTypeFocusPhase.write(value.phase, into: &buf)
+        FfiConverterOptionTypeFocusConfig.write(value.config, into: &buf)
+        FfiConverterUInt64.write(value.remainingSecs, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFocusStatus_lift(_ buf: RustBuffer) throws -> FocusStatus {
+    return try FfiConverterTypeFocusStatus.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFocusStatus_lower(_ value: FocusStatus) -> RustBuffer {
+    return FfiConverterTypeFocusStatus.lower(value)
+}
+
+
 public struct NetworkInterfaceSnapshot: Equatable, Hashable {
     public var name: String
     public var uploadBps: UInt64
@@ -1283,6 +1531,122 @@ public func FfiConverterTypeNetworkInterfaceSnapshot_lift(_ buf: RustBuffer) thr
 #endif
 public func FfiConverterTypeNetworkInterfaceSnapshot_lower(_ value: NetworkInterfaceSnapshot) -> RustBuffer {
     return FfiConverterTypeNetworkInterfaceSnapshot.lower(value)
+}
+
+
+public struct NoteContent: Equatable, Hashable {
+    public var meta: NoteMeta
+    public var bodyMd: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(meta: NoteMeta, bodyMd: String) {
+        self.meta = meta
+        self.bodyMd = bodyMd
+    }
+
+
+}
+
+#if compiler(>=6)
+extension NoteContent: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeNoteContent: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NoteContent {
+        return
+            try NoteContent(
+                meta: FfiConverterTypeNoteMeta.read(from: &buf),
+                bodyMd: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: NoteContent, into buf: inout [UInt8]) {
+        FfiConverterTypeNoteMeta.write(value.meta, into: &buf)
+        FfiConverterString.write(value.bodyMd, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNoteContent_lift(_ buf: RustBuffer) throws -> NoteContent {
+    return try FfiConverterTypeNoteContent.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNoteContent_lower(_ value: NoteContent) -> RustBuffer {
+    return FfiConverterTypeNoteContent.lower(value)
+}
+
+
+public struct NoteMeta: Equatable, Hashable {
+    public var id: String
+    public var title: String
+    public var pinned: Bool
+    public var createdAt: UInt64
+    public var updatedAt: UInt64
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, title: String, pinned: Bool, createdAt: UInt64, updatedAt: UInt64) {
+        self.id = id
+        self.title = title
+        self.pinned = pinned
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
+
+}
+
+#if compiler(>=6)
+extension NoteMeta: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeNoteMeta: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NoteMeta {
+        return
+            try NoteMeta(
+                id: FfiConverterString.read(from: &buf),
+                title: FfiConverterString.read(from: &buf),
+                pinned: FfiConverterBool.read(from: &buf),
+                createdAt: FfiConverterUInt64.read(from: &buf),
+                updatedAt: FfiConverterUInt64.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: NoteMeta, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterString.write(value.title, into: &buf)
+        FfiConverterBool.write(value.pinned, into: &buf)
+        FfiConverterUInt64.write(value.createdAt, into: &buf)
+        FfiConverterUInt64.write(value.updatedAt, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNoteMeta_lift(_ buf: RustBuffer) throws -> NoteMeta {
+    return try FfiConverterTypeNoteMeta.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNoteMeta_lower(_ value: NoteMeta) -> RustBuffer {
+    return FfiConverterTypeNoteMeta.lower(value)
 }
 
 
@@ -1705,6 +2069,186 @@ public func FfiConverterTypeTemperatureSnapshot_lower(_ value: TemperatureSnapsh
 }
 
 
+public struct TransferManifest: Equatable, Hashable {
+    public var version: UInt32
+    public var exportedAt: UInt64
+    public var kinds: [String]
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(version: UInt32, exportedAt: UInt64, kinds: [String]) {
+        self.version = version
+        self.exportedAt = exportedAt
+        self.kinds = kinds
+    }
+
+
+}
+
+#if compiler(>=6)
+extension TransferManifest: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeTransferManifest: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TransferManifest {
+        return
+            try TransferManifest(
+                version: FfiConverterUInt32.read(from: &buf),
+                exportedAt: FfiConverterUInt64.read(from: &buf),
+                kinds: FfiConverterSequenceString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: TransferManifest, into buf: inout [UInt8]) {
+        FfiConverterUInt32.write(value.version, into: &buf)
+        FfiConverterUInt64.write(value.exportedAt, into: &buf)
+        FfiConverterSequenceString.write(value.kinds, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeTransferManifest_lift(_ buf: RustBuffer) throws -> TransferManifest {
+    return try FfiConverterTypeTransferManifest.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeTransferManifest_lower(_ value: TransferManifest) -> RustBuffer {
+    return FfiConverterTypeTransferManifest.lower(value)
+}
+
+
+public struct TransferPayload: Equatable, Hashable {
+    public var kind: String
+    public var json: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(kind: String, json: String) {
+        self.kind = kind
+        self.json = json
+    }
+
+
+}
+
+#if compiler(>=6)
+extension TransferPayload: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeTransferPayload: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TransferPayload {
+        return
+            try TransferPayload(
+                kind: FfiConverterString.read(from: &buf),
+                json: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: TransferPayload, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.kind, into: &buf)
+        FfiConverterString.write(value.json, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeTransferPayload_lift(_ buf: RustBuffer) throws -> TransferPayload {
+    return try FfiConverterTypeTransferPayload.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeTransferPayload_lower(_ value: TransferPayload) -> RustBuffer {
+    return FfiConverterTypeTransferPayload.lower(value)
+}
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum AiCommandOutputMode: Equatable, Hashable {
+
+    case panel
+    case paste
+    case copy
+
+
+
+}
+
+#if compiler(>=6)
+extension AiCommandOutputMode: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeAiCommandOutputMode: FfiConverterRustBuffer {
+    typealias SwiftType = AiCommandOutputMode
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AiCommandOutputMode {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        case 1: return .panel
+
+        case 2: return .paste
+
+        case 3: return .copy
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: AiCommandOutputMode, into buf: inout [UInt8]) {
+        switch value {
+
+
+        case .panel:
+            writeInt(&buf, Int32(1))
+
+
+        case .paste:
+            writeInt(&buf, Int32(2))
+
+
+        case .copy:
+            writeInt(&buf, Int32(3))
+
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiCommandOutputMode_lift(_ buf: RustBuffer) throws -> AiCommandOutputMode {
+    return try FfiConverterTypeAiCommandOutputMode.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiCommandOutputMode_lower(_ value: AiCommandOutputMode) -> RustBuffer {
+    return FfiConverterTypeAiCommandOutputMode.lower(value)
+}
+
+
+
 public enum AtlasError: Swift.Error, Equatable, Hashable, Foundation.LocalizedError {
 
 
@@ -1969,6 +2513,78 @@ public func FfiConverterTypeFeatureStatus_lift(_ buf: RustBuffer) throws -> Feat
 #endif
 public func FfiConverterTypeFeatureStatus_lower(_ value: FeatureStatus) -> RustBuffer {
     return FfiConverterTypeFeatureStatus.lower(value)
+}
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum FocusPhase: Equatable, Hashable {
+
+    case idle
+    case running
+    case paused
+
+
+
+}
+
+#if compiler(>=6)
+extension FocusPhase: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeFocusPhase: FfiConverterRustBuffer {
+    typealias SwiftType = FocusPhase
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FocusPhase {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        case 1: return .idle
+
+        case 2: return .running
+
+        case 3: return .paused
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: FocusPhase, into buf: inout [UInt8]) {
+        switch value {
+
+
+        case .idle:
+            writeInt(&buf, Int32(1))
+
+
+        case .running:
+            writeInt(&buf, Int32(2))
+
+
+        case .paused:
+            writeInt(&buf, Int32(3))
+
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFocusPhase_lift(_ buf: RustBuffer) throws -> FocusPhase {
+    return try FfiConverterTypeFocusPhase.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeFocusPhase_lower(_ value: FocusPhase) -> RustBuffer {
+    return FfiConverterTypeFocusPhase.lower(value)
 }
 
 
@@ -2447,6 +3063,30 @@ fileprivate struct FfiConverterOptionTypeBatterySnapshot: FfiConverterRustBuffer
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterOptionTypeFocusConfig: FfiConverterRustBuffer {
+    typealias SwiftType = FocusConfig?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeFocusConfig.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeFocusConfig.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypePortProcessInfo: FfiConverterRustBuffer {
     typealias SwiftType = PortProcessInfo?
 
@@ -2538,6 +3178,31 @@ fileprivate struct FfiConverterSequenceTypeAiChatMessage: FfiConverterRustBuffer
         seq.reserveCapacity(Int(len))
         for _ in 0 ..< len {
             seq.append(try FfiConverterTypeAiChatMessage.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceTypeAiCommandEntry: FfiConverterRustBuffer {
+    typealias SwiftType = [AiCommandEntry]
+
+    public static func write(_ value: [AiCommandEntry], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeAiCommandEntry.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [AiCommandEntry] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [AiCommandEntry]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeAiCommandEntry.read(from: &buf))
         }
         return seq
     }
@@ -2721,6 +3386,31 @@ fileprivate struct FfiConverterSequenceTypeFeatureEntry: FfiConverterRustBuffer 
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterSequenceTypeFocusSessionRecord: FfiConverterRustBuffer {
+    typealias SwiftType = [FocusSessionRecord]
+
+    public static func write(_ value: [FocusSessionRecord], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeFocusSessionRecord.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [FocusSessionRecord] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [FocusSessionRecord]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeFocusSessionRecord.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeNetworkInterfaceSnapshot: FfiConverterRustBuffer {
     typealias SwiftType = [NetworkInterfaceSnapshot]
 
@@ -2738,6 +3428,31 @@ fileprivate struct FfiConverterSequenceTypeNetworkInterfaceSnapshot: FfiConverte
         seq.reserveCapacity(Int(len))
         for _ in 0 ..< len {
             seq.append(try FfiConverterTypeNetworkInterfaceSnapshot.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceTypeNoteMeta: FfiConverterRustBuffer {
+    typealias SwiftType = [NoteMeta]
+
+    public static func write(_ value: [NoteMeta], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeNoteMeta.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [NoteMeta] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [NoteMeta]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeNoteMeta.read(from: &buf))
         }
         return seq
     }
@@ -2817,9 +3532,66 @@ fileprivate struct FfiConverterSequenceTypeTemperatureSnapshot: FfiConverterRust
         return seq
     }
 }
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceTypeTransferPayload: FfiConverterRustBuffer {
+    typealias SwiftType = [TransferPayload]
+
+    public static func write(_ value: [TransferPayload], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeTransferPayload.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [TransferPayload] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [TransferPayload]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeTransferPayload.read(from: &buf))
+        }
+        return seq
+    }
+}
 public func aiCancel(requestId: UInt64)  {try! rustCall() {
     uniffi_atlas_ffi_fn_func_ai_cancel(
         FfiConverterUInt64.lower(requestId),$0
+    )
+}
+}
+public func aiCommandsDelete(id: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_commands_delete(
+        FfiConverterString.lower(id),$0
+    )
+}
+}
+/**
+ * AI command library (prompt presets over selected text).
+ */
+public func aiCommandsList()throws  -> [AiCommandEntry]  {
+    return try  FfiConverterSequenceTypeAiCommandEntry.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_commands_list($0
+    )
+})
+}
+/**
+ * Renders the final prompt for a command against the current selection.
+ */
+public func aiCommandsRender(template: String, selection: String) -> String  {
+    return try!  FfiConverterString.lift(try! rustCall() {
+    uniffi_atlas_ffi_fn_func_ai_commands_render(
+        FfiConverterString.lower(template),
+        FfiConverterString.lower(selection),$0
+    )
+})
+}
+public func aiCommandsSave(command: AiCommandEntry)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_commands_save(
+        FfiConverterTypeAiCommandEntry_lower(command),$0
     )
 }
 }
@@ -2993,6 +3765,51 @@ public func evaluateExpression(input: String) -> String?  {
     )
 })
 }
+public func focusHistory()throws  -> [FocusSessionRecord]  {
+    return try  FfiConverterSequenceTypeFocusSessionRecord.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_focus_history($0
+    )
+})
+}
+public func focusPause()throws  -> FocusStatus  {
+    return try  FfiConverterTypeFocusStatus_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_focus_pause($0
+    )
+})
+}
+public func focusResume()throws  -> FocusStatus  {
+    return try  FfiConverterTypeFocusStatus_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_focus_resume($0
+    )
+})
+}
+/**
+ * Focus sessions (state machine lives in Rust; blocking runs in Swift).
+ */
+public func focusSetStorageDir(path: String)  {try! rustCall() {
+    uniffi_atlas_ffi_fn_func_focus_set_storage_dir(
+        FfiConverterString.lower(path),$0
+    )
+}
+}
+public func focusStart(config: FocusConfig)throws  -> FocusStatus  {
+    return try  FfiConverterTypeFocusStatus_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_focus_start(
+        FfiConverterTypeFocusConfig_lower(config),$0
+    )
+})
+}
+public func focusState()throws  -> FocusStatus  {
+    return try  FfiConverterTypeFocusStatus_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_focus_state($0
+    )
+})
+}
+public func focusStop()throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_focus_stop($0
+    )
+}
+}
 /**
  * Returns the current status of the Atlas core as a string.
  */
@@ -3067,6 +3884,57 @@ public func lookupPort(port: UInt16)throws  -> PortProcessInfo?  {
     )
 })
 }
+public func notesDelete(id: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_notes_delete(
+        FfiConverterString.lower(id),$0
+    )
+}
+}
+public func notesGet(id: String)throws  -> NoteContent  {
+    return try  FfiConverterTypeNoteContent_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_notes_get(
+        FfiConverterString.lower(id),$0
+    )
+})
+}
+public func notesList()throws  -> [NoteMeta]  {
+    return try  FfiConverterSequenceTypeNoteMeta.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_notes_list($0
+    )
+})
+}
+public func notesSave(id: String?, title: String, bodyMd: String)throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_notes_save(
+        FfiConverterOptionString.lower(id),
+        FfiConverterString.lower(title),
+        FfiConverterString.lower(bodyMd),$0
+    )
+})
+}
+public func notesSearch(query: String)throws  -> [NoteMeta]  {
+    return try  FfiConverterSequenceTypeNoteMeta.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_notes_search(
+        FfiConverterString.lower(query),$0
+    )
+})
+}
+/**
+ * Notes: storage root shared with ai_set_storage_dir's parent (host injects).
+ */
+public func notesSetStorageDir(path: String)  {try! rustCall() {
+    uniffi_atlas_ffi_fn_func_notes_set_storage_dir(
+        FfiConverterString.lower(path),$0
+    )
+}
+}
+public func notesTogglePin(id: String)throws  -> Bool  {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_notes_toggle_pin(
+        FfiConverterString.lower(id),$0
+    )
+})
+}
 public func startMonitoring(callback: SystemMonitorCallback)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_start_monitoring(
         FfiConverterCallbackInterfaceSystemMonitorCallback_lower(callback),$0
@@ -3086,6 +3954,32 @@ public func toggleFeature(name: String, enabled: Bool)throws  -> Bool  {
     uniffi_atlas_ffi_fn_func_toggle_feature(
         FfiConverterString.lower(name),
         FfiConverterBool.lower(enabled),$0
+    )
+})
+}
+/**
+ * Import/export: host gathers store payloads, Rust packs/unpacks the zip.
+ */
+public func transferExport(payloads: [TransferPayload], destPath: String)throws  -> TransferManifest  {
+    return try  FfiConverterTypeTransferManifest_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_transfer_export(
+        FfiConverterSequenceTypeTransferPayload.lower(payloads),
+        FfiConverterString.lower(destPath),$0
+    )
+})
+}
+public func transferImport(path: String, kinds: [String])throws  -> [TransferPayload]  {
+    return try  FfiConverterSequenceTypeTransferPayload.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_transfer_import(
+        FfiConverterString.lower(path),
+        FfiConverterSequenceString.lower(kinds),$0
+    )
+})
+}
+public func transferInspect(path: String)throws  -> TransferManifest  {
+    return try  FfiConverterTypeTransferManifest_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_transfer_inspect(
+        FfiConverterString.lower(path),$0
     )
 })
 }
@@ -3113,6 +4007,18 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.contractVersionMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_ai_cancel() != 32072) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_commands_delete() != 32837) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_commands_list() != 5882) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_commands_render() != 45878) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_commands_save() != 29134) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_ai_delete_preset() != 9033) {
@@ -3178,6 +4084,27 @@ private let initializationResult: InitializationResult = {
     if (uniffi_atlas_ffi_checksum_func_evaluate_expression() != 32376) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_atlas_ffi_checksum_func_focus_history() != 62091) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_focus_pause() != 62566) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_focus_resume() != 51573) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_focus_set_storage_dir() != 6147) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_focus_start() != 48501) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_focus_state() != 33447) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_focus_stop() != 13446) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_atlas_ffi_checksum_func_get_core_status() != 12365) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -3205,6 +4132,27 @@ private let initializationResult: InitializationResult = {
     if (uniffi_atlas_ffi_checksum_func_lookup_port() != 23978) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_atlas_ffi_checksum_func_notes_delete() != 48286) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_notes_get() != 62476) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_notes_list() != 43298) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_notes_save() != 45234) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_notes_search() != 45798) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_notes_set_storage_dir() != 49992) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_notes_toggle_pin() != 45524) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_atlas_ffi_checksum_func_start_monitoring() != 53253) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -3212,6 +4160,15 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_toggle_feature() != 41012) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_transfer_export() != 59095) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_transfer_import() != 38774) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_transfer_inspect() != 20608) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_uninstall_plugin() != 59064) {

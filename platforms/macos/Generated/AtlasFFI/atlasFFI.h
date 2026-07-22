@@ -306,6 +306,27 @@ void uniffi_atlas_ffi_fn_init_callback_vtable_systemmonitorcallback(const Uniffi
 void uniffi_atlas_ffi_fn_func_ai_cancel(uint64_t request_id, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_COMMANDS_DELETE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_COMMANDS_DELETE
+void uniffi_atlas_ffi_fn_func_ai_commands_delete(RustBuffer id, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_COMMANDS_LIST
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_COMMANDS_LIST
+RustBuffer uniffi_atlas_ffi_fn_func_ai_commands_list(RustCallStatus *_Nonnull out_status
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_COMMANDS_RENDER
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_COMMANDS_RENDER
+RustBuffer uniffi_atlas_ffi_fn_func_ai_commands_render(RustBuffer template, RustBuffer selection, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_COMMANDS_SAVE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_COMMANDS_SAVE
+void uniffi_atlas_ffi_fn_func_ai_commands_save(RustBuffer command, RustCallStatus *_Nonnull out_status
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_DELETE_PRESET
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_DELETE_PRESET
 void uniffi_atlas_ffi_fn_func_ai_delete_preset(RustBuffer id, RustCallStatus *_Nonnull out_status
@@ -416,6 +437,46 @@ RustBuffer uniffi_atlas_ffi_fn_func_dispatch_plugin_event(RustBuffer id, RustBuf
 RustBuffer uniffi_atlas_ffi_fn_func_evaluate_expression(RustBuffer input, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_HISTORY
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_HISTORY
+RustBuffer uniffi_atlas_ffi_fn_func_focus_history(RustCallStatus *_Nonnull out_status
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_PAUSE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_PAUSE
+RustBuffer uniffi_atlas_ffi_fn_func_focus_pause(RustCallStatus *_Nonnull out_status
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_RESUME
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_RESUME
+RustBuffer uniffi_atlas_ffi_fn_func_focus_resume(RustCallStatus *_Nonnull out_status
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_SET_STORAGE_DIR
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_SET_STORAGE_DIR
+void uniffi_atlas_ffi_fn_func_focus_set_storage_dir(RustBuffer path, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_START
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_START
+RustBuffer uniffi_atlas_ffi_fn_func_focus_start(RustBuffer config, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_STATE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_STATE
+RustBuffer uniffi_atlas_ffi_fn_func_focus_state(RustCallStatus *_Nonnull out_status
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_STOP
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_STOP
+void uniffi_atlas_ffi_fn_func_focus_stop(RustCallStatus *_Nonnull out_status
+
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_GET_CORE_STATUS
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_GET_CORE_STATUS
 RustBuffer uniffi_atlas_ffi_fn_func_get_core_status(RustCallStatus *_Nonnull out_status
@@ -464,6 +525,42 @@ RustBuffer uniffi_atlas_ffi_fn_func_list_plugins(RustCallStatus *_Nonnull out_st
 RustBuffer uniffi_atlas_ffi_fn_func_lookup_port(uint16_t port, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_NOTES_DELETE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_NOTES_DELETE
+void uniffi_atlas_ffi_fn_func_notes_delete(RustBuffer id, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_NOTES_GET
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_NOTES_GET
+RustBuffer uniffi_atlas_ffi_fn_func_notes_get(RustBuffer id, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_NOTES_LIST
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_NOTES_LIST
+RustBuffer uniffi_atlas_ffi_fn_func_notes_list(RustCallStatus *_Nonnull out_status
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_NOTES_SAVE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_NOTES_SAVE
+RustBuffer uniffi_atlas_ffi_fn_func_notes_save(RustBuffer id, RustBuffer title, RustBuffer body_md, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_NOTES_SEARCH
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_NOTES_SEARCH
+RustBuffer uniffi_atlas_ffi_fn_func_notes_search(RustBuffer query, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_NOTES_SET_STORAGE_DIR
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_NOTES_SET_STORAGE_DIR
+void uniffi_atlas_ffi_fn_func_notes_set_storage_dir(RustBuffer path, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_NOTES_TOGGLE_PIN
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_NOTES_TOGGLE_PIN
+int8_t uniffi_atlas_ffi_fn_func_notes_toggle_pin(RustBuffer id, RustCallStatus *_Nonnull out_status
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_START_MONITORING
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_START_MONITORING
 void uniffi_atlas_ffi_fn_func_start_monitoring(uint64_t callback, RustCallStatus *_Nonnull out_status
@@ -478,6 +575,21 @@ void uniffi_atlas_ffi_fn_func_stop_monitoring(RustCallStatus *_Nonnull out_statu
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_TOGGLE_FEATURE
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_TOGGLE_FEATURE
 int8_t uniffi_atlas_ffi_fn_func_toggle_feature(RustBuffer name, int8_t enabled, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_TRANSFER_EXPORT
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_TRANSFER_EXPORT
+RustBuffer uniffi_atlas_ffi_fn_func_transfer_export(RustBuffer payloads, RustBuffer dest_path, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_TRANSFER_IMPORT
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_TRANSFER_IMPORT
+RustBuffer uniffi_atlas_ffi_fn_func_transfer_import(RustBuffer path, RustBuffer kinds, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_TRANSFER_INSPECT
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_TRANSFER_INSPECT
+RustBuffer uniffi_atlas_ffi_fn_func_transfer_inspect(RustBuffer path, RustCallStatus *_Nonnull out_status
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_UNINSTALL_PLUGIN
@@ -751,6 +863,30 @@ uint16_t uniffi_atlas_ffi_checksum_func_ai_cancel(void
 
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_COMMANDS_DELETE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_COMMANDS_DELETE
+uint16_t uniffi_atlas_ffi_checksum_func_ai_commands_delete(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_COMMANDS_LIST
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_COMMANDS_LIST
+uint16_t uniffi_atlas_ffi_checksum_func_ai_commands_list(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_COMMANDS_RENDER
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_COMMANDS_RENDER
+uint16_t uniffi_atlas_ffi_checksum_func_ai_commands_render(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_COMMANDS_SAVE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_COMMANDS_SAVE
+uint16_t uniffi_atlas_ffi_checksum_func_ai_commands_save(void
+
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_DELETE_PRESET
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_DELETE_PRESET
 uint16_t uniffi_atlas_ffi_checksum_func_ai_delete_preset(void
@@ -877,6 +1013,48 @@ uint16_t uniffi_atlas_ffi_checksum_func_evaluate_expression(void
 
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_HISTORY
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_HISTORY
+uint16_t uniffi_atlas_ffi_checksum_func_focus_history(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_PAUSE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_PAUSE
+uint16_t uniffi_atlas_ffi_checksum_func_focus_pause(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_RESUME
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_RESUME
+uint16_t uniffi_atlas_ffi_checksum_func_focus_resume(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_SET_STORAGE_DIR
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_SET_STORAGE_DIR
+uint16_t uniffi_atlas_ffi_checksum_func_focus_set_storage_dir(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_START
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_START
+uint16_t uniffi_atlas_ffi_checksum_func_focus_start(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_STATE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_STATE
+uint16_t uniffi_atlas_ffi_checksum_func_focus_state(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_STOP
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_STOP
+uint16_t uniffi_atlas_ffi_checksum_func_focus_stop(void
+
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_GET_CORE_STATUS
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_GET_CORE_STATUS
 uint16_t uniffi_atlas_ffi_checksum_func_get_core_status(void
@@ -931,6 +1109,48 @@ uint16_t uniffi_atlas_ffi_checksum_func_lookup_port(void
 
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_NOTES_DELETE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_NOTES_DELETE
+uint16_t uniffi_atlas_ffi_checksum_func_notes_delete(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_NOTES_GET
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_NOTES_GET
+uint16_t uniffi_atlas_ffi_checksum_func_notes_get(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_NOTES_LIST
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_NOTES_LIST
+uint16_t uniffi_atlas_ffi_checksum_func_notes_list(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_NOTES_SAVE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_NOTES_SAVE
+uint16_t uniffi_atlas_ffi_checksum_func_notes_save(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_NOTES_SEARCH
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_NOTES_SEARCH
+uint16_t uniffi_atlas_ffi_checksum_func_notes_search(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_NOTES_SET_STORAGE_DIR
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_NOTES_SET_STORAGE_DIR
+uint16_t uniffi_atlas_ffi_checksum_func_notes_set_storage_dir(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_NOTES_TOGGLE_PIN
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_NOTES_TOGGLE_PIN
+uint16_t uniffi_atlas_ffi_checksum_func_notes_toggle_pin(void
+
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_START_MONITORING
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_START_MONITORING
 uint16_t uniffi_atlas_ffi_checksum_func_start_monitoring(void
@@ -946,6 +1166,24 @@ uint16_t uniffi_atlas_ffi_checksum_func_stop_monitoring(void
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_TOGGLE_FEATURE
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_TOGGLE_FEATURE
 uint16_t uniffi_atlas_ffi_checksum_func_toggle_feature(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_TRANSFER_EXPORT
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_TRANSFER_EXPORT
+uint16_t uniffi_atlas_ffi_checksum_func_transfer_export(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_TRANSFER_IMPORT
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_TRANSFER_IMPORT
+uint16_t uniffi_atlas_ffi_checksum_func_transfer_import(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_TRANSFER_INSPECT
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_TRANSFER_INSPECT
+uint16_t uniffi_atlas_ffi_checksum_func_transfer_inspect(void
 
 );
 #endif

@@ -1074,3 +1074,386 @@ pub fn ai_send_via_cli(
 
     Ok(request_id)
 }
+
+// MARK: - Notes / Focus / Transfer / AI Commands
+
+static NOTES_STORE: Lazy<Mutex<Option<atlas_core::notes::NotesStore>>> = Lazy::new(|| Mutex::new(None));
+static FOCUS_STORE: Lazy<Mutex<Option<atlas_core::focus::FocusStore>>> = Lazy::new(|| Mutex::new(None));
+static AI_COMMAND_STORE: Lazy<Mutex<Option<atlas_ai::AiCommandStore>>> = Lazy::new(|| Mutex::new(None));
+
+pub struct NoteMeta {
+    pub id: String,
+    pub title: String,
+    pub pinned: bool,
+    pub created_at: u64,
+    pub updated_at: u64,
+}
+
+pub struct NoteContent {
+    pub meta: NoteMeta,
+    pub body_md: String,
+}
+
+pub struct FocusConfig {
+    pub goal: String,
+    pub duration_min: u32,
+    pub blocked_bundle_ids: Vec<String>,
+    pub enable_dnd: bool,
+}
+
+pub enum FocusPhase {
+    Idle,
+    Running,
+    Paused,
+}
+
+pub struct FocusStatus {
+    pub phase: FocusPhase,
+    pub config: Option<FocusConfig>,
+    pub remaining_secs: u64,
+}
+
+pub struct FocusSessionRecord {
+    pub goal: String,
+    pub duration_min: u32,
+    pub started_at: u64,
+    pub ended_at: u64,
+    pub completed: bool,
+}
+
+pub struct TransferPayload {
+    pub kind: String,
+    pub json: String,
+}
+
+pub struct TransferManifest {
+    pub version: u32,
+    pub exported_at: u64,
+    pub kinds: Vec<String>,
+}
+
+pub enum AiCommandOutputMode {
+    Panel,
+    Paste,
+    Copy,
+}
+
+pub struct AiCommandEntry {
+    pub id: String,
+    pub name: String,
+    pub icon: String,
+    pub prompt_template: String,
+    pub output: AiCommandOutputMode,
+    pub builtin: bool,
+}
+
+impl From<atlas_core::notes::NoteMeta> for NoteMeta {
+    fn from(m: atlas_core::notes::NoteMeta) -> Self {
+        Self {
+            id: m.id,
+            title: m.title,
+            pinned: m.pinned,
+            created_at: m.created_at,
+            updated_at: m.updated_at,
+        }
+    }
+}
+
+impl From<atlas_core::focus::FocusConfig> for FocusConfig {
+    fn from(c: atlas_core::focus::FocusConfig) -> Self {
+        Self {
+            goal: c.goal,
+            duration_min: c.duration_min,
+            blocked_bundle_ids: c.blocked_bundle_ids,
+            enable_dnd: c.enable_dnd,
+        }
+    }
+}
+
+impl From<FocusConfig> for atlas_core::focus::FocusConfig {
+    fn from(c: FocusConfig) -> Self {
+        Self {
+            goal: c.goal,
+            duration_min: c.duration_min,
+            blocked_bundle_ids: c.blocked_bundle_ids,
+            enable_dnd: c.enable_dnd,
+        }
+    }
+}
+
+impl From<atlas_ai::AiCommandOutput> for AiCommandOutputMode {
+    fn from(o: atlas_ai::AiCommandOutput) -> Self {
+        match o {
+            atlas_ai::AiCommandOutput::Panel => Self::Panel,
+            atlas_ai::AiCommandOutput::Paste => Self::Paste,
+            atlas_ai::AiCommandOutput::Copy => Self::Copy,
+        }
+    }
+}
+
+impl From<AiCommandOutputMode> for atlas_ai::AiCommandOutput {
+    fn from(o: AiCommandOutputMode) -> Self {
+        match o {
+            AiCommandOutputMode::Panel => Self::Panel,
+            AiCommandOutputMode::Paste => Self::Paste,
+            AiCommandOutputMode::Copy => Self::Copy,
+        }
+    }
+}
+
+impl From<atlas_ai::AiCommand> for AiCommandEntry {
+    fn from(c: atlas_ai::AiCommand) -> Self {
+        Self {
+            id: c.id,
+            name: c.name,
+            icon: c.icon,
+            prompt_template: c.prompt_template,
+            output: c.output.into(),
+            builtin: c.builtin,
+        }
+    }
+}
+
+impl From<AiCommandEntry> for atlas_ai::AiCommand {
+    fn from(c: AiCommandEntry) -> Self {
+        Self {
+            id: c.id,
+            name: c.name,
+            icon: c.icon,
+            prompt_template: c.prompt_template,
+            output: c.output.into(),
+            builtin: c.builtin,
+        }
+    }
+}
+
+impl From<atlas_core::notes::NotesError> for AtlasError {
+    fn from(error: atlas_core::notes::NotesError) -> Self {
+        AtlasError::AiError(error.to_string())
+    }
+}
+
+impl From<atlas_core::focus::FocusError> for AtlasError {
+    fn from(error: atlas_core::focus::FocusError) -> Self {
+        AtlasError::AiError(error.to_string())
+    }
+}
+
+impl From<atlas_core::transfer::TransferError> for AtlasError {
+    fn from(error: atlas_core::transfer::TransferError) -> Self {
+        AtlasError::AiError(error.to_string())
+    }
+}
+
+fn focus_status_from(state: atlas_core::focus::FocusState, remaining: u64) -> FocusStatus {
+    match state {
+        atlas_core::focus::FocusState::Idle => FocusStatus {
+            phase: FocusPhase::Idle,
+            config: None,
+            remaining_secs: 0,
+        },
+        atlas_core::focus::FocusState::Running { config, .. } => FocusStatus {
+            phase: FocusPhase::Running,
+            config: Some(config.into()),
+            remaining_secs: remaining,
+        },
+        atlas_core::focus::FocusState::Paused {
+            config,
+            remaining_secs,
+            ..
+        } => FocusStatus {
+            phase: FocusPhase::Paused,
+            config: Some(config.into()),
+            remaining_secs,
+        },
+    }
+}
+
+fn with_notes_store<T>(
+    f: impl FnOnce(&atlas_core::notes::NotesStore) -> Result<T, atlas_core::notes::NotesError>,
+) -> Result<T, AtlasError> {
+    let guard = NOTES_STORE.lock().map_err(|_| AtlasError::LockPoisoned)?;
+    let store = guard
+        .as_ref()
+        .ok_or_else(|| AtlasError::AiError("notes storage dir not set".to_string()))?;
+    f(store).map_err(Into::into)
+}
+
+fn with_focus_store<T>(
+    f: impl FnOnce(&atlas_core::focus::FocusStore) -> Result<T, atlas_core::focus::FocusError>,
+) -> Result<T, AtlasError> {
+    let guard = FOCUS_STORE.lock().map_err(|_| AtlasError::LockPoisoned)?;
+    let store = guard
+        .as_ref()
+        .ok_or_else(|| AtlasError::AiError("focus storage dir not set".to_string()))?;
+    f(store).map_err(Into::into)
+}
+
+fn with_ai_command_store<T>(
+    f: impl FnOnce(&atlas_ai::AiCommandStore) -> Result<T, atlas_ai::AiError>,
+) -> Result<T, AtlasError> {
+    let guard = AI_COMMAND_STORE.lock().map_err(|_| AtlasError::LockPoisoned)?;
+    let store = guard
+        .as_ref()
+        .ok_or_else(|| AtlasError::AiError("ai storage dir not set".to_string()))?;
+    f(store).map_err(Into::into)
+}
+
+pub fn notes_set_storage_dir(path: String) {
+    if let Ok(store) = atlas_core::notes::NotesStore::new(&path) {
+        if let Ok(mut guard) = NOTES_STORE.lock() {
+            *guard = Some(store);
+        }
+    }
+}
+
+pub fn notes_list() -> Result<Vec<NoteMeta>, AtlasError> {
+    with_notes_store(|s| s.list()).map(|v| v.into_iter().map(Into::into).collect())
+}
+
+pub fn notes_get(id: String) -> Result<NoteContent, AtlasError> {
+    with_notes_store(|s| s.get(&id)).map(|n| NoteContent {
+        meta: n.meta.into(),
+        body_md: n.body_md,
+    })
+}
+
+pub fn notes_save(id: Option<String>, title: String, body_md: String) -> Result<String, AtlasError> {
+    with_notes_store(|s| s.save(id.as_deref(), &title, &body_md))
+}
+
+pub fn notes_delete(id: String) -> Result<(), AtlasError> {
+    with_notes_store(|s| s.delete(&id))
+}
+
+pub fn notes_toggle_pin(id: String) -> Result<bool, AtlasError> {
+    with_notes_store(|s| s.toggle_pin(&id))
+}
+
+pub fn notes_search(query: String) -> Result<Vec<NoteMeta>, AtlasError> {
+    with_notes_store(|s| s.search(&query)).map(|v| v.into_iter().map(Into::into).collect())
+}
+
+pub fn focus_set_storage_dir(path: String) {
+    if let Ok(store) = atlas_core::focus::FocusStore::new(&path) {
+        if let Ok(mut guard) = FOCUS_STORE.lock() {
+            *guard = Some(store);
+        }
+    }
+}
+
+pub fn focus_start(config: FocusConfig) -> Result<FocusStatus, AtlasError> {
+    let config: atlas_core::focus::FocusConfig = config.into();
+    let state = with_focus_store(|s| s.start(config))?;
+    let remaining = with_focus_store(|s| s.remaining_secs())?;
+    Ok(focus_status_from(state, remaining))
+}
+
+pub fn focus_pause() -> Result<FocusStatus, AtlasError> {
+    let state = with_focus_store(|s| s.pause())?;
+    Ok(focus_status_from(state, 0))
+}
+
+pub fn focus_resume() -> Result<FocusStatus, AtlasError> {
+    let state = with_focus_store(|s| s.resume())?;
+    let remaining = with_focus_store(|s| s.remaining_secs())?;
+    Ok(focus_status_from(state, remaining))
+}
+
+pub fn focus_stop() -> Result<(), AtlasError> {
+    with_focus_store(|s| s.stop())
+}
+
+pub fn focus_state() -> Result<FocusStatus, AtlasError> {
+    let state = with_focus_store(|s| s.state())?;
+    let remaining = with_focus_store(|s| s.remaining_secs())?;
+    Ok(focus_status_from(state, remaining))
+}
+
+pub fn focus_history() -> Result<Vec<FocusSessionRecord>, AtlasError> {
+    with_focus_store(|s| s.history()).map(|v| {
+        v.into_iter()
+            .map(|r| FocusSessionRecord {
+                goal: r.goal,
+                duration_min: r.duration_min,
+                started_at: r.started_at,
+                ended_at: r.ended_at,
+                completed: r.completed,
+            })
+            .collect()
+    })
+}
+
+pub fn transfer_export(
+    payloads: Vec<TransferPayload>,
+    dest_path: String,
+) -> Result<TransferManifest, AtlasError> {
+    let payloads: Vec<atlas_core::transfer::TransferPayload> = payloads
+        .into_iter()
+        .map(|p| atlas_core::transfer::TransferPayload {
+            kind: p.kind,
+            json: p.json,
+        })
+        .collect();
+    let manifest = atlas_core::transfer::export(&payloads, std::path::Path::new(&dest_path))?;
+    Ok(TransferManifest {
+        version: manifest.version,
+        exported_at: manifest.exported_at,
+        kinds: manifest.kinds,
+    })
+}
+
+pub fn transfer_inspect(path: String) -> Result<TransferManifest, AtlasError> {
+    let manifest = atlas_core::transfer::inspect(std::path::Path::new(&path))?;
+    Ok(TransferManifest {
+        version: manifest.version,
+        exported_at: manifest.exported_at,
+        kinds: manifest.kinds,
+    })
+}
+
+pub fn transfer_import(path: String, kinds: Vec<String>) -> Result<Vec<TransferPayload>, AtlasError> {
+    let payloads = atlas_core::transfer::import(std::path::Path::new(&path), &kinds)?;
+    Ok(payloads
+        .into_iter()
+        .map(|p| TransferPayload {
+            kind: p.kind,
+            json: p.json,
+        })
+        .collect())
+}
+
+pub fn ai_commands_list() -> Result<Vec<AiCommandEntry>, AtlasError> {
+    ensure_ai_command_store();
+    with_ai_command_store(|s| s.list()).map(|v| v.into_iter().map(Into::into).collect())
+}
+
+pub fn ai_commands_save(command: AiCommandEntry) -> Result<(), AtlasError> {
+    ensure_ai_command_store();
+    let command: atlas_ai::AiCommand = command.into();
+    with_ai_command_store(|s| s.save(&command))
+}
+
+pub fn ai_commands_delete(id: String) -> Result<(), AtlasError> {
+    ensure_ai_command_store();
+    with_ai_command_store(|s| s.delete(&id))
+}
+
+pub fn ai_commands_render(template: String, selection: String) -> String {
+    atlas_ai::render_prompt(&template, &selection)
+}
+
+/// AI 指令库与 AiStore 同根:ai_set_storage_dir 已注入时惰性建店。
+fn ensure_ai_command_store() {
+    if let Ok(mut guard) = AI_COMMAND_STORE.lock() {
+        if guard.is_none() {
+            if let Ok(store_guard) = AI_STORE.lock() {
+                if let Some(ai_store) = store_guard.as_ref() {
+                    if let Ok(store) = atlas_ai::AiCommandStore::new(ai_store.root_dir()) {
+                        *guard = Some(store);
+                    }
+                }
+            }
+        }
+    }
+}
