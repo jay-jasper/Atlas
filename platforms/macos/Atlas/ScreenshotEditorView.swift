@@ -43,6 +43,9 @@ struct ScreenshotEditorView: View {
     @State private var textStyle = ScreenshotTextStyle()
     @State private var isDetectingRedactions = false
     @State private var redactionStatus: String?
+    @State private var isShowingBeautifyPanel = false
+    @State private var beautifyOptions = BeautifyOptions.loadLastUsed()
+    @State private var isCuttingOut = false
 
     /// One in-flight manipulation of the selected annotation.
     private struct SelectionDragState {
@@ -267,12 +270,25 @@ struct ScreenshotEditorView: View {
 
                 Spacer(minLength: 6)
 
-                Button { backdropOn.toggle() } label: {
-                    Image(systemName: "rectangle.portrait.on.rectangle.portrait")
+                if capabilities.beautify {
+                    Button { isShowingBeautifyPanel.toggle() } label: {
+                        Image(systemName: "sparkles.rectangle.stack")
+                    }
+                    .background(backdropOn ? Color.accentColor.opacity(0.25) : Color.clear)
+                    .cornerRadius(5)
+                    .help("美化（背景/圆角/投影/窗口边框）")
+                    .popover(isPresented: $isShowingBeautifyPanel, arrowEdge: .bottom) {
+                        ScreenshotBeautifyPanel(isEnabled: $backdropOn, options: $beautifyOptions)
+                    }
                 }
-                .background(backdropOn ? Color.accentColor.opacity(0.25) : Color.clear)
-                .cornerRadius(5)
-                .help("Backdrop")
+
+                if capabilities.cutout, ScreenshotCutout.isSupported, onCrop != nil {
+                    Button { runCutout() } label: {
+                        Image(systemName: "person.and.background.dotted")
+                    }
+                    .disabled(isCuttingOut)
+                    .help("抠图（保留主体，透明背景）")
+                }
 
                 Button { addCapture() } label: {
                     Image(systemName: "plus.viewfinder")
@@ -842,7 +858,28 @@ struct ScreenshotEditorView: View {
             annotations: annotations,
             canvasSize: canvasSize
         )
-        return backdropOn ? ScreenshotEditorRenderer.applyBackdrop(base) : base
+        return backdropOn ? ScreenshotBeautifyRenderer.renderPNG(base, options: beautifyOptions) : base
+    }
+
+    /// Cutout: lift the subject onto transparent background, then re-present
+    /// the editor with the result (same flow as crop).
+    private func runCutout() {
+        guard let onCrop else { return }
+        guard #available(macOS 14.0, *) else { return }
+        isCuttingOut = true
+        let source = screenshot.pngData
+        DispatchQueue.global(qos: .userInitiated).async {
+            let result = try? ScreenshotCutout.cutoutPNG(from: source)
+            DispatchQueue.main.async {
+                isCuttingOut = false
+                if let result {
+                    onCrop(result)
+                } else {
+                    redactionStatus = "未检测到主体"
+                    scheduleRedactionStatusClear()
+                }
+            }
+        }
     }
 
     /// Crop the image (with current annotations baked in) to the select-tool

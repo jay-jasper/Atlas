@@ -11,6 +11,8 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
     case ocr
     case translation
     case redaction
+    case cutout
+    case beautify
 
     var id: String { rawValue }
 
@@ -36,6 +38,10 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "Translation"
         case .redaction:
             return "Auto Redaction"
+        case .cutout:
+            return "Cutout"
+        case .beautify:
+            return "Beautify"
         }
     }
 
@@ -61,6 +67,10 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "Translate recognized screenshot text."
         case .redaction:
             return "Detect and cover sensitive data (PII, faces)."
+        case .cutout:
+            return "Lift the subject onto a transparent background."
+        case .beautify:
+            return "Wrap exports in a styled backdrop."
         }
     }
 
@@ -88,6 +98,10 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "翻译"
         case .redaction:
             return "隐私自动打码"
+        case .cutout:
+            return "抠图"
+        case .beautify:
+            return "美化"
         }
     }
 
@@ -113,6 +127,10 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "翻译识别出的截图文字。"
         case .redaction:
             return "自动检测并打码敏感信息（邮箱/手机号/卡号/密钥/IP/人脸）。"
+        case .cutout:
+            return "识别主体并抠出为透明背景图（macOS 14+）。"
+        case .beautify:
+            return "导出时套用渐变背景、圆角、投影与窗口边框。"
         }
     }
 
@@ -138,6 +156,10 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "globe"
         case .redaction:
             return "eye.slash"
+        case .cutout:
+            return "person.and.background.dotted"
+        case .beautify:
+            return "sparkles.rectangle.stack"
         }
     }
 }
@@ -164,13 +186,17 @@ struct ScreenshotEditorCapabilities: Equatable {
     var ocr: Bool
     var translation: Bool
     var redaction: Bool = true
+    var cutout: Bool = true
+    var beautify: Bool = true
 
     static let allEnabled = ScreenshotEditorCapabilities(
         annotations: true,
         pinning: true,
         ocr: true,
         translation: true,
-        redaction: true
+        redaction: true,
+        cutout: true,
+        beautify: true
     )
 }
 
@@ -215,7 +241,9 @@ struct ScreenshotFeatureSettings: Equatable {
             pinning: isEnabled(.pinning),
             ocr: isEnabled(.ocr),
             translation: isEnabled(.translation),
-            redaction: isEnabled(.redaction)
+            redaction: isEnabled(.redaction),
+            cutout: isEnabled(.cutout),
+            beautify: isEnabled(.beautify)
         )
     }
 }
