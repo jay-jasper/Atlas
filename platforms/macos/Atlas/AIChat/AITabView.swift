@@ -18,7 +18,7 @@ struct AITabView: View {
         }
         .glassCard(padding: 0)
         .sheet(isPresented: $isProviderSettingsShown) {
-            AIProviderSettingsView(bridge: bridge)
+            AIConfigSheet(bridge: bridge, engineStore: bridge.engineStore)
         }
         .sheet(isPresented: $isPresetEditorShown) {
             AIPresetEditorView(bridge: bridge)
@@ -121,15 +121,22 @@ struct AITabView: View {
 
     private var toolbar: some View {
         HStack(spacing: 10) {
-            Picker("Provider", selection: $bridge.selectedProviderID) {
-                if bridge.providers.isEmpty {
-                    Text("未配置").tag(String?.none)
+            Button {
+                isProviderSettingsShown = true
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "cpu")
+                        .font(.system(size: 11))
+                    Text(bridge.engineStore.engine?.label ?? "选择引擎")
+                        .font(.callout)
                 }
-                ForEach(bridge.providers, id: \.id) { provider in
-                    Text("\(provider.name) · \(provider.model)").tag(String?.some(provider.id))
-                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(Color.accentColor.opacity(0.12), in: Capsule())
             }
-            .frame(maxWidth: 240)
+            .buttonStyle(.plain)
+            .focusable(false)
+            .help("AI 引擎(本机 CLI / BYOK)")
 
             Picker("预设", selection: $bridge.selectedPresetID) {
                 Text("无预设").tag(String?.none)

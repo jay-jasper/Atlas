@@ -16,6 +16,7 @@ final class AIChatBridge: ObservableObject {
     @Published var selectedPresetID: String?
 
     let vault: AIKeyVault
+    let engineStore = AIEngineStore()
     private var currentRequestID: UInt64?
     private var streamDelegate: StreamDelegate?
 
@@ -113,14 +114,6 @@ final class AIChatBridge: ObservableObject {
     func send(text: String, imagePaths: [String]) {
         guard !isStreaming else { return }
         guard var session = activeSession else { return }
-        guard let provider = providers.first(where: { $0.id == selectedProviderID }) else {
-            lastError = "先在 AI 设置里添加 Provider"
-            return
-        }
-        guard let apiKey = vault.key(providerID: provider.id), !apiKey.isEmpty else {
-            lastError = "Provider「\(provider.name)」还没有配置 API Key"
-            return
-        }
 
         let message = AiChatMessage(
             id: UUID().uuidString.lowercased(),
@@ -131,21 +124,71 @@ final class AIChatBridge: ObservableObject {
             error: nil
         )
         session.messages.append(message)
-        session.providerId = provider.id
         session.presetId = selectedPresetID
         if session.messages.count == 1 {
             session.title = Self.title(for: text)
         }
+
+        let systemPrompt = presets.first(where: { $0.id == selectedPresetID })?.systemPrompt
+        let delegate = StreamDelegate(bridge: self)
+
+        switch engineStore.engine {
+        case .cli(let cliID, let cliPath, let model):
+            try? aiSaveSession(session: session)
+            activeSession = session
+            refresh()
+            lastError = nil
+            streamingText = ""
+            isStreaming = true
+            streamDelegate = delegate
+            do {
+                currentRequestID = try aiSendViaCli(
+                    sessionId: session.id,
+                    cliId: cliID,
+                    cliPath: cliPath,
+                    model: model,
+                    delegate: delegate
+                )
+            } catch {
+                isStreaming = false
+                lastError = "发送失败:\(error.localizedDescription)"
+            }
+
+        case .byok(let providerID):
+            sendViaByok(session: session, providerID: providerID, systemPrompt: systemPrompt, delegate: delegate)
+
+        case nil:
+            // 未显式选择引擎:有 provider 则走 BYOK 兼容旧行为,否则提示配置。
+            if let fallback = selectedProviderID ?? providers.first?.id {
+                sendViaByok(session: session, providerID: fallback, systemPrompt: systemPrompt, delegate: delegate)
+            } else {
+                lastError = "先在 AI 配置里选择本机 CLI 或配置 BYOK"
+            }
+        }
+    }
+
+    private func sendViaByok(
+        session: AiChatSession,
+        providerID: String,
+        systemPrompt: String?,
+        delegate: StreamDelegate
+    ) {
+        var session = session
+        guard let provider = providers.first(where: { $0.id == providerID }) else {
+            lastError = "Provider 不存在,请重新配置"
+            return
+        }
+        guard let apiKey = vault.key(providerID: provider.id), !apiKey.isEmpty else {
+            lastError = "Provider「\(provider.name)」还没有配置 API Key"
+            return
+        }
+        session.providerId = provider.id
         try? aiSaveSession(session: session)
         activeSession = session
         refresh()
-
-        let systemPrompt = presets.first(where: { $0.id == selectedPresetID })?.systemPrompt
         lastError = nil
         streamingText = ""
         isStreaming = true
-
-        let delegate = StreamDelegate(bridge: self)
         streamDelegate = delegate
         do {
             currentRequestID = try aiSendMessage(
