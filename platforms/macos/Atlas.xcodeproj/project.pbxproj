@@ -88,6 +88,7 @@
 		31E76876D2E74EFBBED74589 /* NetworkMonitorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 280174B495DA4E699AB9EDD4 /* NetworkMonitorService.swift */; };
 		332922EA4D092EFE5CEAAA13 /* LoremIpsumProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F517CFAB11D9A661E2C4671F /* LoremIpsumProvider.swift */; };
 		33CA79645E7128753DAEFC93 /* PasswordStrength.swift in Sources */ = {isa = PBXBuildFile; fileRef = E524051331E4CF26B142A5AD /* PasswordStrength.swift */; };
+		3450C0C021409D064B30621F /* AliasStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3386E379A7D529786ED3BB8A /* AliasStore.swift */; };
 		35CC6642EE7DFF8BDDBF3418 /* SecureLocalData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA49D6B34DB8E9D2BA1E8A80 /* SecureLocalData.swift */; };
 		360BE583438EA5E81F0032D9 /* ScratchpadSummaryServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A44260F6FC0C2D4643BD94 /* ScratchpadSummaryServiceTests.swift */; };
 		361A4DB2F9E6A9601CA41E1B /* ScriptingPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C61DF0D2F3EB4301716B92 /* ScriptingPanel.swift */; };
@@ -498,6 +499,7 @@
 		F866A2896F4E43AD51E65B0B /* AspectGuidePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCAE276D955A798CAC2B826 /* AspectGuidePanel.swift */; };
 		F89C63C3C5F3FFF483F26AC5 /* LauncherRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE16C667F1651A40B8B68D6 /* LauncherRootView.swift */; };
 		F8C8D76A5BE7A58DBD6D023D /* TokenBarConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FF19B7C6244F59198F88AA2 /* TokenBarConfigurationTests.swift */; };
+		F9922B85D975FBEFA8FCB4CC /* CommandHotkeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 702BE8D4B0D7A46C53095C79 /* CommandHotkeyStore.swift */; };
 		FB2DBEF8646BD03F594B893A /* PacketStatsParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D6698C8938FFFBB3C55BC16 /* PacketStatsParserTests.swift */; };
 		FC5B1A4D0F1AE5AE640F6223 /* TeleprompterEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033D2B36CDA6D6C3A663786E /* TeleprompterEngine.swift */; };
 		FD6596D6FB17108E7DAD1542 /* AltTabPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC5B968A55F75583ED8F03B7 /* AltTabPanel.swift */; };
@@ -595,6 +597,7 @@
 		32FABF6E62E65D7618A9310B /* BlockKitView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BlockKitView.swift; sourceTree = "<group>"; };
 		3307C1236032CD46473096AA /* BatteryHealthFormatter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BatteryHealthFormatter.swift; sourceTree = "<group>"; };
 		334BD4D2F1517A0C737DAB95 /* ScrollSmoothingEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScrollSmoothingEngine.swift; sourceTree = "<group>"; };
+		3386E379A7D529786ED3BB8A /* AliasStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AliasStore.swift; sourceTree = "<group>"; };
 		34EB499B8503D80D687FCC0D /* CurrencyService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CurrencyService.swift; sourceTree = "<group>"; };
 		3615E911C3BE0F13F8CCBCC5 /* LauncherItemSource.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherItemSource.swift; sourceTree = "<group>"; };
 		362AE9591CCD0A6003674E83 /* PacketMonitorService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PacketMonitorService.swift; sourceTree = "<group>"; };
@@ -689,6 +692,7 @@
 		6DD923DBE2696C567A15B066 /* PasswordGeneratorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PasswordGeneratorProvider.swift; sourceTree = "<group>"; };
 		6EF0A254C1D4D8FD36219677 /* PrivacyPulsePanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrivacyPulsePanel.swift; path = Atlas/PrivacyPulsePanel.swift; sourceTree = "<group>"; };
 		6FB9D12A3760A56BFF44643E /* SpeechFileTranscriber.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SpeechFileTranscriber.swift; sourceTree = "<group>"; };
+		702BE8D4B0D7A46C53095C79 /* CommandHotkeyStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommandHotkeyStore.swift; sourceTree = "<group>"; };
 		7189ACA4434845DA987B0755 /* DDCPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DDCPanel.swift; sourceTree = "<group>"; };
 		7197E28D112572E9204A1D59 /* ClipboardHistoryProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryProviderTests.swift; sourceTree = "<group>"; };
 		71E7EC9B8E38C8F989371E4A /* BrowserRouterService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserRouterService.swift; sourceTree = "<group>"; };
@@ -1898,6 +1902,8 @@
 				5AE16C667F1651A40B8B68D6 /* LauncherRootView.swift */,
 				E9F794543169D812F860A69B /* LauncherRowViews.swift */,
 				DCA61A3ADC3E47C49BF0AA6E /* LauncherKeyCompat.swift */,
+				3386E379A7D529786ED3BB8A /* AliasStore.swift */,
+				702BE8D4B0D7A46C53095C79 /* CommandHotkeyStore.swift */,
 			);
 			name = Launcher;
 			path = Launcher;
@@ -2546,6 +2552,8 @@
 				F89C63C3C5F3FFF483F26AC5 /* LauncherRootView.swift in Sources */,
 				ADB1ECDABCF3CE5638833CCA /* LauncherRowViews.swift in Sources */,
 				1511BC16DE3FC3018D5D4BCB /* LauncherKeyCompat.swift in Sources */,
+				3450C0C021409D064B30621F /* AliasStore.swift in Sources */,
+				F9922B85D975FBEFA8FCB4CC /* CommandHotkeyStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

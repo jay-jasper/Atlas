@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 /// Where the shared content host is currently presented. Drives ContentView's
@@ -288,6 +289,11 @@ final class CommandPaletteState: ObservableObject {
     private(set) var controller: LauncherPanelController!
     let launcherStyleStore = LauncherStyleStore()
     let launcherFavorites = FavoritesStore()
+    let launcherAliases = AliasStore()
+    let launcherCommandHotkeys = CommandHotkeyStore()
+    @Published private(set) var commandHotkeyConflicts: [String: String] = [:]
+    private var registeredCommandHotkeys: [String: HotkeyConfig] = [:]
+    private var commandHotkeyObservation: AnyCancellable?
     private let hotkeyService: GlobalHotkeyService
     private let windowManager: WindowManaging
     private let workspaceStore = WorkspaceStore()
@@ -448,6 +454,7 @@ final class CommandPaletteState: ObservableObject {
             styleStore: launcherStyleStore,
             favorites: launcherFavorites
         )
+        self.controller.aliasResolver = launcherAliases
 
         self.controller.skillRunViewBuilder = { skill in
             AnyView(SkillPanel(skill: skill, runner: SkillRuntimeFactory.makeDefaultRunner()))
@@ -461,7 +468,48 @@ final class CommandPaletteState: ObservableObject {
         // Load initial hotkey configuration and start
         let config = HotkeyConfig.load()
         registerHotkey(config)
+        registerCommandHotkeys()
+        commandHotkeyObservation = launcherCommandHotkeys.$hotkeys
+            .dropFirst()
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in self?.registerCommandHotkeys() }
+            }
         hotkeyService.start()
+    }
+
+    /// Registers per-command global hotkeys; conflicts with the main palette
+    /// hotkey or between commands are reported instead of registered.
+    private func registerCommandHotkeys() {
+        for (_, previous) in registeredCommandHotkeys {
+            hotkeyService.unregister(
+                keyCode: previous.keyCode,
+                modifiers: NSEvent.ModifierFlags(rawValue: previous.modifiers)
+            )
+        }
+        registeredCommandHotkeys = [:]
+
+        var conflicts: [String: String] = [:]
+        let main = HotkeyConfig.load()
+        var claimed: [String: String] = [:] // "keyCode|modifiers" → commandKey
+
+        for (commandKey, hotkey) in launcherCommandHotkeys.hotkeys.sorted(by: { $0.key < $1.key }) {
+            let signature = "\(hotkey.keyCode)|\(hotkey.modifiers)"
+            if hotkey.keyCode == main.keyCode && hotkey.modifiers == main.modifiers {
+                conflicts[commandKey] = "Conflicts with the launcher hotkey"
+                continue
+            }
+            if let existing = claimed[signature] {
+                conflicts[commandKey] = "Conflicts with \(existing)"
+                continue
+            }
+            claimed[signature] = commandKey
+            registeredCommandHotkeys[commandKey] = hotkey
+            let flags = NSEvent.ModifierFlags(rawValue: hotkey.modifiers)
+            hotkeyService.register(keyCode: hotkey.keyCode, modifiers: flags) { [weak self] in
+                self?.controller?.execute(commandKey: commandKey)
+            }
+        }
+        commandHotkeyConflicts = conflicts
     }
 
     func setActions(
