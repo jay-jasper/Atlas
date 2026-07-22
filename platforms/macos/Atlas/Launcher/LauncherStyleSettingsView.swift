@@ -13,7 +13,7 @@ struct LauncherSettingsPanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Launcher Appearance")
+            Text(loc("启动台外观", "Launcher Appearance"))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
 
@@ -55,12 +55,12 @@ struct LauncherStylePreview: View {
                     .font(.system(size: 9))
                     .foregroundColor(.secondary)
                 Text("Search Atlas…")
-                    .font(.system(size: style.fontSize * 0.6))
+                    .font(.system(size: style.fontSize * 0.8))
                     .foregroundColor(.secondary)
                 Spacer()
             }
             .padding(.horizontal, 8)
-            .frame(height: 20)
+            .frame(height: 26)
 
             ForEach(0..<3, id: \.self) { index in
                 HStack(spacing: 5) {
@@ -73,7 +73,7 @@ struct LauncherStylePreview: View {
                     Spacer()
                 }
                 .padding(.horizontal, 8)
-                .frame(height: style.rowHeight * 0.4)
+                .frame(height: style.rowHeight * 0.55)
                 .background(
                     RoundedRectangle(cornerRadius: 4)
                         .fill(index == 0 ? accent.opacity(0.18) : Color.clear)
@@ -81,7 +81,7 @@ struct LauncherStylePreview: View {
                 )
             }
         }
-        .frame(width: max(140, style.panelWidth * 0.4))
+        .frame(width: max(240, style.panelWidth * 0.58))
         .background(previewBackground)
         .clipShape(RoundedRectangle(cornerRadius: style.cornerRadius * 0.5))
         .overlay(
@@ -125,11 +125,55 @@ struct LauncherStyleControls: View {
 
     private enum BackgroundKind: String, CaseIterable, Identifiable {
         case theme = "主题"
-        case material = "Material"
-        case solid = "Solid"
-        case gradient = "Gradient"
+        case material = "毛玻璃"
+        case solid = "纯色"
+        case gradient = "渐变"
         var id: String { rawValue }
     }
+
+    /// 成套预设:一键套用 背景+边框+圆角,其余项(尺寸/字体)不动。
+    struct StylePreset: Identifiable {
+        let id: String
+        let name: String
+        let apply: (inout LauncherStyle) -> Void
+    }
+
+    static let presets: [StylePreset] = [
+        StylePreset(id: "theme", name: "跟随主题") { style in
+            style.background = .theme
+            style.borderColor = .clear
+            style.borderWidth = 0
+            style.cornerRadius = 16
+        },
+        StylePreset(id: "glass", name: "玻璃") { style in
+            style.background = .material(opacity: 0.8)
+            style.borderColor = RGBAColor(r: 1, g: 1, b: 1, a: 0.35)
+            style.borderWidth = 1
+            style.cornerRadius = 18
+        },
+        StylePreset(id: "night", name: "暗夜") { style in
+            style.background = .solid(RGBAColor(r: 0.10, g: 0.10, b: 0.12, a: 1))
+            style.borderColor = RGBAColor(r: 1, g: 1, b: 1, a: 0.15)
+            style.borderWidth = 1
+            style.cornerRadius = 14
+        },
+        StylePreset(id: "aurora", name: "极光渐变") { style in
+            style.background = .gradient(
+                RGBAColor(r: 0.30, g: 0.20, b: 0.60, a: 1),
+                RGBAColor(r: 0.10, g: 0.35, b: 0.60, a: 1),
+                angleDegrees: 135
+            )
+            style.borderColor = RGBAColor(r: 1, g: 1, b: 1, a: 0.25)
+            style.borderWidth = 1
+            style.cornerRadius = 20
+        },
+        StylePreset(id: "minimal", name: "极简白") { style in
+            style.background = .solid(RGBAColor(r: 0.98, g: 0.98, b: 0.98, a: 1))
+            style.borderColor = RGBAColor(r: 0, g: 0, b: 0, a: 0.12)
+            style.borderWidth = 1
+            style.cornerRadius = 10
+        },
+    ]
 
     private var backgroundKind: BackgroundKind {
         switch styleStore.style.background {
@@ -142,7 +186,23 @@ struct LauncherStyleControls: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Picker("Background", selection: Binding(
+            HStack(spacing: 6) {
+                Text(loc("预设", "Presets"))
+                    .font(.caption)
+                    .frame(width: 96, alignment: .leading)
+                ForEach(Self.presets) { preset in
+                    Button(preset.name) {
+                        preset.apply(&styleStore.style)
+                    }
+                    .font(.caption)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .focusable(false)
+                }
+                Spacer()
+            }
+
+            Picker(loc("背景", "Background"), selection: Binding(
                 get: { backgroundKind },
                 set: { kind in
                     switch kind {
@@ -169,29 +229,29 @@ struct LauncherStyleControls: View {
 
             backgroundEditors
 
-            colorRow("Border", color: Binding(
+            colorRow(loc("边框颜色", "Border"), color: Binding(
                 get: { styleStore.style.borderColor },
                 set: { styleStore.style.borderColor = $0 }
             ))
-            slider("Border Width", value: $styleStore.style.borderWidth, in: 0...4, step: 0.5)
-            slider("Corner Radius", value: $styleStore.style.cornerRadius, in: 0...28, step: 1)
-            slider("Panel Width", value: $styleStore.style.panelWidth, in: 480...960, step: 20)
+            slider(loc("边框宽度", "Border Width"), value: $styleStore.style.borderWidth, in: 0...4, step: 0.5)
+            slider(loc("圆角", "Corner Radius"), value: $styleStore.style.cornerRadius, in: 0...28, step: 1)
+            slider(loc("面板宽度", "Panel Width"), value: $styleStore.style.panelWidth, in: 480...960, step: 20)
             Stepper(
-                "Visible Rows: \(styleStore.style.maxVisibleRows)",
+                loc("可见行数:\(styleStore.style.maxVisibleRows)", "Visible Rows: \(styleStore.style.maxVisibleRows)"),
                 value: $styleStore.style.maxVisibleRows,
                 in: 4...12
             )
             .font(.caption)
-            slider("Screen Position", value: $styleStore.style.topOffsetRatio, in: 0...0.5, step: 0.05)
-            Picker("Row Density", selection: $styleStore.style.rowDensity) {
-                Text("Regular").tag(LauncherStyle.RowDensity.regular)
-                Text("Compact").tag(LauncherStyle.RowDensity.compact)
+            slider(loc("屏幕位置", "Screen Position"), value: $styleStore.style.topOffsetRatio, in: 0...0.5, step: 0.05)
+            Picker(loc("行密度", "Row Density"), selection: $styleStore.style.rowDensity) {
+                Text(loc("常规", "Regular")).tag(LauncherStyle.RowDensity.regular)
+                Text(loc("紧凑", "Compact")).tag(LauncherStyle.RowDensity.compact)
             }
             .pickerStyle(.segmented)
-            slider("Font Size", value: $styleStore.style.fontSize, in: 13...20, step: 1)
-            slider("Icon Size", value: $styleStore.style.iconSize, in: 24...40, step: 2)
+            slider(loc("字体大小", "Font Size"), value: $styleStore.style.fontSize, in: 13...20, step: 1)
+            slider(loc("图标大小", "Icon Size"), value: $styleStore.style.iconSize, in: 24...40, step: 2)
 
-            Toggle("Custom Accent", isOn: Binding(
+            Toggle(loc("自定义强调色", "Custom Accent"), isOn: Binding(
                 get: { styleStore.style.accent != nil },
                 set: { on in
                     styleStore.style.accent = on ? RGBAColor(r: 0.35, g: 0.45, b: 1, a: 1) : nil
@@ -199,7 +259,7 @@ struct LauncherStyleControls: View {
             ))
             .font(.caption)
             if styleStore.style.accent != nil {
-                colorRow("Accent", color: Binding(
+                colorRow(loc("强调色", "Accent"), color: Binding(
                     get: { styleStore.style.accent ?? .white },
                     set: { styleStore.style.accent = $0 }
                 ))
@@ -207,7 +267,7 @@ struct LauncherStyleControls: View {
 
             HStack {
                 Spacer()
-                Button("Reset Style") { styleStore.reset() }
+                Button(loc("重置样式", "Reset Style")) { styleStore.reset() }
                     .font(.caption)
             }
         }
@@ -221,25 +281,25 @@ struct LauncherStyleControls: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
         case .material(let opacity):
-            slider("Material Opacity", value: Binding(
+            slider(loc("材质不透明度", "Material Opacity"), value: Binding(
                 get: { opacity },
                 set: { styleStore.style.background = .material(opacity: $0) }
             ), in: 0.3...1, step: 0.05)
         case .solid(let color):
-            colorRow("Color", color: Binding(
+            colorRow(loc("颜色", "Color"), color: Binding(
                 get: { color },
                 set: { styleStore.style.background = .solid($0) }
             ))
         case .gradient(let from, let to, let angle):
-            colorRow("From", color: Binding(
+            colorRow(loc("起始色", "From"), color: Binding(
                 get: { from },
                 set: { styleStore.style.background = .gradient($0, to, angleDegrees: angle) }
             ))
-            colorRow("To", color: Binding(
+            colorRow(loc("结束色", "To"), color: Binding(
                 get: { to },
                 set: { styleStore.style.background = .gradient(from, $0, angleDegrees: angle) }
             ))
-            slider("Angle", value: Binding(
+            slider(loc("角度", "Angle"), value: Binding(
                 get: { angle },
                 set: { styleStore.style.background = .gradient(from, to, angleDegrees: $0) }
             ), in: 0...360, step: 15)
