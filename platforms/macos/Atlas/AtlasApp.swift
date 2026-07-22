@@ -456,6 +456,7 @@ final class CommandPaletteState: ObservableObject {
             launcherQuicklinks.makeItems(query: query)
         })
         sources.append(EmojiGridSource())
+        sources.append(MenuBarItemSource())
 
         self.controller = LauncherPanelController(
             sources: sources,
