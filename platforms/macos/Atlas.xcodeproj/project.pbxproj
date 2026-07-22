@@ -413,6 +413,7 @@
 		C27EB696CACA4ABC9D34B787 /* ScreenshotGIFRecording.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA6CF520A2524B3899891093 /* ScreenshotGIFRecording.swift */; };
 		C50C37839981D1163DC197E4 /* LauncherStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D5060508B9777ABBA7A0238 /* LauncherStyle.swift */; };
 		C50CAA4A3E513691C3085226 /* EnvDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 022A1486F125EECADE728D83 /* EnvDocumentTests.swift */; };
+		C67AC06135941AF30FA7CA38 /* LauncherStyleSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F413950BDB09AD780A1D51 /* LauncherStyleSettingsView.swift */; };
 		C69A57E58DFA481578DD7149 /* ScrollSmoothingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 334BD4D2F1517A0C737DAB95 /* ScrollSmoothingEngine.swift */; };
 		C74513D7BA5001566F5CBD16 /* CaptionBufferTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A5E593FA846CE9EB82F6244 /* CaptionBufferTests.swift */; };
 		C75CEB0CF169A2DF7D673BBF /* PasswordStrengthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD69A44EB9161C74D5687CBA /* PasswordStrengthTests.swift */; };
@@ -977,6 +978,7 @@
 		D6AE6DC5E9568A33BD59B7EC /* GIFResizeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GIFResizeTests.swift; sourceTree = "<group>"; };
 		D6B894DAC93B5985449B3EEC /* BrowserRouteStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserRouteStore.swift; sourceTree = "<group>"; };
 		D899845A8F39B4236736FC37 /* SkillStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SkillStoreTests.swift; sourceTree = "<group>"; };
+		D8F413950BDB09AD780A1D51 /* LauncherStyleSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherStyleSettingsView.swift; sourceTree = "<group>"; };
 		D9871729F51F53C6A755514A /* BrowserRoute.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserRoute.swift; sourceTree = "<group>"; };
 		DA6CF520A2524B3899891093 /* ScreenshotGIFRecording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotGIFRecording.swift; sourceTree = "<group>"; };
 		DB15FC2A0CB0E19DBB74CAC2 /* MediaRemoteNowPlayingProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MediaRemoteNowPlayingProvider.swift; sourceTree = "<group>"; };
@@ -1910,6 +1912,7 @@
 				702BE8D4B0D7A46C53095C79 /* CommandHotkeyStore.swift */,
 				AD9CA64D4A0D02316F9F3492 /* FallbackStore.swift */,
 				7301BC51016D353A64E1B205 /* QuicklinkStore.swift */,
+				D8F413950BDB09AD780A1D51 /* LauncherStyleSettingsView.swift */,
 			);
 			name = Launcher;
 			path = Launcher;
@@ -2562,6 +2565,7 @@
 				F9922B85D975FBEFA8FCB4CC /* CommandHotkeyStore.swift in Sources */,
 				C1EB408CAD070B5BBC4B8DA7 /* FallbackStore.swift in Sources */,
 				600BE6D1ECB18D4CAE8950C2 /* QuicklinkStore.swift in Sources */,
+				C67AC06135941AF30FA7CA38 /* LauncherStyleSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

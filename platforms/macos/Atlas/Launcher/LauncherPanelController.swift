@@ -162,6 +162,11 @@ final class LauncherPanelController {
         }
     }
 
+    /// All items available at the root (empty query) — used by the settings alias/hotkey editor.
+    func allRootItems() -> [LauncherItem] {
+        sources.flatMap { $0.items(for: "") }
+    }
+
     /// Execute an item directly (used by per-command hotkeys). `.push` opens the panel on the page.
     func execute(commandKey: String) {
         let rootItems = sources.flatMap { $0.items(for: "") }

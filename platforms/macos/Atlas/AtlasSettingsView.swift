@@ -5,7 +5,9 @@ struct AtlasSettingsView: View {
     private let featureSettingsStore = ScreenshotFeatureSettingsStore()
     private let translationConfigStore = ScreenshotTranslationConfigurationStore()
     private let tokenBarConfigStore = TokenBarConfigurationStore()
-    let paletteController: LauncherPanelController
+    @ObservedObject var paletteState: CommandPaletteState
+
+    private var paletteController: LauncherPanelController { paletteState.controller }
 
     @State private var screenshotFeatureSettings: ScreenshotFeatureSettings = .defaultEnabled
     @State private var translationSettingsDraft: ScreenshotTranslationSettingsDraft = .empty
@@ -60,13 +62,25 @@ struct AtlasSettingsView: View {
     @ViewBuilder
     private var commandPaletteSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Command Palette")
+            Text("Launcher")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
 
             KeyRecorderView { [weak paletteController] newConfig in
                 paletteController?.updateHotkey(newConfig)
             }
+
+            Divider()
+
+            LauncherSettingsPanel(
+                styleStore: paletteState.launcherStyleStore,
+                quicklinks: paletteState.launcherQuicklinks,
+                fallbacks: paletteState.launcherFallbacks,
+                aliases: paletteState.launcherAliases,
+                hotkeys: paletteState.launcherCommandHotkeys,
+                hotkeyConflicts: paletteState.commandHotkeyConflicts,
+                rootItems: { [weak paletteController] in paletteController?.allRootItems() ?? [] }
+            )
         }
     }
 

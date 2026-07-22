@@ -58,7 +58,7 @@ struct AtlasApp: App {
 
     var body: some Scene {
         Settings {
-            AtlasSettingsView(paletteController: AtlasServices.shared.paletteState.controller)
+            AtlasSettingsView(paletteState: AtlasServices.shared.paletteState)
         }
     }
 }
