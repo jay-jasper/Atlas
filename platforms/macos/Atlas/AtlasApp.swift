@@ -91,6 +91,7 @@ private struct SettingsRedirectView: View {
 @MainActor
 final class AtlasAppDelegate: NSObject, NSApplicationDelegate {
     private let menuBar = AtlasMenuBarController()
+    private var globalKeyMonitor: Any?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -102,6 +103,22 @@ final class AtlasAppDelegate: NSObject, NSApplicationDelegate {
         }
         menuBar.install()
         DockIconStore.shared.apply()
+
+        // 兜底:无论主菜单被谁重建,app 激活状态下 ⌘Q 必退、⌘, 必开主界面。
+        globalKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            guard flags == .command else { return event }
+            switch event.charactersIgnoringModifiers {
+            case "q":
+                NSApp.terminate(nil)
+                return nil
+            case ",":
+                AtlasServices.shared.openMainWindow?()
+                return nil
+            default:
+                return event
+            }
+        }
         // Dev/automation affordance: `open Atlas.app --args --main-window`.
         if ProcessInfo.processInfo.arguments.contains("--main-window") {
             DispatchQueue.main.async {
