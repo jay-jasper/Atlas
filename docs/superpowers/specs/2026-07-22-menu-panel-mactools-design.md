@@ -1,7 +1,7 @@
 # 菜单栏面板 MacTools 化设计
 
 日期:2026-07-22
-状态:已确认
+状态:已实现(2026-07-22。备注:磁盘/电量字段 SystemSnapshot 早已存在,Rust 零改动;AtlasShellView 仅存于 DesignSystem 预览)
 参考:MacTools 菜单栏双面板(功能行列表 + 组件卡片流,顶部居中切换器)
 
 ## 目标
