@@ -30,7 +30,9 @@ final class GlobalHotkeyService {
     private var registrations: [Registration] = []
     private var eventHandlerRef: EventHandlerRef?
     private var isStarted = false
-    private var nextID: UInt32 = 1
+    /// App-wide unique ids: multiple service instances share one Carbon
+    /// signature, so ids must never collide across instances.
+    private static var globalNextID: UInt32 = 1
     private let accessLogger: PrivacyPulseAccessLogging
     private let isProcessTrusted: () -> Bool
     private let requestTrustWithPrompt: () -> Void
@@ -55,13 +57,13 @@ final class GlobalHotkeyService {
         unregister(keyCode: keyCode, modifiers: normalizedModifiers)
 
         var registration = Registration(
-            id: nextID,
+            id: Self.globalNextID,
             keyCode: keyCode,
             modifiers: normalizedModifiers,
             handler: handler,
             hotKeyRef: nil
         )
-        nextID += 1
+        Self.globalNextID += 1
         if isStarted {
             registration.hotKeyRef = registerWithCarbon(registration)
         }

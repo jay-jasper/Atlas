@@ -48,7 +48,8 @@ final class DockIconStore: ObservableObject {
     }
 
     private init() {
-        presetID = UserDefaults.standard.string(forKey: Self.storageKey)
+        // 默认极光(sparkles 渐变);显式存过的选择优先。
+        presetID = UserDefaults.standard.string(forKey: Self.storageKey) ?? "aurora"
     }
 
     func select(_ id: String?) {

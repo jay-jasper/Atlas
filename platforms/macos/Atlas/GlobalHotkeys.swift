@@ -101,14 +101,8 @@ struct HotkeyBinding: Equatable {
 /// action's combination is user-customizable (see `HotkeyRecorderView`).
 enum ScreenshotHotkeys {
     static func applyFromSettings() {
+        // 截图全局快捷键已下线(用户要求移除):清空注册,不再绑定。
         GlobalHotkeyManager.shared.unregisterAll()
-        let s = ScreenshotSettings.shared
-        guard s.hotkeysEnabled else { return }
-        let m = GlobalHotkeyManager.shared
-        bind(m, s.hotkeyRegion) { ScreenshotActions.captureRegion() }
-        bind(m, s.hotkeyFull) { ScreenshotActions.captureFull() }
-        bind(m, s.hotkeyPin) { ScreenshotActions.pinFromClipboard() }
-        bind(m, s.hotkeyHide) { PinnedScreenshotWindow.toggleHideAll() }
     }
 
     private static func bind(_ m: GlobalHotkeyManager, _ b: HotkeyBinding, _ handler: @escaping () -> Void) {
