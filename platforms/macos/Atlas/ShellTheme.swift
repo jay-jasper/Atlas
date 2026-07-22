@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 // MARK: - Theme registry
@@ -46,6 +47,24 @@ enum ShellThemeKind: String, CaseIterable, Identifiable {
         case .neonGlow: return .neonGlow
         case .holographic: return .holographic
         case .foil: return .foil
+        }
+    }
+}
+
+extension ShellThemeKind {
+    /// 全局外观同步:原生控件(右键菜单、NSMenu、面板)跟随主题明暗。
+    /// 强制深/浅的主题锁定 NSApp.appearance;跟随系统的主题恢复自动。
+    @MainActor
+    func applyGlobalAppearance() {
+        switch spec.colorScheme {
+        case .dark:
+            NSApp.appearance = NSAppearance(named: .darkAqua)
+        case .light:
+            NSApp.appearance = NSAppearance(named: .aqua)
+        case nil:
+            NSApp.appearance = nil
+        @unknown default:
+            NSApp.appearance = nil
         }
     }
 }

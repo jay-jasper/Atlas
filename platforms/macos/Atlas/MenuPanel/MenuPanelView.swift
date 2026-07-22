@@ -8,6 +8,13 @@ struct MenuPanelView: View {
     let onOpenMainWindow: () -> Void
     let onQuit: () -> Void
 
+    @AppStorage("atlas.shell.theme") private var shellThemeRaw = ShellThemeKind.plain.rawValue
+    @State private var isShowingThemePicker = false
+
+    private var theme: ShellThemeKind {
+        ShellThemeKind(rawValue: shellThemeRaw) ?? .plain
+    }
+
     var body: some View {
         VStack(spacing: 8) {
             header
@@ -29,6 +36,29 @@ struct MenuPanelView: View {
                 .foregroundColor(.secondary)
 
             Spacer()
+
+            Button {
+                isShowingThemePicker.toggle()
+            } label: {
+                Image(systemName: theme.spec.icon)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: theme.spec.swatchColors,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .shadow(color: .black.opacity(0.25), radius: 2)
+            }
+            .buttonStyle(.plain)
+            .focusable(false)
+            .help(loc("主题", "Theme"))
+            .popover(isPresented: $isShowingThemePicker, arrowEdge: .bottom) {
+                ShellThemePickerPanel(selectionRaw: $shellThemeRaw) {
+                    isShowingThemePicker = false
+                }
+            }
 
             Button(action: onOpenMainWindow) {
                 Image(systemName: "macwindow")

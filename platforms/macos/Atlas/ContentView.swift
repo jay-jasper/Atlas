@@ -738,7 +738,6 @@ struct ContentView: View {
     @State private var shellPage: ShellPage = .dashboard
     @StateObject private var menuWidgetStore = WidgetStore()
     @StateObject private var menuBluetoothBattery = BluetoothBatteryService()
-    @State private var isShowingThemePicker = false
     @State private var shellReturnPage: ShellPage = .dashboard
     @State private var shellLibraryQuery: String = ""
     @State private var dashboardTools: [String] = ShellToolPrefs.loadDashboard()
@@ -920,15 +919,22 @@ struct ContentView: View {
     // MARK: - MacTools-style menu bar panel
 
     private var menuPanelView: some View {
-        MenuPanelView(
-            widgetStore: menuWidgetStore,
-            widgetContent: { kind in AnyView(self.menuWidget(for: kind)) },
-            statusBanner: showCaptureStatus
-                ? AnyView(CaptureStatusBanner(message: captureStatus, kind: captureStatusKind))
-                : nil,
-            onOpenMainWindow: { AtlasServices.shared.openMainWindow?() },
-            onQuit: { NSApp.terminate(nil) }
-        )
+        ZStack {
+            shellThemeBackground
+            MenuPanelView(
+                widgetStore: menuWidgetStore,
+                widgetContent: { kind in AnyView(self.menuWidget(for: kind)) },
+                statusBanner: showCaptureStatus
+                    ? AnyView(CaptureStatusBanner(message: captureStatus, kind: captureStatusKind))
+                    : nil,
+                onOpenMainWindow: { AtlasServices.shared.openMainWindow?() },
+                onQuit: { NSApp.terminate(nil) }
+            )
+        }
+        .environment(\.shellThemeKind, shellTheme)
+        .environment(\.colorScheme, shellThemeColorScheme)
+        .onAppear { shellTheme.applyGlobalAppearance() }
+        .onChange(of: shellThemeRaw) { _ in shellTheme.applyGlobalAppearance() }
     }
 
         @ViewBuilder
@@ -1038,6 +1044,8 @@ struct ContentView: View {
             .ignoresSafeArea(edges: .top)
         }
         .noDefaultFocus()
+        .onAppear { shellTheme.applyGlobalAppearance() }
+        .onChange(of: shellThemeRaw) { _ in shellTheme.applyGlobalAppearance() }
         .environment(\.shellThemeKind, shellTheme)
         // Stage-locked themes override the system appearance: 3D Elements is
         // always a dark stage, Biophilic always a sunlit light one.
@@ -1318,35 +1326,6 @@ struct ContentView: View {
                     .accessibilityHidden(true)
             }
 
-            Button {
-                isShowingThemePicker.toggle()
-            } label: {
-                Image(systemName: shellTheme.spec.icon)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: shellTheme.spec.swatchColors,
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .shadow(color: .black.opacity(0.25), radius: 2)
-            }
-            .buttonStyle(.plain)
-            .help("主题")
-            .popover(isPresented: $isShowingThemePicker, arrowEdge: .bottom) {
-                ShellThemePickerPanel(selectionRaw: $shellThemeRaw) {
-                    isShowingThemePicker = false
-                }
-            }
-
-            Button {
-                Self.openPreferencesWindow()
-            } label: {
-                Image(systemName: "gearshape")
-            }
-            .buttonStyle(.plain)
-            .help("全局偏好设置 (⌘,)")
         }
         .padding(.trailing, 14)
     }
