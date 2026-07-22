@@ -160,9 +160,10 @@ final class LauncherSectionBuilderTests: XCTestCase {
     }
 
     func testSearchIsGloballyRankedSingleSection() {
+        let automator = makeItem(title: "Automator", category: "Applications")
         let sections = LauncherSectionBuilder.build(
             query: "a",
-            sources: [source([toolA, appX])],
+            sources: [source([toolA, automator])],
             favorites: [],
             records: [:]
         )
