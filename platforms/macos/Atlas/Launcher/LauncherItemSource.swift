@@ -13,6 +13,16 @@ protocol LauncherActionEnriching {
     func extraActions(for command: PaletteCommand) -> [LauncherAction]
 }
 
+/// Wraps a closure (e.g. QuicklinkStore.makeItems) as a source.
+struct ClosureItemSource: LauncherItemSource {
+    let sourceID: String
+    let makeItems: (String) -> [LauncherItem]
+
+    func items(for query: String) -> [LauncherItem] {
+        makeItems(query)
+    }
+}
+
 // MARK: - Adapter over legacy CommandProviding
 
 struct CommandProviderAdapter: LauncherItemSource {

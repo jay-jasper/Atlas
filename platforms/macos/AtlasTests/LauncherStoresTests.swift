@@ -72,6 +72,75 @@ final class LauncherStoresTests: XCTestCase {
         XCTAssertEqual(AliasStore(defaults: defaults).alias(for: "Tools|GitHub"), "gh")
     }
 
+    // MARK: Quicklinks
+
+    func testResolvedURLEncodesQuery() {
+        let quicklink = Quicklink(name: "GitHub", template: "https://github.com/search?q={query}")
+        XCTAssertEqual(
+            quicklink.resolvedURL(argument: "swift charts")?.absoluteString,
+            "https://github.com/search?q=swift%20charts"
+        )
+    }
+
+    func testResolvedURLNilWithoutRequiredArgument() {
+        let quicklink = Quicklink(name: "GitHub", template: "https://github.com/search?q={query}")
+        XCTAssertNil(quicklink.resolvedURL(argument: nil))
+        XCTAssertNil(quicklink.resolvedURL(argument: ""))
+
+        let fixed = Quicklink(name: "Docs", template: "https://docs.example.com")
+        XCTAssertEqual(fixed.resolvedURL(argument: nil)?.absoluteString, "https://docs.example.com")
+    }
+
+    func testQuicklinkCRUDPersists() {
+        let store = QuicklinkStore(defaults: defaults)
+        var quicklink = Quicklink(name: "GitHub", template: "https://github.com/search?q={query}")
+        store.add(quicklink)
+
+        quicklink.name = "GH Search"
+        store.update(quicklink)
+
+        var reloaded = QuicklinkStore(defaults: defaults)
+        XCTAssertEqual(reloaded.quicklinks.map(\.name), ["GH Search"])
+
+        reloaded.remove(id: quicklink.id)
+        XCTAssertTrue(QuicklinkStore(defaults: defaults).quicklinks.isEmpty)
+    }
+
+    func testQuicklinkItemHeadPlusArgument() {
+        let store = QuicklinkStore(defaults: defaults)
+        store.add(Quicklink(name: "gh", template: "https://github.com/search?q={query}"))
+
+        let items = store.makeItems(query: "gh swift charts")
+        XCTAssertEqual(items.count, 1)
+        XCTAssertEqual(items[0].subtitle, "Open with \"swift charts\"")
+        XCTAssertTrue(items[0].acceptsArgument)
+    }
+
+    // MARK: Fallbacks
+
+    func testFallbackDefaultsSeeded() {
+        let store = FallbackStore(defaults: defaults)
+        XCTAssertEqual(store.commands.map(\.id), ["google", "duckduckgo", "translate"])
+    }
+
+    func testFallbackReorderPersists() {
+        let store = FallbackStore(defaults: defaults)
+        store.move(fromOffsets: IndexSet(integer: 1), toOffset: 0)
+        XCTAssertEqual(FallbackStore(defaults: defaults).commands.first?.id, "duckduckgo")
+    }
+
+    func testFallbackDisabledExcluded() {
+        let store = FallbackStore(defaults: defaults)
+        store.setEnabled(false, id: "google")
+        let items = store.makeItems(query: "zzz")
+        XCTAssertFalse(items.contains { $0.title == "Search Google" })
+        XCTAssertTrue(items.contains { $0.title == "Search DuckDuckGo" })
+    }
+
+    func testFallbackEmptyQueryProducesNoItems() {
+        XCTAssertTrue(FallbackStore(defaults: defaults).makeItems(query: "  ").isEmpty)
+    }
+
     // MARK: Command hotkeys
 
     func testHotkeyStorePersists() {

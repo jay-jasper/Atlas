@@ -291,6 +291,8 @@ final class CommandPaletteState: ObservableObject {
     let launcherFavorites = FavoritesStore()
     let launcherAliases = AliasStore()
     let launcherCommandHotkeys = CommandHotkeyStore()
+    let launcherQuicklinks = QuicklinkStore()
+    let launcherFallbacks = FallbackStore()
     @Published private(set) var commandHotkeyConflicts: [String: String] = [:]
     private var registeredCommandHotkeys: [String: HotkeyConfig] = [:]
     private var commandHotkeyObservation: AnyCancellable?
@@ -447,14 +449,22 @@ final class CommandPaletteState: ObservableObject {
             appLauncherProvider,
         ]
 
+        var sources: [LauncherItemSource] = providers.map {
+            CommandProviderAdapter(provider: $0, sourceID: String(describing: type(of: $0)))
+        }
+        sources.append(ClosureItemSource(sourceID: "quicklinks") { [launcherQuicklinks] query in
+            launcherQuicklinks.makeItems(query: query)
+        })
+
         self.controller = LauncherPanelController(
-            sources: providers.map {
-                CommandProviderAdapter(provider: $0, sourceID: String(describing: type(of: $0)))
-            },
+            sources: sources,
             styleStore: launcherStyleStore,
             favorites: launcherFavorites
         )
         self.controller.aliasResolver = launcherAliases
+        self.controller.fallbackItemsProvider = { [launcherFallbacks] query in
+            launcherFallbacks.makeItems(query: query)
+        }
 
         self.controller.skillRunViewBuilder = { skill in
             AnyView(SkillPanel(skill: skill, runner: SkillRuntimeFactory.makeDefaultRunner()))
