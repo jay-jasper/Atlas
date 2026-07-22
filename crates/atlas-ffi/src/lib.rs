@@ -45,6 +45,8 @@ pub enum AtlasError {
     EntitlementDenied(String),
     #[error("Plugin error: {0}")]
     PluginError(String),
+    #[error("AI error: {0}")]
+    AiError(String),
 }
 
 /// Represents the state of a feature module for FFI.
@@ -734,5 +736,270 @@ mod tests {
         assert!(preview.webview);
         assert!(preview.webview_bridge);
         assert_eq!(preview.exposed_tools, ["translate"]);
+    }
+}
+
+// MARK: - AI center
+
+static AI_STORE: Lazy<Mutex<Option<atlas_ai::AiStore>>> = Lazy::new(|| Mutex::new(None));
+static AI_REQUESTS: Lazy<Mutex<std::collections::HashMap<u64, tokio_util::sync::CancellationToken>>> =
+    Lazy::new(|| Mutex::new(std::collections::HashMap::new()));
+static AI_REQUEST_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
+
+pub struct AiProviderConfig {
+    pub id: String,
+    pub name: String,
+    pub base_url: String,
+    pub model: String,
+}
+
+pub struct AiChatMessage {
+    pub id: String,
+    pub role: String,
+    pub text: String,
+    pub image_paths: Vec<String>,
+    pub timestamp_ms: i64,
+    pub error: Option<String>,
+}
+
+pub struct AiSessionSummary {
+    pub id: String,
+    pub title: String,
+    pub created_at_ms: i64,
+    pub message_count: u32,
+}
+
+pub struct AiChatSession {
+    pub id: String,
+    pub title: String,
+    pub created_at_ms: i64,
+    pub preset_id: Option<String>,
+    pub provider_id: Option<String>,
+    pub messages: Vec<AiChatMessage>,
+}
+
+pub struct AiPromptPreset {
+    pub id: String,
+    pub name: String,
+    pub system_prompt: String,
+}
+
+pub trait AiChatStreamDelegate: Send + Sync {
+    fn on_delta(&self, request_id: u64, text: String);
+    fn on_done(&self, request_id: u64);
+    fn on_error(&self, request_id: u64, message: String);
+}
+
+impl From<atlas_ai::AiError> for AtlasError {
+    fn from(error: atlas_ai::AiError) -> Self {
+        AtlasError::AiError(error.to_string())
+    }
+}
+
+impl From<atlas_ai::ProviderConfig> for AiProviderConfig {
+    fn from(p: atlas_ai::ProviderConfig) -> Self {
+        Self { id: p.id, name: p.name, base_url: p.base_url, model: p.model }
+    }
+}
+
+impl From<AiProviderConfig> for atlas_ai::ProviderConfig {
+    fn from(p: AiProviderConfig) -> Self {
+        Self { id: p.id, name: p.name, base_url: p.base_url, model: p.model, extra_headers: vec![] }
+    }
+}
+
+impl From<atlas_ai::ChatMessage> for AiChatMessage {
+    fn from(m: atlas_ai::ChatMessage) -> Self {
+        Self {
+            id: m.id,
+            role: m.role.as_str().to_string(),
+            text: m.text,
+            image_paths: m.image_paths,
+            timestamp_ms: m.timestamp_ms,
+            error: m.error,
+        }
+    }
+}
+
+impl From<AiChatMessage> for atlas_ai::ChatMessage {
+    fn from(m: AiChatMessage) -> Self {
+        Self {
+            id: m.id,
+            role: atlas_ai::ChatRole::parse(&m.role),
+            text: m.text,
+            image_paths: m.image_paths,
+            timestamp_ms: m.timestamp_ms,
+            error: m.error,
+        }
+    }
+}
+
+impl From<atlas_ai::ChatSession> for AiChatSession {
+    fn from(s: atlas_ai::ChatSession) -> Self {
+        Self {
+            id: s.id,
+            title: s.title,
+            created_at_ms: s.created_at_ms,
+            preset_id: s.preset_id,
+            provider_id: s.provider_id,
+            messages: s.messages.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl From<AiChatSession> for atlas_ai::ChatSession {
+    fn from(s: AiChatSession) -> Self {
+        Self {
+            id: s.id,
+            title: s.title,
+            created_at_ms: s.created_at_ms,
+            preset_id: s.preset_id,
+            provider_id: s.provider_id,
+            messages: s.messages.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl From<atlas_ai::SessionSummary> for AiSessionSummary {
+    fn from(s: atlas_ai::SessionSummary) -> Self {
+        Self { id: s.id, title: s.title, created_at_ms: s.created_at_ms, message_count: s.message_count }
+    }
+}
+
+impl From<atlas_ai::PromptPreset> for AiPromptPreset {
+    fn from(p: atlas_ai::PromptPreset) -> Self {
+        Self { id: p.id, name: p.name, system_prompt: p.system_prompt }
+    }
+}
+
+impl From<AiPromptPreset> for atlas_ai::PromptPreset {
+    fn from(p: AiPromptPreset) -> Self {
+        Self { id: p.id, name: p.name, system_prompt: p.system_prompt }
+    }
+}
+
+fn with_ai_store<T>(
+    f: impl FnOnce(&atlas_ai::AiStore) -> Result<T, atlas_ai::AiError>,
+) -> Result<T, AtlasError> {
+    let guard = AI_STORE.lock().map_err(|_| AtlasError::LockPoisoned)?;
+    let store = guard
+        .as_ref()
+        .ok_or_else(|| AtlasError::AiError("storage dir not set".to_string()))?;
+    f(store).map_err(Into::into)
+}
+
+pub fn ai_set_storage_dir(path: String) {
+    if let Ok(store) = atlas_ai::AiStore::new(&path) {
+        if let Ok(mut guard) = AI_STORE.lock() {
+            *guard = Some(store);
+        }
+    }
+}
+
+pub fn ai_list_providers() -> Result<Vec<AiProviderConfig>, AtlasError> {
+    with_ai_store(|s| s.providers()).map(|v| v.into_iter().map(Into::into).collect())
+}
+
+pub fn ai_save_provider(provider: AiProviderConfig) -> Result<(), AtlasError> {
+    let provider: atlas_ai::ProviderConfig = provider.into();
+    with_ai_store(|s| s.save_provider(&provider))
+}
+
+pub fn ai_delete_provider(id: String) -> Result<(), AtlasError> {
+    with_ai_store(|s| s.delete_provider(&id))
+}
+
+pub fn ai_list_sessions() -> Result<Vec<AiSessionSummary>, AtlasError> {
+    with_ai_store(|s| s.sessions_index()).map(|v| v.into_iter().map(Into::into).collect())
+}
+
+pub fn ai_load_session(id: String) -> Result<AiChatSession, AtlasError> {
+    with_ai_store(|s| s.load_session(&id)).map(Into::into)
+}
+
+pub fn ai_save_session(session: AiChatSession) -> Result<(), AtlasError> {
+    let session: atlas_ai::ChatSession = session.into();
+    with_ai_store(|s| s.save_session(&session))
+}
+
+pub fn ai_delete_session(id: String) -> Result<(), AtlasError> {
+    with_ai_store(|s| s.delete_session(&id))
+}
+
+pub fn ai_list_presets() -> Result<Vec<AiPromptPreset>, AtlasError> {
+    with_ai_store(|s| s.presets()).map(|v| v.into_iter().map(Into::into).collect())
+}
+
+pub fn ai_save_preset(preset: AiPromptPreset) -> Result<(), AtlasError> {
+    let preset: atlas_ai::PromptPreset = preset.into();
+    with_ai_store(|s| s.save_preset(&preset))
+}
+
+pub fn ai_delete_preset(id: String) -> Result<(), AtlasError> {
+    with_ai_store(|s| s.delete_preset(&id))
+}
+
+pub fn ai_export_session_markdown(id: String) -> Result<String, AtlasError> {
+    with_ai_store(|s| s.load_session(&id)).map(|session| atlas_ai::export_markdown(&session))
+}
+
+struct DelegateSink {
+    request_id: u64,
+    delegate: Box<dyn AiChatStreamDelegate>,
+}
+
+impl atlas_ai::StreamSink for DelegateSink {
+    fn on_delta(&self, text: String) {
+        self.delegate.on_delta(self.request_id, text);
+    }
+    fn on_done(&self) {
+        let _ = AI_REQUESTS.lock().map(|mut map| map.remove(&self.request_id));
+        self.delegate.on_done(self.request_id);
+    }
+    fn on_error(&self, message: String) {
+        let _ = AI_REQUESTS.lock().map(|mut map| map.remove(&self.request_id));
+        self.delegate.on_error(self.request_id, message);
+    }
+}
+
+pub fn ai_send_message(
+    session_id: String,
+    provider: AiProviderConfig,
+    api_key: String,
+    system_prompt: Option<String>,
+    delegate: Box<dyn AiChatStreamDelegate>,
+) -> Result<u64, AtlasError> {
+    let session = with_ai_store(|s| s.load_session(&session_id))?;
+    let provider: atlas_ai::ProviderConfig = provider.into();
+
+    let request = atlas_ai::SendRequest {
+        base_url: provider.base_url,
+        api_key,
+        model: provider.model,
+        extra_headers: provider.extra_headers,
+        system_prompt,
+        messages: session.messages,
+    };
+
+    let request_id = AI_REQUEST_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let cancel = tokio_util::sync::CancellationToken::new();
+    AI_REQUESTS
+        .lock()
+        .map_err(|_| AtlasError::LockPoisoned)?
+        .insert(request_id, cancel.clone());
+
+    let sink = std::sync::Arc::new(DelegateSink { request_id, delegate });
+    RUNTIME.spawn(async move {
+        atlas_ai::send_streaming(request, sink, cancel).await;
+    });
+
+    Ok(request_id)
+}
+
+pub fn ai_cancel(request_id: u64) {
+    if let Ok(map) = AI_REQUESTS.lock() {
+        if let Some(token) = map.get(&request_id) {
+            token.cancel();
+        }
     }
 }

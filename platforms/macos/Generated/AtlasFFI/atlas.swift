@@ -603,6 +603,318 @@ fileprivate struct FfiConverterString: FfiConverter {
 }
 
 
+public struct AiChatMessage: Equatable, Hashable {
+    public var id: String
+    public var role: String
+    public var text: String
+    public var imagePaths: [String]
+    public var timestampMs: Int64
+    public var error: String?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, role: String, text: String, imagePaths: [String], timestampMs: Int64, error: String?) {
+        self.id = id
+        self.role = role
+        self.text = text
+        self.imagePaths = imagePaths
+        self.timestampMs = timestampMs
+        self.error = error
+    }
+
+
+}
+
+#if compiler(>=6)
+extension AiChatMessage: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeAiChatMessage: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AiChatMessage {
+        return
+            try AiChatMessage(
+                id: FfiConverterString.read(from: &buf),
+                role: FfiConverterString.read(from: &buf),
+                text: FfiConverterString.read(from: &buf),
+                imagePaths: FfiConverterSequenceString.read(from: &buf),
+                timestampMs: FfiConverterInt64.read(from: &buf),
+                error: FfiConverterOptionString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: AiChatMessage, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterString.write(value.role, into: &buf)
+        FfiConverterString.write(value.text, into: &buf)
+        FfiConverterSequenceString.write(value.imagePaths, into: &buf)
+        FfiConverterInt64.write(value.timestampMs, into: &buf)
+        FfiConverterOptionString.write(value.error, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiChatMessage_lift(_ buf: RustBuffer) throws -> AiChatMessage {
+    return try FfiConverterTypeAiChatMessage.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiChatMessage_lower(_ value: AiChatMessage) -> RustBuffer {
+    return FfiConverterTypeAiChatMessage.lower(value)
+}
+
+
+public struct AiChatSession: Equatable, Hashable {
+    public var id: String
+    public var title: String
+    public var createdAtMs: Int64
+    public var presetId: String?
+    public var providerId: String?
+    public var messages: [AiChatMessage]
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, title: String, createdAtMs: Int64, presetId: String?, providerId: String?, messages: [AiChatMessage]) {
+        self.id = id
+        self.title = title
+        self.createdAtMs = createdAtMs
+        self.presetId = presetId
+        self.providerId = providerId
+        self.messages = messages
+    }
+
+
+}
+
+#if compiler(>=6)
+extension AiChatSession: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeAiChatSession: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AiChatSession {
+        return
+            try AiChatSession(
+                id: FfiConverterString.read(from: &buf),
+                title: FfiConverterString.read(from: &buf),
+                createdAtMs: FfiConverterInt64.read(from: &buf),
+                presetId: FfiConverterOptionString.read(from: &buf),
+                providerId: FfiConverterOptionString.read(from: &buf),
+                messages: FfiConverterSequenceTypeAiChatMessage.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: AiChatSession, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterString.write(value.title, into: &buf)
+        FfiConverterInt64.write(value.createdAtMs, into: &buf)
+        FfiConverterOptionString.write(value.presetId, into: &buf)
+        FfiConverterOptionString.write(value.providerId, into: &buf)
+        FfiConverterSequenceTypeAiChatMessage.write(value.messages, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiChatSession_lift(_ buf: RustBuffer) throws -> AiChatSession {
+    return try FfiConverterTypeAiChatSession.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiChatSession_lower(_ value: AiChatSession) -> RustBuffer {
+    return FfiConverterTypeAiChatSession.lower(value)
+}
+
+
+public struct AiPromptPreset: Equatable, Hashable {
+    public var id: String
+    public var name: String
+    public var systemPrompt: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, name: String, systemPrompt: String) {
+        self.id = id
+        self.name = name
+        self.systemPrompt = systemPrompt
+    }
+
+
+}
+
+#if compiler(>=6)
+extension AiPromptPreset: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeAiPromptPreset: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AiPromptPreset {
+        return
+            try AiPromptPreset(
+                id: FfiConverterString.read(from: &buf),
+                name: FfiConverterString.read(from: &buf),
+                systemPrompt: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: AiPromptPreset, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterString.write(value.name, into: &buf)
+        FfiConverterString.write(value.systemPrompt, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiPromptPreset_lift(_ buf: RustBuffer) throws -> AiPromptPreset {
+    return try FfiConverterTypeAiPromptPreset.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiPromptPreset_lower(_ value: AiPromptPreset) -> RustBuffer {
+    return FfiConverterTypeAiPromptPreset.lower(value)
+}
+
+
+public struct AiProviderConfig: Equatable, Hashable {
+    public var id: String
+    public var name: String
+    public var baseUrl: String
+    public var model: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, name: String, baseUrl: String, model: String) {
+        self.id = id
+        self.name = name
+        self.baseUrl = baseUrl
+        self.model = model
+    }
+
+
+}
+
+#if compiler(>=6)
+extension AiProviderConfig: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeAiProviderConfig: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AiProviderConfig {
+        return
+            try AiProviderConfig(
+                id: FfiConverterString.read(from: &buf),
+                name: FfiConverterString.read(from: &buf),
+                baseUrl: FfiConverterString.read(from: &buf),
+                model: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: AiProviderConfig, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterString.write(value.name, into: &buf)
+        FfiConverterString.write(value.baseUrl, into: &buf)
+        FfiConverterString.write(value.model, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiProviderConfig_lift(_ buf: RustBuffer) throws -> AiProviderConfig {
+    return try FfiConverterTypeAiProviderConfig.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiProviderConfig_lower(_ value: AiProviderConfig) -> RustBuffer {
+    return FfiConverterTypeAiProviderConfig.lower(value)
+}
+
+
+public struct AiSessionSummary: Equatable, Hashable {
+    public var id: String
+    public var title: String
+    public var createdAtMs: Int64
+    public var messageCount: UInt32
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, title: String, createdAtMs: Int64, messageCount: UInt32) {
+        self.id = id
+        self.title = title
+        self.createdAtMs = createdAtMs
+        self.messageCount = messageCount
+    }
+
+
+}
+
+#if compiler(>=6)
+extension AiSessionSummary: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeAiSessionSummary: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AiSessionSummary {
+        return
+            try AiSessionSummary(
+                id: FfiConverterString.read(from: &buf),
+                title: FfiConverterString.read(from: &buf),
+                createdAtMs: FfiConverterInt64.read(from: &buf),
+                messageCount: FfiConverterUInt32.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: AiSessionSummary, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterString.write(value.title, into: &buf)
+        FfiConverterInt64.write(value.createdAtMs, into: &buf)
+        FfiConverterUInt32.write(value.messageCount, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiSessionSummary_lift(_ buf: RustBuffer) throws -> AiSessionSummary {
+    return try FfiConverterTypeAiSessionSummary.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAiSessionSummary_lower(_ value: AiSessionSummary) -> RustBuffer {
+    return FfiConverterTypeAiSessionSummary.lower(value)
+}
+
+
 public struct BatterySnapshot: Equatable, Hashable {
     public var chargePercent: Float
     public var isCharging: Bool
@@ -1339,6 +1651,8 @@ public enum AtlasError: Swift.Error, Equatable, Hashable, Foundation.LocalizedEr
 
     case PluginError(message: String)
 
+    case AiError(message: String)
+
 
 
 
@@ -1394,6 +1708,10 @@ public struct FfiConverterTypeAtlasError: FfiConverterRustBuffer {
             message: try FfiConverterString.read(from: &buf)
         )
 
+        case 8: return .AiError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+
 
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -1419,6 +1737,8 @@ public struct FfiConverterTypeAtlasError: FfiConverterRustBuffer {
             writeInt(&buf, Int32(6))
         case .PluginError(_ /* message is ignored*/):
             writeInt(&buf, Int32(7))
+        case .AiError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(8))
 
 
         }
@@ -1651,6 +1971,186 @@ public func FfiConverterTypePluginRuntime_lower(_ value: PluginRuntime) -> RustB
     return FfiConverterTypePluginRuntime.lower(value)
 }
 
+
+
+
+
+public protocol AiChatStreamDelegate: AnyObject, Sendable {
+
+    func onDelta(requestId: UInt64, text: String)
+
+    func onDone(requestId: UInt64)
+
+    func onError(requestId: UInt64, message: String)
+
+}
+
+
+// Put the implementation in a struct so we don't pollute the top-level namespace
+fileprivate struct UniffiCallbackInterfaceAiChatStreamDelegate {
+
+    // Create the VTable using a series of closures.
+    // Swift automatically converts these into C callback functions.
+    //
+    // This creates 1-element array, since this seems to be the only way to construct a const
+    // pointer that we can pass to the Rust code.
+    static let vtable: [UniffiVTableCallbackInterfaceAiChatStreamDelegate] = [UniffiVTableCallbackInterfaceAiChatStreamDelegate(
+        uniffiFree: { (uniffiHandle: UInt64) -> () in
+            do {
+                try FfiConverterCallbackInterfaceAiChatStreamDelegate.handleMap.remove(handle: uniffiHandle)
+            } catch {
+                print("Uniffi callback interface AiChatStreamDelegate: handle missing in uniffiFree")
+            }
+        },
+        uniffiClone: { (uniffiHandle: UInt64) -> UInt64 in
+            do {
+                return try FfiConverterCallbackInterfaceAiChatStreamDelegate.handleMap.clone(handle: uniffiHandle)
+            } catch {
+                fatalError("Uniffi callback interface AiChatStreamDelegate: handle missing in uniffiClone")
+            }
+        },
+        onDelta: { (
+            uniffiHandle: UInt64,
+            requestId: UInt64,
+            text: RustBuffer,
+            uniffiOutReturn: UnsafeMutableRawPointer,
+            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+        ) in
+            let makeCall = {
+                () throws -> () in
+                guard let uniffiObj = try? FfiConverterCallbackInterfaceAiChatStreamDelegate.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return uniffiObj.onDelta(
+                     requestId: try FfiConverterUInt64.lift(requestId),
+                     text: try FfiConverterString.lift(text)
+                )
+            }
+
+
+            let writeReturn = { () }
+            uniffiTraitInterfaceCall(
+                callStatus: uniffiCallStatus,
+                makeCall: makeCall,
+                writeReturn: writeReturn
+            )
+        },
+        onDone: { (
+            uniffiHandle: UInt64,
+            requestId: UInt64,
+            uniffiOutReturn: UnsafeMutableRawPointer,
+            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+        ) in
+            let makeCall = {
+                () throws -> () in
+                guard let uniffiObj = try? FfiConverterCallbackInterfaceAiChatStreamDelegate.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return uniffiObj.onDone(
+                     requestId: try FfiConverterUInt64.lift(requestId)
+                )
+            }
+
+
+            let writeReturn = { () }
+            uniffiTraitInterfaceCall(
+                callStatus: uniffiCallStatus,
+                makeCall: makeCall,
+                writeReturn: writeReturn
+            )
+        },
+        onError: { (
+            uniffiHandle: UInt64,
+            requestId: UInt64,
+            message: RustBuffer,
+            uniffiOutReturn: UnsafeMutableRawPointer,
+            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+        ) in
+            let makeCall = {
+                () throws -> () in
+                guard let uniffiObj = try? FfiConverterCallbackInterfaceAiChatStreamDelegate.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return uniffiObj.onError(
+                     requestId: try FfiConverterUInt64.lift(requestId),
+                     message: try FfiConverterString.lift(message)
+                )
+            }
+
+
+            let writeReturn = { () }
+            uniffiTraitInterfaceCall(
+                callStatus: uniffiCallStatus,
+                makeCall: makeCall,
+                writeReturn: writeReturn
+            )
+        }
+    )]
+}
+
+private func uniffiCallbackInitAiChatStreamDelegate() {
+    uniffi_atlas_ffi_fn_init_callback_vtable_aichatstreamdelegate(UniffiCallbackInterfaceAiChatStreamDelegate.vtable)
+}
+
+// FfiConverter protocol for callback interfaces
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterCallbackInterfaceAiChatStreamDelegate {
+    fileprivate static let handleMap = UniffiHandleMap<AiChatStreamDelegate>()
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+extension FfiConverterCallbackInterfaceAiChatStreamDelegate : FfiConverter {
+    typealias SwiftType = AiChatStreamDelegate
+    typealias FfiType = UInt64
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public static func lift(_ handle: UInt64) throws -> SwiftType {
+        try handleMap.get(handle: handle)
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public static func lower(_ v: SwiftType) -> UInt64 {
+        return handleMap.insert(obj: v)
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public static func write(_ v: SwiftType, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(v))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterCallbackInterfaceAiChatStreamDelegate_lift(_ handle: UInt64) throws -> AiChatStreamDelegate {
+    return try FfiConverterCallbackInterfaceAiChatStreamDelegate.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterCallbackInterfaceAiChatStreamDelegate_lower(_ v: AiChatStreamDelegate) -> UInt64 {
+    return FfiConverterCallbackInterfaceAiChatStreamDelegate.lower(v)
+}
 
 
 
@@ -1949,6 +2449,106 @@ fileprivate struct FfiConverterSequenceString: FfiConverterRustBuffer {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterSequenceTypeAiChatMessage: FfiConverterRustBuffer {
+    typealias SwiftType = [AiChatMessage]
+
+    public static func write(_ value: [AiChatMessage], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeAiChatMessage.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [AiChatMessage] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [AiChatMessage]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeAiChatMessage.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceTypeAiPromptPreset: FfiConverterRustBuffer {
+    typealias SwiftType = [AiPromptPreset]
+
+    public static func write(_ value: [AiPromptPreset], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeAiPromptPreset.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [AiPromptPreset] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [AiPromptPreset]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeAiPromptPreset.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceTypeAiProviderConfig: FfiConverterRustBuffer {
+    typealias SwiftType = [AiProviderConfig]
+
+    public static func write(_ value: [AiProviderConfig], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeAiProviderConfig.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [AiProviderConfig] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [AiProviderConfig]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeAiProviderConfig.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceTypeAiSessionSummary: FfiConverterRustBuffer {
+    typealias SwiftType = [AiSessionSummary]
+
+    public static func write(_ value: [AiSessionSummary], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeAiSessionSummary.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [AiSessionSummary] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [AiSessionSummary]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeAiSessionSummary.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeCpuCoreSnapshot: FfiConverterRustBuffer {
     typealias SwiftType = [CpuCoreSnapshot]
 
@@ -2119,6 +2719,104 @@ fileprivate struct FfiConverterSequenceTypeTemperatureSnapshot: FfiConverterRust
         }
         return seq
     }
+}
+public func aiCancel(requestId: UInt64)  {try! rustCall() {
+    uniffi_atlas_ffi_fn_func_ai_cancel(
+        FfiConverterUInt64.lower(requestId),$0
+    )
+}
+}
+public func aiDeletePreset(id: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_delete_preset(
+        FfiConverterString.lower(id),$0
+    )
+}
+}
+public func aiDeleteProvider(id: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_delete_provider(
+        FfiConverterString.lower(id),$0
+    )
+}
+}
+public func aiDeleteSession(id: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_delete_session(
+        FfiConverterString.lower(id),$0
+    )
+}
+}
+public func aiExportSessionMarkdown(id: String)throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_export_session_markdown(
+        FfiConverterString.lower(id),$0
+    )
+})
+}
+public func aiListPresets()throws  -> [AiPromptPreset]  {
+    return try  FfiConverterSequenceTypeAiPromptPreset.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_list_presets($0
+    )
+})
+}
+public func aiListProviders()throws  -> [AiProviderConfig]  {
+    return try  FfiConverterSequenceTypeAiProviderConfig.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_list_providers($0
+    )
+})
+}
+public func aiListSessions()throws  -> [AiSessionSummary]  {
+    return try  FfiConverterSequenceTypeAiSessionSummary.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_list_sessions($0
+    )
+})
+}
+public func aiLoadSession(id: String)throws  -> AiChatSession  {
+    return try  FfiConverterTypeAiChatSession_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_load_session(
+        FfiConverterString.lower(id),$0
+    )
+})
+}
+public func aiSavePreset(preset: AiPromptPreset)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_save_preset(
+        FfiConverterTypeAiPromptPreset_lower(preset),$0
+    )
+}
+}
+public func aiSaveProvider(provider: AiProviderConfig)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_save_provider(
+        FfiConverterTypeAiProviderConfig_lower(provider),$0
+    )
+}
+}
+public func aiSaveSession(session: AiChatSession)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_save_session(
+        FfiConverterTypeAiChatSession_lower(session),$0
+    )
+}
+}
+/**
+ * Streams a chat completion; deltas arrive on the delegate from a
+ * background thread. Returns a request id usable with `ai_cancel`.
+ */
+public func aiSendMessage(sessionId: String, provider: AiProviderConfig, apiKey: String, systemPrompt: String?, delegate: AiChatStreamDelegate)throws  -> UInt64  {
+    return try  FfiConverterUInt64.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_ai_send_message(
+        FfiConverterString.lower(sessionId),
+        FfiConverterTypeAiProviderConfig_lower(provider),
+        FfiConverterString.lower(apiKey),
+        FfiConverterOptionString.lower(systemPrompt),
+        FfiConverterCallbackInterfaceAiChatStreamDelegate_lower(delegate),$0
+    )
+})
+}
+/**
+ * AI center: storage root injected by the host platform.
+ */
+public func aiSetStorageDir(path: String)  {try! rustCall() {
+    uniffi_atlas_ffi_fn_func_ai_set_storage_dir(
+        FfiConverterString.lower(path),$0
+    )
+}
 }
 public func captureFullScreen()throws  -> [UInt8]  {
     return try  FfiConverterSequenceUInt8.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
@@ -2293,6 +2991,48 @@ private let initializationResult: InitializationResult = {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
+    if (uniffi_atlas_ffi_checksum_func_ai_cancel() != 32072) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_delete_preset() != 9033) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_delete_provider() != 35049) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_delete_session() != 13186) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_export_session_markdown() != 64005) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_list_presets() != 64834) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_list_providers() != 3680) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_list_sessions() != 45195) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_load_session() != 757) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_save_preset() != 54993) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_save_provider() != 64166) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_save_session() != 54941) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_send_message() != 8107) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_ai_set_storage_dir() != 49523) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_atlas_ffi_checksum_func_capture_full_screen() != 2102) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -2350,10 +3090,20 @@ private let initializationResult: InitializationResult = {
     if (uniffi_atlas_ffi_checksum_func_uninstall_plugin() != 59064) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_atlas_ffi_checksum_method_aichatstreamdelegate_on_delta() != 64120) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_method_aichatstreamdelegate_on_done() != 63107) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_method_aichatstreamdelegate_on_error() != 11157) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_atlas_ffi_checksum_method_systemmonitorcallback_on_snapshot() != 29966) {
         return InitializationResult.apiChecksumMismatch
     }
 
+    uniffiCallbackInitAiChatStreamDelegate()
     uniffiCallbackInitSystemMonitorCallback()
     return InitializationResult.ok
 }()

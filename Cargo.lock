@@ -269,11 +269,13 @@ dependencies = [
 name = "atlas-ffi"
 version = "0.1.0"
 dependencies = [
+ "atlas-ai",
  "atlas-core",
  "atlas-plugin-host",
  "once_cell",
  "thiserror 2.0.19",
  "tokio",
+ "tokio-util",
  "uniffi",
 ]
 

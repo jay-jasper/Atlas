@@ -9,7 +9,9 @@ executable-plugins = ["dep:atlas-plugin-host"]
 dynamic-modules = ["atlas-core/dynamic-modules"]
 
 [dependencies]
+atlas-ai = { path = "../atlas-ai" }
 atlas-core = { path = "../atlas-core", default-features = false }
+tokio-util = "0.7"
 atlas-plugin-host = { path = "../atlas-plugin-host", optional = true }
 uniffi = { version = "0.30", features = ["cli"] }
 once_cell = "1.19"

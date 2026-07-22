@@ -113,6 +113,50 @@ callback interface SystemMonitorCallback {
     void on_snapshot(SystemSnapshot snapshot);
 };
 
+dictionary AiProviderConfig {
+    string id;
+    string name;
+    string base_url;
+    string model;
+};
+
+dictionary AiChatMessage {
+    string id;
+    string role;
+    string text;
+    sequence<string> image_paths;
+    i64 timestamp_ms;
+    string? error;
+};
+
+dictionary AiSessionSummary {
+    string id;
+    string title;
+    i64 created_at_ms;
+    u32 message_count;
+};
+
+dictionary AiChatSession {
+    string id;
+    string title;
+    i64 created_at_ms;
+    string? preset_id;
+    string? provider_id;
+    sequence<AiChatMessage> messages;
+};
+
+dictionary AiPromptPreset {
+    string id;
+    string name;
+    string system_prompt;
+};
+
+callback interface AiChatStreamDelegate {
+    void on_delta(u64 request_id, string text);
+    void on_done(u64 request_id);
+    void on_error(u64 request_id, string message);
+};
+
 [Error]
 enum AtlasError {
     "LockPoisoned",
@@ -122,6 +166,7 @@ enum AtlasError {
     "FeatureDisabled",
     "EntitlementDenied",
     "PluginError",
+    "AiError",
 };
 
 /// The `atlas` namespace contains the core functions exposed to other languages.
@@ -189,4 +234,40 @@ namespace atlas {
     /// Returns a one-shot snapshot of the primary battery, or null when there is
     /// no battery (desktop) or it cannot be read.
     BatterySnapshot? current_battery();
+
+    /// AI center: storage root injected by the host platform.
+    void ai_set_storage_dir(string path);
+
+    [Throws=AtlasError]
+    sequence<AiProviderConfig> ai_list_providers();
+    [Throws=AtlasError]
+    void ai_save_provider(AiProviderConfig provider);
+    [Throws=AtlasError]
+    void ai_delete_provider(string id);
+
+    [Throws=AtlasError]
+    sequence<AiSessionSummary> ai_list_sessions();
+    [Throws=AtlasError]
+    AiChatSession ai_load_session(string id);
+    [Throws=AtlasError]
+    void ai_save_session(AiChatSession session);
+    [Throws=AtlasError]
+    void ai_delete_session(string id);
+
+    [Throws=AtlasError]
+    sequence<AiPromptPreset> ai_list_presets();
+    [Throws=AtlasError]
+    void ai_save_preset(AiPromptPreset preset);
+    [Throws=AtlasError]
+    void ai_delete_preset(string id);
+
+    [Throws=AtlasError]
+    string ai_export_session_markdown(string id);
+
+    /// Streams a chat completion; deltas arrive on the delegate from a
+    /// background thread. Returns a request id usable with `ai_cancel`.
+    [Throws=AtlasError]
+    u64 ai_send_message(string session_id, AiProviderConfig provider, string api_key, string? system_prompt, AiChatStreamDelegate delegate);
+
+    void ai_cancel(u64 request_id);
 };

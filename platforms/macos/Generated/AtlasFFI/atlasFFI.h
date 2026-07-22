@@ -243,11 +243,43 @@ typedef void (*UniffiForeignFutureCompleteVoid)(uint64_t, UniffiForeignFutureRes
     );
 
 #endif
+#ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_AI_CHAT_STREAM_DELEGATE_METHOD0
+#define UNIFFI_FFIDEF_CALLBACK_INTERFACE_AI_CHAT_STREAM_DELEGATE_METHOD0
+typedef void (*UniffiCallbackInterfaceAiChatStreamDelegateMethod0)(uint64_t, uint64_t, RustBuffer, void* _Nonnull,
+        RustCallStatus *_Nonnull uniffiCallStatus
+    );
+
+#endif
+#ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_AI_CHAT_STREAM_DELEGATE_METHOD1
+#define UNIFFI_FFIDEF_CALLBACK_INTERFACE_AI_CHAT_STREAM_DELEGATE_METHOD1
+typedef void (*UniffiCallbackInterfaceAiChatStreamDelegateMethod1)(uint64_t, uint64_t, void* _Nonnull,
+        RustCallStatus *_Nonnull uniffiCallStatus
+    );
+
+#endif
+#ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_AI_CHAT_STREAM_DELEGATE_METHOD2
+#define UNIFFI_FFIDEF_CALLBACK_INTERFACE_AI_CHAT_STREAM_DELEGATE_METHOD2
+typedef void (*UniffiCallbackInterfaceAiChatStreamDelegateMethod2)(uint64_t, uint64_t, RustBuffer, void* _Nonnull,
+        RustCallStatus *_Nonnull uniffiCallStatus
+    );
+
+#endif
 #ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_SYSTEM_MONITOR_CALLBACK_METHOD0
 #define UNIFFI_FFIDEF_CALLBACK_INTERFACE_SYSTEM_MONITOR_CALLBACK_METHOD0
 typedef void (*UniffiCallbackInterfaceSystemMonitorCallbackMethod0)(uint64_t, RustBuffer, void* _Nonnull,
         RustCallStatus *_Nonnull uniffiCallStatus
     );
+
+#endif
+#ifndef UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_AI_CHAT_STREAM_DELEGATE
+#define UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_AI_CHAT_STREAM_DELEGATE
+typedef struct UniffiVTableCallbackInterfaceAiChatStreamDelegate {
+    UniffiCallbackInterfaceFree _Nonnull uniffiFree;
+    UniffiCallbackInterfaceClone _Nonnull uniffiClone;
+    UniffiCallbackInterfaceAiChatStreamDelegateMethod0 _Nonnull onDelta;
+    UniffiCallbackInterfaceAiChatStreamDelegateMethod1 _Nonnull onDone;
+    UniffiCallbackInterfaceAiChatStreamDelegateMethod2 _Nonnull onError;
+} UniffiVTableCallbackInterfaceAiChatStreamDelegate;
 
 #endif
 #ifndef UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_SYSTEM_MONITOR_CALLBACK
@@ -259,9 +291,87 @@ typedef struct UniffiVTableCallbackInterfaceSystemMonitorCallback {
 } UniffiVTableCallbackInterfaceSystemMonitorCallback;
 
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_INIT_CALLBACK_VTABLE_AICHATSTREAMDELEGATE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_INIT_CALLBACK_VTABLE_AICHATSTREAMDELEGATE
+void uniffi_atlas_ffi_fn_init_callback_vtable_aichatstreamdelegate(const UniffiVTableCallbackInterfaceAiChatStreamDelegate* _Nonnull vtable
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_INIT_CALLBACK_VTABLE_SYSTEMMONITORCALLBACK
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_INIT_CALLBACK_VTABLE_SYSTEMMONITORCALLBACK
 void uniffi_atlas_ffi_fn_init_callback_vtable_systemmonitorcallback(const UniffiVTableCallbackInterfaceSystemMonitorCallback* _Nonnull vtable
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_CANCEL
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_CANCEL
+void uniffi_atlas_ffi_fn_func_ai_cancel(uint64_t request_id, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_DELETE_PRESET
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_DELETE_PRESET
+void uniffi_atlas_ffi_fn_func_ai_delete_preset(RustBuffer id, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_DELETE_PROVIDER
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_DELETE_PROVIDER
+void uniffi_atlas_ffi_fn_func_ai_delete_provider(RustBuffer id, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_DELETE_SESSION
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_DELETE_SESSION
+void uniffi_atlas_ffi_fn_func_ai_delete_session(RustBuffer id, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_EXPORT_SESSION_MARKDOWN
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_EXPORT_SESSION_MARKDOWN
+RustBuffer uniffi_atlas_ffi_fn_func_ai_export_session_markdown(RustBuffer id, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_LIST_PRESETS
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_LIST_PRESETS
+RustBuffer uniffi_atlas_ffi_fn_func_ai_list_presets(RustCallStatus *_Nonnull out_status
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_LIST_PROVIDERS
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_LIST_PROVIDERS
+RustBuffer uniffi_atlas_ffi_fn_func_ai_list_providers(RustCallStatus *_Nonnull out_status
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_LIST_SESSIONS
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_LIST_SESSIONS
+RustBuffer uniffi_atlas_ffi_fn_func_ai_list_sessions(RustCallStatus *_Nonnull out_status
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_LOAD_SESSION
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_LOAD_SESSION
+RustBuffer uniffi_atlas_ffi_fn_func_ai_load_session(RustBuffer id, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_SAVE_PRESET
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_SAVE_PRESET
+void uniffi_atlas_ffi_fn_func_ai_save_preset(RustBuffer preset, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_SAVE_PROVIDER
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_SAVE_PROVIDER
+void uniffi_atlas_ffi_fn_func_ai_save_provider(RustBuffer provider, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_SAVE_SESSION
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_SAVE_SESSION
+void uniffi_atlas_ffi_fn_func_ai_save_session(RustBuffer session, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_SEND_MESSAGE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_SEND_MESSAGE
+uint64_t uniffi_atlas_ffi_fn_func_ai_send_message(RustBuffer session_id, RustBuffer provider, RustBuffer api_key, RustBuffer system_prompt, uint64_t delegate, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_SET_STORAGE_DIR
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_AI_SET_STORAGE_DIR
+void uniffi_atlas_ffi_fn_func_ai_set_storage_dir(RustBuffer path, RustCallStatus *_Nonnull out_status
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_CAPTURE_FULL_SCREEN
@@ -625,6 +735,90 @@ void ffi_atlas_ffi_rust_future_free_void(uint64_t handle
 void ffi_atlas_ffi_rust_future_complete_void(uint64_t handle, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_CANCEL
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_CANCEL
+uint16_t uniffi_atlas_ffi_checksum_func_ai_cancel(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_DELETE_PRESET
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_DELETE_PRESET
+uint16_t uniffi_atlas_ffi_checksum_func_ai_delete_preset(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_DELETE_PROVIDER
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_DELETE_PROVIDER
+uint16_t uniffi_atlas_ffi_checksum_func_ai_delete_provider(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_DELETE_SESSION
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_DELETE_SESSION
+uint16_t uniffi_atlas_ffi_checksum_func_ai_delete_session(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_EXPORT_SESSION_MARKDOWN
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_EXPORT_SESSION_MARKDOWN
+uint16_t uniffi_atlas_ffi_checksum_func_ai_export_session_markdown(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_LIST_PRESETS
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_LIST_PRESETS
+uint16_t uniffi_atlas_ffi_checksum_func_ai_list_presets(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_LIST_PROVIDERS
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_LIST_PROVIDERS
+uint16_t uniffi_atlas_ffi_checksum_func_ai_list_providers(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_LIST_SESSIONS
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_LIST_SESSIONS
+uint16_t uniffi_atlas_ffi_checksum_func_ai_list_sessions(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_LOAD_SESSION
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_LOAD_SESSION
+uint16_t uniffi_atlas_ffi_checksum_func_ai_load_session(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_SAVE_PRESET
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_SAVE_PRESET
+uint16_t uniffi_atlas_ffi_checksum_func_ai_save_preset(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_SAVE_PROVIDER
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_SAVE_PROVIDER
+uint16_t uniffi_atlas_ffi_checksum_func_ai_save_provider(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_SAVE_SESSION
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_SAVE_SESSION
+uint16_t uniffi_atlas_ffi_checksum_func_ai_save_session(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_SEND_MESSAGE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_SEND_MESSAGE
+uint16_t uniffi_atlas_ffi_checksum_func_ai_send_message(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_SET_STORAGE_DIR
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_AI_SET_STORAGE_DIR
+uint16_t uniffi_atlas_ffi_checksum_func_ai_set_storage_dir(void
+
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_CAPTURE_FULL_SCREEN
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_CAPTURE_FULL_SCREEN
 uint16_t uniffi_atlas_ffi_checksum_func_capture_full_screen(void
@@ -736,6 +930,24 @@ uint16_t uniffi_atlas_ffi_checksum_func_toggle_feature(void
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_UNINSTALL_PLUGIN
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_UNINSTALL_PLUGIN
 uint16_t uniffi_atlas_ffi_checksum_func_uninstall_plugin(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_METHOD_AICHATSTREAMDELEGATE_ON_DELTA
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_METHOD_AICHATSTREAMDELEGATE_ON_DELTA
+uint16_t uniffi_atlas_ffi_checksum_method_aichatstreamdelegate_on_delta(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_METHOD_AICHATSTREAMDELEGATE_ON_DONE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_METHOD_AICHATSTREAMDELEGATE_ON_DONE
+uint16_t uniffi_atlas_ffi_checksum_method_aichatstreamdelegate_on_done(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_METHOD_AICHATSTREAMDELEGATE_ON_ERROR
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_METHOD_AICHATSTREAMDELEGATE_ON_ERROR
+uint16_t uniffi_atlas_ffi_checksum_method_aichatstreamdelegate_on_error(void
 
 );
 #endif
