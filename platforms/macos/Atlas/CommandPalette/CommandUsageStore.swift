@@ -8,7 +8,14 @@ struct CommandUsageRecord: Codable, Equatable, Sendable {
 
 protocol CommandUsageRecording {
     func recordUsage(for command: PaletteCommand)
+    func recordUsage(commandKey: String)
     func usageRecords() -> [String: CommandUsageRecord]
+}
+
+extension CommandUsageRecording {
+    func recordUsage(for command: PaletteCommand) {
+        recordUsage(commandKey: CommandUsageStore.commandKey(for: command))
+    }
 }
 
 final class CommandUsageStore: CommandUsageRecording {
@@ -27,8 +34,7 @@ final class CommandUsageStore: CommandUsageRecording {
         self.dateProvider = dateProvider
     }
 
-    func recordUsage(for command: PaletteCommand) {
-        let key = Self.commandKey(for: command)
+    func recordUsage(commandKey key: String) {
         var records = usageRecords()
         let now = dateProvider()
 
