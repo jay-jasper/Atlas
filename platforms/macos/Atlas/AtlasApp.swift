@@ -150,19 +150,35 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
         if popover.isShown { popover.performClose(nil) }
 
         let menu = NSMenu()
-        menu.addItem(menuItem("打开 Atlas", #selector(openPanel)))
-        menu.addItem(menuItem("打开主窗口", #selector(openMainWindow)))
+        // Match the shell theme: forced-scheme themes lock the menu appearance.
+        let themeRaw = UserDefaults.standard.string(forKey: "atlas.shell.theme") ?? ShellThemeKind.plain.rawValue
+        let theme = ShellThemeKind(rawValue: themeRaw) ?? .plain
+        switch theme.spec.colorScheme {
+        case .dark: menu.appearance = NSAppearance(named: .darkAqua)
+        case .light: menu.appearance = NSAppearance(named: .aqua)
+        default: menu.appearance = nil
+        }
 
-        let palette = menuItem("命令面板", #selector(openPalette), key: "k")
+        menu.addItem(menuItem(loc("打开 Atlas", "Open Atlas"), #selector(openPanel), icon: "square.grid.2x2"))
+        menu.addItem(menuItem(loc("打开主窗口", "Open Main Window"), #selector(openMainWindow), icon: "macwindow"))
+
+        let palette = menuItem(loc("命令面板", "Command Palette"), #selector(openPalette), key: "k", icon: "sparkles")
         palette.keyEquivalentModifierMask = [.command]
         menu.addItem(palette)
 
-        let delayItem = NSMenuItem(title: "延时截图", action: nil, keyEquivalent: "")
+        let delayItem = NSMenuItem(title: loc("延时截图", "Delayed Capture"), action: nil, keyEquivalent: "")
+        delayItem.image = Self.menuIcon("timer")
         let delayMenu = NSMenu()
+        delayMenu.appearance = menu.appearance
         for seconds in [3, 5, 10] {
-            let item = NSMenuItem(title: "\(seconds) 秒后截图", action: #selector(delayedCapture(_:)), keyEquivalent: "")
+            let item = NSMenuItem(
+                title: loc("\(seconds) 秒后截图", "Capture in \(seconds)s"),
+                action: #selector(delayedCapture(_:)),
+                keyEquivalent: ""
+            )
             item.target = self
             item.tag = seconds
+            item.image = Self.menuIcon("camera")
             delayMenu.addItem(item)
         }
         delayItem.submenu = delayMenu
@@ -170,22 +186,30 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
 
         menu.addItem(.separator())
 
-        let prefs = menuItem("偏好设置…", #selector(openPreferences), key: ",")
+        let prefs = menuItem(loc("偏好设置…", "Preferences…"), #selector(openPreferences), key: ",", icon: "gearshape")
         prefs.keyEquivalentModifierMask = [.command]
         menu.addItem(prefs)
-        menu.addItem(menuItem("关于 Atlas", #selector(showAbout)))
+        menu.addItem(menuItem(loc("关于 Atlas", "About Atlas"), #selector(showAbout), icon: "info.circle"))
 
         menu.addItem(.separator())
 
-        let quit = menuItem("退出 Atlas", #selector(quitApp), key: "q")
+        let quit = menuItem(loc("退出 Atlas", "Quit Atlas"), #selector(quitApp), key: "q", icon: "power")
         quit.keyEquivalentModifierMask = [.command]
         menu.addItem(quit)
 
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: sender.bounds.height + 4), in: sender)
     }
 
-    private func menuItem(_ title: String, _ action: Selector, key: String = "") -> NSMenuItem {
+    static func menuIcon(_ systemName: String) -> NSImage? {
+        let image = NSImage(systemSymbolName: systemName, accessibilityDescription: nil)?
+            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 13, weight: .medium))
+        image?.isTemplate = true
+        return image
+    }
+
+    private func menuItem(_ title: String, _ action: Selector, key: String = "", icon: String? = nil) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: key)
+        if let icon { item.image = Self.menuIcon(icon) }
         item.target = self
         return item
     }
