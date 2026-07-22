@@ -20,23 +20,6 @@ struct LauncherSettingsPanel: View {
             LauncherStylePreview(style: styleStore.style.sanitized())
 
             LauncherStyleControls(styleStore: styleStore)
-
-            Divider()
-
-            LauncherQuicklinkSettings(store: quicklinks)
-
-            Divider()
-
-            LauncherFallbackSettings(store: fallbacks)
-
-            Divider()
-
-            LauncherAliasHotkeySettings(
-                aliases: aliases,
-                hotkeys: hotkeys,
-                conflicts: hotkeyConflicts,
-                rootItems: rootItems
-            )
         }
     }
 }
