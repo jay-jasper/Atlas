@@ -510,6 +510,7 @@ final class CommandPaletteState: ObservableObject {
         )
         let skillProvider = SkillCommandProvider()
         let appLauncherProvider = AppLauncherProvider()
+        let systemSettingsProvider = SystemSettingsProvider()
         let sceneProvider = SceneCommandProvider(
             coordinator: sceneCoordinator,
             isEnabled: { [weak self] in self?.isSceneSystemEnabled == true }
@@ -566,6 +567,7 @@ final class CommandPaletteState: ObservableObject {
             customAutomationProvider,
             skillProvider,
             appLauncherProvider,
+            systemSettingsProvider,
         ]
 
         var sources: [LauncherItemSource] = providers.map { provider in

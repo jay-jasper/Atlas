@@ -50,6 +50,14 @@ Dir.glob(File.join(repo_macos, "Atlas", "AIChat", "ProviderIcons", "*.svg")).sor
   end
 end
 
+palette_parent = atlas_group["CommandPalette"]
+if palette_parent
+  ["SystemSettingsProvider.swift"].each do |name|
+    next unless File.exist?(File.join(repo_macos, "Atlas", "CommandPalette", name))
+    add_file(palette_parent, app, name)
+  end
+end
+
 launcher_parent = atlas_group["Launcher"]
 search_group = ensure_group(launcher_parent, "Search", "Search")
 Dir.glob(File.join(repo_macos, "Atlas", "Launcher", "Search", "*.swift")).sort.each do |file|

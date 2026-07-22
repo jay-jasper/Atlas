@@ -4,6 +4,10 @@ import Foundation
 struct AppEntry: Equatable, Sendable {
     let name: String
     let url: URL
+    /// 本地化显示名(如 WeChat → 微信);中文系统下搜中文靠它。
+    var localizedName: String = ""
+
+    var displayName: String { localizedName.isEmpty ? name : localizedName }
 }
 
 final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
@@ -94,7 +98,10 @@ final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
         guard !q.isEmpty else { return [] }
 
         let scored = apps.compactMap { app -> (AppEntry, Int)? in
-            let score = Self.fuzzyScore(query: q, in: app.name)
+            let score = max(
+                Self.fuzzyScore(query: q, in: app.name),
+                Self.fuzzyScore(query: q, in: app.displayName)
+            )
             return score > 0 ? (app, score) : nil
         }
 
@@ -104,10 +111,10 @@ final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
             .map { entry, _ in
                 PaletteCommand(
                     id: UUID(),
-                    title: entry.name,
+                    title: entry.displayName,
                     subtitle: nil,
                     icon: .appIcon(entry.url),
-                    keywords: [],
+                    keywords: entry.displayName == entry.name ? [] : [entry.name],
                     action: .execute { NSWorkspace.shared.open(entry.url) },
                     category: "App"
                 )

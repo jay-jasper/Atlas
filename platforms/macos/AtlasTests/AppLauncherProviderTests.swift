@@ -86,3 +86,30 @@ final class AppLauncherProviderTests: XCTestCase {
         URL(fileURLWithPath: "/Applications/\(name).app")
     }
 }
+
+
+extension AppLauncherProviderTests {
+    func testLocalizedNameSearchable() {
+        let provider = AppLauncherProvider(apps: [
+            AppEntry(name: "WeChat", url: URL(fileURLWithPath: "/Applications/WeChat.app"), localizedName: "微信"),
+        ])
+
+        // 中文本地化名直搜。
+        XCTAssertEqual(provider.results(for: "微信").first?.title, "微信")
+        // 英文原名仍可搜(进 keywords)。
+        XCTAssertEqual(provider.results(for: "wechat").first?.title, "微信")
+    }
+
+    func testSystemSettingsPaneSearchableInChinese() {
+        var opened: String?
+        let provider = SystemSettingsProvider(openTarget: { opened = $0 })
+
+        let byZh = provider.results(for: "蓝牙")
+        XCTAssertEqual(byZh.count, 1)
+        let byEn = provider.results(for: "bluetooth")
+        XCTAssertEqual(byEn.count, 1)
+
+        if case .execute(let run) = byZh[0].action { run() }
+        XCTAssertEqual(opened, "com.apple.BluetoothSettings")
+    }
+}

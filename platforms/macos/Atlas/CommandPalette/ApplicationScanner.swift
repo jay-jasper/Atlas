@@ -36,9 +36,15 @@ struct FileSystemApplicationScanner: ApplicationScanning {
             }
 
             for url in contents where url.pathExtension == "app" {
+                // FileManager.displayName 返回随系统语言的本地化名(微信/访达…)。
+                var localized = fileManager.displayName(atPath: url.path)
+                if localized.hasSuffix(".app") {
+                    localized = String(localized.dropLast(4))
+                }
                 entries.append(AppEntry(
                     name: url.deletingPathExtension().lastPathComponent,
-                    url: url
+                    url: url,
+                    localizedName: localized
                 ))
             }
         }
