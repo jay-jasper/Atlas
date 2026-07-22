@@ -89,6 +89,15 @@ struct LauncherStylePreview: View {
                 .stroke(style.borderColor.color, lineWidth: min(style.borderWidth, 2))
         )
         .shadow(radius: 4, y: 2)
+        .overlay(alignment: .topTrailing) {
+            Text(loc("预览", "Preview"))
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(.ultraThinMaterial, in: Capsule())
+                .padding(6)
+        }
         .frame(maxWidth: .infinity, alignment: .center)
         .padding(.vertical, 4)
     }
