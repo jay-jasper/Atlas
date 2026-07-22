@@ -70,7 +70,8 @@ final class LauncherPanelController {
     // MARK: Visibility
 
     func toggle() {
-        if panel?.isVisible == true {
+        // 以面板存在性判断:再次按热键必定关闭,不依赖 isVisible 的时序。
+        if panel != nil {
             hide()
         } else {
             show()
@@ -78,7 +79,7 @@ final class LauncherPanelController {
     }
 
     func show() {
-        guard panel == nil || panel?.isVisible == false else { return }
+        guard panel == nil else { return }
         removeMonitors()
         nav.resetToRoot()
 

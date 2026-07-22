@@ -17,7 +17,14 @@ enum LauncherSectionBuilder {
         recentsLimit: Int = 5
     ) -> [LauncherSectionData] {
         let trimmed = query.trimmingCharacters(in: .whitespaces)
-        let allItems = sources.flatMap { $0.items(for: trimmed) }
+        var allItems = sources.flatMap { $0.items(for: trimmed) }
+        // 兜底过滤:个别 provider 匹配过宽时,不相关条目不得进入结果。
+        // 答案卡与参数命令(quicklink/fallback,自带 head 匹配语义)豁免。
+        if !trimmed.isEmpty {
+            allItems = allItems.filter { item in
+                item.isAnswer || item.acceptsArgument || Self.matches(item, query: trimmed)
+            }
+        }
 
         var sections: [LauncherSectionData] = []
         var seen = Set<String>()
@@ -82,6 +89,13 @@ enum LauncherSectionBuilder {
         }
 
         return sections
+    }
+
+    /// 标题 / 副标题 / 关键词 任一包含查询即视为匹配。
+    static func matches(_ item: LauncherItem, query: String) -> Bool {
+        if item.title.localizedCaseInsensitiveContains(query) { return true }
+        if let subtitle = item.subtitle, subtitle.localizedCaseInsensitiveContains(query) { return true }
+        return item.keywords.contains { $0.localizedCaseInsensitiveContains(query) }
     }
 
     private static func rankByUsage(

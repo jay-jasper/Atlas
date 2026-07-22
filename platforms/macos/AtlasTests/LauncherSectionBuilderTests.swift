@@ -119,6 +119,18 @@ final class LauncherSectionBuilderTests: XCTestCase {
         XCTAssertEqual(sections[0].items.map(\.id), ["Tools|Alpha"])
     }
 
+    func testNonMatchingItemsFilteredOut() {
+        // provider 匹配过宽:查询 "anti" 却返回 Capture 命令 → 兜底过滤应剔除。
+        let loose = StubSource(sourceID: "loose") { _ in [self.toolA, self.toolB] }
+        let sections = LauncherSectionBuilder.build(
+            query: "anti",
+            sources: [loose],
+            favorites: [],
+            records: [:]
+        )
+        XCTAssertTrue(sections.isEmpty)
+    }
+
     func testAliasMatchPrependsItem() {
         let rootSource = StubSource(sourceID: "stub") { query in
             query.isEmpty ? [self.toolA, self.toolB] : []
