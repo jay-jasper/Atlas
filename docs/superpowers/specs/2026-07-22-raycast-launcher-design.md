@@ -1,7 +1,7 @@
 # Raycast 启动台复刻设计(插件除外)
 
 日期:2026-07-22
-状态:已确认
+状态:已实现(2026-07-22,全部四期完成)
 参考:[rustcast](https://github.com/MystikoLab/rustcast)(功能对标)、Raycast(交互对标)
 
 ## 目标
