@@ -337,7 +337,8 @@ final class AtlasMainWindowController: NSObject, NSWindowDelegate {
             // transparent titlebar for a seamless glass look.
             created.titlebarAppearsTransparent = true
             created.titleVisibility = .hidden
-            created.isMovableByWindowBackground = true
+            // 背景拖动会吞掉 Slider/ColorPicker 的轨道拖拽,关闭;标题栏仍可拖动窗口。
+            created.isMovableByWindowBackground = false
             created.isReleasedWhenClosed = false
             created.center()
             created.setFrameAutosaveName("AtlasMainWindow")
