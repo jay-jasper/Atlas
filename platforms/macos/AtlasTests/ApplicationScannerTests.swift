@@ -27,7 +27,7 @@ final class ApplicationScannerTests: XCTestCase {
 
         let scanner = FileSystemApplicationScanner(directories: [root])
 
-        XCTAssertEqual(scanner.scanApplications(), [
+        XCTAssertEqual(scanner.scanApplications().map { AppEntry(name: $0.name, url: $0.url) }, [
             AppEntry(name: "Safari", url: appURL),
         ])
     }
@@ -36,7 +36,7 @@ final class ApplicationScannerTests: XCTestCase {
         let appURL = try makeDirectory("Xcode.app")
         let scanner = FileSystemApplicationScanner(directories: [root, root])
 
-        XCTAssertEqual(scanner.scanApplications(), [
+        XCTAssertEqual(scanner.scanApplications().map { AppEntry(name: $0.name, url: $0.url) }, [
             AppEntry(name: "Xcode", url: appURL),
         ])
     }
@@ -48,7 +48,7 @@ final class ApplicationScannerTests: XCTestCase {
 
         let scanner = FileSystemApplicationScanner(directories: [root])
 
-        XCTAssertEqual(scanner.scanApplications(), [
+        XCTAssertEqual(scanner.scanApplications().map { AppEntry(name: $0.name, url: $0.url) }, [
             AppEntry(name: "Arc", url: arcURL),
             AppEntry(name: "Xcode", url: xcodeURL),
             AppEntry(name: "Zed", url: zedURL),
@@ -60,7 +60,7 @@ final class ApplicationScannerTests: XCTestCase {
         let missing = root.appendingPathComponent("Missing", isDirectory: true)
         let scanner = FileSystemApplicationScanner(directories: [missing, root])
 
-        XCTAssertEqual(scanner.scanApplications(), [
+        XCTAssertEqual(scanner.scanApplications().map { AppEntry(name: $0.name, url: $0.url) }, [
             AppEntry(name: "Terminal", url: existingURL),
         ])
     }
