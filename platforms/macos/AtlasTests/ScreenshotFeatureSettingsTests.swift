@@ -133,6 +133,7 @@ final class ScreenshotFeatureSettingsTests: XCTestCase {
             "pinning",
             "ocr",
             "translation",
+            "redaction",
         ])
 
         XCTAssertEqual(ScreenshotSubfeature.desktopCapture.title, "Desktop Capture")

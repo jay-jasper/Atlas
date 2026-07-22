@@ -10,6 +10,7 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
     case pinning
     case ocr
     case translation
+    case redaction
 
     var id: String { rawValue }
 
@@ -33,6 +34,8 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "OCR"
         case .translation:
             return "Translation"
+        case .redaction:
+            return "Auto Redaction"
         }
     }
 
@@ -56,6 +59,60 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "Recognize text from screenshots."
         case .translation:
             return "Translate recognized screenshot text."
+        case .redaction:
+            return "Detect and cover sensitive data (PII, faces)."
+        }
+    }
+
+    /// Chinese display strings for the UI. `title`/`detail` stay English —
+    /// they are part of the tested public surface.
+    var localizedTitle: String {
+        switch self {
+        case .desktopCapture:
+            return "全屏截图"
+        case .windowCapture:
+            return "窗口截图"
+        case .areaCapture:
+            return "区域截图"
+        case .scrollingCapture:
+            return "滚动长截图"
+        case .gifRecording:
+            return "GIF 录制"
+        case .annotations:
+            return "标注"
+        case .pinning:
+            return "贴图"
+        case .ocr:
+            return "OCR 文字识别"
+        case .translation:
+            return "翻译"
+        case .redaction:
+            return "隐私自动打码"
+        }
+    }
+
+    var localizedDetail: String {
+        switch self {
+        case .desktopCapture:
+            return "截取整个桌面。"
+        case .windowCapture:
+            return "截取选中的应用窗口。"
+        case .areaCapture:
+            return "截取选中的屏幕区域。"
+        case .scrollingCapture:
+            return "滚动截取并拼接可滚动窗口。"
+        case .gifRecording:
+            return "将选中区域录制为 GIF 动图。"
+        case .annotations:
+            return "提供矩形、箭头、画笔、文字、马赛克工具。"
+        case .pinning:
+            return "把截图钉在悬浮窗口。"
+        case .ocr:
+            return "识别截图中的文字。"
+        case .translation:
+            return "翻译识别出的截图文字。"
+        case .redaction:
+            return "自动检测并打码敏感信息（邮箱/手机号/卡号/密钥/IP/人脸）。"
         }
     }
 
@@ -79,6 +136,8 @@ enum ScreenshotSubfeature: String, CaseIterable, Identifiable {
             return "text.viewfinder"
         case .translation:
             return "globe"
+        case .redaction:
+            return "eye.slash"
         }
     }
 }
@@ -104,12 +163,14 @@ struct ScreenshotEditorCapabilities: Equatable {
     var pinning: Bool
     var ocr: Bool
     var translation: Bool
+    var redaction: Bool = true
 
     static let allEnabled = ScreenshotEditorCapabilities(
         annotations: true,
         pinning: true,
         ocr: true,
-        translation: true
+        translation: true,
+        redaction: true
     )
 }
 
@@ -153,7 +214,8 @@ struct ScreenshotFeatureSettings: Equatable {
             annotations: isEnabled(.annotations),
             pinning: isEnabled(.pinning),
             ocr: isEnabled(.ocr),
-            translation: isEnabled(.translation)
+            translation: isEnabled(.translation),
+            redaction: isEnabled(.redaction)
         )
     }
 }

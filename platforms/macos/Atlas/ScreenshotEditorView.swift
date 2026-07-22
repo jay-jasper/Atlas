@@ -41,6 +41,8 @@ struct ScreenshotEditorView: View {
     @State private var stickerEmoji: String = "😀"
     @State private var isShowingStickerGrid = false
     @State private var textStyle = ScreenshotTextStyle()
+    @State private var isDetectingRedactions = false
+    @State private var redactionStatus: String?
 
     /// One in-flight manipulation of the selected annotation.
     private struct SelectionDragState {
@@ -95,6 +97,17 @@ struct ScreenshotEditorView: View {
                 if capabilities.ocr {
                     Button { onRecognizeText(renderedData()) } label: { Image(systemName: "text.viewfinder") }
                         .buttonStyle(.borderless).disabled(isRecognizingText).help("OCR")
+                }
+                if capabilities.redaction {
+                    Button { runAutoRedaction() } label: { Image(systemName: "eye.slash") }
+                        .buttonStyle(.borderless)
+                        .disabled(isDetectingRedactions)
+                        .help("自动打码敏感信息")
+                }
+                if let redactionStatus {
+                    Text(redactionStatus)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
                 if onCrop != nil, let crop = cropRect, selectedTool == .select,
                    crop.width > 4, crop.height > 4 {
@@ -772,6 +785,48 @@ struct ScreenshotEditorView: View {
         updated.textStyle = textStyle
         annotations[index] = updated
         editingAnnotationID = nil
+    }
+
+    /// Auto-redaction: detect PII text + faces on the base screenshot and add
+    /// one pixelate annotation per hit — editable/deletable like any other
+    /// annotation; rasterized only at export.
+    private func runAutoRedaction() {
+        guard let bitmap = NSBitmapImageRep(data: screenshot.pngData),
+              let cgImage = bitmap.cgImage,
+              canvasSize.width > 0, canvasSize.height > 0 else { return }
+
+        isDetectingRedactions = true
+        redactionStatus = nil
+        let imageSize = CGSize(width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
+        let canvas = canvasSize
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            let candidates = (try? ScreenshotRedactionService().detect(in: cgImage)) ?? []
+            DispatchQueue.main.async {
+                defer { isDetectingRedactions = false }
+                guard candidates.isEmpty == false else {
+                    redactionStatus = "未发现敏感内容"
+                    scheduleRedactionStatusClear()
+                    return
+                }
+                let imageRect = RedactionCoordinateMapper.fittedImageRect(imageSize: imageSize, canvasSize: canvas)
+                for candidate in candidates {
+                    let rect = RedactionCoordinateMapper
+                        .canvasRect(normalized: candidate.boundingBox, renderedImageRect: imageRect)
+                        .insetBy(dx: -2, dy: -2)
+                    annotations.append(.pixelate(rect: rect))
+                }
+                redoStack.removeAll()
+                redactionStatus = "已打码 \(candidates.count) 处"
+                scheduleRedactionStatusClear()
+            }
+        }
+    }
+
+    private func scheduleRedactionStatusClear() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+            redactionStatus = nil
+        }
     }
 
     static func clipboardImagePNG() -> Data? {

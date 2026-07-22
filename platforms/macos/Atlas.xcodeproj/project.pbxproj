@@ -28,7 +28,7 @@
 		08BC05CC733841794946D4D4 /* TransferFramingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2CCEF9C239168A1C47E6873 /* TransferFramingTests.swift */; };
 		08DD2326DB74736A36D71D24 /* QuickSwitchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D466692EA2AF53349704946 /* QuickSwitchTests.swift */; };
 		0A6D803A9CB84221C4E0A647 /* TokenBarPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC45D71022E9032E9D52E38C /* TokenBarPanel.swift */; };
-		0AA14FE406AB4FC6B472B744 /* ColorPickerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F270156DB68B4328B055EA54 /* ColorPickerPanel.swift */; };
+		0AA14FE406AB4FC6B472B744 /* ColorPickerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F270156DB68B4328B055EA54 /* ColorPickerPanel.swift */; }; AB12CD34EF56AB78CD900002 /* ShellTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB12CD34EF56AB78CD900001 /* ShellTheme.swift */; };
 		0AFDA6399A51154A7895483A /* DragShelfPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 980CF182AAE00959AE3353FE /* DragShelfPanel.swift */; };
 		0B8F17E0AF074A890862E674 /* WatermarkLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E591D057E3ECDC105B72B64A /* WatermarkLayoutTests.swift */; };
 		0BCAB5A749CEC83E6D2382F0 /* CurrencyServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB5BDF21A5C4D63E003AAA1A /* CurrencyServiceTests.swift */; };
@@ -85,6 +85,7 @@
 		31E76876D2E74EFBBED74589 /* NetworkMonitorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 280174B495DA4E699AB9EDD4 /* NetworkMonitorService.swift */; };
 		332922EA4D092EFE5CEAAA13 /* LoremIpsumProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F517CFAB11D9A661E2C4671F /* LoremIpsumProvider.swift */; };
 		33CA79645E7128753DAEFC93 /* PasswordStrength.swift in Sources */ = {isa = PBXBuildFile; fileRef = E524051331E4CF26B142A5AD /* PasswordStrength.swift */; };
+		35CC6642EE7DFF8BDDBF3418 /* SecureLocalData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA49D6B34DB8E9D2BA1E8A80 /* SecureLocalData.swift */; };
 		360BE583438EA5E81F0032D9 /* ScratchpadSummaryServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A44260F6FC0C2D4643BD94 /* ScratchpadSummaryServiceTests.swift */; };
 		361A4DB2F9E6A9601CA41E1B /* ScriptingPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C61DF0D2F3EB4301716B92 /* ScriptingPanel.swift */; };
 		36603ED870FD3ADEBF59CE9C /* DragShelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 848018F22586810745402598 /* DragShelfTests.swift */; };
@@ -135,6 +136,7 @@
 		5BA74D883726415982FBBDF6 /* ScreenshotGIFEncoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B433C2E38443490FBF109616 /* ScreenshotGIFEncoderTests.swift */; };
 		5BB50405D76BC1EB083BD339 /* SkillStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2D45D8CD3AFD18AFB590DF /* SkillStore.swift */; };
 		5C4AD9693E24E3FA343559A5 /* TokenBarImportServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C279B8D707828A901BAD80 /* TokenBarImportServiceTests.swift */; };
+		5C7CFC417BB85F44BE1CBD09 /* DirectUpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B70C65BE6A88A931EAF67F /* DirectUpdateService.swift */; };
 		5CA02B86D187A679D41A033C /* CurrencyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34EB499B8503D80D687FCC0D /* CurrencyService.swift */; };
 		5E814048614D04E91AF60863 /* PresentationModeServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B69BAF8DF1B46902C14F4B7 /* PresentationModeServiceTests.swift */; };
 		5EFB7532EA93CF712043FD18 /* KeyboardDisplayService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 789AE74A2F26DAD947245D17 /* KeyboardDisplayService.swift */; };
@@ -153,6 +155,7 @@
 		6363CC6CE9B33B04F768758F /* TokenBarSettingsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB99C5DE281831C1326A52B /* TokenBarSettingsPanel.swift */; };
 		63B33A63560345C4B6F97C64 /* AutomationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93BB86D86DEB40FBB383E872 /* AutomationSettingsView.swift */; };
 		6503D80833D61647E8262941 /* WindowManagementProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C7CD54ACF496511BC13CD65 /* WindowManagementProvider.swift */; };
+		65798B4845CF6D9BC8536E7C /* DistributionChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 079CF0DCE5F4FAB7AB4774DB /* DistributionChannel.swift */; };
 		691E48A23CAB4A2AA98D6C0B /* AppAudioPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0A83976208D43FD85FA74EB /* AppAudioPanel.swift */; };
 		6959543D049768440204C290 /* SystemUtilitiesProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8B09668228AD919EEE18DD1 /* SystemUtilitiesProviderTests.swift */; };
 		6998D1F9CAA64608A5E71EDE /* ScreenshotScrollingCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 650A01D6BACA4B03A5D7ECC3 /* ScreenshotScrollingCaptureTests.swift */; };
@@ -168,6 +171,7 @@
 		6D25AD121C9FEB8659F7D05B /* BluetoothBatteryPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4932E83B1A7887CBBFB6EBD7 /* BluetoothBatteryPanel.swift */; };
 		6DF451F0D839EF9E9E4A3FD5 /* PluginsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22D92B79173885B97F04FE5D /* PluginsPanel.swift */; };
 		6F2C2324BB44B07A6739D437 /* ClipboardHistoryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920B22C57AF5F1BF6EF6666E /* ClipboardHistoryStoreTests.swift */; };
+		712B94C3C038F44186A540D9 /* ProductionEntitlementProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93C7777BA6AE2ED91D4D1A18 /* ProductionEntitlementProviders.swift */; };
 		73147BE47DD27414AC920184 /* TeleprompterPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B280A5900057715DC5F40572 /* TeleprompterPanel.swift */; };
 		73C9E12D6E75FB1A3F80AB00 /* SubtitleDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FA1FBC43960A6D118919AD7 /* SubtitleDocumentTests.swift */; };
 		7445FF81A1C84CBD916B3984 /* ColorPickerServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADEF7D6BECF645CAAF622417 /* ColorPickerServiceTests.swift */; };
@@ -212,10 +216,10 @@
 		83CBBA2A1A601CBA00E9B192 /* SystemModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3B1A601CBA00E9B192 /* SystemModels.swift */; };
 		83CBBA2B1A601CBA00E9B192 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 83CBBA3C1A601CBA00E9B192 /* Assets.xcassets */; };
 		83CBBA2C1A601CBA00E9B192 /* ScreenshotModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3E1A601CBA00E9B192 /* ScreenshotModels.swift */; };
-		83CBBA2C1A601CBA00E9B203 /* ScrollingCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3E1A601CBA00E9B203 /* ScrollingCapture.swift */; };
-		83CBBA2C1A601CBA00E9B202 /* GlobalHotkeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3E1A601CBA00E9B202 /* GlobalHotkeys.swift */; };
 		83CBBA2C1A601CBA00E9B201 /* ScreenshotColorPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3E1A601CBA00E9B201 /* ScreenshotColorPicker.swift */; };
-		83CBBA2D1A601CBA00E9B192 /* ScreenshotModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3F1A601CBA00E9B192 /* ScreenshotModelsTests.swift */; };
+		83CBBA2C1A601CBA00E9B202 /* GlobalHotkeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3E1A601CBA00E9B202 /* GlobalHotkeys.swift */; };
+		83CBBA2C1A601CBA00E9B203 /* ScrollingCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3E1A601CBA00E9B203 /* ScrollingCapture.swift */; };
+		83CBBA2D1A601CBA00E9B192 /* ScreenshotModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA3F1A601CBA00E9B192 /* ScreenshotModelsTests.swift */; }; AB12CD34EF56AB78CD900004 /* ScreenshotRedactionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB12CD34EF56AB78CD900003 /* ScreenshotRedactionService.swift */; }; AB12CD34EF56AB78CD900006 /* ScreenshotRedactionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB12CD34EF56AB78CD900005 /* ScreenshotRedactionServiceTests.swift */; };
 		83CBBA641A601CBA00E9B192 /* ScreenshotOutputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA651A601CBA00E9B192 /* ScreenshotOutputTests.swift */; };
 		83CBBA661A601CBA00E9B192 /* ScreenshotOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA671A601CBA00E9B192 /* ScreenshotOutput.swift */; };
 		83CBBA681A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA691A601CBA00E9B192 /* AtlasBridgeCaptureTests.swift */; };
@@ -224,7 +228,6 @@
 		83CBBA731A601CBA00E9B192 /* ScreenshotSelectionWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA721A601CBA00E9B192 /* ScreenshotSelectionWindow.swift */; };
 		83CBBA751A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA741A601CBA00E9B192 /* ScreenshotEditorRendererTests.swift */; };
 		83CBBA761A601CBA00E9B192 /* atlas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA781A601CBA00E9B192 /* atlas.swift */; };
-		83CBBA771A601CBA00E9B192 /* libatlas_ffi.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 83CBBA791A601CBA00E9B192 /* libatlas_ffi.a */; };
 		83CBBA961A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA981A601CBA00E9B192 /* ScreenCaptureCoordinateMapper.swift */; };
 		83CBBA971A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA991A601CBA00E9B192 /* ScreenCaptureCoordinateMapperTests.swift */; };
 		83CBBA9A1A601CBA00E9B192 /* AtlasCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CBBA9C1A601CBA00E9B192 /* AtlasCaptureService.swift */; };
@@ -283,6 +286,7 @@
 		86B0F84F2EC96C263DAEFCDE /* HostsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C1B16F6A8DAC8BB654FA43A /* HostsPanel.swift */; };
 		8767DAFA6C68072E756CBCEB /* BluetoothBatteryParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B976CF14A641C66534CF588C /* BluetoothBatteryParser.swift */; };
 		87CD88F10609410A8E41612C /* NetworkMonitorParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D007A761892B41AA925213D8 /* NetworkMonitorParserTests.swift */; };
+		886B7362DBD5DBAA6DEF7A4A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 593DD9B7AC0764BE268E75AD /* Cocoa.framework */; };
 		8872C0113BE59FC39B494E98 /* PresentationModeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4369F91C3158EA84ADCD15D /* PresentationModeService.swift */; };
 		8909E1D5DE07DA956392B285 /* AtlasCommandProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBDF9E2A609A5F89E4AB4EB4 /* AtlasCommandProvider.swift */; };
 		89D1D0FE14B4443787820294 /* ColorPickerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94361E3983074A22820A1D9B /* ColorPickerService.swift */; };
@@ -403,7 +407,6 @@
 		D3533491765740AC1FD3CBC5 /* LocalAILoadModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BFD86394CFAB3EDD737AE7B /* LocalAILoadModels.swift */; };
 		D788D23DF525B48B80BCE7E3 /* TOTPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFCD56654B2BB1EBE0132131 /* TOTPService.swift */; };
 		D7B7BA9A109C9852A0B91E48 /* BatteryHealthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3E4FA9DA7E6707AEC2CAFB8 /* BatteryHealthService.swift */; };
-		D7F9C9ABBBBC2D00A3AA83EF /* AtlasMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C8D0DA5D888CB4670A8AABD /* AtlasMainView.swift */; };
 		D9C3F6043461B58138591ACF /* NoiseGateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4651FFE3764B792AC834F2B8 /* NoiseGateService.swift */; };
 		D9C56396B4A864359D1E292A /* WorkspaceWindowService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6272A1B4660F8A43600C61 /* WorkspaceWindowService.swift */; };
 		DA4FCC3C1330925471127792 /* KeyEventFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C4D06FEADD5D853E494A69 /* KeyEventFormatterTests.swift */; };
@@ -419,6 +422,7 @@
 		DF20F42AA17715CF465AA869 /* GIFProcessingPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F4492C396F05EC1830F5CE7 /* GIFProcessingPanel.swift */; };
 		DF2C8229256703A69460B76B /* PacketMonitorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 362AE9591CCD0A6003674E83 /* PacketMonitorService.swift */; };
 		DF42659882655A19E8550454 /* TeleprompterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3943B82F7B679F99538E54 /* TeleprompterService.swift */; };
+		E018938C70E5F312CFA473F2 /* ProductionSecurityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BA86FD6FCF027407486EE2C /* ProductionSecurityTests.swift */; };
 		E1D72F879B15D5F5D65AD25F /* JSONFormatProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1889DFE3FCC9BF93D5A4D7F /* JSONFormatProvider.swift */; };
 		E1F3770463554F30A7BE9715 /* DDCPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7189ACA4434845DA987B0755 /* DDCPanel.swift */; };
 		E34FDD2A1F94DBB150780942 /* DiskUsageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4C9BF295A5E0613F6B29591 /* DiskUsageService.swift */; };
@@ -452,6 +456,7 @@
 		F256611358BB6A231E5228AD /* RSSPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7450E7D6EA7C9AF2DD6CD8DF /* RSSPanel.swift */; };
 		F29B8AEEEEBC22A72238FB54 /* WatermarkPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47540B8091FFA8AA082AE9D8 /* WatermarkPanel.swift */; };
 		F2C424527101547E335EC89D /* EditionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC822B4864798A9A64E87F5 /* EditionModels.swift */; };
+		F2D1905B060D68B78A0ACA22 /* NowPlayingProviderFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D151DBFBB3004D8C911F34CA /* NowPlayingProviderFactory.swift */; };
 		F34EA7F848DFDFE7A0732462 /* CommandPaletteController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E276FD7ABA37B12C6847A63 /* CommandPaletteController.swift */; };
 		F3598B3539FBE30DFA55C733 /* ApplicationScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE63B6C5B330DD731856FD5E /* ApplicationScanner.swift */; };
 		F39D0D01D5C9E6F5591543CC /* EditionPanelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DA7936428773945CFBAB4C6 /* EditionPanelTests.swift */; };
@@ -461,6 +466,7 @@
 		F58B90A131DB67B2B3B1D0E4 /* PrivilegedFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58178884BF5D5F09771E71AF /* PrivilegedFileWriter.swift */; };
 		F6E350A03D6D467AA5978A01 /* CalendarPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9540E9697878405B8C9A19D9 /* CalendarPanel.swift */; };
 		F716E5A0B284A5B9FE4344E3 /* LocalAILoadPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 602B4B66C6F924212EE16A35 /* LocalAILoadPanel.swift */; };
+		F77325512D69A0EB5E794B05 /* AtlasUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B66BDF487051665C2CEE4E09 /* AtlasUITests.swift */; };
 		F852B1B44F6EE05CD5CFF914 /* NotchPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 676A94EBB62D1C75C3365E78 /* NotchPanel.swift */; };
 		F866A2896F4E43AD51E65B0B /* AspectGuidePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCAE276D955A798CAC2B826 /* AspectGuidePanel.swift */; };
 		F8C8D76A5BE7A58DBD6D023D /* TokenBarConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FF19B7C6244F59198F88AA2 /* TokenBarConfigurationTests.swift */; };
@@ -473,6 +479,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		1DFD02EC3CB8B406E9A39561 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBBA701A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 83CBBA601A601CBA00E9B192;
+			remoteInfo = Atlas;
+		};
 		83CBBA631A601CBA00E9B192 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBBA701A601CBA00E9B192 /* Project object */;
@@ -492,6 +505,7 @@
 		05514ABA150C37E63A8A33C5 /* EditionModelsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EditionModelsTests.swift; sourceTree = "<group>"; };
 		0654E9D823BB9427DEB8BD56 /* ShellScriptStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShellScriptStore.swift; sourceTree = "<group>"; };
 		074D0A68F5F63EDDD71D3AD4 /* WindowManagementServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WindowManagementServiceTests.swift; sourceTree = "<group>"; };
+		079CF0DCE5F4FAB7AB4774DB /* DistributionChannel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DistributionChannel.swift; sourceTree = "<group>"; };
 		08A60596A9FF3C888370A533 /* LocalAILoadRefreshService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocalAILoadRefreshService.swift; sourceTree = "<group>"; };
 		09ECE0E919001886E4F651DA /* SystemUtilitiesPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SystemUtilitiesPanel.swift; sourceTree = "<group>"; };
 		0A39066934E56F1EC377485F /* LocalAILoadMonitorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocalAILoadMonitorTests.swift; sourceTree = "<group>"; };
@@ -560,7 +574,6 @@
 		3B570134E77A910024A872EC /* HandMirrorServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HandMirrorServiceTests.swift; sourceTree = "<group>"; };
 		3BFD86394CFAB3EDD737AE7B /* LocalAILoadModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocalAILoadModels.swift; sourceTree = "<group>"; };
 		3C7A72389DEA3B6D92BC110D /* EditionPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EditionPanel.swift; sourceTree = "<group>"; };
-		3C8D0DA5D888CB4670A8AABD /* AtlasMainView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasMainView.swift; sourceTree = "<group>"; };
 		3CB82ACE64328FFFF4195A88 /* ExpressionEvaluatorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExpressionEvaluatorTests.swift; sourceTree = "<group>"; };
 		3CCEFEB02BF348E1817DD9D5 /* SceneCoordinatorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneCoordinatorTests.swift; sourceTree = "<group>"; };
 		3DAD5314FB1D5921ED831F5A /* WorkspaceProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspaceProvider.swift; sourceTree = "<group>"; };
@@ -601,6 +614,7 @@
 		57C3B04EA2A5CCFCD1CB5818 /* PrivacyPulseModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrivacyPulseModels.swift; path = Atlas/PrivacyPulseModels.swift; sourceTree = "<group>"; };
 		58178884BF5D5F09771E71AF /* PrivilegedFileWriter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrivilegedFileWriter.swift; sourceTree = "<group>"; };
 		586048E8720BCBF903039A49 /* KeyboardSoundPack.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeyboardSoundPack.swift; sourceTree = "<group>"; };
+		593DD9B7AC0764BE268E75AD /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		5963D5DA0CED452CAD692B9F /* AtlasScriptAPITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasScriptAPITests.swift; sourceTree = "<group>"; };
 		5AA19230041F4B8429FA8D7A /* ApplicationScannerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ApplicationScannerTests.swift; sourceTree = "<group>"; };
 		5B699E34BE0CAAC9635CCA60 /* DeveloperToolsProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeveloperToolsProviderTests.swift; sourceTree = "<group>"; };
@@ -664,6 +678,7 @@
 		7E993E01EFDE2F6AFD2EC1A5 /* TranscriptionPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TranscriptionPanel.swift; sourceTree = "<group>"; };
 		7F4492C396F05EC1830F5CE7 /* GIFProcessingPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GIFProcessingPanel.swift; sourceTree = "<group>"; };
 		8037725A7B1380B702B18FE3 /* TokenBarConfiguration.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarConfiguration.swift; sourceTree = "<group>"; };
+		803A71D28D5370B9879EF6D9 /* AtlasStore.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = AtlasStore.entitlements; sourceTree = "<group>"; };
 		808EB43DD51F4EC29D0DB3B8 /* BluetoothQuickActionsServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BluetoothQuickActionsServiceTests.swift; sourceTree = "<group>"; };
 		80CE855052479C0A11B77AFA /* TokenBarProviderUsageImporterTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarProviderUsageImporterTests.swift; sourceTree = "<group>"; };
 		80D40FF44B882B30D79C1050 /* NowPlayingPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NowPlayingPanel.swift; sourceTree = "<group>"; };
@@ -687,10 +702,10 @@
 		83CBBA3C1A601CBA00E9B192 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		83CBBA3D1A601CBA00E9B192 /* Atlas.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Atlas.entitlements; sourceTree = "<group>"; };
 		83CBBA3E1A601CBA00E9B192 /* ScreenshotModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotModels.swift; sourceTree = "<group>"; };
-		83CBBA3E1A601CBA00E9B203 /* ScrollingCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollingCapture.swift; sourceTree = "<group>"; };
-		83CBBA3E1A601CBA00E9B202 /* GlobalHotkeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotkeys.swift; sourceTree = "<group>"; };
 		83CBBA3E1A601CBA00E9B201 /* ScreenshotColorPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotColorPicker.swift; sourceTree = "<group>"; };
-		83CBBA3F1A601CBA00E9B192 /* ScreenshotModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotModelsTests.swift; sourceTree = "<group>"; };
+		83CBBA3E1A601CBA00E9B202 /* GlobalHotkeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotkeys.swift; sourceTree = "<group>"; };
+		83CBBA3E1A601CBA00E9B203 /* ScrollingCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollingCapture.swift; sourceTree = "<group>"; };
+		83CBBA3F1A601CBA00E9B192 /* ScreenshotModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotModelsTests.swift; sourceTree = "<group>"; }; AB12CD34EF56AB78CD900003 /* ScreenshotRedactionService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScreenshotRedactionService.swift; sourceTree = "<group>"; }; AB12CD34EF56AB78CD900005 /* ScreenshotRedactionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotRedactionServiceTests.swift; sourceTree = "<group>"; };
 		83CBBA4A1A601CBA00E9B192 /* AtlasTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AtlasTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		83CBBA651A601CBA00E9B192 /* ScreenshotOutputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotOutputTests.swift; sourceTree = "<group>"; };
 		83CBBA671A601CBA00E9B192 /* ScreenshotOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotOutput.swift; sourceTree = "<group>"; };
@@ -756,14 +771,17 @@
 		83CBBD021A601CBA00E9B192 /* GlobalHotkeyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotkeyService.swift; sourceTree = "<group>"; };
 		83FAB328C2F119CE8CC9EA71 /* AtlasScriptAPI.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasScriptAPI.swift; sourceTree = "<group>"; };
 		848018F22586810745402598 /* DragShelfTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DragShelfTests.swift; sourceTree = "<group>"; };
+		85BD92150758AC094F0E3F9E /* AtlasUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AtlasUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		87D1024302FCC1A36D074A11 /* EncodingProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EncodingProvider.swift; sourceTree = "<group>"; };
 		88A8B8230EA651C257B343DD /* SkillRunner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SkillRunner.swift; sourceTree = "<group>"; };
+		88B70C65BE6A88A931EAF67F /* DirectUpdateService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DirectUpdateService.swift; sourceTree = "<group>"; };
 		88CBD52E6E389E284552F69D /* RecordingTimeline.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RecordingTimeline.swift; sourceTree = "<group>"; };
 		8AA8CF04F333085B6EAADCE7 /* CameraPreviewPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CameraPreviewPanel.swift; sourceTree = "<group>"; };
 		8ADDBDD73EC7B351404383EA /* ScreenshotCaptureFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScreenshotCaptureFlow.swift; sourceTree = "<group>"; };
 		8B69BAF8DF1B46902C14F4B7 /* PresentationModeServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PresentationModeServiceTests.swift; sourceTree = "<group>"; };
 		8B71563E0BF0B7DF25698C8C /* TextExpansionEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TextExpansionEngine.swift; sourceTree = "<group>"; };
 		8B90FCD93AA77617204F8B01 /* ClipboardHistoryStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryStore.swift; sourceTree = "<group>"; };
+		8BA86FD6FCF027407486EE2C /* ProductionSecurityTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProductionSecurityTests.swift; sourceTree = "<group>"; };
 		8BBC8FAF40ED30715A631BF2 /* PacketMonitorPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PacketMonitorPanel.swift; sourceTree = "<group>"; };
 		8CD85DAA372A4B2DAF7E7AEF /* HashGeneratorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HashGeneratorProvider.swift; sourceTree = "<group>"; };
 		8DA7936428773945CFBAB4C6 /* EditionPanelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EditionPanelTests.swift; sourceTree = "<group>"; };
@@ -776,6 +794,7 @@
 		924A14E66E5847B3B953502B /* CustomAutomationProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CustomAutomationProviderTests.swift; sourceTree = "<group>"; };
 		92EE08CCA7BEBB3D3F70D4A4 /* PomodoroPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomodoroPanel.swift; sourceTree = "<group>"; };
 		93BB86D86DEB40FBB383E872 /* AutomationSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AutomationSettingsView.swift; sourceTree = "<group>"; };
+		93C7777BA6AE2ED91D4D1A18 /* ProductionEntitlementProviders.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProductionEntitlementProviders.swift; sourceTree = "<group>"; };
 		94361E3983074A22820A1D9B /* ColorPickerService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ColorPickerService.swift; sourceTree = "<group>"; };
 		94C4D8FB21FE5A3384C0FC21 /* KeyRecorderView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeyRecorderView.swift; sourceTree = "<group>"; };
 		9504B17A66F3EB10E9202C42 /* WorkspacePanelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspacePanelTests.swift; sourceTree = "<group>"; };
@@ -842,9 +861,11 @@
 		B4D6DCBDB7963D769ABA6304 /* PrivacyPulsePanelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrivacyPulsePanelTests.swift; path = AtlasTests/PrivacyPulsePanelTests.swift; sourceTree = "<group>"; };
 		B541902B47B612BFED45441B /* AtlasCommandProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasCommandProviderTests.swift; sourceTree = "<group>"; };
 		B651DA8816288AF44EB77692 /* ColorSamplerService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ColorSamplerService.swift; sourceTree = "<group>"; };
+		B66BDF487051665C2CEE4E09 /* AtlasUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AtlasUITests.swift; sourceTree = "<group>"; };
 		B8B0F60EA23E674D7AD5130A /* ShellScriptProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShellScriptProvider.swift; sourceTree = "<group>"; };
 		B916EAA7E3E2C5A09BECD760 /* TextExpansionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TextExpansionTests.swift; sourceTree = "<group>"; };
 		B976CF14A641C66534CF588C /* BluetoothBatteryParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BluetoothBatteryParser.swift; sourceTree = "<group>"; };
+		BA49D6B34DB8E9D2BA1E8A80 /* SecureLocalData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SecureLocalData.swift; sourceTree = "<group>"; };
 		BA81DA23471236D97627CAB9 /* PrivacyPulseService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PrivacyPulseService.swift; path = Atlas/PrivacyPulseService.swift; sourceTree = "<group>"; };
 		BA8A5F47DBA508F58C46E2E6 /* ScratchpadPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ScratchpadPanel.swift; path = ScratchpadPanel.swift; sourceTree = "<group>"; };
 		BB8FE8BD2953E1E6936808BD /* ScrollSmoothingPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScrollSmoothingPanel.swift; sourceTree = "<group>"; };
@@ -887,6 +908,7 @@
 		D007A761892B41AA925213D8 /* NetworkMonitorParserTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NetworkMonitorParserTests.swift; sourceTree = "<group>"; };
 		D063FCA20E28DBA150981535 /* EnvService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EnvService.swift; sourceTree = "<group>"; };
 		D13CB23AEEF1DA71D5904B40 /* TokenBarProviderClientTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarProviderClientTests.swift; sourceTree = "<group>"; };
+		D151DBFBB3004D8C911F34CA /* NowPlayingProviderFactory.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NowPlayingProviderFactory.swift; sourceTree = "<group>"; };
 		D3373013D35AB67465C377E8 /* LANTransferPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LANTransferPanel.swift; sourceTree = "<group>"; };
 		D5420A681CFDE8B5375B3EE6 /* TextExpansionMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TextExpansionMonitor.swift; sourceTree = "<group>"; };
 		D548220FD3DA27217EAF5486 /* DragShelfStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DragShelfStore.swift; sourceTree = "<group>"; };
@@ -934,7 +956,7 @@
 		EF9C104CCF6D0F133A7DB822 /* QuickSwitchService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuickSwitchService.swift; sourceTree = "<group>"; };
 		F04C3EFAAAF59A7B0D4F982D /* GIFProcessingService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GIFProcessingService.swift; sourceTree = "<group>"; };
 		F1959D34A6B5417FBA162E9F /* RecordingStatusTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RecordingStatusTests.swift; sourceTree = "<group>"; };
-		F270156DB68B4328B055EA54 /* ColorPickerPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ColorPickerPanel.swift; sourceTree = "<group>"; };
+		F270156DB68B4328B055EA54 /* ColorPickerPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ColorPickerPanel.swift; sourceTree = "<group>"; }; AB12CD34EF56AB78CD900001 /* ShellTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShellTheme.swift; sourceTree = "<group>"; };
 		F3D2E82F9F923CB8BCD4501C /* PluginsService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PluginsService.swift; sourceTree = "<group>"; };
 		F4625ECD9F485DCEB7008580 /* NoiseGateTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoiseGateTests.swift; sourceTree = "<group>"; };
 		F517CFAB11D9A661E2C4671F /* LoremIpsumProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LoremIpsumProvider.swift; sourceTree = "<group>"; };
@@ -959,7 +981,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				83CBBA771A601CBA00E9B192 /* libatlas_ffi.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -967,6 +988,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FC30F5C00A2B47DBDE92CB5D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				886B7362DBD5DBAA6DEF7A4A /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -982,6 +1011,15 @@
 			);
 			name = Subtitles;
 			path = Subtitles;
+			sourceTree = "<group>";
+		};
+		04EDAB529D78DE38D40405D4 /* AtlasUITests */ = {
+			isa = PBXGroup;
+			children = (
+				B66BDF487051665C2CEE4E09 /* AtlasUITests.swift */,
+			);
+			name = AtlasUITests;
+			path = AtlasUITests;
 			sourceTree = "<group>";
 		};
 		086E571DAC0EAC85211D6345 /* DiskUsage */ = {
@@ -1295,6 +1333,8 @@
 				83CBBA7D1A601CBA00E9B192 /* Generated */,
 				83CBBA511A601CBA00E9B192 /* Products */,
 				518C1DF131FF6414048B3AAA /* macos */,
+				E6D181670C42BC30ECD97129 /* Frameworks */,
+				04EDAB529D78DE38D40405D4 /* AtlasUITests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1303,6 +1343,7 @@
 			children = (
 				83CBBA301A601CBA00E9B192 /* Atlas.app */,
 				83CBBA4A1A601CBA00E9B192 /* AtlasTests.xctest */,
+				85BD92150758AC094F0E3F9E /* AtlasUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1412,7 +1453,7 @@
 				0A67F9E074DCCD5157064A88 /* DisplayControlService.swift */,
 				09ECE0E919001886E4F651DA /* SystemUtilitiesPanel.swift */,
 				94361E3983074A22820A1D9B /* ColorPickerService.swift */,
-				F270156DB68B4328B055EA54 /* ColorPickerPanel.swift */,
+				F270156DB68B4328B055EA54 /* ColorPickerPanel.swift */, AB12CD34EF56AB78CD900001 /* ShellTheme.swift */, AB12CD34EF56AB78CD900003 /* ScreenshotRedactionService.swift */,
 				7189ACA4434845DA987B0755 /* DDCPanel.swift */,
 				1B98D69D7B30401BB40B4D23 /* CalendarService.swift */,
 				9540E9697878405B8C9A19D9 /* CalendarPanel.swift */,
@@ -1468,9 +1509,13 @@
 				E12054EAF148D5FDC026EB1B /* PrivacyPulseReporter.swift */,
 				D496B3737293EE53C4E72BB4 /* Privileged */,
 				E4DC919ED0B3E6F9A8B65695 /* DesignSystem */,
-				3C8D0DA5D888CB4670A8AABD /* AtlasMainView.swift */,
 				8ADDBDD73EC7B351404383EA /* ScreenshotCaptureFlow.swift */,
 				112889576B9C4CCE12AB5D14 /* SnipasteCaptureOverlay.swift */,
+				079CF0DCE5F4FAB7AB4774DB /* DistributionChannel.swift */,
+				93C7777BA6AE2ED91D4D1A18 /* ProductionEntitlementProviders.swift */,
+				803A71D28D5370B9879EF6D9 /* AtlasStore.entitlements */,
+				BA49D6B34DB8E9D2BA1E8A80 /* SecureLocalData.swift */,
+				88B70C65BE6A88A931EAF67F /* DirectUpdateService.swift */,
 			);
 			path = Atlas;
 			sourceTree = "<group>";
@@ -1509,7 +1554,7 @@
 				83CBBB2A1A601CBA00E9B192 /* ScreenshotTranslationServiceTests.swift */,
 				83CBBB1C1A601CBA00E9B192 /* SelectionGeometryTests.swift */,
 				83CBBB201A601CBA00E9B192 /* SelectionPixelProbeTests.swift */,
-				83CBBA3F1A601CBA00E9B192 /* ScreenshotModelsTests.swift */,
+				83CBBA3F1A601CBA00E9B192 /* ScreenshotModelsTests.swift */, AB12CD34EF56AB78CD900005 /* ScreenshotRedactionServiceTests.swift */,
 				83CBBA651A601CBA00E9B192 /* ScreenshotOutputTests.swift */,
 				C13E0161379495141C4E72FE /* CommandPaletteModelsTests.swift */,
 				B541902B47B612BFED45441B /* AtlasCommandProviderTests.swift */,
@@ -1628,6 +1673,7 @@
 				252F2FD5229D5621736092CD /* PrivacyPulseReporterTests.swift */,
 				3A79796CC46AA96411377F17 /* PrivilegedWriteTests.swift */,
 				A46968AE085E8C4D57C52C4D /* AtlasThemeTests.swift */,
+				8BA86FD6FCF027407486EE2C /* ProductionSecurityTests.swift */,
 			);
 			path = AtlasTests;
 			sourceTree = "<group>";
@@ -1684,9 +1730,18 @@
 				80D40FF44B882B30D79C1050 /* NowPlayingPanel.swift */,
 				96EB0317E0687CB771626198 /* NowPlayingParser.swift */,
 				DB15FC2A0CB0E19DBB74CAC2 /* MediaRemoteNowPlayingProvider.swift */,
+				D151DBFBB3004D8C911F34CA /* NowPlayingProviderFactory.swift */,
 			);
 			name = NowPlaying;
 			path = NowPlaying;
+			sourceTree = "<group>";
+		};
+		AA70E07FE60BAD6093FC7978 /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				593DD9B7AC0764BE268E75AD /* Cocoa.framework */,
+			);
+			name = "OS X";
 			sourceTree = "<group>";
 		};
 		AC30EB94CF94503A34F20D26 /* GIFProcessing */ = {
@@ -1882,6 +1937,14 @@
 			path = QuickSwitches;
 			sourceTree = "<group>";
 		};
+		E6D181670C42BC30ECD97129 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				AA70E07FE60BAD6093FC7978 /* OS X */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		E82EBE7CF1E902D630317AAC /* LANTransfer */ = {
 			isa = PBXGroup;
 			children = (
@@ -1964,6 +2027,24 @@
 			productReference = 83CBBA4A1A601CBA00E9B192 /* AtlasTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		BCC0FD7DF2FFDFB664A2442A /* AtlasUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DB7C95725A43422E33F9C8DE /* Build configuration list for PBXNativeTarget "AtlasUITests" */;
+			buildPhases = (
+				6D38EF5BC0D5694D575830C5 /* Sources */,
+				FC30F5C00A2B47DBDE92CB5D /* Frameworks */,
+				86CDBA63ABF1A3B4FDC0E283 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3DCFAACC59D8FE0A14EC78C2 /* PBXTargetDependency */,
+			);
+			name = AtlasUITests;
+			productName = AtlasUITests;
+			productReference = 85BD92150758AC094F0E3F9E /* AtlasUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -1998,6 +2079,7 @@
 			targets = (
 				83CBBA601A601CBA00E9B192 /* Atlas */,
 				83CBBA611A601CBA00E9B192 /* AtlasTests */,
+				BCC0FD7DF2FFDFB664A2442A /* AtlasUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -2018,9 +2100,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		86CDBA63ABF1A3B4FDC0E283 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		6D38EF5BC0D5694D575830C5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F77325512D69A0EB5E794B05 /* AtlasUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		83CBBA401A601CBA00E9B192 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2148,7 +2245,7 @@
 				DE3D175FCF90A7C5AE5D89BC /* DisplayControlService.swift in Sources */,
 				E3E94B64FA8C8A256AEAFA55 /* SystemUtilitiesPanel.swift in Sources */,
 				89D1D0FE14B4443787820294 /* ColorPickerService.swift in Sources */,
-				0AA14FE406AB4FC6B472B744 /* ColorPickerPanel.swift in Sources */,
+				0AA14FE406AB4FC6B472B744 /* ColorPickerPanel.swift in Sources */, AB12CD34EF56AB78CD900002 /* ShellTheme.swift in Sources */, AB12CD34EF56AB78CD900004 /* ScreenshotRedactionService.swift in Sources */,
 				E1F3770463554F30A7BE9715 /* DDCPanel.swift in Sources */,
 				A9C6D48C51E44211AD5AC4FD /* CalendarService.swift in Sources */,
 				F6E350A03D6D467AA5978A01 /* CalendarPanel.swift in Sources */,
@@ -2331,9 +2428,13 @@
 				849F27592751C517D0917228 /* AtlasPrefsScreen.swift in Sources */,
 				E3C4F518C44B54B5CB4DECB4 /* AtlasSceneScreen.swift in Sources */,
 				AA3D22B987D6AA09F79C0217 /* AtlasPrototypeView.swift in Sources */,
-				D7F9C9ABBBBC2D00A3AA83EF /* AtlasMainView.swift in Sources */,
 				51BF8A7E80A2D1889C685FB7 /* ScreenshotCaptureFlow.swift in Sources */,
 				EEE106953B0E7B300CD3FE24 /* SnipasteCaptureOverlay.swift in Sources */,
+				65798B4845CF6D9BC8536E7C /* DistributionChannel.swift in Sources */,
+				712B94C3C038F44186A540D9 /* ProductionEntitlementProviders.swift in Sources */,
+				35CC6642EE7DFF8BDDBF3418 /* SecureLocalData.swift in Sources */,
+				5C7CFC417BB85F44BE1CBD09 /* DirectUpdateService.swift in Sources */,
+				F2D1905B060D68B78A0ACA22 /* NowPlayingProviderFactory.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2372,7 +2473,7 @@
 				83CBBB291A601CBA00E9B192 /* ScreenshotTranslationServiceTests.swift in Sources */,
 				83CBBB1B1A601CBA00E9B192 /* SelectionGeometryTests.swift in Sources */,
 				83CBBB1F1A601CBA00E9B192 /* SelectionPixelProbeTests.swift in Sources */,
-				83CBBA2D1A601CBA00E9B192 /* ScreenshotModelsTests.swift in Sources */,
+				83CBBA2D1A601CBA00E9B192 /* ScreenshotModelsTests.swift in Sources */, AB12CD34EF56AB78CD900006 /* ScreenshotRedactionServiceTests.swift in Sources */,
 				83CBBA641A601CBA00E9B192 /* ScreenshotOutputTests.swift in Sources */,
 				444DAD4C57A69B27319B3AB1 /* CommandPaletteModelsTests.swift in Sources */,
 				5895D19288573E79C2B005FB /* AtlasCommandProviderTests.swift in Sources */,
@@ -2493,12 +2594,19 @@
 				4623B031D83DA6E1CFBB2F09 /* PrivacyPulseReporterTests.swift in Sources */,
 				F4AE5E2913A18C5A24426022 /* PrivilegedWriteTests.swift in Sources */,
 				3EED67F5C3718F6F65FD938D /* AtlasThemeTests.swift in Sources */,
+				E018938C70E5F312CFA473F2 /* ProductionSecurityTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		3DCFAACC59D8FE0A14EC78C2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Atlas;
+			target = 83CBBA601A601CBA00E9B192 /* Atlas */;
+			targetProxy = 1DFD02EC3CB8B406E9A39561 /* PBXContainerItemProxy */;
+		};
 		83CBBA621A601CBA00E9B192 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 83CBBA601A601CBA00E9B192 /* Atlas */;
@@ -2507,6 +2615,282 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		082BC589D2DEF8C18C8839EC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Atlas;
+			};
+			name = Release;
+		};
+		0EA7A63D661A0F0612AF3DA1 /* Direct Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Atlas/Atlas.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Atlas uses the camera for the hand mirror preview.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Atlas uses the microphone for audio recording, level metering, noise gating, and live captions.";
+				INFOPLIST_KEY_NSScreenCaptureUsageDescription = "Atlas captures the screen to take screenshots.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Atlas uses speech recognition for live captions and audio transcription.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lresolv",
+					"-latlas_ffi",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ATLAS_DIRECT";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
+				SWIFT_VERSION = 5.0;
+			};
+			name = "Direct Debug";
+		};
+		1554A3D4DED741D2DC13338C /* Direct Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ATLAS_DIRECT";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Atlas.app/Contents/MacOS/Atlas";
+			};
+			name = "Direct Release";
+		};
+		17CE59EF649789DB57BF252D /* Store Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ATLAS_STORE";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Atlas;
+			};
+			name = "Store Debug";
+		};
+		267E48F0A470E1EFD52BCACD /* Direct Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ATLAS_DIRECT";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Atlas;
+			};
+			name = "Direct Debug";
+		};
+		45FDAAC4DFD4E300A7D7EB0D /* Direct Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ATLAS_DIRECT";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Atlas;
+			};
+			name = "Direct Release";
+		};
+		4B5CB85337261D25BC14E910 /* Store Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = "Store Release";
+		};
+		580EF506B012EEDB6D40B745 /* Store Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ATLAS_STORE";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Atlas.app/Contents/MacOS/Atlas";
+			};
+			name = "Store Release";
+		};
+		6CB776422BCCF04DC09CCE58 /* Store Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ATLAS_STORE";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Atlas.app/Contents/MacOS/Atlas";
+			};
+			name = "Store Debug";
+		};
+		75EEFCD3A86733F936D6B7D6 /* Store Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = "Store Debug";
+		};
 		83CBBA901A601CBA00E9B192 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2627,8 +3011,9 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_LSUIElement = NO;
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Atlas uses the camera for the hand mirror preview.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Atlas uses the microphone for audio recording, level metering, noise gating, and live captions.";
@@ -2644,6 +3029,7 @@
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lresolv",
+					"-latlas_ffi",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2659,11 +3045,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Atlas/Atlas.entitlements;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_LSUIElement = NO;
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Atlas uses the camera for the hand mirror preview.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Atlas uses the microphone for audio recording, level metering, noise gating, and live captions.";
@@ -2679,6 +3067,7 @@
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lresolv",
+					"-latlas_ffi",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2734,6 +3123,284 @@
 			};
 			name = Release;
 		};
+		AB959687446A48CBDDB6984C /* Direct Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = "Direct Release";
+		};
+		B3F06A959109FEF74B000494 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Atlas;
+			};
+			name = Debug;
+		};
+		BD6B4A82273274DDD2073E4B /* Direct Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Atlas/Atlas.entitlements;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Atlas uses the camera for the hand mirror preview.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Atlas uses the microphone for audio recording, level metering, noise gating, and live captions.";
+				INFOPLIST_KEY_NSScreenCaptureUsageDescription = "Atlas captures the screen to take screenshots.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Atlas uses speech recognition for live captions and audio transcription.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lresolv",
+					"-latlas_ffi",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ATLAS_DIRECT";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
+				SWIFT_VERSION = 5.0;
+			};
+			name = "Direct Release";
+		};
+		BE9171E854A8B3F3393580F7 /* Store Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ATLAS_STORE";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Atlas;
+			};
+			name = "Store Release";
+		};
+		D4E36CCBC0A971BE6ECB25CF /* Direct Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = "Direct Debug";
+		};
+		E19EE1BE4807CCC2C670B546 /* Store Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Atlas/AtlasStore.entitlements;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Atlas uses the camera for the hand mirror preview.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Atlas uses the microphone for audio recording, level metering, noise gating, and live captions.";
+				INFOPLIST_KEY_NSScreenCaptureUsageDescription = "Atlas captures the screen to take screenshots.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Atlas uses speech recognition for live captions and audio transcription.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lresolv",
+					"-latlas_ffi_store",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ATLAS_STORE";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
+				SWIFT_VERSION = 5.0;
+			};
+			name = "Store Release";
+		};
+		EB0B2A993086EBDD825CCB48 /* Store Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Atlas/AtlasStore.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Atlas uses the camera for the hand mirror preview.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Atlas uses the microphone for audio recording, level metering, noise gating, and live captions.";
+				INFOPLIST_KEY_NSScreenCaptureUsageDescription = "Atlas captures the screen to take screenshots.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Atlas uses speech recognition for live captions and audio transcription.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lresolv",
+					"-latlas_ffi_store",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ATLAS_STORE";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
+				SWIFT_VERSION = 5.0;
+			};
+			name = "Store Debug";
+		};
+		FDEE2BA28D13806884A812D2 /* Direct Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.atlas.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ATLAS_DIRECT";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Generated/AtlasFFI";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Atlas.app/Contents/MacOS/Atlas";
+			};
+			name = "Direct Debug";
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2742,6 +3409,10 @@
 			buildConfigurations = (
 				83CBBA901A601CBA00E9B192 /* Debug */,
 				83CBBA911A601CBA00E9B192 /* Release */,
+				75EEFCD3A86733F936D6B7D6 /* Store Debug */,
+				4B5CB85337261D25BC14E910 /* Store Release */,
+				D4E36CCBC0A971BE6ECB25CF /* Direct Debug */,
+				AB959687446A48CBDDB6984C /* Direct Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -2751,6 +3422,10 @@
 			buildConfigurations = (
 				83CBBA921A601CBA00E9B192 /* Debug */,
 				83CBBA931A601CBA00E9B192 /* Release */,
+				EB0B2A993086EBDD825CCB48 /* Store Debug */,
+				E19EE1BE4807CCC2C670B546 /* Store Release */,
+				0EA7A63D661A0F0612AF3DA1 /* Direct Debug */,
+				BD6B4A82273274DDD2073E4B /* Direct Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -2760,6 +3435,23 @@
 			buildConfigurations = (
 				83CBBA941A601CBA00E9B192 /* Debug */,
 				83CBBA951A601CBA00E9B192 /* Release */,
+				6CB776422BCCF04DC09CCE58 /* Store Debug */,
+				580EF506B012EEDB6D40B745 /* Store Release */,
+				FDEE2BA28D13806884A812D2 /* Direct Debug */,
+				1554A3D4DED741D2DC13338C /* Direct Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DB7C95725A43422E33F9C8DE /* Build configuration list for PBXNativeTarget "AtlasUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				082BC589D2DEF8C18C8839EC /* Release */,
+				B3F06A959109FEF74B000494 /* Debug */,
+				17CE59EF649789DB57BF252D /* Store Debug */,
+				BE9171E854A8B3F3393580F7 /* Store Release */,
+				267E48F0A470E1EFD52BCACD /* Direct Debug */,
+				45FDAAC4DFD4E300A7D7EB0D /* Direct Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -8,7 +8,7 @@ final class ScreenshotFeatureSettingsPanelTests: XCTestCase {
 
         XCTAssertEqual(state.enabledCount, ScreenshotSubfeature.allCases.count)
         XCTAssertEqual(state.totalCount, ScreenshotSubfeature.allCases.count)
-        XCTAssertEqual(state.summaryText, "\(ScreenshotSubfeature.allCases.count) enabled")
+        XCTAssertEqual(state.summaryText, "已启用 \(ScreenshotSubfeature.allCases.count) 项")
         XCTAssertFalse(state.hasDisabledFeatures)
     }
 
@@ -23,7 +23,7 @@ final class ScreenshotFeatureSettingsPanelTests: XCTestCase {
         XCTAssertEqual(state.totalCount, ScreenshotSubfeature.allCases.count)
         XCTAssertEqual(
             state.summaryText,
-            "\(ScreenshotSubfeature.allCases.count - 2) of \(ScreenshotSubfeature.allCases.count) enabled"
+            "已启用 \(ScreenshotSubfeature.allCases.count - 2)/\(ScreenshotSubfeature.allCases.count) 项"
         )
         XCTAssertTrue(state.hasDisabledFeatures)
     }
