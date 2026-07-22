@@ -23,6 +23,57 @@ struct ClosureItemSource: LauncherItemSource {
     }
 }
 
+/// Root item "Search Emoji" that pushes a grid page over the emoji catalog.
+struct EmojiGridSource: LauncherItemSource {
+    let sourceID = "emoji-grid"
+    private let copy: PasteboardWriting
+
+    init(copy: @escaping PasteboardWriting = Pasteboard.system) {
+        self.copy = copy
+    }
+
+    func items(for query: String) -> [LauncherItem] {
+        let trimmed = query.trimmingCharacters(in: .whitespaces).lowercased()
+        guard trimmed.isEmpty || "emoji".hasPrefix(trimmed) || trimmed.hasPrefix("emoji") else { return [] }
+
+        let gridItems = { gridEmojiItems() }
+        return [
+            LauncherItem(
+                id: "Emoji|Search Emoji",
+                title: "Search Emoji",
+                subtitle: "Browse the emoji grid",
+                icon: .sfSymbol("face.smiling"),
+                keywords: ["emoji", "grid"],
+                category: "Emoji",
+                actions: [
+                    LauncherAction(id: "open", title: "Open", systemImage: "square.grid.3x3", shortcutHint: "↵") {
+                        .push(.grid(title: "Emoji", columns: 8, items: gridItems))
+                    },
+                ]
+            ),
+        ]
+    }
+
+    private func gridEmojiItems() -> [LauncherItem] {
+        EmojiProvider.catalog.map { emoji in
+            LauncherItem(
+                id: "Emoji|\(emoji.name)",
+                title: emoji.glyph,
+                subtitle: emoji.name,
+                icon: .sfSymbol("face.smiling"),
+                keywords: [emoji.name] + emoji.keywords,
+                category: "Emoji",
+                actions: [
+                    LauncherAction(id: "copy", title: "Copy", systemImage: "doc.on.doc", shortcutHint: "↵") { [copy] in
+                        copy(emoji.glyph)
+                        return .dismiss
+                    },
+                ]
+            )
+        }
+    }
+}
+
 // MARK: - Adapter over legacy CommandProviding
 
 struct CommandProviderAdapter: LauncherItemSource {

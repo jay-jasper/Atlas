@@ -455,6 +455,7 @@ final class CommandPaletteState: ObservableObject {
         sources.append(ClosureItemSource(sourceID: "quicklinks") { [launcherQuicklinks] query in
             launcherQuicklinks.makeItems(query: query)
         })
+        sources.append(EmojiGridSource())
 
         self.controller = LauncherPanelController(
             sources: sources,

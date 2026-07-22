@@ -76,6 +76,39 @@ final class LauncherAdapterTests: XCTestCase {
         XCTAssertTrue(item.actions.contains { $0.id == "copy-path" })
     }
 
+    func testEmojiRootItemPushesGridPage() {
+        let source = EmojiGridSource(copy: { _ in })
+        let items = source.items(for: "emo")
+        XCTAssertEqual(items.count, 1)
+
+        guard case .push(let page) = items[0].primaryAction!.perform(),
+              case .grid(let title, let columns, let gridItems) = page else {
+            return XCTFail("expected grid page push")
+        }
+        XCTAssertEqual(title, "Emoji")
+        XCTAssertEqual(columns, 8)
+        XCTAssertEqual(gridItems().count, EmojiProvider.catalog.count)
+    }
+
+    func testEmojiGridCopyAction() {
+        var copied: String?
+        let source = EmojiGridSource(copy: { copied = $0 })
+        guard case .push(let page) = source.items(for: "")[0].primaryAction!.perform(),
+              case .grid(_, _, let gridItems) = page else {
+            return XCTFail("expected grid page")
+        }
+        let first = gridItems()[0]
+        _ = first.primaryAction!.perform()
+        XCTAssertEqual(copied, EmojiProvider.catalog[0].glyph)
+    }
+
+    func testClipboardItemGetsPreviewDetail() {
+        let command = makeCommand(title: "copied text sample", category: "Clipboard")
+        let adapter = CommandProviderAdapter(provider: StubProvider(commands: [command]), sourceID: "stub")
+        let item = adapter.items(for: "")[0]
+        XCTAssertEqual(item.detail?.previewText, "copied text sample")
+    }
+
     func testIDMatchesUsageStoreKey() {
         let command = makeCommand(title: "Do It", category: "Tools")
         let adapter = CommandProviderAdapter(provider: StubProvider(commands: [command]), sourceID: "stub")
