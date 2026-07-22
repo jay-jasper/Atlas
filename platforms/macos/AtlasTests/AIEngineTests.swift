@@ -45,13 +45,24 @@ final class AIEngineTests: XCTestCase {
     }
 
     func testByokPresetsCompleteAndMapped() {
-        XCTAssertEqual(ByokPreset.all.count, 12)
+        XCTAssertEqual(ByokPreset.all.count, 16)
         XCTAssertEqual(ByokPreset.all.first?.baseURL, "https://api.openai.com/v1")
         // 自定义 preset 必须存在且字段为空模板。
         let custom = ByokPreset.all.last
         XCTAssertEqual(custom?.id, "custom")
         XCTAssertEqual(custom?.baseURL, "")
-        // 名称唯一。
+        // id 唯一;本地引擎(Ollama/vLLM)不要求 key。
         XCTAssertEqual(Set(ByokPreset.all.map(\.id)).count, ByokPreset.all.count)
+        XCTAssertFalse(ByokPreset.all.first { $0.id == "ollama" }!.requiresKey)
+        // 带图标的预设,图标资源必须真实存在。
+        for preset in ByokPreset.all {
+            if let icon = preset.icon {
+                XCTAssertNotNil(
+                    Bundle(for: AIEngineTests.self).url(forResource: "ProviderIcon-\(icon)", withExtension: "svg")
+                        ?? Bundle.main.url(forResource: "ProviderIcon-\(icon)", withExtension: "svg"),
+                    "missing icon for \(preset.id)"
+                )
+            }
+        }
     }
 }

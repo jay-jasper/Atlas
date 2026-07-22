@@ -39,6 +39,17 @@ atlas_group = project.main_group["Atlas"] or abort "Atlas group missing"
   end
 end
 
+# Provider icon SVGs → app resources build phase.
+aichat_group = atlas_group["AIChat"]
+icons_group = ensure_group(aichat_group, "ProviderIcons", "ProviderIcons")
+Dir.glob(File.join(repo_macos, "Atlas", "AIChat", "ProviderIcons", "*.svg")).sort.each do |file|
+  name = File.basename(file)
+  reference = icons_group.files.find { |f| f.path == name } || icons_group.new_reference(name)
+  unless app.resources_build_phase.files_references.include?(reference)
+    app.resources_build_phase.add_file_reference(reference)
+  end
+end
+
 widgets_parent = atlas_group["MenuPanel"]
 widgets_group = ensure_group(widgets_parent, "Widgets", "Widgets")
 Dir.glob(File.join(repo_macos, "Atlas", "MenuPanel", "Widgets", "*.swift")).sort.each do |file|
