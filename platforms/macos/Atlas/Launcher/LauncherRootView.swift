@@ -14,6 +14,7 @@ struct LauncherRootView: View {
     private var accent: Color { style.accent?.color ?? Color.accentColor }
 
     @AppStorage("atlas.shell.theme") private var shellThemeRaw = ShellThemeKind.plain.rawValue
+    @FocusState private var isSearchFocused: Bool
 
     private var shellTheme: ShellThemeKind {
         ShellThemeKind(rawValue: shellThemeRaw) ?? .plain
@@ -120,6 +121,12 @@ struct LauncherRootView: View {
             }
             return .handled
         }
+        .onAppear {
+            // 打开即聚焦输入框(面板成 key 后下一拍生效)。
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                isSearchFocused = true
+            }
+        }
     }
 
     // MARK: Background
@@ -149,6 +156,7 @@ struct LauncherRootView: View {
             TextField(nav.stack.isEmpty ? "Search Atlas…" : "Filter…", text: $nav.query)
                 .textFieldStyle(.plain)
                 .font(.system(size: style.fontSize + 3))
+                .focused($isSearchFocused)
                 .onChange(of: nav.query) { _ in nav.selectedIndex = 0 }
         }
         .padding(.horizontal, 14)

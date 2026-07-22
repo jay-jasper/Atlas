@@ -69,6 +69,7 @@ final class AtlasAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        NSApp.mainMenu = Self.makeMainMenu()
         menuBar.install()
         DockIconStore.shared.apply()
         // Dev/automation affordance: `open Atlas.app --args --main-window`.
@@ -77,6 +78,60 @@ final class AtlasAppDelegate: NSObject, NSApplicationDelegate {
                 AtlasServices.shared.openMainWindow?()
             }
         }
+    }
+}
+
+extension AtlasAppDelegate {
+    /// 系统菜单栏(主窗口打开、app 前台时可见):Atlas 应用菜单 + 编辑菜单。
+    /// ⌘, 打开设置、⌘Q 退出;编辑菜单让文本框的 ⌘C/⌘V/⌘A 生效。
+    static func makeMainMenu() -> NSMenu {
+        let mainMenu = NSMenu()
+
+        let appMenuItem = NSMenuItem()
+        mainMenu.addItem(appMenuItem)
+        let appMenu = NSMenu(title: "Atlas")
+        appMenuItem.submenu = appMenu
+
+        let about = NSMenuItem(
+            title: loc("关于 Atlas", "About Atlas"),
+            action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
+            keyEquivalent: ""
+        )
+        appMenu.addItem(about)
+        appMenu.addItem(.separator())
+
+        let settings = NSMenuItem(
+            title: loc("设置…", "Settings…"),
+            action: Selector(("showSettingsWindow:")),
+            keyEquivalent: ","
+        )
+        appMenu.addItem(settings)
+        appMenu.addItem(.separator())
+
+        let hide = NSMenuItem(title: loc("隐藏 Atlas", "Hide Atlas"), action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        appMenu.addItem(hide)
+        appMenu.addItem(.separator())
+
+        let quit = NSMenuItem(
+            title: loc("退出 Atlas", "Quit Atlas"),
+            action: #selector(NSApplication.terminate(_:)),
+            keyEquivalent: "q"
+        )
+        appMenu.addItem(quit)
+
+        let editMenuItem = NSMenuItem()
+        mainMenu.addItem(editMenuItem)
+        let editMenu = NSMenu(title: loc("编辑", "Edit"))
+        editMenuItem.submenu = editMenu
+        editMenu.addItem(NSMenuItem(title: loc("撤销", "Undo"), action: Selector(("undo:")), keyEquivalent: "z"))
+        editMenu.addItem(NSMenuItem(title: loc("重做", "Redo"), action: Selector(("redo:")), keyEquivalent: "Z"))
+        editMenu.addItem(.separator())
+        editMenu.addItem(NSMenuItem(title: loc("剪切", "Cut"), action: #selector(NSText.cut(_:)), keyEquivalent: "x"))
+        editMenu.addItem(NSMenuItem(title: loc("复制", "Copy"), action: #selector(NSText.copy(_:)), keyEquivalent: "c"))
+        editMenu.addItem(NSMenuItem(title: loc("粘贴", "Paste"), action: #selector(NSText.paste(_:)), keyEquivalent: "v"))
+        editMenu.addItem(NSMenuItem(title: loc("全选", "Select All"), action: #selector(NSText.selectAll(_:)), keyEquivalent: "a"))
+
+        return mainMenu
     }
 }
 
