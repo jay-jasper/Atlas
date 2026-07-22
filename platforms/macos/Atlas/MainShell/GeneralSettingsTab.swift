@@ -109,26 +109,64 @@ struct GeneralSettingsTab: View {
 
             SettingsRowDivider()
 
-            SettingsRow(
-                icon: "menubar.rectangle",
-                tint: .cyan,
-                title: loc("菜单栏图标", "Menu Bar Icon"),
-                description: menuBarIcon.hasCustomIcon
-                    ? loc("使用自定义图标,导入时保留原图。", "Using a custom icon.")
-                    : loc("上传本地图片替换默认图标。", "Upload an image to replace the default icon.")
-            ) {
-                HStack(spacing: 8) {
-                    if menuBarIcon.hasCustomIcon {
-                        Button(loc("恢复默认", "Restore Default")) {
-                            menuBarIcon.restoreDefault()
+            VStack(alignment: .leading, spacing: 6) {
+                SettingsRow(
+                    icon: "menubar.rectangle",
+                    tint: .cyan,
+                    title: loc("菜单栏图标", "Menu Bar Icon"),
+                    description: menuBarIcon.hasCustomIcon
+                        ? loc("使用自定义图标。", "Using a custom icon.")
+                        : loc("选择内置图标,或上传本地图片。", "Pick a built-in icon or upload an image.")
+                ) {
+                    HStack(spacing: 8) {
+                        if menuBarIcon.hasCustomIcon {
+                            Button(loc("恢复默认", "Restore Default")) {
+                                menuBarIcon.restoreDefault()
+                            }
+                            .font(.callout)
                         }
-                        .font(.callout)
+                        Button(loc("上传", "Upload")) { pickMenuBarIcon() }
+                            .font(.callout)
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.small)
                     }
-                    Button(loc("上传", "Upload")) { pickMenuBarIcon() }
-                        .font(.callout)
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.small)
                 }
+
+                HStack(spacing: 8) {
+                    Text(loc("图标来源", "Presets"))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    ForEach(MenuBarIconStore.presets, id: \.id) { preset in
+                        Button {
+                            menuBarIcon.selectPreset(preset.id)
+                        } label: {
+                            Image(systemName: preset.symbol)
+                                .font(.system(size: 13, weight: .medium))
+                                .frame(width: 30, height: 26)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6).fill(
+                                        menuBarIcon.presetID == preset.id
+                                            ? Color.accentColor.opacity(0.22)
+                                            : Color.primary.opacity(0.05)
+                                    )
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6).stroke(
+                                        menuBarIcon.presetID == preset.id
+                                            ? Color.accentColor
+                                            : Color.primary.opacity(0.1),
+                                        lineWidth: 1
+                                    )
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .focusable(false)
+                        .help(preset.name)
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 12)
+                .padding(.bottom, 8)
             }
         }
     }

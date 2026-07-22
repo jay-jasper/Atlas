@@ -798,8 +798,8 @@ struct ShellThemePickerPanel: View {
             }
 
             LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 6),
-                spacing: 6
+                columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4),
+                spacing: 8
             ) {
                 ForEach(ShellThemeKind.allCases) { theme in
                     ShellThemePickerCell(
@@ -812,8 +812,8 @@ struct ShellThemePickerPanel: View {
                 }
             }
         }
-        .padding(10)
-        .frame(width: 440)
+        .padding(12)
+        .frame(width: 520)
     }
 }
 
@@ -834,10 +834,10 @@ private struct ShellThemePickerCell: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(height: 26)
+                    .frame(height: 40)
                     .overlay(
                         Image(systemName: theme.spec.icon)
-                            .font(.system(size: 11, weight: .medium))
+                            .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(.white)
                             .shadow(color: .black.opacity(0.35), radius: 1.5)
                     )
@@ -858,8 +858,12 @@ private struct ShellThemePickerCell: View {
                     )
 
                 Text(theme.spec.title)
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.primary)
+                    .lineLimit(1)
+                Text(theme.spec.subtitle)
+                    .font(.system(size: 9))
+                    .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
             .padding(4)

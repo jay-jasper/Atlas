@@ -9,11 +9,11 @@ struct IconTile: View {
 
     var body: some View {
         Image(systemName: systemImage)
-            .font(.system(size: 16, weight: .medium))
+            .font(.system(size: 14, weight: .medium))
             .foregroundColor(tint)
-            .frame(width: 34, height: 34)
+            .frame(width: 30, height: 30)
             .background(tint.opacity(0.14))
-            .clipShape(RoundedRectangle(cornerRadius: 9))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 
@@ -28,12 +28,12 @@ struct SettingsRow<Trailing: View>: View {
         HStack(alignment: .center, spacing: 12) {
             IconTile(systemImage: icon, tint: tint)
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.system(size: 13, weight: .medium))
                 if let description {
                     Text(description)
-                        .font(.system(size: 12.5))
+                        .font(.caption)
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -43,9 +43,9 @@ struct SettingsRow<Trailing: View>: View {
 
             trailing()
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 11)
-        .frame(minHeight: 52)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+        .frame(minHeight: 44)
         .contentShape(Rectangle())
         .focusable(false)
     }
@@ -69,7 +69,7 @@ struct SettingsSection<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(.secondary)
                 .padding(.horizontal, 4)
             SettingsCard(content: content)
