@@ -45,7 +45,7 @@ final class AIEngineTests: XCTestCase {
     }
 
     func testByokPresetsCompleteAndMapped() {
-        XCTAssertEqual(ByokPreset.all.count, 16)
+        XCTAssertEqual(ByokPreset.all.count, 40)
         XCTAssertEqual(ByokPreset.all.first?.baseURL, "https://api.openai.com/v1")
         // 自定义 preset 必须存在且字段为空模板。
         let custom = ByokPreset.all.last

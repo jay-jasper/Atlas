@@ -26,7 +26,14 @@ pub const CLI_KINDS: &[CliKind] = &[
         binary: "claude",
         display: "Claude Code",
         subtitle: "Anthropic official CLI",
-        default_models: &["sonnet", "opus", "haiku"],
+        default_models: &[
+            "claude-sonnet-5",
+            "claude-opus-4-8",
+            "claude-haiku-4-5",
+            "sonnet",
+            "opus",
+            "haiku",
+        ],
         version_args: &["--version"],
     },
     CliKind {
@@ -34,7 +41,7 @@ pub const CLI_KINDS: &[CliKind] = &[
         binary: "codex",
         display: "Codex CLI",
         subtitle: "OpenAI official CLI",
-        default_models: &[],
+        default_models: &["gpt-5.4-codex", "gpt-5.4", "gpt-5.4-mini"],
         version_args: &["--version"],
     },
     CliKind {
@@ -42,7 +49,7 @@ pub const CLI_KINDS: &[CliKind] = &[
         binary: "gemini",
         display: "Gemini CLI",
         subtitle: "Google official CLI",
-        default_models: &[],
+        default_models: &["gemini-2.5-pro", "gemini-2.5-flash"],
         version_args: &["--version"],
     },
     CliKind {
@@ -58,6 +65,38 @@ pub const CLI_KINDS: &[CliKind] = &[
         binary: "aider",
         display: "Aider",
         subtitle: "AI pair programming CLI",
+        default_models: &[],
+        version_args: &["--version"],
+    },
+    CliKind {
+        id: "hermes",
+        binary: "hermes",
+        display: "Hermes",
+        subtitle: "ACP agent CLI",
+        default_models: &[],
+        version_args: &["--version"],
+    },
+    CliKind {
+        id: "antigravity",
+        binary: "antigravity",
+        display: "Antigravity",
+        subtitle: "Google Antigravity CLI",
+        default_models: &[],
+        version_args: &["--version"],
+    },
+    CliKind {
+        id: "droid",
+        binary: "droid",
+        display: "Droid",
+        subtitle: "Factory agent CLI",
+        default_models: &[],
+        version_args: &["--version"],
+    },
+    CliKind {
+        id: "amp",
+        binary: "amp",
+        display: "Amp",
+        subtitle: "Sourcegraph agent CLI",
         default_models: &[],
         version_args: &["--version"],
     },
@@ -211,6 +250,13 @@ pub async fn run_prompt_via_cli(
                 command.arg("--model").arg(model);
             }
         }
+        "hermes" | "antigravity" | "droid" | "amp" => {
+            // 通用形态:提示词作为位置参数;有模型则试 --model。
+            command.arg(&prompt);
+            if let Some(model) = &model {
+                command.arg("--model").arg(model);
+            }
+        }
         _ => {
             sink.on_error(format!("unknown cli: {kind_id}"));
             return;
@@ -286,7 +332,7 @@ mod tests {
 
     #[test]
     fn cli_list_integrity() {
-        assert_eq!(CLI_KINDS.len(), 5);
+        assert_eq!(CLI_KINDS.len(), 9);
         let ids: Vec<_> = CLI_KINDS.iter().map(|kind| kind.id).collect();
         assert!(ids.contains(&"claude-code") && ids.contains(&"codex"));
         for kind in CLI_KINDS {

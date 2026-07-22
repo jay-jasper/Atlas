@@ -41,21 +41,50 @@ struct ByokPreset: Identifiable, Equatable {
     var requiresKey: Bool = true
 
     static let all: [ByokPreset] = [
-        ByokPreset(id: "openai", name: "OpenAI", icon: nil, baseURL: "https://api.openai.com/v1", defaultModel: "gpt-4o", keyURL: "https://platform.openai.com/api-keys"),
-        ByokPreset(id: "deepseek", name: "DeepSeek", icon: "deepseek", baseURL: "https://api.deepseek.com/v1", defaultModel: "deepseek-chat", keyURL: "https://platform.deepseek.com/api_keys"),
-        ByokPreset(id: "openrouter", name: "OpenRouter", icon: "openrouter", baseURL: "https://openrouter.ai/api/v1", defaultModel: "openrouter/auto", keyURL: "https://openrouter.ai/keys"),
+        // 一线 API
+        ByokPreset(id: "openai", name: "OpenAI", icon: "codex", baseURL: "https://api.openai.com/v1", defaultModel: "gpt-4o", keyURL: "https://platform.openai.com/api-keys"),
+        ByokPreset(id: "azureopenai", name: "Azure OpenAI", icon: "codex", baseURL: "", defaultModel: "gpt-4o", keyURL: "https://portal.azure.com"),
+        ByokPreset(id: "claude-api", name: "Claude API", icon: "claude", baseURL: "https://api.anthropic.com/v1", defaultModel: "claude-sonnet-5", keyURL: "https://console.anthropic.com/settings/keys"),
+        ByokPreset(id: "gemini-api", name: "Gemini API", icon: "gemini", baseURL: "https://generativelanguage.googleapis.com/v1beta/openai", defaultModel: "gemini-2.5-flash", keyURL: "https://aistudio.google.com/apikey"),
+        ByokPreset(id: "vertexai", name: "Vertex AI", icon: "vertexai", baseURL: "", defaultModel: "gemini-2.5-pro", keyURL: "https://console.cloud.google.com/vertex-ai"),
         ByokPreset(id: "grok", name: "Grok (xAI)", icon: "grok", baseURL: "https://api.x.ai/v1", defaultModel: "grok-3", keyURL: "https://console.x.ai"),
         ByokPreset(id: "mistral", name: "Mistral", icon: "mistral", baseURL: "https://api.mistral.ai/v1", defaultModel: "mistral-large-latest", keyURL: "https://console.mistral.ai/api-keys"),
+        ByokPreset(id: "deepseek", name: "DeepSeek", icon: "deepseek", baseURL: "https://api.deepseek.com/v1", defaultModel: "deepseek-chat", keyURL: "https://platform.deepseek.com/api_keys"),
+        ByokPreset(id: "perplexity", name: "Perplexity", icon: "perplexity", baseURL: "https://api.perplexity.ai", defaultModel: "sonar", keyURL: "https://www.perplexity.ai/settings/api"),
+        ByokPreset(id: "copilot", name: "Copilot", icon: "copilot", baseURL: "", defaultModel: "", keyURL: nil),
+        // 聚合 / 路由
+        ByokPreset(id: "openrouter", name: "OpenRouter", icon: "openrouter", baseURL: "https://openrouter.ai/api/v1", defaultModel: "openrouter/auto", keyURL: "https://openrouter.ai/keys"),
         ByokPreset(id: "groq", name: "Groq", icon: "groq", baseURL: "https://api.groq.com/openai/v1", defaultModel: "llama-3.3-70b-versatile", keyURL: "https://console.groq.com/keys"),
-        ByokPreset(id: "qwen", name: "千问", icon: "alibaba", baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1", defaultModel: "qwen-plus", keyURL: "https://bailian.console.aliyun.com/?apiKey=1"),
-        ByokPreset(id: "volcengine", name: "火山引擎", icon: "doubao", baseURL: "https://ark.cn-beijing.volces.com/api/v3", defaultModel: "doubao-pro-32k", keyURL: "https://console.volcengine.com/ark"),
-        ByokPreset(id: "moonshot", name: "Moonshot", icon: "kimi", baseURL: "https://api.moonshot.cn/v1", defaultModel: "moonshot-v1-8k", keyURL: "https://platform.moonshot.cn/console/api-keys"),
-        ByokPreset(id: "zhipu", name: "智谱", icon: "zai", baseURL: "https://open.bigmodel.cn/api/paas/v4", defaultModel: "glm-4-air", keyURL: "https://open.bigmodel.cn/usercenter/apikeys"),
-        ByokPreset(id: "minimax", name: "MiniMax", icon: "minimax", baseURL: "https://api.minimax.chat/v1", defaultModel: "abab6.5s-chat", keyURL: "https://platform.minimaxi.com/user-center/basic-information/interface-key"),
-        ByokPreset(id: "qianfan", name: "百度千帆", icon: nil, baseURL: "https://qianfan.baidubce.com/v2", defaultModel: "ernie-4.0-8k", keyURL: "https://console.bce.baidu.com/iam/#/iam/apikey/list"),
+        ByokPreset(id: "deepinfra", name: "DeepInfra", icon: "deepinfra", baseURL: "https://api.deepinfra.com/v1/openai", defaultModel: "", keyURL: "https://deepinfra.com/dash/api_keys"),
         ByokPreset(id: "huggingface", name: "Hugging Face", icon: nil, baseURL: "https://router.huggingface.co/v1", defaultModel: "", keyURL: "https://huggingface.co/settings/tokens"),
+        ByokPreset(id: "litellm", name: "LiteLLM", icon: "litellm", baseURL: "http://localhost:4000/v1", defaultModel: "", keyURL: nil, requiresKey: false),
+        ByokPreset(id: "llmproxy", name: "LLM Proxy", icon: "llmproxy", baseURL: "", defaultModel: "", keyURL: nil, requiresKey: false),
+        ByokPreset(id: "poe", name: "Poe", icon: "poe", baseURL: "", defaultModel: "", keyURL: "https://poe.com/api_key"),
+        ByokPreset(id: "chutes", name: "Chutes", icon: "chutes", baseURL: "https://llm.chutes.ai/v1", defaultModel: "", keyURL: "https://chutes.ai"),
+        ByokPreset(id: "venice", name: "Venice", icon: "venice", baseURL: "https://api.venice.ai/api/v1", defaultModel: "", keyURL: "https://venice.ai/settings/api"),
+        ByokPreset(id: "synthetic", name: "Synthetic", icon: "synthetic", baseURL: "https://api.synthetic.new/v1", defaultModel: "", keyURL: nil),
+        ByokPreset(id: "bedrock", name: "AWS Bedrock", icon: "bedrock", baseURL: "", defaultModel: "", keyURL: "https://console.aws.amazon.com/bedrock"),
+        ByokPreset(id: "clawrouter", name: "ClawRouter", icon: "clawrouter", baseURL: "", defaultModel: "", keyURL: nil),
+        ByokPreset(id: "zenmux", name: "ZenMux", icon: "zenmux", baseURL: "", defaultModel: "", keyURL: nil),
+        ByokPreset(id: "sub2api", name: "sub2api", icon: "sub2api", baseURL: "", defaultModel: "", keyURL: nil, requiresKey: false),
+        // 国内
+        ByokPreset(id: "qwen", name: "千问 (Alibaba)", icon: "alibaba", baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1", defaultModel: "qwen-plus", keyURL: "https://bailian.console.aliyun.com/?apiKey=1"),
+        ByokPreset(id: "volcengine", name: "火山引擎 · Doubao", icon: "doubao", baseURL: "https://ark.cn-beijing.volces.com/api/v3", defaultModel: "doubao-pro-32k", keyURL: "https://console.volcengine.com/ark"),
+        ByokPreset(id: "moonshot", name: "Moonshot / Kimi", icon: "kimi", baseURL: "https://api.moonshot.cn/v1", defaultModel: "moonshot-v1-8k", keyURL: "https://platform.moonshot.cn/console/api-keys"),
+        ByokPreset(id: "zhipu", name: "z.ai (智谱)", icon: "zai", baseURL: "https://open.bigmodel.cn/api/paas/v4", defaultModel: "glm-4-air", keyURL: "https://open.bigmodel.cn/usercenter/apikeys"),
+        ByokPreset(id: "minimax", name: "MiniMax", icon: "minimax", baseURL: "https://api.minimax.chat/v1", defaultModel: "abab6.5s-chat", keyURL: "https://platform.minimaxi.com/user-center/basic-information/interface-key"),
+        ByokPreset(id: "stepfun", name: "StepFun", icon: "stepfun", baseURL: "https://api.stepfun.com/v1", defaultModel: "step-2-16k", keyURL: "https://platform.stepfun.com/interface-key"),
+        ByokPreset(id: "mimo", name: "Xiaomi MiMo", icon: "mimo", baseURL: "", defaultModel: "", keyURL: nil),
+        ByokPreset(id: "longcat", name: "LongCat", icon: "longcat", baseURL: "", defaultModel: "", keyURL: nil),
+        ByokPreset(id: "qianfan", name: "百度千帆", icon: nil, baseURL: "https://qianfan.baidubce.com/v2", defaultModel: "ernie-4.0-8k", keyURL: "https://console.bce.baidu.com/iam/#/iam/apikey/list"),
+        // 本地
         ByokPreset(id: "ollama", name: "Ollama", icon: "ollama", baseURL: "http://localhost:11434/v1", defaultModel: "llama3.2", keyURL: nil, requiresKey: false),
         ByokPreset(id: "vllm", name: "vLLM", icon: nil, baseURL: "http://localhost:8000/v1", defaultModel: "", keyURL: nil, requiresKey: false),
+        // 其他(端点自填)
+        ByokPreset(id: "abacus", name: "Abacus AI", icon: "abacus", baseURL: "", defaultModel: "", keyURL: nil),
+        ByokPreset(id: "elevenlabs", name: "ElevenLabs", icon: "elevenlabs", baseURL: "", defaultModel: "", keyURL: nil),
+        ByokPreset(id: "deepgram", name: "Deepgram", icon: "deepgram", baseURL: "", defaultModel: "", keyURL: nil),
+        ByokPreset(id: "sakana", name: "Sakana AI", icon: "sakana", baseURL: "", defaultModel: "", keyURL: nil),
         ByokPreset(id: "custom", name: "自定义提供方", icon: nil, baseURL: "", defaultModel: "", keyURL: nil),
     ]
 }
@@ -66,6 +95,9 @@ private let cliIconNames: [String: String] = [
     "codex": "codex",
     "gemini": "gemini",
     "opencode": "opencode",
+    "antigravity": "antigravity",
+    "droid": "devin",
+    "amp": "amp",
 ]
 
 /// AI 引擎配置:本机 CLI 与云端 API 合并为一张供应商列表。
@@ -80,6 +112,7 @@ struct AIConfigSheet: View {
     @State private var testResult: [String: String] = [:]
     @State private var isScanning = false
     @State private var expandedPresetID: String?
+    @State private var expandedCliID: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -177,7 +210,7 @@ struct AIConfigSheet: View {
                     .font(.callout)
             }
 
-            if isSelected, !cli.defaultModels.isEmpty {
+            if expandedCliID == cli.kindId, !cli.defaultModels.isEmpty {
                 Picker(loc("模型", "Model"), selection: Binding(
                     get: { selectedModel[cli.kindId] ?? cli.defaultModels.first ?? "" },
                     set: { model in
@@ -198,6 +231,12 @@ struct AIConfigSheet: View {
         )
         .contentShape(Rectangle())
         .focusable(false)
+        .onTapGesture(count: 2) {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                expandedCliID = expandedCliID == cli.kindId ? nil : cli.kindId
+                expandedPresetID = nil
+            }
+        }
         .onTapGesture {
             engineStore.engine = .cli(
                 id: cli.kindId,
@@ -225,6 +264,7 @@ struct AIConfigSheet: View {
                     onToggleExpand: {
                         withAnimation(.easeInOut(duration: 0.15)) {
                             expandedPresetID = expandedPresetID == preset.id ? nil : preset.id
+                            expandedCliID = nil
                         }
                     }
                 )
@@ -328,7 +368,15 @@ private struct ByokPresetRow: View {
                     .foregroundColor(.secondary)
             }
             .contentShape(Rectangle())
-            .onTapGesture { onToggleExpand() }
+            .onTapGesture(count: 2) { onToggleExpand() }
+            .onTapGesture {
+                // 单击:已配置则直接选为引擎;未配置则展开配置。
+                if bridge.providers.contains(where: { $0.id == providerID }) {
+                    engineStore.engine = .byok(providerID: providerID)
+                } else {
+                    onToggleExpand()
+                }
+            }
 
             if isExpanded {
                 form
