@@ -79,4 +79,14 @@ extension View {
     func onKeyPressCompatible(_ key: CompatibleKey, action: @escaping () -> KeyPressResultCompatible) -> some View {
         self.modifier(KeyPressModifier(key: key, action: action))
     }
+
+    /// 硬规则:面板禁止默认焦点/焦点环。挂在容器根上,整棵子树生效。
+    @ViewBuilder
+    func noDefaultFocus() -> some View {
+        if #available(macOS 14.0, *) {
+            self.focusEffectDisabled()
+        } else {
+            self.focusable(false)
+        }
+    }
 }

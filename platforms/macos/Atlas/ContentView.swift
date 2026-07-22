@@ -1119,6 +1119,7 @@ struct ContentView: View {
             }
             .ignoresSafeArea(edges: .top)
         }
+        .noDefaultFocus()
         .environment(\.shellThemeKind, shellTheme)
         // Stage-locked themes override the system appearance: 3D Elements is
         // always a dark stage, Biophilic always a sunlit light one.

@@ -436,6 +436,7 @@
 		BAE8270E53B2444290A45D0B /* ScriptingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98E74C4A3E1D94ABFD1ECB09 /* ScriptingService.swift */; };
 		BB0FCB20A772E31DBBD0B23F /* NoiseGatePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F34D85A0A4D5C8C74890B23 /* NoiseGatePanel.swift */; };
 		BCFDDA67C85EC7C6B91F99FC /* EncodingProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D1024302FCC1A36D074A11 /* EncodingProvider.swift */; };
+		BE38C76B85A6C72A32B8AF6C /* StandaloneMenuPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D18F5B177AEBB42FFE49D79 /* StandaloneMenuPanel.swift */; };
 		C0AAF43412D8DBE261D564DC /* AudioLevelMeterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C264B2017E4048C4A0F5CC9 /* AudioLevelMeterTests.swift */; };
 		C1031578376E94550B49127C /* CommandUsageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 831CA3CA50C16D0EB549D485 /* CommandUsageStore.swift */; };
 		C1EB408CAD070B5BBC4B8DA7 /* FallbackStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD9CA64D4A0D02316F9F3492 /* FallbackStore.swift */; };
@@ -605,6 +606,7 @@
 		199BD89EB28E5F5346456DD0 /* BlockKitNode.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BlockKitNode.swift; sourceTree = "<group>"; };
 		1AC96B4E55CECB471888D445 /* TranslationPopupPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TranslationPopupPanel.swift; sourceTree = "<group>"; };
 		1B98D69D7B30401BB40B4D23 /* CalendarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
+		1D18F5B177AEBB42FFE49D79 /* StandaloneMenuPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StandaloneMenuPanel.swift; sourceTree = "<group>"; };
 		1DF3E2E0E1C351BFCB30A352 /* ChapterPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChapterPanel.swift; sourceTree = "<group>"; };
 		2034F05F41CF484BBE71C6C4 /* ScreenshotScrollingCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotScrollingCapture.swift; sourceTree = "<group>"; };
 		209681A0DF137A0744D652BB /* PacketStatsParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PacketStatsParser.swift; sourceTree = "<group>"; };
@@ -1156,6 +1158,7 @@
 				3EB156DB8ACA4B2FDF125F88 /* FeatureListPanel.swift */,
 				E09BAC13C43916CBA52A8C04 /* FeatureRow.swift */,
 				5AFFFE331B7F2A1F466FB2E4 /* MenuPanelView.swift */,
+				1D18F5B177AEBB42FFE49D79 /* StandaloneMenuPanel.swift */,
 			);
 			name = MenuPanel;
 			path = MenuPanel;
@@ -2747,6 +2750,7 @@
 				2B70C8700188E3EACB72FE64 /* PluginsTab.swift in Sources */,
 				4E01EE594B00C351D9F6E707 /* AIConfigSheet.swift in Sources */,
 				7A31DCC60F7643A6380909C9 /* AIEngineStore.swift in Sources */,
+				BE38C76B85A6C72A32B8AF6C /* StandaloneMenuPanel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

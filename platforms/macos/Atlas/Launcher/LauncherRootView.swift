@@ -85,6 +85,7 @@ struct LauncherRootView: View {
                 .padding(.bottom, 40)
             }
         }
+        .noDefaultFocus()
         .background(backgroundView)
         .clipShape(RoundedRectangle(cornerRadius: style.cornerRadius))
         .overlay(

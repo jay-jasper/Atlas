@@ -126,21 +126,24 @@ final class AtlasMenuBarController: NSObject, NSPopoverDelegate {
         }
     }
 
+    /// Lightweight popover host used while the main window owns the shared
+    /// ContentView host — the menu bar panel stays clickable in parallel.
+    private lazy var standalonePanelHost = NSHostingController(rootView: StandaloneMenuPanelView())
+
     private func togglePopover(from sender: NSStatusBarButton) {
-        if mainWindow.isVisible {
-            mainWindow.focus()
-            return
-        }
         if popover.isShown {
             popover.performClose(nil)
-        } else {
-            if popover.contentViewController == nil {
-                popover.contentViewController = AtlasServices.shared.contentHost
-            }
-            popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
-            popover.contentViewController?.view.window?.makeKey()
-            NSApp.activate(ignoringOtherApps: true)
+            return
         }
+
+        if mainWindow.isVisible {
+            popover.contentViewController = standalonePanelHost
+        } else if popover.contentViewController == nil || popover.contentViewController === standalonePanelHost {
+            popover.contentViewController = AtlasServices.shared.contentHost
+        }
+        popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+        popover.contentViewController?.view.window?.makeKey()
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func showQuickMenu(from sender: NSStatusBarButton) {

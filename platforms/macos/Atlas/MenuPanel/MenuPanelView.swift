@@ -49,6 +49,7 @@ struct MenuPanelView: View {
             }
         }
         .padding(10)
+        .noDefaultFocus()
     }
 
     // MARK: Switcher
