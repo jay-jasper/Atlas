@@ -12,14 +12,14 @@ struct ShellTabBar: View {
                 Button {
                     selection = tab
                 } label: {
-                    HStack(spacing: 5) {
+                    HStack(spacing: 6) {
                         Image(systemName: tab.icon)
-                            .font(.system(size: 11, weight: .medium))
+                            .font(.system(size: 13, weight: .medium))
                         Text(tab.title)
-                            .font(.system(size: 12, weight: selection == tab ? .semibold : .regular))
+                            .font(.system(size: 14, weight: selection == tab ? .semibold : .regular))
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
                     .background(
                         Capsule()
                             .fill(selection == tab ? Color.accentColor.opacity(0.22) : Color.clear)

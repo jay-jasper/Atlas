@@ -1089,7 +1089,8 @@ struct ContentView: View {
                 // Lives in the transparent titlebar zone, right-aligned with
                 // the traffic lights.
                 shellTitlebarAccessory
-                    .frame(height: 28)
+                    .frame(height: 44)
+                    .padding(.top, 8)
                 Group {
                     switch shellTab {
                     case .general:

@@ -1,43 +1,12 @@
 import ServiceManagement
 import SwiftUI
 
-/// 应用外观三态(素雅主题下生效;其他主题自带强制外观)。
-enum AppAppearance: String, CaseIterable, Identifiable {
-    case auto
-    case dark
-    case light
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .auto: return "自动"
-        case .dark: return "深色"
-        case .light: return "浅色"
-        }
-    }
-
-    func apply() {
-        switch self {
-        case .auto: NSApp.appearance = nil
-        case .dark: NSApp.appearance = NSAppearance(named: .darkAqua)
-        case .light: NSApp.appearance = NSAppearance(named: .aqua)
-        }
-    }
-
-    static func applyStored(defaults: UserDefaults = .standard) {
-        let raw = defaults.string(forKey: "atlas.appearance") ?? AppAppearance.auto.rawValue
-        (AppAppearance(rawValue: raw) ?? .auto).apply()
-    }
-}
-
 /// 通用 tab:MacTools 式分节设置流。
 struct GeneralSettingsTab: View {
     @Binding var shellThemeRaw: String
     let paletteState: CommandPaletteState
     let onOpenCommands: () -> Void
 
-    @AppStorage("atlas.appearance") private var appearanceRaw = AppAppearance.auto.rawValue
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var launchError: String?
     @State private var isStyleExpanded = false
@@ -95,27 +64,6 @@ struct GeneralSettingsTab: View {
 
     private var appearanceSection: some View {
         SettingsSection(title: "外观") {
-            SettingsRow(
-                icon: "circle.lefthalf.filled",
-                tint: .indigo,
-                title: "应用外观",
-                description: "自动跟随系统,也可以固定为深色或浅色。素雅主题下生效。"
-            ) {
-                Picker("", selection: $appearanceRaw) {
-                    ForEach(AppAppearance.allCases) { appearance in
-                        Text(appearance.title).tag(appearance.rawValue)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .frame(width: 180)
-                .onChange(of: appearanceRaw) { raw in
-                    (AppAppearance(rawValue: raw) ?? .auto).apply()
-                }
-            }
-
-            SettingsRowDivider()
-
             VStack(alignment: .leading, spacing: 8) {
                 SettingsRow(
                     icon: "paintpalette",

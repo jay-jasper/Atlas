@@ -253,7 +253,13 @@ final class AtlasMainWindowController: NSObject, NSWindowDelegate {
             // Aurora theme: content (background bands) extends under a
             // transparent titlebar for a seamless glass look.
             created.titlebarAppearsTransparent = true
-            created.titleVisibility = .visible
+            created.titleVisibility = .hidden
+            // Unified toolbar style: taller titlebar so traffic lights sit
+            // lower, aligned with the tab bar row.
+            created.toolbarStyle = .unified
+            let toolbar = NSToolbar(identifier: "AtlasMainToolbar")
+            toolbar.showsBaselineSeparator = false
+            created.toolbar = toolbar
             created.isMovableByWindowBackground = true
             created.isReleasedWhenClosed = false
             created.center()
