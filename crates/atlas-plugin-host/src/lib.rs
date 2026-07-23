@@ -13,6 +13,7 @@
 //! The wasmtime/WIT host (Phase α) and MCP subprocess host (Phase δ) build on
 //! top of this manifest + capability layer.
 
+pub mod broker;
 pub mod capabilities;
 pub mod dist;
 pub mod hub;
@@ -26,8 +27,14 @@ pub mod runtime;
 pub mod ui;
 pub mod wasm_host;
 
+pub use broker::{
+    BrokerDecision, BrokerError, CapabilityBroker, CapabilityGrant, CapabilityId, CapabilityTarget,
+    PluginIdentity,
+};
 pub use capabilities::{CapabilityError, CapabilityGuard};
-pub use manifest::{Capabilities, ManifestError, PluginManifest, Runtime, RuntimeKind};
+pub use manifest::{
+    Capabilities, ManifestError, PluginManifest, PluginManifestV2, Runtime, RuntimeKind,
+};
 pub use registry::{PluginRegistry, RegistryError};
 pub use runtime::{PluginRuntimeEntry, PluginRuntimeError, PluginRuntimeHost};
 pub use ui::{UiError, UiEvent, UiNode, UiPatch};

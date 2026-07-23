@@ -306,6 +306,8 @@ name = "atlas-plugin-host"
 version = "0.1.0"
 dependencies = [
  "atlas-plugin-js",
+ "atlas-plugin-package",
+ "atlas-plugin-protocol",
  "atlas-ui-schema",
  "base64",
  "ed25519-dalek",
@@ -317,6 +319,7 @@ dependencies = [
  "sha2",
  "thiserror 1.0.69",
  "toml 0.8.23",
+ "url",
  "wasmtime",
  "wat",
 ]

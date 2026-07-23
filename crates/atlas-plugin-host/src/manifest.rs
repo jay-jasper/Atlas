@@ -1,6 +1,9 @@
 //! Parsing and validation of `plugin.toml` manifests for both plugin tracks.
 
-use serde::Deserialize;
+use crate::broker::{BrokerError, CapabilityGrant, CapabilityId, CapabilityTarget};
+use serde::{Deserialize, Serialize};
+
+pub use atlas_plugin_package::PluginManifestV2;
 
 /// Which runtime track a plugin uses.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Default)]
@@ -27,8 +30,12 @@ pub struct Runtime {
 }
 
 /// Declared capabilities a plugin requests; enforced at the host API boundary.
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct Capabilities {
+    /// P0 target-scoped capability declarations. Legacy fields below are
+    /// accepted only as a migration adapter.
+    #[serde(default, alias = "grants")]
+    pub requested: Vec<String>,
     /// Allowed network hosts (exact host match). Empty = no network.
     #[serde(default)]
     pub network: Vec<String>,
@@ -45,6 +52,44 @@ pub struct Capabilities {
     /// For MCP plugins: the tool names the plugin exposes.
     #[serde(default)]
     pub exposed_tools: Vec<String>,
+}
+
+impl Capabilities {
+    pub fn declared_grants(&self) -> Result<Vec<CapabilityGrant>, BrokerError> {
+        let mut grants = self
+            .requested
+            .iter()
+            .map(|value| CapabilityGrant::parse(value))
+            .collect::<Result<Vec<_>, _>>()?;
+        grants.extend(self.network.iter().map(|host| {
+            CapabilityGrant::new(
+                CapabilityId::NetworkHttps,
+                CapabilityTarget::Host(host.clone()),
+            )
+        }));
+        if self.storage {
+            grants.extend([
+                CapabilityGrant::new(CapabilityId::StorageKv, CapabilityTarget::Any),
+                CapabilityGrant::new(CapabilityId::StorageFiles, CapabilityTarget::Any),
+            ]);
+        }
+        if self.clipboard {
+            grants.extend([
+                CapabilityGrant::new(CapabilityId::ClipboardRead, CapabilityTarget::Any),
+                CapabilityGrant::new(CapabilityId::ClipboardWrite, CapabilityTarget::Any),
+            ]);
+        }
+        if self.webview {
+            grants.push(CapabilityGrant::new(
+                CapabilityId::UiWebview,
+                CapabilityTarget::Any,
+            ));
+        }
+        grants.extend(self.exposed_tools.iter().map(|tool| {
+            CapabilityGrant::new(CapabilityId::McpTools, CapabilityTarget::Tool(tool.clone()))
+        }));
+        Ok(grants)
+    }
 }
 
 /// A parsed `plugin.toml`.
@@ -133,6 +178,7 @@ mod tests {
             author = "Jay"
 
             [capabilities]
+            requested = ["notifications.post"]
             network = ["api.deepl.com"]
             storage = true
             clipboard = true
@@ -140,6 +186,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(manifest.capabilities.network, vec!["api.deepl.com"]);
+        assert_eq!(manifest.capabilities.requested, vec!["notifications.post"]);
         assert!(manifest.capabilities.storage);
         assert!(manifest.capabilities.clipboard);
         assert!(!manifest.capabilities.webview);

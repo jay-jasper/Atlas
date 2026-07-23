@@ -1,10 +1,13 @@
 //! Capability gating: the host checks a plugin's declared capabilities before
 //! performing a gated operation (network, storage, clipboard, webview).
 
+use crate::broker::CapabilityGrant;
 use crate::manifest::Capabilities;
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum CapabilityError {
+    #[error("capability declaration is invalid: {0}")]
+    InvalidDeclaration(String),
     #[error("network access to '{0}' is not permitted by the plugin's capabilities")]
     NetworkDenied(String),
     #[error("storage capability is not granted")]
@@ -25,6 +28,15 @@ pub struct CapabilityGuard<'a> {
 impl<'a> CapabilityGuard<'a> {
     pub fn new(capabilities: &'a Capabilities) -> Self {
         Self { capabilities }
+    }
+
+    /// Compatibility adapter for pre-P0 manifests. Production calls must use
+    /// `CapabilityBroker`, which also checks persisted user grants and target
+    /// policy.
+    pub fn declared_grants(&self) -> Result<Vec<CapabilityGrant>, CapabilityError> {
+        self.capabilities
+            .declared_grants()
+            .map_err(|error| CapabilityError::InvalidDeclaration(error.to_string()))
     }
 
     /// Allows network only to an explicitly listed host. Sub-hosts are matched
@@ -86,6 +98,7 @@ mod tests {
 
     fn caps() -> Capabilities {
         Capabilities {
+            requested: vec![],
             network: vec!["api.github.com".to_string()],
             storage: true,
             clipboard: false,
