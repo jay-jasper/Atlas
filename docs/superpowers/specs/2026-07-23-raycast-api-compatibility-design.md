@@ -4,6 +4,8 @@
 **Status:** Approved design  
 **Scope:** CLI-first source compatibility for Raycast extensions, plus migration to the canonical Atlas plugin API
 
+**Mandatory prerequisite:** `2026-07-23-plugin-platform-p0-foundation-design.md` must reach its release gates before this compatibility layer enters implementation.
+
 ## 1. Summary
 
 Atlas will support two authoring surfaces backed by one runtime:
@@ -387,14 +389,15 @@ The compatibility package declares which Raycast API snapshot it targets. A newe
 
 This design is one program with staged delivery:
 
-1. Shared API contracts and compatibility matrix.
-2. React renderer and versioned RPC.
-3. Canonical host capabilities and permission enforcement.
-4. CLI inspection, build, packaging, and corpus harness.
-5. Raycast compatibility adapters.
-6. Migration command.
-7. Menu-bar and background lifecycle completion.
-8. Application-managed source import using the same builder.
+1. Complete the secure plugin-platform P0 prerequisite.
+2. Shared API contracts and compatibility matrix.
+3. React renderer bindings for the P0 dynamic UI protocol.
+4. Canonical Raycast-to-Atlas capability adapters.
+5. CLI inspection, build, packaging, and corpus harness.
+6. Raycast compatibility adapters.
+7. Migration command.
+8. Menu-bar and background lifecycle completion.
+9. Application-managed source import using the same builder.
 
 The implementation plan will divide these stages into independently testable milestones and must not introduce separate compatibility and Atlas runtimes.
 
@@ -410,5 +413,6 @@ The implementation plan will divide these stages into independently testable mil
 
 - Raycast public API documentation for lifecycle, UI components, feedback, storage, clipboard, environment, and extension manifests.
 - Raycast public extensions repository for the MIT-licensed compatibility corpus.
+- `docs/superpowers/specs/2026-07-23-plugin-platform-p0-foundation-design.md`.
 - `docs/superpowers/specs/2026-07-20-js-plugin-track-and-cross-platform-ui.md`.
 - Existing Atlas crates: `atlas-plugin-js`, `atlas-plugin-host`, and `atlas-ui-schema`.
