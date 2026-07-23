@@ -3820,6 +3820,16 @@ public func getCoreStatus()throws  -> String  {
 })
 }
 /**
+ * Installs the Keychain-derived 256-bit plugin-storage key exactly once.
+ */
+public func initializePluginStorage(rootPath: String, contentKey: [UInt8])throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_initialize_plugin_storage(
+        FfiConverterString.lower(rootPath),
+        FfiConverterSequenceUInt8.lower(contentKey),$0
+    )
+}
+}
+/**
  * Parses and validates a plugin manifest for the install-consent screen.
  */
 public func inspectPluginManifest(manifestToml: String)throws  -> PluginInstallPreview  {
@@ -4106,6 +4116,9 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_get_core_status() != 12365) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_initialize_plugin_storage() != 24509) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_inspect_plugin_manifest() != 40322) {

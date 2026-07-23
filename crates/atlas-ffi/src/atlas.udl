@@ -285,6 +285,10 @@ namespace atlas {
     [Throws=AtlasError]
     string dispatch_plugin_event(string id, string event_json);
 
+    /// Installs the Keychain-derived 256-bit plugin-storage key exactly once.
+    [Throws=AtlasError]
+    void initialize_plugin_storage(string root_path, sequence<u8> content_key);
+
     [Throws=AtlasError]
     void start_monitoring(SystemMonitorCallback callback);
     

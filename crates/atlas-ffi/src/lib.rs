@@ -9,6 +9,8 @@
 
 use atlas_core::AtlasCore;
 use once_cell::sync::Lazy;
+#[cfg(feature = "executable-plugins")]
+use once_cell::sync::OnceCell;
 use std::sync::{Arc, Mutex};
 use thiserror::Error;
 use tokio::runtime::Runtime;
@@ -21,6 +23,8 @@ static CORE: Lazy<Mutex<AtlasCore>> = Lazy::new(|| Mutex::new(AtlasCore::new()))
 #[cfg(feature = "executable-plugins")]
 static PLUGIN_HOST: Lazy<Mutex<atlas_plugin_host::PluginRuntimeHost>> =
     Lazy::new(|| Mutex::new(atlas_plugin_host::PluginRuntimeHost::new()));
+#[cfg(feature = "executable-plugins")]
+static PLUGIN_STORAGE: OnceCell<atlas_plugin_host::PluginStorage> = OnceCell::new();
 
 /// Control the monitoring background task.
 static MONITOR_HANDLE: Lazy<Mutex<Option<JoinHandle<()>>>> = Lazy::new(|| Mutex::new(None));
@@ -484,6 +488,31 @@ pub fn dispatch_plugin_event(id: String, event_json: String) -> Result<String, A
     }
 }
 
+pub fn initialize_plugin_storage(
+    root_path: String,
+    mut content_key: Vec<u8>,
+) -> Result<(), AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    let result = {
+        let _ = root_path;
+        Err(AtlasError::PluginError(
+            "Executable plugins are unavailable in this distribution".to_string(),
+        ))
+    };
+    #[cfg(feature = "executable-plugins")]
+    let result = atlas_plugin_host::PluginStorage::from_key_bytes(root_path, &content_key)
+        .map_err(|error| AtlasError::PluginError(error.to_string()))
+        .and_then(|storage| {
+            PLUGIN_STORAGE.set(storage).map_err(|_| {
+                AtlasError::PluginError(
+                    "Plugin storage has already been initialized for this process".to_string(),
+                )
+            })
+        });
+    content_key.fill(0);
+    result
+}
+
 /// Starts real-time system monitoring.
 ///
 /// This spawns a background task that collects system metrics every second
@@ -742,8 +771,9 @@ mod tests {
 // MARK: - AI center
 
 static AI_STORE: Lazy<Mutex<Option<atlas_ai::AiStore>>> = Lazy::new(|| Mutex::new(None));
-static AI_REQUESTS: Lazy<Mutex<std::collections::HashMap<u64, tokio_util::sync::CancellationToken>>> =
-    Lazy::new(|| Mutex::new(std::collections::HashMap::new()));
+static AI_REQUESTS: Lazy<
+    Mutex<std::collections::HashMap<u64, tokio_util::sync::CancellationToken>>,
+> = Lazy::new(|| Mutex::new(std::collections::HashMap::new()));
 static AI_REQUEST_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
 
 pub struct AiProviderConfig {
@@ -808,7 +838,13 @@ impl From<atlas_ai::AiError> for AtlasError {
 
 impl From<atlas_ai::ProviderConfig> for AiProviderConfig {
     fn from(p: atlas_ai::ProviderConfig) -> Self {
-        Self { id: p.id, name: p.name, base_url: p.base_url, model: p.model, max_tokens: p.max_tokens }
+        Self {
+            id: p.id,
+            name: p.name,
+            base_url: p.base_url,
+            model: p.model,
+            max_tokens: p.max_tokens,
+        }
     }
 }
 
@@ -892,19 +928,32 @@ impl From<AiChatSession> for atlas_ai::ChatSession {
 
 impl From<atlas_ai::SessionSummary> for AiSessionSummary {
     fn from(s: atlas_ai::SessionSummary) -> Self {
-        Self { id: s.id, title: s.title, created_at_ms: s.created_at_ms, message_count: s.message_count }
+        Self {
+            id: s.id,
+            title: s.title,
+            created_at_ms: s.created_at_ms,
+            message_count: s.message_count,
+        }
     }
 }
 
 impl From<atlas_ai::PromptPreset> for AiPromptPreset {
     fn from(p: atlas_ai::PromptPreset) -> Self {
-        Self { id: p.id, name: p.name, system_prompt: p.system_prompt }
+        Self {
+            id: p.id,
+            name: p.name,
+            system_prompt: p.system_prompt,
+        }
     }
 }
 
 impl From<AiPromptPreset> for atlas_ai::PromptPreset {
     fn from(p: AiPromptPreset) -> Self {
-        Self { id: p.id, name: p.name, system_prompt: p.system_prompt }
+        Self {
+            id: p.id,
+            name: p.name,
+            system_prompt: p.system_prompt,
+        }
     }
 }
 
@@ -983,11 +1032,15 @@ impl atlas_ai::StreamSink for DelegateSink {
         self.delegate.on_delta(self.request_id, text);
     }
     fn on_done(&self) {
-        let _ = AI_REQUESTS.lock().map(|mut map| map.remove(&self.request_id));
+        let _ = AI_REQUESTS
+            .lock()
+            .map(|mut map| map.remove(&self.request_id));
         self.delegate.on_done(self.request_id);
     }
     fn on_error(&self, message: String) {
-        let _ = AI_REQUESTS.lock().map(|mut map| map.remove(&self.request_id));
+        let _ = AI_REQUESTS
+            .lock()
+            .map(|mut map| map.remove(&self.request_id));
         self.delegate.on_error(self.request_id, message);
     }
 }
@@ -1019,7 +1072,10 @@ pub fn ai_send_message(
         .map_err(|_| AtlasError::LockPoisoned)?
         .insert(request_id, cancel.clone());
 
-    let sink = std::sync::Arc::new(DelegateSink { request_id, delegate });
+    let sink = std::sync::Arc::new(DelegateSink {
+        request_id,
+        delegate,
+    });
     RUNTIME.spawn(async move {
         atlas_ai::send_streaming(request, sink, cancel).await;
     });
@@ -1034,7 +1090,6 @@ pub fn ai_cancel(request_id: u64) {
         }
     }
 }
-
 
 pub fn ai_detect_clis(search_dirs: Vec<String>) -> Vec<AiDetectedCli> {
     atlas_ai::detect_clis(&search_dirs)
@@ -1067,7 +1122,10 @@ pub fn ai_send_via_cli(
         .map_err(|_| AtlasError::LockPoisoned)?
         .insert(request_id, cancel.clone());
 
-    let sink = std::sync::Arc::new(DelegateSink { request_id, delegate });
+    let sink = std::sync::Arc::new(DelegateSink {
+        request_id,
+        delegate,
+    });
     RUNTIME.spawn(async move {
         atlas_ai::run_prompt_via_cli(&cli_id, &cli_path, model, prompt, sink, cancel).await;
     });
@@ -1077,9 +1135,12 @@ pub fn ai_send_via_cli(
 
 // MARK: - Notes / Focus / Transfer / AI Commands
 
-static NOTES_STORE: Lazy<Mutex<Option<atlas_core::notes::NotesStore>>> = Lazy::new(|| Mutex::new(None));
-static FOCUS_STORE: Lazy<Mutex<Option<atlas_core::focus::FocusStore>>> = Lazy::new(|| Mutex::new(None));
-static AI_COMMAND_STORE: Lazy<Mutex<Option<atlas_ai::AiCommandStore>>> = Lazy::new(|| Mutex::new(None));
+static NOTES_STORE: Lazy<Mutex<Option<atlas_core::notes::NotesStore>>> =
+    Lazy::new(|| Mutex::new(None));
+static FOCUS_STORE: Lazy<Mutex<Option<atlas_core::focus::FocusStore>>> =
+    Lazy::new(|| Mutex::new(None));
+static AI_COMMAND_STORE: Lazy<Mutex<Option<atlas_ai::AiCommandStore>>> =
+    Lazy::new(|| Mutex::new(None));
 
 pub struct NoteMeta {
     pub id: String,
@@ -1292,7 +1353,9 @@ fn with_focus_store<T>(
 fn with_ai_command_store<T>(
     f: impl FnOnce(&atlas_ai::AiCommandStore) -> Result<T, atlas_ai::AiError>,
 ) -> Result<T, AtlasError> {
-    let guard = AI_COMMAND_STORE.lock().map_err(|_| AtlasError::LockPoisoned)?;
+    let guard = AI_COMMAND_STORE
+        .lock()
+        .map_err(|_| AtlasError::LockPoisoned)?;
     let store = guard
         .as_ref()
         .ok_or_else(|| AtlasError::AiError("ai storage dir not set".to_string()))?;
@@ -1318,7 +1381,11 @@ pub fn notes_get(id: String) -> Result<NoteContent, AtlasError> {
     })
 }
 
-pub fn notes_save(id: Option<String>, title: String, body_md: String) -> Result<String, AtlasError> {
+pub fn notes_save(
+    id: Option<String>,
+    title: String,
+    body_md: String,
+) -> Result<String, AtlasError> {
     with_notes_store(|s| s.save(id.as_deref(), &title, &body_md))
 }
 
@@ -1412,7 +1479,10 @@ pub fn transfer_inspect(path: String) -> Result<TransferManifest, AtlasError> {
     })
 }
 
-pub fn transfer_import(path: String, kinds: Vec<String>) -> Result<Vec<TransferPayload>, AtlasError> {
+pub fn transfer_import(
+    path: String,
+    kinds: Vec<String>,
+) -> Result<Vec<TransferPayload>, AtlasError> {
     let payloads = atlas_core::transfer::import(std::path::Path::new(&path), &kinds)?;
     Ok(payloads
         .into_iter()

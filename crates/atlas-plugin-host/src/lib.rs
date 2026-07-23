@@ -26,6 +26,7 @@ pub mod mcp_transport;
 pub mod registry;
 pub mod runner_client;
 pub mod runtime;
+pub mod storage;
 pub mod supervisor;
 pub mod ui;
 pub mod wasm_host;
@@ -42,6 +43,9 @@ pub use manifest::{
 pub use registry::{PluginRegistry, RegistryError};
 pub use runner_client::{RunnerClient, RunnerError};
 pub use runtime::{PluginRuntimeEntry, PluginRuntimeError, PluginRuntimeHost};
+pub use storage::{
+    ExternalFileHandle, PluginStorage, StorageError, StorageSnapshot, StorageTransaction,
+};
 pub use supervisor::{
     Clock, CommandHandle, CommandInvocation, CommandStatus, ManagedRunner, MonotonicClock,
     PluginSupervisor, ProcessRunnerLauncher, RecoveryReport, RunnerLauncher, SupervisorError,

@@ -483,6 +483,11 @@ RustBuffer uniffi_atlas_ffi_fn_func_get_core_status(RustCallStatus *_Nonnull out
 
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_INITIALIZE_PLUGIN_STORAGE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_INITIALIZE_PLUGIN_STORAGE
+void uniffi_atlas_ffi_fn_func_initialize_plugin_storage(RustBuffer root_path, RustBuffer content_key, RustCallStatus *_Nonnull out_status
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_INSPECT_PLUGIN_MANIFEST
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_INSPECT_PLUGIN_MANIFEST
 RustBuffer uniffi_atlas_ffi_fn_func_inspect_plugin_manifest(RustBuffer manifest_toml, RustCallStatus *_Nonnull out_status
@@ -1058,6 +1063,12 @@ uint16_t uniffi_atlas_ffi_checksum_func_focus_stop(void
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_GET_CORE_STATUS
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_GET_CORE_STATUS
 uint16_t uniffi_atlas_ffi_checksum_func_get_core_status(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_INITIALIZE_PLUGIN_STORAGE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_INITIALIZE_PLUGIN_STORAGE
+uint16_t uniffi_atlas_ffi_checksum_func_initialize_plugin_storage(void
 
 );
 #endif
