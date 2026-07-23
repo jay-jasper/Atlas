@@ -174,7 +174,9 @@ struct LauncherRootView: View {
         HStack(spacing: 0) {
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(spacing: 0) {
+                    // 普通 VStack + 稳定 row.id:LazyVStack 配合逐行 .id(index)
+                    // 会让 ForEach diff 残留旧行(IME 确认后列表不刷新的根因)。
+                    VStack(spacing: 0) {
                         ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
                             VStack(spacing: 0) {
                                 if let header = row.sectionTitle {
@@ -199,7 +201,7 @@ struct LauncherRootView: View {
                                     .onTapGesture { runPrimary(row.item) }
                                 }
                             }
-                            .id(index)
+                            .id(row.id)
                         }
 
                         if !coordinator.loadingSources.isEmpty {
@@ -233,15 +235,14 @@ struct LauncherRootView: View {
                         }
                     }
                     .padding(.vertical, 4)
-                    .animation(.spring(response: 0.25, dampingFraction: 0.9), value: rows.count)
                 }
                 .frame(maxHeight: CGFloat(style.maxVisibleRows) * style.rowHeight + 20)
                 .onKeyPressCompatible(.upArrow) {
-                    moveSelection(-1, count: rows.count, proxy: proxy)
+                    moveSelection(-1, rows: rows, proxy: proxy)
                     return .handled
                 }
                 .onKeyPressCompatible(.downArrow) {
-                    moveSelection(1, count: rows.count, proxy: proxy)
+                    moveSelection(1, rows: rows, proxy: proxy)
                     return .handled
                 }
                 .onKeyPressCompatible(.return) {
@@ -263,11 +264,11 @@ struct LauncherRootView: View {
         }
     }
 
-    private func moveSelection(_ delta: Int, count: Int, proxy: ScrollViewProxy) {
+    private func moveSelection(_ delta: Int, rows: [FlatRow], proxy: ScrollViewProxy) {
         let next = nav.selectedIndex + delta
-        guard next >= 0, next < count else { return }
+        guard next >= 0, next < rows.count else { return }
         nav.selectedIndex = next
-        proxy.scrollTo(next, anchor: .center)
+        proxy.scrollTo(rows[next].id, anchor: .center)
     }
 
     private func runPrimary(_ item: LauncherItem) {
