@@ -5,3 +5,6 @@
 
 # brainstorming visual-companion scratch
 .superpowers/
+
+# isolated Codex worktrees
+.worktrees/
