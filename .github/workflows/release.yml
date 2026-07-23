@@ -1,12 +1,9 @@
 name: Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      channel:
-        type: choice
-        options: [direct, store]
-        required: true
+  push:
+    tags:
+      - "v*"
 
 permissions:
   contents: write
@@ -14,6 +11,9 @@ permissions:
 jobs:
   archive:
     runs-on: macos-15
+    strategy:
+      matrix:
+        channel: [direct, store]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -26,10 +26,10 @@ jobs:
           CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_PROVISIONING_PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
         run: ./scripts/import_signing_certificate.sh
-      - run: ./scripts/build_release.sh "${{ inputs.channel }}"
+      - run: ./scripts/build_release.sh "${{ matrix.channel }}"
       - uses: actions/upload-artifact@v4
         with:
-          name: Atlas-${{ inputs.channel }}-archive
+          name: Atlas-${{ matrix.channel }}-archive
           path: |
             build/*.xcarchive
             build/export-*
