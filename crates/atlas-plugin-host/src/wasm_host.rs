@@ -19,6 +19,10 @@ pub enum WasmError {
     MissingExport(String),
     #[error("trap during execution: {0}")]
     Trap(String),
+    #[error("serialized runtime output is {actual} bytes, exceeding {limit}")]
+    OutputTooLarge { actual: usize, limit: usize },
+    #[error("serialized runtime memory access is outside the module memory")]
+    MemoryBounds,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -147,6 +151,60 @@ impl WasmHost {
         result?;
         Ok(results.first().and_then(|v| v.i32()).unwrap_or(0))
     }
+
+    /// Bounded serialized ABI used by the out-of-process Runner. The module
+    /// exports `memory`, `atlas_alloc(i32) -> i32`, and a handler
+    /// `(i32, i32) -> i64`; the handler packs output pointer in the high 32
+    /// bits and output length in the low 32 bits.
+    pub fn call_serialized(
+        &mut self,
+        name: &str,
+        input: &[u8],
+        max_output_bytes: usize,
+    ) -> Result<Vec<u8>, WasmError> {
+        let memory = self
+            .instance
+            .get_memory(&mut self.store, "memory")
+            .ok_or_else(|| WasmError::MissingExport("memory".into()))?;
+        let allocate: TypedFunc<i32, i32> = self
+            .instance
+            .get_typed_func(&mut self.store, "atlas_alloc")
+            .map_err(|_| WasmError::MissingExport("atlas_alloc".into()))?;
+        let handler: TypedFunc<(i32, i32), i64> = self
+            .instance
+            .get_typed_func(&mut self.store, name)
+            .map_err(|_| WasmError::MissingExport(name.into()))?;
+
+        let input_len = i32::try_from(input.len()).map_err(|_| WasmError::MemoryBounds)?;
+        let cancel = self.prepare_call()?;
+        let input_ptr = allocate
+            .call(&mut self.store, input_len)
+            .map_err(|error| WasmError::Trap(error.to_string()))?;
+        let input_offset = usize::try_from(input_ptr).map_err(|_| WasmError::MemoryBounds)?;
+        memory
+            .write(&mut self.store, input_offset, input)
+            .map_err(|_| WasmError::MemoryBounds)?;
+        let packed = handler
+            .call(&mut self.store, (input_ptr, input_len))
+            .map_err(|error| WasmError::Trap(error.to_string()))?;
+        let _ = cancel.send(());
+
+        let packed = packed as u64;
+        let output_offset =
+            usize::try_from((packed >> 32) as u32).map_err(|_| WasmError::MemoryBounds)?;
+        let output_len = usize::try_from(packed as u32).map_err(|_| WasmError::MemoryBounds)?;
+        if output_len > max_output_bytes {
+            return Err(WasmError::OutputTooLarge {
+                actual: output_len,
+                limit: max_output_bytes,
+            });
+        }
+        let mut output = vec![0_u8; output_len];
+        memory
+            .read(&self.store, output_offset, &mut output)
+            .map_err(|_| WasmError::MemoryBounds)?;
+        Ok(output)
+    }
 }
 
 #[cfg(test)]
@@ -251,6 +309,32 @@ mod tests {
         assert!(matches!(
             host.call_dynamic("loop", &[]),
             Err(WasmError::Trap(_))
+        ));
+    }
+
+    #[test]
+    fn bounded_serialized_event_abi_reads_runtime_output() {
+        let output = br#"[{"type":"ui-close"}]"#;
+        let escaped: String = output.iter().map(|byte| format!("\\{byte:02x}")).collect();
+        let module = wasm(&format!(
+            r#"
+            (module
+              (memory (export "memory") 1)
+              (data (i32.const 1024) "{escaped}")
+              (func (export "atlas_alloc") (param i32) (result i32) i32.const 0)
+              (func (export "atlas_start") (param i32 i32) (result i64)
+                i64.const {}))
+            "#,
+            ((1024_u64) << 32) | output.len() as u64
+        ));
+        let mut host = WasmHost::load(&module).unwrap();
+        assert_eq!(
+            host.call_serialized("atlas_start", b"{}", 1024).unwrap(),
+            output
+        );
+        assert!(matches!(
+            host.call_serialized("atlas_start", b"{}", 4),
+            Err(WasmError::OutputTooLarge { .. })
         ));
     }
 }

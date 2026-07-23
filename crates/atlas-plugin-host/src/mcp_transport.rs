@@ -2,11 +2,14 @@
 //! exchanges newline-delimited JSON-RPC messages over stdio.
 
 use std::io::{BufRead, BufReader, Read, Write};
+use std::os::unix::process::CommandExt;
+use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::{mpsc, Arc, Mutex};
 use std::time::Duration;
 
 use serde_json::Value;
+use sysinfo::{Pid, System};
 
 /// Accumulates stdout bytes and yields complete newline-delimited JSON values.
 /// Pure framing logic — unit-testable without a real process.
@@ -50,6 +53,38 @@ pub enum TransportError {
     Timeout,
     #[error("MCP message exceeds {0} bytes")]
     MessageTooLarge(usize),
+    #[error("contained MCP server spawned descendant process {0}")]
+    DescendantProcess(u32),
+}
+
+#[derive(Debug, Clone)]
+pub struct McpSpawnPolicy {
+    pub working_directory: PathBuf,
+    pub timeout: Duration,
+    pub max_message_bytes: usize,
+    pub max_stderr_bytes: usize,
+    pub max_processes: usize,
+}
+
+struct SpawnConfig {
+    timeout: Duration,
+    max_message_bytes: usize,
+    max_stderr_bytes: usize,
+    working_directory: Option<PathBuf>,
+    contained: bool,
+    max_processes: usize,
+}
+
+impl McpSpawnPolicy {
+    pub fn contained(working_directory: impl Into<PathBuf>) -> Self {
+        Self {
+            working_directory: working_directory.into(),
+            timeout: Duration::from_secs(30),
+            max_message_bytes: 1024 * 1024,
+            max_stderr_bytes: 64 * 1024,
+            max_processes: 1,
+        }
+    }
 }
 
 /// A spawned MCP server process with line-framed JSON-RPC stdio.
@@ -59,6 +94,8 @@ pub struct McpProcess {
     messages: mpsc::Receiver<Result<Value, TransportError>>,
     timeout: Duration,
     stderr: Arc<Mutex<Vec<u8>>>,
+    process_group: bool,
+    max_processes: usize,
 }
 
 impl McpProcess {
@@ -73,6 +110,27 @@ impl McpProcess {
         )
     }
 
+    pub fn spawn_contained(
+        command: &Path,
+        args: &[String],
+        policy: McpSpawnPolicy,
+    ) -> Result<Self, TransportError> {
+        let mut process = Self::spawn_command(
+            command,
+            args,
+            SpawnConfig {
+                timeout: policy.timeout,
+                max_message_bytes: policy.max_message_bytes,
+                max_stderr_bytes: policy.max_stderr_bytes,
+                working_directory: Some(policy.working_directory),
+                contained: true,
+                max_processes: policy.max_processes,
+            },
+        )?;
+        process.ensure_single_process()?;
+        Ok(process)
+    }
+
     pub fn spawn_with_limits(
         command: &str,
         args: &[&str],
@@ -80,11 +138,60 @@ impl McpProcess {
         max_message_bytes: usize,
         max_stderr_bytes: usize,
     ) -> Result<Self, TransportError> {
-        let mut child = Command::new(command)
+        Self::spawn_command(
+            Path::new(command),
+            &args
+                .iter()
+                .map(|value| (*value).to_owned())
+                .collect::<Vec<_>>(),
+            SpawnConfig {
+                timeout,
+                max_message_bytes,
+                max_stderr_bytes,
+                working_directory: None,
+                contained: false,
+                max_processes: usize::MAX,
+            },
+        )
+    }
+
+    fn spawn_command(
+        command: &Path,
+        args: &[String],
+        config: SpawnConfig,
+    ) -> Result<Self, TransportError> {
+        let SpawnConfig {
+            timeout,
+            max_message_bytes,
+            max_stderr_bytes,
+            working_directory,
+            contained,
+            max_processes,
+        } = config;
+        let mut command = Command::new(command);
+        command
             .args(args)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
+            .stderr(Stdio::piped());
+        if contained {
+            command
+                .env_clear()
+                .env("PATH", "/usr/bin:/bin:/usr/sbin:/sbin")
+                .env("LANG", "C");
+            if let Some(directory) = working_directory.as_deref() {
+                command.current_dir(directory);
+            }
+            unsafe {
+                command.pre_exec(|| {
+                    if libc::setpgid(0, 0) == -1 {
+                        return Err(std::io::Error::last_os_error());
+                    }
+                    Ok(())
+                });
+            }
+        }
+        let mut child = command
             .spawn()
             .map_err(|e| TransportError::Spawn(e.to_string()))?;
         let stdin = child.stdin.take().ok_or(TransportError::Closed)?;
@@ -142,6 +249,8 @@ impl McpProcess {
             messages,
             timeout,
             stderr,
+            process_group: contained,
+            max_processes,
         })
     }
 
@@ -171,8 +280,44 @@ impl McpProcess {
             .unwrap_or_default()
     }
 
+    pub fn child_id(&self) -> u32 {
+        self.child.id()
+    }
+
+    pub fn is_running(&mut self) -> Result<bool, TransportError> {
+        self.ensure_single_process()?;
+        self.child
+            .try_wait()
+            .map(|status| status.is_none())
+            .map_err(|error| TransportError::Io(error.to_string()))
+    }
+
+    pub fn ensure_single_process(&mut self) -> Result<(), TransportError> {
+        if self.max_processes > 1 {
+            return Ok(());
+        }
+        let mut system = System::new();
+        system.refresh_processes();
+        let parent = Pid::from_u32(self.child.id());
+        if let Some(process) = system
+            .processes()
+            .values()
+            .find(|process| process.parent() == Some(parent))
+        {
+            let pid = process.pid().as_u32();
+            self.cleanup();
+            return Err(TransportError::DescendantProcess(pid));
+        }
+        Ok(())
+    }
+
     fn cleanup(&mut self) {
-        let _ = self.child.kill();
+        if self.process_group {
+            let process_group = -(self.child.id() as i32);
+            let _ = unsafe { libc::kill(process_group, libc::SIGKILL) };
+        } else {
+            let _ = self.child.kill();
+        }
         let _ = self.child.wait();
     }
 
@@ -307,5 +452,25 @@ mod tests {
         .unwrap();
         std::thread::sleep(Duration::from_millis(30));
         assert_eq!(process.stderr_output(), "abcd");
+    }
+
+    #[test]
+    fn contained_process_rejects_descendants() {
+        let directory = tempfile::tempdir().unwrap();
+        let mut process = McpProcess::spawn_contained(
+            Path::new("/bin/sh"),
+            &["-c".into(), "sleep 5 & sleep 5".into()],
+            McpSpawnPolicy::contained(directory.path()),
+        )
+        .unwrap();
+        let mut result = Ok(());
+        for _ in 0..20 {
+            std::thread::sleep(Duration::from_millis(10));
+            result = process.ensure_single_process();
+            if result.is_err() {
+                break;
+            }
+        }
+        assert!(matches!(result, Err(TransportError::DescendantProcess(_))));
     }
 }

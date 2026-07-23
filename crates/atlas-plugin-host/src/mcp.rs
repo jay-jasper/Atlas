@@ -3,6 +3,9 @@
 //! subprocess transport lives in the platform layer.
 
 use serde_json::{json, Value};
+use std::collections::HashSet;
+
+pub const MCP_PROTOCOL_VERSION: &str = "2024-11-05";
 
 /// Builds a JSON-RPC 2.0 request envelope.
 pub fn request(id: i64, method: &str, params: Value) -> Value {
@@ -29,10 +32,21 @@ pub fn initialize(id: i64, client_name: &str, client_version: &str) -> Value {
         id,
         "initialize",
         json!({
-            "protocolVersion": "2024-11-05",
+            "protocolVersion": MCP_PROTOCOL_VERSION,
             "capabilities": {},
             "clientInfo": { "name": client_name, "version": client_version },
         }),
+    )
+}
+
+pub fn initialized() -> Value {
+    notification("notifications/initialized", json!({}))
+}
+
+pub fn cancelled(request_id: i64, reason: &str) -> Value {
+    notification(
+        "notifications/cancelled",
+        json!({ "requestId": request_id, "reason": reason }),
     )
 }
 
@@ -63,12 +77,53 @@ pub struct McpTool {
     pub description: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct McpServerInfo {
+    pub protocol_version: String,
+    pub name: String,
+    pub version: String,
+}
+
 #[derive(Debug, thiserror::Error, PartialEq)]
 pub enum McpError {
     #[error("invalid JSON-RPC message: {0}")]
     Invalid(String),
     #[error("server returned error {code}: {message}")]
     Server { code: i64, message: String },
+    #[error("MCP server selected unsupported protocol version `{0}`")]
+    ProtocolVersion(String),
+    #[error("MCP server exposed invalid or undeclared tool `{0}`")]
+    UndeclaredTool(String),
+}
+
+pub fn parse_initialize(response: &Value) -> Result<McpServerInfo, McpError> {
+    check_error(response)?;
+    let result = response
+        .get("result")
+        .ok_or_else(|| McpError::Invalid("missing initialize result".into()))?;
+    let protocol_version = result
+        .get("protocolVersion")
+        .and_then(Value::as_str)
+        .ok_or_else(|| McpError::Invalid("missing result.protocolVersion".into()))?;
+    if protocol_version != MCP_PROTOCOL_VERSION {
+        return Err(McpError::ProtocolVersion(protocol_version.into()));
+    }
+    let server = result
+        .get("serverInfo")
+        .ok_or_else(|| McpError::Invalid("missing result.serverInfo".into()))?;
+    Ok(McpServerInfo {
+        protocol_version: protocol_version.into(),
+        name: server
+            .get("name")
+            .and_then(Value::as_str)
+            .unwrap_or("unknown")
+            .into(),
+        version: server
+            .get("version")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .into(),
+    })
 }
 
 /// Parses a `tools/list` response into the advertised tools.
@@ -91,6 +146,61 @@ pub fn parse_tools(response: &Value) -> Result<Vec<McpTool>, McpError> {
             Some(McpTool { name, description })
         })
         .collect())
+}
+
+pub fn validate_tools(
+    response: &Value,
+    declared_tools: &[String],
+) -> Result<Vec<McpTool>, McpError> {
+    let tools = parse_tools(response)?;
+    let raw_count = response
+        .get("result")
+        .and_then(|result| result.get("tools"))
+        .and_then(Value::as_array)
+        .map(Vec::len)
+        .unwrap_or_default();
+    if tools.len() != raw_count {
+        return Err(McpError::UndeclaredTool("<invalid>".into()));
+    }
+    let declared: HashSet<_> = declared_tools.iter().map(String::as_str).collect();
+    let mut seen = HashSet::new();
+    for tool in &tools {
+        if !is_valid_tool_name(&tool.name)
+            || !declared.contains(tool.name.as_str())
+            || !seen.insert(tool.name.as_str())
+        {
+            return Err(McpError::UndeclaredTool(tool.name.clone()));
+        }
+    }
+    if seen.len() != declared.len() {
+        let missing = declared
+            .into_iter()
+            .find(|name| !seen.contains(name))
+            .unwrap_or("unknown");
+        return Err(McpError::UndeclaredTool(missing.into()));
+    }
+    Ok(tools)
+}
+
+pub fn parse_tool_json(response: &Value) -> Result<Value, McpError> {
+    check_error(response)?;
+    if let Some(value) = response
+        .get("result")
+        .and_then(|result| result.get("structuredContent"))
+    {
+        return Ok(value.clone());
+    }
+    let text = parse_tool_text(response)?;
+    serde_json::from_str(&text)
+        .map_err(|error| McpError::Invalid(format!("tool UI output is not JSON: {error}")))
+}
+
+fn is_valid_tool_name(name: &str) -> bool {
+    !name.is_empty()
+        && name.len() <= 128
+        && name
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-' | b'.'))
 }
 
 /// Extracts the concatenated text content from a `tools/call` response.
@@ -204,6 +314,36 @@ mod tests {
         assert!(matches!(
             parse_tools(&json!({ "result": {} })),
             Err(McpError::Invalid(_))
+        ));
+    }
+
+    #[test]
+    fn validates_standard_initialize_and_exact_tool_set() {
+        let response = json!({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+                "protocolVersion": MCP_PROTOCOL_VERSION,
+                "capabilities": { "tools": {} },
+                "serverInfo": { "name": "fixture", "version": "1.0.0" }
+            }
+        });
+        assert_eq!(parse_initialize(&response).unwrap().name, "fixture");
+
+        let tools = json!({
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": { "tools": [{ "name": "atlas.start" }] }
+        });
+        assert_eq!(
+            validate_tools(&tools, &["atlas.start".into()])
+                .unwrap()
+                .len(),
+            1
+        );
+        assert!(matches!(
+            validate_tools(&tools, &["other".into()]),
+            Err(McpError::UndeclaredTool(_))
         ));
     }
 }

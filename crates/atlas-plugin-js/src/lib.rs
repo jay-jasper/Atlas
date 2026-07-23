@@ -9,6 +9,23 @@ pub const DEFAULT_MEMORY_LIMIT: usize = 32 * 1024 * 1024;
 pub const DEFAULT_STACK_LIMIT: usize = 512 * 1024;
 pub const DEFAULT_CPU_LIMIT: Duration = Duration::from_millis(200);
 
+#[derive(Debug, Clone, Copy)]
+pub struct JsLimits {
+    pub max_memory_bytes: usize,
+    pub max_stack_bytes: usize,
+    pub cpu_limit: Duration,
+}
+
+impl Default for JsLimits {
+    fn default() -> Self {
+        Self {
+            max_memory_bytes: DEFAULT_MEMORY_LIMIT,
+            max_stack_bytes: DEFAULT_STACK_LIMIT,
+            cpu_limit: DEFAULT_CPU_LIMIT,
+        }
+    }
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum JsError {
     #[error("javascript runtime failed: {0}")]
@@ -17,6 +34,12 @@ pub enum JsError {
     MissingExport,
     #[error("javascript plugin worker stopped")]
     WorkerStopped,
+    #[error("javascript promise cannot make progress")]
+    PromisePending,
+    #[error("javascript call exceeded its deadline")]
+    Timeout,
+    #[error("unhandled javascript promise rejection: {0}")]
+    UnhandledRejection(String),
 }
 
 /// Engine seam keeps the host independent from a particular JS implementation.
@@ -56,6 +79,10 @@ pub struct JsPlugin {
 
 impl JsPlugin {
     pub fn spawn(source: &str) -> Result<Self, JsError> {
+        Self::spawn_with_limits(source, JsLimits::default())
+    }
+
+    pub fn spawn_with_limits(source: &str, limits: JsLimits) -> Result<Self, JsError> {
         let (commands, receiver) = mpsc::channel();
         let (ready_tx, ready_rx) = mpsc::sync_channel(1);
         let source = source.to_owned();
@@ -63,6 +90,9 @@ impl JsPlugin {
             .name("atlas-plugin-js".into())
             .spawn(move || {
                 let mut engine = match QuickJsEngine::new().and_then(|mut engine| {
+                    engine.set_memory_limit(limits.max_memory_bytes);
+                    engine.set_stack_limit(limits.max_stack_bytes);
+                    engine.set_cpu_limit(limits.cpu_limit);
                     engine.eval(&source)?;
                     Ok(engine)
                 }) {
@@ -158,6 +188,9 @@ impl QuickJsEngine {
 impl JsEngine for QuickJsEngine {
     fn eval(&mut self, source: &str) -> Result<(), JsError> {
         self.reset_deadline();
+        self.context
+            .with(|ctx| ctx.eval::<(), _>(TIMER_BOOTSTRAP))
+            .map_err(runtime_error)?;
         let normalized = if source.contains("export default") {
             source.replacen("export default", "globalThis.__atlasPlugin =", 1)
         } else {
@@ -179,14 +212,37 @@ impl JsEngine for QuickJsEngine {
 
     fn call(&mut self, function: &str, args_json: &str) -> Result<String, JsError> {
         self.reset_deadline();
+        let deadline = Instant::now() + self.cpu_limit;
         let function = serde_json::to_string(function).expect("string serialization cannot fail");
         let args: serde_json::Value =
             serde_json::from_str(args_json).map_err(|error| JsError::Runtime(error.to_string()))?;
         let args = serde_json::to_string(&args).expect("JSON serialization cannot fail");
-        let script = format!("JSON.stringify(globalThis.__atlasPlugin[{function}](...{args}))");
+        let script = format!(
+            r#"
+            globalThis.__atlasCallState = {{ done: false }};
+            try {{
+                const result = globalThis.__atlasPlugin[{function}](...{args});
+                Promise.resolve(result).then(
+                    value => {{ globalThis.__atlasCallState = {{ done: true, ok: true, value }}; }},
+                    error => {{ globalThis.__atlasCallState = {{
+                        done: true,
+                        ok: false,
+                        error: String(error?.message ?? error) + "\n" + String(error?.stack ?? "")
+                    }}; }}
+                );
+            }} catch (error) {{
+                globalThis.__atlasCallState = {{
+                    done: true,
+                    ok: false,
+                    error: String(error?.message ?? error) + "\n" + String(error?.stack ?? "")
+                }};
+            }}
+            "#
+        );
         self.context
-            .with(|ctx| ctx.eval::<String, _>(script))
-            .map_err(runtime_error)
+            .with(|ctx| ctx.eval::<(), _>(script))
+            .map_err(runtime_error)?;
+        self.finish_call(deadline)
     }
 
     fn set_memory_limit(&mut self, bytes: usize) {
@@ -201,6 +257,111 @@ impl JsEngine for QuickJsEngine {
         self.cpu_limit = duration;
     }
 }
+
+impl QuickJsEngine {
+    fn finish_call(&mut self, deadline: Instant) -> Result<String, JsError> {
+        loop {
+            if Instant::now() >= deadline {
+                return Err(JsError::Timeout);
+            }
+            while self.runtime.is_job_pending() {
+                self.runtime
+                    .execute_pending_job()
+                    .map_err(|error| JsError::UnhandledRejection(error.to_string()))?;
+                if Instant::now() >= deadline {
+                    return Err(JsError::Timeout);
+                }
+            }
+
+            let state = self
+                .context
+                .with(|ctx| {
+                    ctx.eval::<String, _>(
+                        "JSON.stringify(globalThis.__atlasCallState ?? { done: false })",
+                    )
+                })
+                .map_err(runtime_error)?;
+            let state: serde_json::Value = serde_json::from_str(&state)
+                .map_err(|error| JsError::Runtime(error.to_string()))?;
+            if state["done"].as_bool() == Some(true) {
+                if state["ok"].as_bool() == Some(true) {
+                    return serde_json::to_string(
+                        state.get("value").unwrap_or(&serde_json::Value::Null),
+                    )
+                    .map_err(|error| JsError::Runtime(error.to_string()));
+                }
+                return Err(JsError::UnhandledRejection(
+                    state["error"]
+                        .as_str()
+                        .unwrap_or("unknown rejection")
+                        .to_owned(),
+                ));
+            }
+
+            let timer_state = self
+                .context
+                .with(|ctx| ctx.eval::<String, _>("JSON.stringify(globalThis.__atlasPumpTimers())"))
+                .map_err(runtime_error)?;
+            let timer_state: serde_json::Value = serde_json::from_str(&timer_state)
+                .map_err(|error| JsError::Runtime(error.to_string()))?;
+            if let Some(error) = timer_state["unhandled"].as_str() {
+                return Err(JsError::UnhandledRejection(error.to_owned()));
+            }
+            if timer_state["pending"].as_u64() == Some(0) && !self.runtime.is_job_pending() {
+                return Err(JsError::PromisePending);
+            }
+            let delay = timer_state["nextDelay"].as_u64().unwrap_or(0).min(10);
+            if delay > 0 {
+                std::thread::sleep(Duration::from_millis(delay));
+            }
+        }
+    }
+}
+
+const TIMER_BOOTSTRAP: &str = r#"
+if (!globalThis.__atlasTimers) {
+    globalThis.__atlasTimers = new Map();
+    globalThis.__atlasTimerId = 0;
+    globalThis.__atlasUnhandled = [];
+    globalThis.setTimeout = (callback, delay = 0, ...args) => {
+        if (typeof callback !== "function") throw new TypeError("setTimeout callback must be a function");
+        const id = ++globalThis.__atlasTimerId;
+        const boundedDelay = Math.max(0, Math.min(Number(delay) || 0, 60_000));
+        globalThis.__atlasTimers.set(id, {
+            callback,
+            args,
+            due: Date.now() + boundedDelay
+        });
+        return id;
+    };
+    globalThis.clearTimeout = id => globalThis.__atlasTimers.delete(id);
+    globalThis.__atlasPumpTimers = () => {
+        const now = Date.now();
+        for (const [id, timer] of [...globalThis.__atlasTimers]) {
+            if (timer.due > now) continue;
+            globalThis.__atlasTimers.delete(id);
+            try {
+                Promise.resolve(timer.callback(...timer.args)).catch(error => {
+                    globalThis.__atlasUnhandled.push(
+                        `${String(error?.message ?? error)}\n${String(error?.stack ?? "")}`
+                    );
+                });
+            } catch (error) {
+                globalThis.__atlasUnhandled.push(
+                    `${String(error?.message ?? error)}\n${String(error?.stack ?? "")}`
+                );
+            }
+        }
+        const next = [...globalThis.__atlasTimers.values()]
+            .reduce((minimum, timer) => Math.min(minimum, Math.max(0, timer.due - Date.now())), Infinity);
+        return {
+            pending: globalThis.__atlasTimers.size,
+            nextDelay: Number.isFinite(next) ? next : 0,
+            unhandled: globalThis.__atlasUnhandled.shift()
+        };
+    };
+}
+"#;
 
 fn runtime_error(error: impl std::fmt::Display) -> JsError {
     JsError::Runtime(error.to_string())
@@ -251,5 +412,43 @@ mod tests {
             .join()
             .unwrap();
         assert_eq!(result, r#"{"action":"run"}"#);
+    }
+
+    #[test]
+    fn pumps_promises_and_host_backed_timers() {
+        let plugin = JsPlugin::spawn(
+            r#"
+            export default {
+                async start() {
+                    await new Promise(resolve => setTimeout(resolve, 1));
+                    return { ready: true };
+                }
+            };
+            "#,
+        )
+        .unwrap();
+        assert_eq!(plugin.call("start", "[]").unwrap(), r#"{"ready":true}"#);
+    }
+
+    #[test]
+    fn reports_unhandled_rejections() {
+        let plugin = JsPlugin::spawn(
+            r#"
+            export default {
+                async start() {
+                    throw new Error("fixture rejection");
+                }
+            };
+            "#,
+        )
+        .unwrap();
+        let result = plugin.call("start", "[]");
+        assert!(
+            matches!(
+                &result,
+                Err(JsError::UnhandledRejection(message)) if message.contains("fixture rejection")
+            ),
+            "{result:?}"
+        );
     }
 }

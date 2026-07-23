@@ -40,3 +40,4 @@ pub use registry::{PluginRegistry, RegistryError};
 pub use runner_client::{RunnerClient, RunnerError, RuntimeLimits};
 pub use runtime::{PluginRuntimeEntry, PluginRuntimeError, PluginRuntimeHost};
 pub use ui::{UiError, UiEvent, UiNode, UiPatch};
+pub use wasm_host::{WasmError, WasmHost, WasmLimits};
