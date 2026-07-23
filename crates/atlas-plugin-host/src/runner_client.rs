@@ -11,26 +11,11 @@ use std::path::Path;
 use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
 
+use crate::limits::RuntimeLimits;
+
 const CHILD_IPC_FD: i32 = 3;
 const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(5);
 const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(1);
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RuntimeLimits {
-    pub max_memory_bytes: u64,
-    pub max_cpu_millis: u64,
-    pub wall_timeout_millis: u64,
-}
-
-impl Default for RuntimeLimits {
-    fn default() -> Self {
-        Self {
-            max_memory_bytes: 128 * 1024 * 1024,
-            max_cpu_millis: 5_000,
-            wall_timeout_millis: 30_000,
-        }
-    }
-}
 
 pub struct RunnerClient {
     child: Child,
@@ -75,11 +60,11 @@ impl RunnerClient {
             .arg("--protocol-max")
             .arg(PROTOCOL_VERSION.to_string())
             .arg("--max-memory-bytes")
-            .arg(limits.max_memory_bytes.to_string())
+            .arg(limits.memory_bytes.to_string())
             .arg("--max-cpu-millis")
-            .arg(limits.max_cpu_millis.to_string())
+            .arg(limits.cpu_per_event.as_millis().to_string())
             .arg("--wall-timeout-millis")
-            .arg(limits.wall_timeout_millis.to_string());
+            .arg(limits.wall_per_request.as_millis().to_string());
         unsafe {
             command.pre_exec(move || inherit_descriptor(child_fd, CHILD_IPC_FD));
         }
@@ -173,7 +158,7 @@ impl RunnerClient {
         Err(RunnerError::ShutdownTimeout)
     }
 
-    fn terminate(&mut self) {
+    pub fn terminate(&mut self) {
         if self.child.try_wait().ok().flatten().is_none() {
             let _ = self.child.kill();
         }

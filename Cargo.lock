@@ -326,6 +326,7 @@ dependencies = [
  "url",
  "wasmtime",
  "wat",
+ "zip",
 ]
 
 [[package]]

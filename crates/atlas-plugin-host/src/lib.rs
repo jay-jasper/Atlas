@@ -17,6 +17,7 @@ pub mod broker;
 pub mod capabilities;
 pub mod dist;
 pub mod hub;
+pub mod limits;
 #[cfg(feature = "lua")]
 pub mod lua;
 pub mod manifest;
@@ -25,6 +26,7 @@ pub mod mcp_transport;
 pub mod registry;
 pub mod runner_client;
 pub mod runtime;
+pub mod supervisor;
 pub mod ui;
 pub mod wasm_host;
 
@@ -33,11 +35,17 @@ pub use broker::{
     PluginIdentity,
 };
 pub use capabilities::{CapabilityError, CapabilityGuard};
+pub use limits::{LimitError, LimitTracker, RuntimeLimits, RESOURCE_POLICY_VERSION};
 pub use manifest::{
     Capabilities, ManifestError, PluginManifest, PluginManifestV2, Runtime, RuntimeKind,
 };
 pub use registry::{PluginRegistry, RegistryError};
-pub use runner_client::{RunnerClient, RunnerError, RuntimeLimits};
+pub use runner_client::{RunnerClient, RunnerError};
 pub use runtime::{PluginRuntimeEntry, PluginRuntimeError, PluginRuntimeHost};
+pub use supervisor::{
+    Clock, CommandHandle, CommandInvocation, CommandStatus, ManagedRunner, MonotonicClock,
+    PluginSupervisor, ProcessRunnerLauncher, RecoveryReport, RunnerLauncher, SupervisorError,
+    Termination,
+};
 pub use ui::{UiError, UiEvent, UiNode, UiPatch};
 pub use wasm_host::{WasmError, WasmHost, WasmLimits};
