@@ -7,6 +7,7 @@ members = [
     "crates/atlas-module-sdk",
     "crates/atlas-plugin-host",
     "crates/atlas-plugin-js",
+    "crates/atlas-plugin-package",
     "crates/atlas-plugin-protocol",
     "crates/atlas-ui-schema",
     "tools/uniffi-swift-bindgen",
