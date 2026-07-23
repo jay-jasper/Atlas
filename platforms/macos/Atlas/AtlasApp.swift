@@ -104,6 +104,12 @@ final class AtlasAppDelegate: NSObject, NSApplicationDelegate {
         menuBar.install()
         DockIconStore.shared.apply()
 
+        // Raycast 功能服务:开机即挂(内部按开关+权限自行降级)。
+        RaycastStorage.wire()
+        _ = SnippetExpansionService.shared
+        _ = HyperKeyService.shared
+        _ = FocusService.shared
+
         // 兜底:无论主菜单被谁重建,app 激活状态下 ⌘Q 必退、⌘, 必开主界面。
         globalKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
@@ -553,6 +559,15 @@ final class CommandPaletteState: ObservableObject {
         let fileSearchProvider = FileSearchProvider()
         let bookmarkProvider = BookmarkProvider()
         let shellScriptProvider = ShellScriptProvider()
+        let notesProvider = NotesProvider(openTab: {
+            Task { @MainActor in AtlasServices.shared.openMainWindow?() }
+        })
+        let focusCommandsProvider = FocusCommandsProvider()
+        let translateProvider = TranslateProvider()
+        let aiCommandsProvider = AICommandsProvider()
+        let dictationProvider = DictationProvider()
+        let systemCommandsProvider = SystemCommandsProvider()
+        let calendarEventsProvider = CalendarEventsProvider()
 
         let providers: [CommandProviding] = [
             calculatorProvider,
@@ -585,6 +600,13 @@ final class CommandPaletteState: ObservableObject {
             skillProvider,
             appLauncherProvider,
             systemSettingsProvider,
+            notesProvider,
+            focusCommandsProvider,
+            translateProvider,
+            aiCommandsProvider,
+            dictationProvider,
+            systemCommandsProvider,
+            calendarEventsProvider,
         ]
 
         var sources: [LauncherItemSource] = providers.map { provider in
@@ -594,6 +616,9 @@ final class CommandPaletteState: ObservableObject {
                 || provider is EmojiProvider
                 || provider is FileSearchProvider
                 || provider is ClipboardHistoryProvider
+                || provider is TranslateProvider
+                || provider is NotesProvider
+                || provider is CalendarEventsProvider
             return CommandProviderAdapter(
                 provider: provider,
                 sourceID: String(describing: type(of: provider)),

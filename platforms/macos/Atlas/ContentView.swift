@@ -858,6 +858,8 @@ struct ContentView: View {
             }
         case .plugins:
             pluginsTabView
+        case .raycast:
+            RaycastTab()
         case .ai:
             AITabView()
         case .about:

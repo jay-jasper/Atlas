@@ -1,7 +1,7 @@
 # Raycast 全功能对齐(Snippets 展开 / Notes / Focus / 翻译 / AI 指令 / 听写 / 系统命令 / Hyper Key / 日历 / 导入导出)
 
 日期:2026-07-22
-状态:待实现
+状态:已实现(2026-07-23)
 参考:https://manual.raycast.com/ 全站功能清单;差距盘点见下
 
 ## 背景与范围

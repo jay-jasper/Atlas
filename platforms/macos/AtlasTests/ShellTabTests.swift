@@ -2,14 +2,14 @@ import XCTest
 @testable import Atlas
 
 final class ShellTabTests: XCTestCase {
-    func testFourTabsOrdered() {
-        XCTAssertEqual(ShellTab.allCases, [.general, .plugins, .ai, .about])
-        XCTAssertEqual(ShellTab.allCases.map(\.title), ["通用", "插件", "AI", "关于"])
+    func testFiveTabsOrdered() {
+        XCTAssertEqual(ShellTab.allCases, [.general, .plugins, .raycast, .ai, .about])
+        XCTAssertEqual(ShellTab.allCases.map(\.title), ["通用", "插件", "Raycast", "AI", "关于"])
     }
 
     func testShortcutDigitsUnique() {
         let digits = ShellTab.allCases.map(\.shortcutDigit)
-        XCTAssertEqual(digits, [1, 2, 3, 4])
+        XCTAssertEqual(digits, [1, 2, 3, 4, 5])
         XCTAssertEqual(Set(digits).count, digits.count)
     }
 
