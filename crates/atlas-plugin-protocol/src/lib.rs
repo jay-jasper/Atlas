@@ -1,5 +1,6 @@
 use atlas_ui_schema::{UiEvent, UiNode, UiPatch};
 use serde::{Deserialize, Serialize};
+use std::io::{Read, Write};
 
 pub const PROTOCOL_VERSION: u16 = 1;
 pub const MAX_FRAME_BYTES: usize = 1024 * 1024;
@@ -141,6 +142,8 @@ pub enum FrameError {
     Encode(String),
     #[error("failed to decode protocol frame: {0}")]
     Decode(String),
+    #[error("protocol I/O failed: {0}")]
+    Io(String),
 }
 
 pub fn encode_frame(envelope: &Envelope) -> Result<Vec<u8>, FrameError> {
@@ -187,6 +190,34 @@ pub fn decode_frame(frame: &[u8]) -> Result<Envelope, FrameError> {
         serde_cbor::from_slice(body).map_err(|error| FrameError::Decode(error.to_string()))?;
     validate_protocol_version(envelope.protocol_version)?;
     Ok(envelope)
+}
+
+pub fn read_frame(reader: &mut impl Read) -> Result<Envelope, FrameError> {
+    let mut prefix = [0_u8; FRAME_PREFIX_BYTES];
+    reader
+        .read_exact(&mut prefix)
+        .map_err(|error| FrameError::Io(error.to_string()))?;
+    let declared = u32::from_be_bytes(prefix) as usize;
+    if declared > MAX_FRAME_BYTES {
+        return Err(FrameError::FrameTooLarge(declared));
+    }
+    let mut frame = Vec::with_capacity(FRAME_PREFIX_BYTES + declared);
+    frame.extend_from_slice(&prefix);
+    frame.resize(FRAME_PREFIX_BYTES + declared, 0);
+    reader
+        .read_exact(&mut frame[FRAME_PREFIX_BYTES..])
+        .map_err(|error| FrameError::Io(error.to_string()))?;
+    decode_frame(&frame)
+}
+
+pub fn write_frame(writer: &mut impl Write, envelope: &Envelope) -> Result<(), FrameError> {
+    let frame = encode_frame(envelope)?;
+    writer
+        .write_all(&frame)
+        .map_err(|error| FrameError::Io(error.to_string()))?;
+    writer
+        .flush()
+        .map_err(|error| FrameError::Io(error.to_string()))
 }
 
 fn validate_protocol_version(version: u16) -> Result<(), FrameError> {

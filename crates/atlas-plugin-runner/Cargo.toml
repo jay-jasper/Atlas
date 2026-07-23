@@ -1,0 +1,13 @@
+[package]
+name = "atlas-plugin-runner"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+atlas-plugin-protocol = { path = "../atlas-plugin-protocol" }
+libc = "0.2"
+sha2 = "0.10"
+thiserror = "2"
+
+[dev-dependencies]
+hex = "0.4"

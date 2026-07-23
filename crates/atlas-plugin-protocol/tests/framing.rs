@@ -1,5 +1,6 @@
 use atlas_plugin_protocol::{
-    decode_frame, encode_frame, Envelope, FrameError, Hello, MessageKind, MAX_FRAME_BYTES,
+    decode_frame, encode_frame, read_frame, write_frame, Envelope, FrameError, Hello, MessageKind,
+    MAX_FRAME_BYTES,
 };
 
 #[test]
@@ -20,6 +21,31 @@ fn round_trips_authenticated_hello() {
     let bytes = encode_frame(&envelope).unwrap();
 
     assert_eq!(decode_frame(&bytes).unwrap(), envelope);
+}
+
+#[test]
+fn stream_helpers_preserve_frame_boundaries() {
+    let first = Envelope::new(
+        "plugin",
+        "one",
+        "instance",
+        "request-1",
+        MessageKind::Health,
+    );
+    let second = Envelope::new(
+        "plugin",
+        "two",
+        "instance",
+        "request-2",
+        MessageKind::Shutdown,
+    );
+    let mut stream = Vec::new();
+    write_frame(&mut stream, &first).unwrap();
+    write_frame(&mut stream, &second).unwrap();
+
+    let mut cursor = std::io::Cursor::new(stream);
+    assert_eq!(read_frame(&mut cursor).unwrap(), first);
+    assert_eq!(read_frame(&mut cursor).unwrap(), second);
 }
 
 #[test]

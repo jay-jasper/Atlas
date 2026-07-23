@@ -23,6 +23,7 @@ pub mod manifest;
 pub mod mcp;
 pub mod mcp_transport;
 pub mod registry;
+pub mod runner_client;
 pub mod runtime;
 pub mod ui;
 pub mod wasm_host;
@@ -36,5 +37,6 @@ pub use manifest::{
     Capabilities, ManifestError, PluginManifest, PluginManifestV2, Runtime, RuntimeKind,
 };
 pub use registry::{PluginRegistry, RegistryError};
+pub use runner_client::{RunnerClient, RunnerError, RuntimeLimits};
 pub use runtime::{PluginRuntimeEntry, PluginRuntimeError, PluginRuntimeHost};
 pub use ui::{UiError, UiEvent, UiNode, UiPatch};
