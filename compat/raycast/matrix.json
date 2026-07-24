@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "raycastApi": { "package": "@raycast/api", "version": "1.104.5", "capturedAt": "2026-07-24" },
+  "symbols": [
+    { "name": "List", "status": "adapted", "atlasAlternative": "List" },
+    { "name": "Grid", "status": "adapted", "atlasAlternative": "Grid" },
+    { "name": "Detail", "status": "supported", "atlasAlternative": "Detail" },
+    { "name": "Form", "status": "adapted", "atlasAlternative": "Form" },
+    { "name": "ActionPanel", "status": "supported", "atlasAlternative": "ActionPanel" },
+    { "name": "Action", "status": "adapted", "atlasAlternative": "Action" },
+    { "name": "MenuBarExtra", "status": "adapted", "atlasAlternative": "MenuBarExtra" },
+    { "name": "Clipboard", "status": "supported", "atlasAlternative": "Clipboard" },
+    { "name": "LocalStorage", "status": "supported", "atlasAlternative": "LocalStorage" },
+    { "name": "Cache", "status": "adapted", "atlasAlternative": "Cache" },
+    { "name": "showToast", "status": "adapted", "atlasAlternative": "showToast" },
+    { "name": "showHUD", "status": "supported", "atlasAlternative": "showHUD" },
+    { "name": "confirmAlert", "status": "adapted", "atlasAlternative": "confirmAlert" },
+    { "name": "getPreferenceValues", "status": "supported", "atlasAlternative": "getPreferenceValues" },
+    { "name": "closeMainWindow", "status": "adapted", "atlasAlternative": "closeMainWindow" },
+    { "name": "launchCommand", "status": "adapted", "atlasAlternative": "launchCommand" },
+    { "name": "openExtensionPreferences", "status": "unsupported", "atlasAlternative": "Atlas settings deep link" },
+    { "name": "AI", "status": "unsupported" }
+  ]
+}

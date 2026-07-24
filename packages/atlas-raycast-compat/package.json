@@ -1,0 +1,25 @@
+{
+  "name": "@atlas/raycast-compat",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "pnpm --filter @atlas/react-renderer build && pnpm --filter @atlas/api build && vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@atlas/api": "workspace:*",
+    "react": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.14",
+    "typescript": "5.9.3",
+    "vitest": "3.2.4"
+  }
+}

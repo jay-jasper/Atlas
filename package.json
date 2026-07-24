@@ -1,0 +1,21 @@
+{
+  "name": "atlas-plugin-api-workspace",
+  "private": true,
+  "packageManager": "pnpm@11.8.0",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r --workspace-concurrency=1 test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.11",
+    "@types/react": "19.2.14",
+    "@types/react-test-renderer": "19.1.0",
+    "typescript": "5.9.3",
+    "vitest": "3.2.4"
+  },
+  "dependencies": {
+    "react": "19.2.4",
+    "react-test-renderer": "19.2.4"
+  }
+}
