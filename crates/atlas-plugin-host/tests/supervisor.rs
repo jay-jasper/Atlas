@@ -6,7 +6,7 @@ use atlas_plugin_package::{
     sha256_digest, verify_archive, IntegrityDocument, IntegrityFile, PackageLimits,
     PluginManifestV2, RuntimeKind, TrustedKeyStore, VerifiedPackage,
 };
-use atlas_plugin_protocol::{CommandStart, Envelope, MessageKind};
+use atlas_plugin_protocol::{CapabilityResponse, CommandStart, Envelope, MessageKind};
 use std::collections::BTreeMap;
 use std::io::{Cursor, Write};
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
@@ -44,6 +44,17 @@ impl ManagedRunner for FakeRunner {
     }
 
     fn receive(&mut self) -> Result<Envelope, SupervisorError> {
+        if let Some(sent) = self.sent.lock().unwrap().last().cloned() {
+            if matches!(sent.message, MessageKind::CapabilityResponse(_)) {
+                return Ok(Envelope::new(
+                    sent.plugin_id,
+                    sent.command_id,
+                    sent.instance_id,
+                    sent.request_id,
+                    MessageKind::DispatchComplete,
+                ));
+            }
+        }
         Ok(Envelope::new(
             "fixture",
             "__health",
@@ -61,6 +72,43 @@ impl ManagedRunner for FakeRunner {
         self.running = false;
         self.stops.fetch_add(1, Ordering::SeqCst);
     }
+}
+
+#[test]
+fn capability_response_is_correlated_and_sent_to_the_active_runner() {
+    let launcher = Arc::new(FakeLauncher::new());
+    let sent = Arc::clone(&launcher.sent);
+    let supervisor = PluginSupervisor::new(launcher, Arc::new(TestClock::default()));
+    supervisor
+        .activate_generation(package("dev.example.capability", "1.0.0"))
+        .unwrap();
+    supervisor
+        .start_command(invocation("dev.example.capability", "instance", false))
+        .unwrap();
+
+    let output = supervisor
+        .respond_to_capability(
+            "dev.example.capability",
+            "instance",
+            "host-request",
+            CapabilityResponse {
+                granted: true,
+                payload: br#"{"ok":true}"#.to_vec(),
+                error: None,
+            },
+        )
+        .unwrap();
+
+    assert!(output.is_empty());
+    let sent = sent.lock().unwrap();
+    let response = sent.last().unwrap();
+    assert_eq!(response.command_id, "main");
+    assert_eq!(response.instance_id, "instance");
+    assert_eq!(response.request_id, "host-request");
+    assert!(matches!(
+        response.message,
+        MessageKind::CapabilityResponse(_)
+    ));
 }
 
 struct FakeLauncher {

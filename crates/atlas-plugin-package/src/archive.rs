@@ -62,6 +62,7 @@ pub struct VerifiedPackage {
     manifest: PluginManifestV2,
     trust: TrustTier,
     files: Vec<VerifiedFile>,
+    managed_directory: Option<std::path::PathBuf>,
 }
 
 impl VerifiedPackage {
@@ -83,6 +84,10 @@ impl VerifiedPackage {
 
     pub fn files(&self) -> &[VerifiedFile] {
         &self.files
+    }
+
+    pub fn managed_directory(&self) -> Option<&Path> {
+        self.managed_directory.as_deref()
     }
 }
 
@@ -140,7 +145,7 @@ pub fn verify_archive<R: Read + Seek>(
         files.insert(path, bytes);
     }
 
-    verify_files(files, trusted_keys)
+    verify_files(files, trusted_keys, None)
 }
 
 pub fn verify_directory(
@@ -148,6 +153,47 @@ pub fn verify_directory(
     limits: &PackageLimits,
     trusted_keys: &TrustedKeyStore,
 ) -> Result<VerifiedPackage, PackageError> {
+    let files = read_directory_files(directory, limits)?;
+    let managed_directory = directory
+        .canonicalize()
+        .map_err(|error| PackageError::Archive(error.to_string()))?;
+    verify_files(files, trusted_keys, Some(managed_directory))
+}
+
+pub fn verify_authenticated_directory(
+    directory: &Path,
+    limits: &PackageLimits,
+    expected_root: PackageRoot,
+    expected_plugin_id: &str,
+) -> Result<VerifiedPackage, PackageError> {
+    let files = read_directory_files(directory, limits)?;
+    let (manifest, root) = validate_package_files(&files)?;
+    if root != expected_root {
+        return Err(PackageError::RootMismatch);
+    }
+    if manifest.id != expected_plugin_id {
+        return Err(PackageError::Manifest(
+            "authenticated plugin ID does not match the launch identity".into(),
+        ));
+    }
+    let trust = manifest.trust.unwrap_or(TrustTier::Untrusted);
+    build_verified(
+        files,
+        manifest,
+        root,
+        trust,
+        Some(
+            directory
+                .canonicalize()
+                .map_err(|error| PackageError::Archive(error.to_string()))?,
+        ),
+    )
+}
+
+fn read_directory_files(
+    directory: &Path,
+    limits: &PackageLimits,
+) -> Result<BTreeMap<String, Vec<u8>>, PackageError> {
     let mut files = BTreeMap::new();
     let mut expanded_bytes = 0_u64;
     for entry in walkdir::WalkDir::new(directory).follow_links(false) {
@@ -201,14 +247,24 @@ pub fn verify_directory(
             return Err(PackageError::DuplicatePath(path));
         }
     }
-    verify_files(files, trusted_keys)
+    Ok(files)
 }
 
 fn verify_files(
     files: BTreeMap<String, Vec<u8>>,
     trusted_keys: &TrustedKeyStore,
+    managed_directory: Option<std::path::PathBuf>,
 ) -> Result<VerifiedPackage, PackageError> {
-    let manifest_bytes = required(&files, MANIFEST_PATH)?;
+    let (manifest, root) = validate_package_files(&files)?;
+    let trust = verify_trust(&files, root, &manifest, trusted_keys)?;
+    validate_runtime_trust(manifest.runtime, trust)?;
+    build_verified(files, manifest, root, trust, managed_directory)
+}
+
+fn validate_package_files(
+    files: &BTreeMap<String, Vec<u8>>,
+) -> Result<(PluginManifestV2, PackageRoot), PackageError> {
+    let manifest_bytes = required(files, MANIFEST_PATH)?;
     let manifest: PluginManifestV2 = toml::from_str(
         std::str::from_utf8(manifest_bytes)
             .map_err(|error| PackageError::Manifest(error.to_string()))?,
@@ -216,7 +272,7 @@ fn verify_files(
     .map_err(|error| PackageError::Manifest(error.to_string()))?;
     validate_manifest(&manifest)?;
 
-    let integrity: IntegrityDocument = serde_json::from_slice(required(&files, INTEGRITY_PATH)?)
+    let integrity: IntegrityDocument = serde_json::from_slice(required(files, INTEGRITY_PATH)?)
         .map_err(|error| PackageError::Integrity(error.to_string()))?;
     if integrity.version != 1 {
         return Err(PackageError::Integrity(format!(
@@ -224,15 +280,22 @@ fn verify_files(
             integrity.version
         )));
     }
-    let root = verify_integrity(&files, &integrity)?;
-    validate_permissions(&files, &manifest)?;
+    let root = verify_integrity(files, &integrity)?;
+    validate_permissions(files, &manifest)?;
     if !files.contains_key(&manifest.entrypoint) {
         return Err(PackageError::MissingEntrypoint(manifest.entrypoint.clone()));
     }
 
-    let trust = verify_trust(&files, root, &manifest, trusted_keys)?;
-    validate_runtime_trust(manifest.runtime, trust)?;
+    Ok((manifest, root))
+}
 
+fn build_verified(
+    files: BTreeMap<String, Vec<u8>>,
+    manifest: PluginManifestV2,
+    root: PackageRoot,
+    trust: TrustTier,
+    managed_directory: Option<std::path::PathBuf>,
+) -> Result<VerifiedPackage, PackageError> {
     let verified_files = files
         .into_iter()
         .map(|(path, bytes)| VerifiedFile {
@@ -246,6 +309,7 @@ fn verify_files(
         manifest,
         trust,
         files: verified_files,
+        managed_directory,
     })
 }
 

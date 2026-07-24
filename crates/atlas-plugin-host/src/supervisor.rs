@@ -1,7 +1,10 @@
 use crate::limits::{LimitError, LimitTracker, RuntimeLimits};
 use crate::runner_client::RunnerClient;
 use atlas_plugin_package::VerifiedPackage;
-use atlas_plugin_protocol::{CommandStart, Envelope, MessageKind, ResourceMetric};
+use atlas_plugin_protocol::{
+    CapabilityResponse, CommandStart, Envelope, MessageKind, ResourceMetric,
+};
+use atlas_ui_schema::UiEvent;
 use std::collections::{HashMap, VecDeque};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -11,6 +14,7 @@ use std::time::{Duration, Instant};
 const BREAKER_WINDOW: Duration = Duration::from_secs(10 * 60);
 const BREAKER_FAILURES: usize = 3;
 const STARTUP_FAILURES_TO_DISABLE: u8 = 2;
+const MAX_DISPATCH_MESSAGES: usize = 512;
 
 pub trait Clock: Send + Sync {
     fn now(&self) -> Duration;
@@ -173,6 +177,8 @@ pub enum SupervisorError {
     OutcomeUnknown,
     #[error("plugin writes are frozen for package migration")]
     WritesFrozen,
+    #[error("Runner protocol violation: {0}")]
+    Protocol(String),
 }
 
 struct RunnerGeneration {
@@ -380,6 +386,83 @@ impl PluginSupervisor {
         Ok(handle)
     }
 
+    pub fn start_command_and_collect(
+        &self,
+        invocation: CommandInvocation,
+    ) -> Result<(CommandHandle, Vec<MessageKind>), SupervisorError> {
+        let handle = self.start_command(invocation)?;
+        let output = self.collect_dispatch(&handle.plugin_id, &handle.instance_id)?;
+        Ok((handle, output))
+    }
+
+    pub fn send_ui_event(
+        &self,
+        plugin_id: &str,
+        instance_id: &str,
+        event: UiEvent,
+    ) -> Result<Vec<MessageKind>, SupervisorError> {
+        let state = self
+            .plugin_state(plugin_id)?
+            .ok_or_else(|| SupervisorError::PluginNotActive(plugin_id.into()))?;
+        let mut state = state.lock().map_err(|_| SupervisorError::LockPoisoned)?;
+        let (generation_id, command_id) = state
+            .commands
+            .get(instance_id)
+            .map(|command| (command.generation, command.invocation.command_id.clone()))
+            .ok_or_else(|| SupervisorError::CommandNotFound(instance_id.into()))?;
+        let generation = state
+            .generation_mut(generation_id)
+            .ok_or_else(|| SupervisorError::PluginNotActive(plugin_id.into()))?;
+        let request_id = format!("event-{instance_id}-{}", self.clock.now().as_nanos());
+        generation.runner.send(&Envelope::new(
+            plugin_id,
+            &command_id,
+            instance_id,
+            &request_id,
+            MessageKind::UiEvent(event),
+        ))?;
+        collect_dispatch_from_runner(
+            generation.runner.as_mut(),
+            plugin_id,
+            instance_id,
+            &request_id,
+        )
+    }
+
+    pub fn respond_to_capability(
+        &self,
+        plugin_id: &str,
+        instance_id: &str,
+        request_id: &str,
+        response: CapabilityResponse,
+    ) -> Result<Vec<MessageKind>, SupervisorError> {
+        let state = self
+            .plugin_state(plugin_id)?
+            .ok_or_else(|| SupervisorError::PluginNotActive(plugin_id.into()))?;
+        let mut state = state.lock().map_err(|_| SupervisorError::LockPoisoned)?;
+        let (generation_id, command_id) = state
+            .commands
+            .get(instance_id)
+            .map(|command| (command.generation, command.invocation.command_id.clone()))
+            .ok_or_else(|| SupervisorError::CommandNotFound(instance_id.into()))?;
+        let generation = state
+            .generation_mut(generation_id)
+            .ok_or_else(|| SupervisorError::PluginNotActive(plugin_id.into()))?;
+        generation.runner.send(&Envelope::new(
+            plugin_id,
+            &command_id,
+            instance_id,
+            request_id,
+            MessageKind::CapabilityResponse(response),
+        ))?;
+        collect_dispatch_from_runner(
+            generation.runner.as_mut(),
+            plugin_id,
+            instance_id,
+            request_id,
+        )
+    }
+
     pub fn cancel(&self, plugin_id: &str, instance_id: &str) -> Result<(), SupervisorError> {
         let state = self
             .plugin_state(plugin_id)?
@@ -406,6 +489,42 @@ impl PluginSupervisor {
         state.commands.remove(instance_id);
         state.retire_unused();
         Ok(())
+    }
+
+    pub fn cancel_and_collect(
+        &self,
+        plugin_id: &str,
+        instance_id: &str,
+    ) -> Result<Vec<MessageKind>, SupervisorError> {
+        let state = self
+            .plugin_state(plugin_id)?
+            .ok_or_else(|| SupervisorError::PluginNotActive(plugin_id.into()))?;
+        let mut state = state.lock().map_err(|_| SupervisorError::LockPoisoned)?;
+        let generation_id = state
+            .commands
+            .get(instance_id)
+            .ok_or_else(|| SupervisorError::CommandNotFound(instance_id.into()))?
+            .generation;
+        let request_id = format!("cancel-{instance_id}");
+        let generation = state
+            .generation_mut(generation_id)
+            .ok_or_else(|| SupervisorError::PluginNotActive(plugin_id.into()))?;
+        generation.runner.send(&Envelope::new(
+            plugin_id,
+            "__cancel",
+            instance_id,
+            &request_id,
+            MessageKind::Cancel,
+        ))?;
+        let output = collect_dispatch_from_runner(
+            generation.runner.as_mut(),
+            plugin_id,
+            instance_id,
+            &request_id,
+        )?;
+        state.commands.remove(instance_id);
+        state.retire_unused();
+        Ok(output)
     }
 
     pub fn mark_write_started(
@@ -773,6 +892,36 @@ impl PluginSupervisor {
         )
     }
 
+    fn collect_dispatch(
+        &self,
+        plugin_id: &str,
+        instance_id: &str,
+    ) -> Result<Vec<MessageKind>, SupervisorError> {
+        let state = self
+            .plugin_state(plugin_id)?
+            .ok_or_else(|| SupervisorError::PluginNotActive(plugin_id.into()))?;
+        let mut state = state.lock().map_err(|_| SupervisorError::LockPoisoned)?;
+        let (generation_id, request_id) = state
+            .commands
+            .get(instance_id)
+            .map(|command| {
+                (
+                    command.generation,
+                    format!("start-{}", command.invocation.instance_id),
+                )
+            })
+            .ok_or_else(|| SupervisorError::CommandNotFound(instance_id.into()))?;
+        let generation = state
+            .generation_mut(generation_id)
+            .ok_or_else(|| SupervisorError::PluginNotActive(plugin_id.into()))?;
+        collect_dispatch_from_runner(
+            generation.runner.as_mut(),
+            plugin_id,
+            instance_id,
+            &request_id,
+        )
+    }
+
     fn with_command_mut(
         &self,
         plugin_id: &str,
@@ -864,4 +1013,31 @@ fn verify_health(runner: &mut dyn ManagedRunner, plugin_id: &str) -> Result<(), 
             "Runner failed its activation health check".into(),
         ))
     }
+}
+
+fn collect_dispatch_from_runner(
+    runner: &mut dyn ManagedRunner,
+    plugin_id: &str,
+    instance_id: &str,
+    request_id: &str,
+) -> Result<Vec<MessageKind>, SupervisorError> {
+    let mut output = Vec::new();
+    for _ in 0..MAX_DISPATCH_MESSAGES {
+        let envelope = runner.receive()?;
+        if envelope.plugin_id != plugin_id
+            || envelope.instance_id != instance_id
+            || envelope.request_id != request_id
+        {
+            return Err(SupervisorError::Protocol(
+                "Runner response identity does not match the dispatch".into(),
+            ));
+        }
+        if matches!(envelope.message, MessageKind::DispatchComplete) {
+            return Ok(output);
+        }
+        output.push(envelope.message);
+    }
+    Err(SupervisorError::Protocol(format!(
+        "Runner emitted more than {MAX_DISPATCH_MESSAGES} messages for one dispatch"
+    )))
 }

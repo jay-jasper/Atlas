@@ -1650,6 +1650,118 @@ public func FfiConverterTypeNoteMeta_lower(_ value: NoteMeta) -> RustBuffer {
 }
 
 
+public struct PluginCapabilityGrant: Equatable, Hashable {
+    public var capability: String
+    public var target: String?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(capability: String, target: String?) {
+        self.capability = capability
+        self.target = target
+    }
+
+
+}
+
+#if compiler(>=6)
+extension PluginCapabilityGrant: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypePluginCapabilityGrant: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PluginCapabilityGrant {
+        return
+            try PluginCapabilityGrant(
+                capability: FfiConverterString.read(from: &buf),
+                target: FfiConverterOptionString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: PluginCapabilityGrant, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.capability, into: &buf)
+        FfiConverterOptionString.write(value.target, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginCapabilityGrant_lift(_ buf: RustBuffer) throws -> PluginCapabilityGrant {
+    return try FfiConverterTypePluginCapabilityGrant.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginCapabilityGrant_lower(_ value: PluginCapabilityGrant) -> RustBuffer {
+    return FfiConverterTypePluginCapabilityGrant.lower(value)
+}
+
+
+public struct PluginDiagnosticRecord: Equatable, Hashable {
+    public var pluginId: String
+    public var json: String
+    public var eventCount: UInt64
+    public var encodedBytes: UInt64
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(pluginId: String, json: String, eventCount: UInt64, encodedBytes: UInt64) {
+        self.pluginId = pluginId
+        self.json = json
+        self.eventCount = eventCount
+        self.encodedBytes = encodedBytes
+    }
+
+
+}
+
+#if compiler(>=6)
+extension PluginDiagnosticRecord: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypePluginDiagnosticRecord: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PluginDiagnosticRecord {
+        return
+            try PluginDiagnosticRecord(
+                pluginId: FfiConverterString.read(from: &buf),
+                json: FfiConverterString.read(from: &buf),
+                eventCount: FfiConverterUInt64.read(from: &buf),
+                encodedBytes: FfiConverterUInt64.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: PluginDiagnosticRecord, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.pluginId, into: &buf)
+        FfiConverterString.write(value.json, into: &buf)
+        FfiConverterUInt64.write(value.eventCount, into: &buf)
+        FfiConverterUInt64.write(value.encodedBytes, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginDiagnosticRecord_lift(_ buf: RustBuffer) throws -> PluginDiagnosticRecord {
+    return try FfiConverterTypePluginDiagnosticRecord.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginDiagnosticRecord_lower(_ value: PluginDiagnosticRecord) -> RustBuffer {
+    return FfiConverterTypePluginDiagnosticRecord.lower(value)
+}
+
+
 public struct PluginEntry: Equatable, Hashable {
     public var id: String
     public var name: String
@@ -1711,6 +1823,78 @@ public func FfiConverterTypePluginEntry_lift(_ buf: RustBuffer) throws -> Plugin
 #endif
 public func FfiConverterTypePluginEntry_lower(_ value: PluginEntry) -> RustBuffer {
     return FfiConverterTypePluginEntry.lower(value)
+}
+
+
+public struct PluginHostEvent: Equatable, Hashable {
+    public var kind: PluginHostEventKind
+    public var pluginId: String
+    public var commandId: String?
+    public var instanceId: String?
+    public var sessionId: String?
+    public var requestId: String?
+    public var payloadJson: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(kind: PluginHostEventKind, pluginId: String, commandId: String?, instanceId: String?, sessionId: String?, requestId: String?, payloadJson: String) {
+        self.kind = kind
+        self.pluginId = pluginId
+        self.commandId = commandId
+        self.instanceId = instanceId
+        self.sessionId = sessionId
+        self.requestId = requestId
+        self.payloadJson = payloadJson
+    }
+
+
+}
+
+#if compiler(>=6)
+extension PluginHostEvent: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypePluginHostEvent: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PluginHostEvent {
+        return
+            try PluginHostEvent(
+                kind: FfiConverterTypePluginHostEventKind.read(from: &buf),
+                pluginId: FfiConverterString.read(from: &buf),
+                commandId: FfiConverterOptionString.read(from: &buf),
+                instanceId: FfiConverterOptionString.read(from: &buf),
+                sessionId: FfiConverterOptionString.read(from: &buf),
+                requestId: FfiConverterOptionString.read(from: &buf),
+                payloadJson: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: PluginHostEvent, into buf: inout [UInt8]) {
+        FfiConverterTypePluginHostEventKind.write(value.kind, into: &buf)
+        FfiConverterString.write(value.pluginId, into: &buf)
+        FfiConverterOptionString.write(value.commandId, into: &buf)
+        FfiConverterOptionString.write(value.instanceId, into: &buf)
+        FfiConverterOptionString.write(value.sessionId, into: &buf)
+        FfiConverterOptionString.write(value.requestId, into: &buf)
+        FfiConverterString.write(value.payloadJson, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginHostEvent_lift(_ buf: RustBuffer) throws -> PluginHostEvent {
+    return try FfiConverterTypePluginHostEvent.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginHostEvent_lower(_ value: PluginHostEvent) -> RustBuffer {
+    return FfiConverterTypePluginHostEvent.lower(value)
 }
 
 
@@ -1790,6 +1974,158 @@ public func FfiConverterTypePluginInstallPreview_lift(_ buf: RustBuffer) throws 
 #endif
 public func FfiConverterTypePluginInstallPreview_lower(_ value: PluginInstallPreview) -> RustBuffer {
     return FfiConverterTypePluginInstallPreview.lower(value)
+}
+
+
+public struct PluginStageResult: Equatable, Hashable {
+    public var stageId: String
+    public var pluginId: String
+    public var name: String
+    public var version: String
+    public var publisher: String
+    public var packageRoot: String
+    public var state: PluginStageState
+    public var requestedCapabilities: [String]
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(stageId: String, pluginId: String, name: String, version: String, publisher: String, packageRoot: String, state: PluginStageState, requestedCapabilities: [String]) {
+        self.stageId = stageId
+        self.pluginId = pluginId
+        self.name = name
+        self.version = version
+        self.publisher = publisher
+        self.packageRoot = packageRoot
+        self.state = state
+        self.requestedCapabilities = requestedCapabilities
+    }
+
+
+}
+
+#if compiler(>=6)
+extension PluginStageResult: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypePluginStageResult: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PluginStageResult {
+        return
+            try PluginStageResult(
+                stageId: FfiConverterString.read(from: &buf),
+                pluginId: FfiConverterString.read(from: &buf),
+                name: FfiConverterString.read(from: &buf),
+                version: FfiConverterString.read(from: &buf),
+                publisher: FfiConverterString.read(from: &buf),
+                packageRoot: FfiConverterString.read(from: &buf),
+                state: FfiConverterTypePluginStageState.read(from: &buf),
+                requestedCapabilities: FfiConverterSequenceString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: PluginStageResult, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.stageId, into: &buf)
+        FfiConverterString.write(value.pluginId, into: &buf)
+        FfiConverterString.write(value.name, into: &buf)
+        FfiConverterString.write(value.version, into: &buf)
+        FfiConverterString.write(value.publisher, into: &buf)
+        FfiConverterString.write(value.packageRoot, into: &buf)
+        FfiConverterTypePluginStageState.write(value.state, into: &buf)
+        FfiConverterSequenceString.write(value.requestedCapabilities, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginStageResult_lift(_ buf: RustBuffer) throws -> PluginStageResult {
+    return try FfiConverterTypePluginStageResult.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginStageResult_lower(_ value: PluginStageResult) -> RustBuffer {
+    return FfiConverterTypePluginStageResult.lower(value)
+}
+
+
+public struct PluginStatusRecord: Equatable, Hashable {
+    public var pluginId: String
+    public var version: String
+    public var publisher: String
+    public var packageRoot: String
+    public var trustTier: String
+    public var grantedCapabilities: [String]
+    public var deniedCapabilities: [String]
+    public var observingUpdate: Bool
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(pluginId: String, version: String, publisher: String, packageRoot: String, trustTier: String, grantedCapabilities: [String], deniedCapabilities: [String], observingUpdate: Bool) {
+        self.pluginId = pluginId
+        self.version = version
+        self.publisher = publisher
+        self.packageRoot = packageRoot
+        self.trustTier = trustTier
+        self.grantedCapabilities = grantedCapabilities
+        self.deniedCapabilities = deniedCapabilities
+        self.observingUpdate = observingUpdate
+    }
+
+
+}
+
+#if compiler(>=6)
+extension PluginStatusRecord: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypePluginStatusRecord: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PluginStatusRecord {
+        return
+            try PluginStatusRecord(
+                pluginId: FfiConverterString.read(from: &buf),
+                version: FfiConverterString.read(from: &buf),
+                publisher: FfiConverterString.read(from: &buf),
+                packageRoot: FfiConverterString.read(from: &buf),
+                trustTier: FfiConverterString.read(from: &buf),
+                grantedCapabilities: FfiConverterSequenceString.read(from: &buf),
+                deniedCapabilities: FfiConverterSequenceString.read(from: &buf),
+                observingUpdate: FfiConverterBool.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: PluginStatusRecord, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.pluginId, into: &buf)
+        FfiConverterString.write(value.version, into: &buf)
+        FfiConverterString.write(value.publisher, into: &buf)
+        FfiConverterString.write(value.packageRoot, into: &buf)
+        FfiConverterString.write(value.trustTier, into: &buf)
+        FfiConverterSequenceString.write(value.grantedCapabilities, into: &buf)
+        FfiConverterSequenceString.write(value.deniedCapabilities, into: &buf)
+        FfiConverterBool.write(value.observingUpdate, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginStatusRecord_lift(_ buf: RustBuffer) throws -> PluginStatusRecord {
+    return try FfiConverterTypePluginStatusRecord.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginStatusRecord_lower(_ value: PluginStatusRecord) -> RustBuffer {
+    return FfiConverterTypePluginStatusRecord.lower(value)
 }
 
 
@@ -2591,6 +2927,113 @@ public func FfiConverterTypeFocusPhase_lower(_ value: FocusPhase) -> RustBuffer 
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
+public enum PluginHostEventKind: Equatable, Hashable {
+
+    case consentRequired
+    case statusChanged
+    case uiOpen
+    case uiPatch
+    case uiClose
+    case hostRequest
+    case diagnostic
+    case error
+
+
+
+}
+
+#if compiler(>=6)
+extension PluginHostEventKind: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypePluginHostEventKind: FfiConverterRustBuffer {
+    typealias SwiftType = PluginHostEventKind
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PluginHostEventKind {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        case 1: return .consentRequired
+
+        case 2: return .statusChanged
+
+        case 3: return .uiOpen
+
+        case 4: return .uiPatch
+
+        case 5: return .uiClose
+
+        case 6: return .hostRequest
+
+        case 7: return .diagnostic
+
+        case 8: return .error
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: PluginHostEventKind, into buf: inout [UInt8]) {
+        switch value {
+
+
+        case .consentRequired:
+            writeInt(&buf, Int32(1))
+
+
+        case .statusChanged:
+            writeInt(&buf, Int32(2))
+
+
+        case .uiOpen:
+            writeInt(&buf, Int32(3))
+
+
+        case .uiPatch:
+            writeInt(&buf, Int32(4))
+
+
+        case .uiClose:
+            writeInt(&buf, Int32(5))
+
+
+        case .hostRequest:
+            writeInt(&buf, Int32(6))
+
+
+        case .diagnostic:
+            writeInt(&buf, Int32(7))
+
+
+        case .error:
+            writeInt(&buf, Int32(8))
+
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginHostEventKind_lift(_ buf: RustBuffer) throws -> PluginHostEventKind {
+    return try FfiConverterTypePluginHostEventKind.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginHostEventKind_lower(_ value: PluginHostEventKind) -> RustBuffer {
+    return FfiConverterTypePluginHostEventKind.lower(value)
+}
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
 public enum PluginRuntime: Equatable, Hashable {
 
     case wasm
@@ -2657,6 +3100,71 @@ public func FfiConverterTypePluginRuntime_lift(_ buf: RustBuffer) throws -> Plug
 #endif
 public func FfiConverterTypePluginRuntime_lower(_ value: PluginRuntime) -> RustBuffer {
     return FfiConverterTypePluginRuntime.lower(value)
+}
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum PluginStageState: Equatable, Hashable {
+
+    case awaitingConsent
+    case ready
+
+
+
+}
+
+#if compiler(>=6)
+extension PluginStageState: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypePluginStageState: FfiConverterRustBuffer {
+    typealias SwiftType = PluginStageState
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PluginStageState {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        case 1: return .awaitingConsent
+
+        case 2: return .ready
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: PluginStageState, into buf: inout [UInt8]) {
+        switch value {
+
+
+        case .awaitingConsent:
+            writeInt(&buf, Int32(1))
+
+
+        case .ready:
+            writeInt(&buf, Int32(2))
+
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginStageState_lift(_ buf: RustBuffer) throws -> PluginStageState {
+    return try FfiConverterTypePluginStageState.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypePluginStageState_lower(_ value: PluginStageState) -> RustBuffer {
+    return FfiConverterTypePluginStageState.lower(value)
 }
 
 
@@ -2838,6 +3346,130 @@ public func FfiConverterCallbackInterfaceAiChatStreamDelegate_lift(_ handle: UIn
 #endif
 public func FfiConverterCallbackInterfaceAiChatStreamDelegate_lower(_ v: AiChatStreamDelegate) -> UInt64 {
     return FfiConverterCallbackInterfaceAiChatStreamDelegate.lower(v)
+}
+
+
+
+
+public protocol PluginPlatformCallback: AnyObject, Sendable {
+
+    func onPluginEvent(event: PluginHostEvent)
+
+}
+
+
+// Put the implementation in a struct so we don't pollute the top-level namespace
+fileprivate struct UniffiCallbackInterfacePluginPlatformCallback {
+
+    // Create the VTable using a series of closures.
+    // Swift automatically converts these into C callback functions.
+    //
+    // This creates 1-element array, since this seems to be the only way to construct a const
+    // pointer that we can pass to the Rust code.
+    static let vtable: [UniffiVTableCallbackInterfacePluginPlatformCallback] = [UniffiVTableCallbackInterfacePluginPlatformCallback(
+        uniffiFree: { (uniffiHandle: UInt64) -> () in
+            do {
+                try FfiConverterCallbackInterfacePluginPlatformCallback.handleMap.remove(handle: uniffiHandle)
+            } catch {
+                print("Uniffi callback interface PluginPlatformCallback: handle missing in uniffiFree")
+            }
+        },
+        uniffiClone: { (uniffiHandle: UInt64) -> UInt64 in
+            do {
+                return try FfiConverterCallbackInterfacePluginPlatformCallback.handleMap.clone(handle: uniffiHandle)
+            } catch {
+                fatalError("Uniffi callback interface PluginPlatformCallback: handle missing in uniffiClone")
+            }
+        },
+        onPluginEvent: { (
+            uniffiHandle: UInt64,
+            event: RustBuffer,
+            uniffiOutReturn: UnsafeMutableRawPointer,
+            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+        ) in
+            let makeCall = {
+                () throws -> () in
+                guard let uniffiObj = try? FfiConverterCallbackInterfacePluginPlatformCallback.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return uniffiObj.onPluginEvent(
+                     event: try FfiConverterTypePluginHostEvent_lift(event)
+                )
+            }
+
+
+            let writeReturn = { () }
+            uniffiTraitInterfaceCall(
+                callStatus: uniffiCallStatus,
+                makeCall: makeCall,
+                writeReturn: writeReturn
+            )
+        }
+    )]
+}
+
+private func uniffiCallbackInitPluginPlatformCallback() {
+    uniffi_atlas_ffi_fn_init_callback_vtable_pluginplatformcallback(UniffiCallbackInterfacePluginPlatformCallback.vtable)
+}
+
+// FfiConverter protocol for callback interfaces
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterCallbackInterfacePluginPlatformCallback {
+    fileprivate static let handleMap = UniffiHandleMap<PluginPlatformCallback>()
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+extension FfiConverterCallbackInterfacePluginPlatformCallback : FfiConverter {
+    typealias SwiftType = PluginPlatformCallback
+    typealias FfiType = UInt64
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public static func lift(_ handle: UInt64) throws -> SwiftType {
+        try handleMap.get(handle: handle)
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public static func lower(_ v: SwiftType) -> UInt64 {
+        return handleMap.insert(obj: v)
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public static func write(_ v: SwiftType, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(v))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterCallbackInterfacePluginPlatformCallback_lift(_ handle: UInt64) throws -> PluginPlatformCallback {
+    return try FfiConverterCallbackInterfacePluginPlatformCallback.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterCallbackInterfacePluginPlatformCallback_lower(_ v: PluginPlatformCallback) -> UInt64 {
+    return FfiConverterCallbackInterfacePluginPlatformCallback.lower(v)
 }
 
 
@@ -3461,6 +4093,31 @@ fileprivate struct FfiConverterSequenceTypeNoteMeta: FfiConverterRustBuffer {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterSequenceTypePluginCapabilityGrant: FfiConverterRustBuffer {
+    typealias SwiftType = [PluginCapabilityGrant]
+
+    public static func write(_ value: [PluginCapabilityGrant], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypePluginCapabilityGrant.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [PluginCapabilityGrant] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [PluginCapabilityGrant]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypePluginCapabilityGrant.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypePluginEntry: FfiConverterRustBuffer {
     typealias SwiftType = [PluginEntry]
 
@@ -3478,6 +4135,31 @@ fileprivate struct FfiConverterSequenceTypePluginEntry: FfiConverterRustBuffer {
         seq.reserveCapacity(Int(len))
         for _ in 0 ..< len {
             seq.append(try FfiConverterTypePluginEntry.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceTypePluginStatusRecord: FfiConverterRustBuffer {
+    typealias SwiftType = [PluginStatusRecord]
+
+    public static func write(_ value: [PluginStatusRecord], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypePluginStatusRecord.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [PluginStatusRecord] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [PluginStatusRecord]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypePluginStatusRecord.read(from: &buf))
         }
         return seq
     }
@@ -3945,6 +4627,102 @@ public func notesTogglePin(id: String)throws  -> Bool  {
     )
 })
 }
+public func pluginApplyGrants(stageId: String, grants: [PluginCapabilityGrant])throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_apply_grants(
+        FfiConverterString.lower(stageId),
+        FfiConverterSequenceTypePluginCapabilityGrant.lower(grants),$0
+    )
+}
+}
+public func pluginCancelCommand(pluginId: String, instanceId: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_cancel_command(
+        FfiConverterString.lower(pluginId),
+        FfiConverterString.lower(instanceId),$0
+    )
+}
+}
+public func pluginClearData(pluginId: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_clear_data(
+        FfiConverterString.lower(pluginId),$0
+    )
+}
+}
+public func pluginExportDiagnostics(pluginId: String)throws  -> PluginDiagnosticRecord  {
+    return try  FfiConverterTypePluginDiagnosticRecord_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_export_diagnostics(
+        FfiConverterString.lower(pluginId),$0
+    )
+})
+}
+public func pluginPlatformStart(callback: PluginPlatformCallback)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_platform_start(
+        FfiConverterCallbackInterfacePluginPlatformCallback_lower(callback),$0
+    )
+}
+}
+public func pluginPlatformStatuses()throws  -> [PluginStatusRecord]  {
+    return try  FfiConverterSequenceTypePluginStatusRecord.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_platform_statuses($0
+    )
+})
+}
+public func pluginPlatformUninstall(pluginId: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_platform_uninstall(
+        FfiConverterString.lower(pluginId),$0
+    )
+}
+}
+public func pluginReportObservationFailure(pluginId: String)throws  -> Bool  {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_report_observation_failure(
+        FfiConverterString.lower(pluginId),$0
+    )
+})
+}
+public func pluginRespondToHostRequest(requestId: String, responseJson: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_respond_to_host_request(
+        FfiConverterString.lower(requestId),
+        FfiConverterString.lower(responseJson),$0
+    )
+}
+}
+public func pluginRollback(pluginId: String, clearIncompatibleData: Bool)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_rollback(
+        FfiConverterString.lower(pluginId),
+        FfiConverterBool.lower(clearIncompatibleData),$0
+    )
+}
+}
+public func pluginSendUiEvent(pluginId: String, instanceId: String, eventJson: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_send_ui_event(
+        FfiConverterString.lower(pluginId),
+        FfiConverterString.lower(instanceId),
+        FfiConverterString.lower(eventJson),$0
+    )
+}
+}
+public func pluginStagePackage(packageBytes: [UInt8])throws  -> PluginStageResult  {
+    return try  FfiConverterTypePluginStageResult_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_stage_package(
+        FfiConverterSequenceUInt8.lower(packageBytes),$0
+    )
+})
+}
+public func pluginStartCommand(pluginId: String, commandId: String, argumentsJson: String)throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_start_command(
+        FfiConverterString.lower(pluginId),
+        FfiConverterString.lower(commandId),
+        FfiConverterString.lower(argumentsJson),$0
+    )
+})
+}
+public func pluginStop(pluginId: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_stop(
+        FfiConverterString.lower(pluginId),$0
+    )
+}
+}
 public func startMonitoring(callback: SystemMonitorCallback)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_start_monitoring(
         FfiConverterCallbackInterfaceSystemMonitorCallback_lower(callback),$0
@@ -4166,6 +4944,48 @@ private let initializationResult: InitializationResult = {
     if (uniffi_atlas_ffi_checksum_func_notes_toggle_pin() != 45524) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_atlas_ffi_checksum_func_plugin_apply_grants() != 14922) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_cancel_command() != 6144) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_clear_data() != 56031) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_export_diagnostics() != 12264) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_platform_start() != 43828) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_platform_statuses() != 2311) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_platform_uninstall() != 38576) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_report_observation_failure() != 10681) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_respond_to_host_request() != 56535) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_rollback() != 54393) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_send_ui_event() != 57830) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_stage_package() != 57540) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_start_command() != 15284) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_stop() != 32822) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_atlas_ffi_checksum_func_start_monitoring() != 53253) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -4196,11 +5016,15 @@ private let initializationResult: InitializationResult = {
     if (uniffi_atlas_ffi_checksum_method_aichatstreamdelegate_on_error() != 11157) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_atlas_ffi_checksum_method_pluginplatformcallback_on_plugin_event() != 52347) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_atlas_ffi_checksum_method_systemmonitorcallback_on_snapshot() != 29966) {
         return InitializationResult.apiChecksumMismatch
     }
 
     uniffiCallbackInitAiChatStreamDelegate()
+    uniffiCallbackInitPluginPlatformCallback()
     uniffiCallbackInitSystemMonitorCallback()
     return InitializationResult.ok
 }()

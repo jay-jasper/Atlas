@@ -8,6 +8,8 @@
 #![allow(clippy::empty_line_after_doc_comments)]
 
 use atlas_core::AtlasCore;
+#[cfg(feature = "executable-plugins")]
+use atlas_plugin_host::PackageLifecycle;
 use once_cell::sync::Lazy;
 #[cfg(feature = "executable-plugins")]
 use once_cell::sync::OnceCell;
@@ -24,7 +26,11 @@ static CORE: Lazy<Mutex<AtlasCore>> = Lazy::new(|| Mutex::new(AtlasCore::new()))
 static PLUGIN_HOST: Lazy<Mutex<atlas_plugin_host::PluginRuntimeHost>> =
     Lazy::new(|| Mutex::new(atlas_plugin_host::PluginRuntimeHost::new()));
 #[cfg(feature = "executable-plugins")]
-static PLUGIN_STORAGE: OnceCell<atlas_plugin_host::PluginStorage> = OnceCell::new();
+static PLUGIN_STORAGE: OnceCell<Arc<atlas_plugin_host::PluginStorage>> = OnceCell::new();
+#[cfg(feature = "executable-plugins")]
+static PLUGIN_STORAGE_ROOT: OnceCell<std::path::PathBuf> = OnceCell::new();
+#[cfg(feature = "executable-plugins")]
+static PLUGIN_PLATFORM: Lazy<Mutex<Option<PluginPlatform>>> = Lazy::new(|| Mutex::new(None));
 
 /// Control the monitoring background task.
 static MONITOR_HANDLE: Lazy<Mutex<Option<JoinHandle<()>>>> = Lazy::new(|| Mutex::new(None));
@@ -104,6 +110,97 @@ pub struct PluginInstallPreview {
     pub webview: bool,
     pub webview_bridge: bool,
     pub exposed_tools: Vec<String>,
+}
+
+pub enum PluginStageState {
+    AwaitingConsent,
+    Ready,
+}
+
+pub struct PluginCapabilityGrant {
+    pub capability: String,
+    pub target: Option<String>,
+}
+
+pub struct PluginStageResult {
+    pub stage_id: String,
+    pub plugin_id: String,
+    pub name: String,
+    pub version: String,
+    pub publisher: String,
+    pub package_root: String,
+    pub state: PluginStageState,
+    pub requested_capabilities: Vec<String>,
+}
+
+pub enum PluginHostEventKind {
+    ConsentRequired,
+    StatusChanged,
+    UiOpen,
+    UiPatch,
+    UiClose,
+    HostRequest,
+    Diagnostic,
+    Error,
+}
+
+pub struct PluginHostEvent {
+    pub kind: PluginHostEventKind,
+    pub plugin_id: String,
+    pub command_id: Option<String>,
+    pub instance_id: Option<String>,
+    pub session_id: Option<String>,
+    pub request_id: Option<String>,
+    pub payload_json: String,
+}
+
+pub trait PluginPlatformCallback: Send + Sync {
+    fn on_plugin_event(&self, event: PluginHostEvent);
+}
+
+pub struct PluginStatusRecord {
+    pub plugin_id: String,
+    pub version: String,
+    pub publisher: String,
+    pub package_root: String,
+    pub trust_tier: String,
+    pub granted_capabilities: Vec<String>,
+    pub denied_capabilities: Vec<String>,
+    pub observing_update: bool,
+}
+
+pub struct PluginDiagnosticRecord {
+    pub plugin_id: String,
+    pub json: String,
+    pub event_count: u64,
+    pub encoded_bytes: u64,
+}
+
+#[cfg(feature = "executable-plugins")]
+#[derive(Clone)]
+struct PendingPluginStage {
+    package: atlas_plugin_package::VerifiedPackage,
+    is_update: bool,
+}
+
+#[cfg(feature = "executable-plugins")]
+struct PendingHostRequest {
+    plugin_id: String,
+    command_id: String,
+    instance_id: String,
+}
+
+#[cfg(feature = "executable-plugins")]
+struct PluginPlatform {
+    callback: Arc<dyn PluginPlatformCallback>,
+    supervisor: Arc<atlas_plugin_host::PluginSupervisor>,
+    manager: atlas_plugin_host::PluginPackageManager,
+    broker: atlas_plugin_host::CapabilityBroker,
+    diagnostics: atlas_plugin_host::DiagnosticStore,
+    package_limits: atlas_plugin_package::PackageLimits,
+    trusted_keys: atlas_plugin_package::TrustedKeyStore,
+    stages: std::collections::HashMap<String, PendingPluginStage>,
+    pending_host_requests: std::collections::HashMap<String, PendingHostRequest>,
 }
 
 #[cfg(feature = "executable-plugins")]
@@ -500,17 +597,871 @@ pub fn initialize_plugin_storage(
         ))
     };
     #[cfg(feature = "executable-plugins")]
-    let result = atlas_plugin_host::PluginStorage::from_key_bytes(root_path, &content_key)
-        .map_err(|error| AtlasError::PluginError(error.to_string()))
-        .and_then(|storage| {
-            PLUGIN_STORAGE.set(storage).map_err(|_| {
-                AtlasError::PluginError(
-                    "Plugin storage has already been initialized for this process".to_string(),
-                )
+    let result = {
+        let root_path = std::path::PathBuf::from(root_path);
+        atlas_plugin_host::PluginStorage::from_key_bytes(&root_path, &content_key)
+            .map(Arc::new)
+            .map_err(|error| AtlasError::PluginError(error.to_string()))
+            .and_then(|storage| {
+                if PLUGIN_STORAGE.get().is_some() || PLUGIN_STORAGE_ROOT.get().is_some() {
+                    return Err(AtlasError::PluginError(
+                        "Plugin storage has already been initialized for this process".to_string(),
+                    ));
+                }
+                PLUGIN_STORAGE_ROOT.set(root_path).map_err(|_| {
+                    AtlasError::PluginError(
+                        "Plugin storage root has already been initialized".to_string(),
+                    )
+                })?;
+                PLUGIN_STORAGE.set(storage).map_err(|_| {
+                    AtlasError::PluginError(
+                        "Plugin storage has already been initialized for this process".to_string(),
+                    )
+                })
             })
-        });
+    };
     content_key.fill(0);
     result
+}
+
+pub fn plugin_platform_start(callback: Box<dyn PluginPlatformCallback>) -> Result<(), AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = callback;
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        let storage = PLUGIN_STORAGE.get().cloned().ok_or_else(|| {
+            AtlasError::PluginError(
+                "Plugin storage must be initialized from Keychain before platform start".into(),
+            )
+        })?;
+        let storage_root = PLUGIN_STORAGE_ROOT.get().cloned().ok_or_else(|| {
+            AtlasError::PluginError("Plugin storage root is not initialized".into())
+        })?;
+        let mut platform = PLUGIN_PLATFORM
+            .lock()
+            .map_err(|_| AtlasError::LockPoisoned)?;
+        if platform.is_some() {
+            return Err(AtlasError::PluginError(
+                "Plugin platform has already been started".into(),
+            ));
+        }
+        let clock: Arc<dyn atlas_plugin_host::Clock> =
+            Arc::new(atlas_plugin_host::MonotonicClock::default());
+        let supervisor = Arc::new(atlas_plugin_host::PluginSupervisor::new(
+            Arc::new(atlas_plugin_host::ProcessRunnerLauncher::new(
+                embedded_plugin_runner_path()?,
+            )),
+            Arc::clone(&clock),
+        ));
+        let activator: Arc<dyn atlas_plugin_host::PackageActivator> = supervisor.clone();
+        let manager = atlas_plugin_host::PluginPackageManager::new(
+            storage_root.join("managed-platform"),
+            Arc::clone(&storage),
+            activator,
+            Arc::new(atlas_plugin_host::package_manager::MetadataStorageMigration),
+            Arc::clone(&clock),
+        )
+        .map_err(plugin_error)?;
+        *platform = Some(PluginPlatform {
+            callback: Arc::from(callback),
+            supervisor,
+            manager,
+            broker: atlas_plugin_host::CapabilityBroker::new(),
+            diagnostics: atlas_plugin_host::DiagnosticStore::new(
+                atlas_plugin_host::DiagnosticPolicy::default(),
+                clock,
+            ),
+            package_limits: atlas_plugin_package::PackageLimits::default(),
+            trusted_keys: atlas_plugin_package::TrustedKeyStore::new(),
+            stages: std::collections::HashMap::new(),
+            pending_host_requests: std::collections::HashMap::new(),
+        });
+        Ok(())
+    }
+}
+
+pub fn plugin_stage_package(package_bytes: Vec<u8>) -> Result<PluginStageResult, AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = package_bytes;
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        let (result, callback, event) = {
+            let mut guard = PLUGIN_PLATFORM
+                .lock()
+                .map_err(|_| AtlasError::LockPoisoned)?;
+            let platform = guard
+                .as_mut()
+                .ok_or_else(|| AtlasError::PluginError("Plugin platform is not started".into()))?;
+            let package = atlas_plugin_package::verify_archive(
+                std::io::Cursor::new(package_bytes),
+                &platform.package_limits,
+                &platform.trusted_keys,
+            )
+            .map_err(plugin_error)?;
+            let manifest = package.manifest().clone();
+            let is_update = platform.manager.active_root(&manifest.id).is_ok();
+            let state = if is_update {
+                match platform
+                    .manager
+                    .stage_update(package.clone())
+                    .map_err(plugin_error)?
+                {
+                    atlas_plugin_host::StageState::Ready => PluginStageState::Ready,
+                    atlas_plugin_host::StageState::AwaitingConsent => {
+                        PluginStageState::AwaitingConsent
+                    }
+                }
+            } else {
+                PluginStageState::AwaitingConsent
+            };
+            let stage_id = secure_identifier("stage")?;
+            let result = PluginStageResult {
+                stage_id: stage_id.clone(),
+                plugin_id: manifest.id.clone(),
+                name: manifest.name.clone(),
+                version: manifest.version.clone(),
+                publisher: manifest.publisher.clone(),
+                package_root: package.root().to_hex(),
+                state,
+                requested_capabilities: manifest.capabilities.clone(),
+            };
+            platform
+                .stages
+                .insert(stage_id, PendingPluginStage { package, is_update });
+            let payload_json = serde_json::json!({
+                "stageId": result.stage_id,
+                "pluginId": result.plugin_id,
+                "name": result.name,
+                "version": result.version,
+                "publisher": result.publisher,
+                "packageRoot": result.package_root,
+                "state": match result.state {
+                    PluginStageState::AwaitingConsent => "awaiting-consent",
+                    PluginStageState::Ready => "ready",
+                },
+                "requestedCapabilities": result.requested_capabilities,
+            })
+            .to_string();
+            let event = PluginHostEvent {
+                kind: PluginHostEventKind::ConsentRequired,
+                plugin_id: result.plugin_id.clone(),
+                command_id: None,
+                instance_id: None,
+                session_id: None,
+                request_id: Some(result.stage_id.clone()),
+                payload_json,
+            };
+            (result, Arc::clone(&platform.callback), event)
+        };
+        callback.on_plugin_event(event);
+        Ok(result)
+    }
+}
+
+pub fn plugin_apply_grants(
+    stage_id: String,
+    grants: Vec<PluginCapabilityGrant>,
+) -> Result<(), AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = (stage_id, grants);
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        let (callback, event) = {
+            let mut guard = PLUGIN_PLATFORM
+                .lock()
+                .map_err(|_| AtlasError::LockPoisoned)?;
+            let platform = guard
+                .as_mut()
+                .ok_or_else(|| AtlasError::PluginError("Plugin platform is not started".into()))?;
+            let pending = platform
+                .stages
+                .get(&stage_id)
+                .cloned()
+                .ok_or_else(|| AtlasError::PluginError("Unknown plugin stage".into()))?;
+            let grant_strings = grants
+                .iter()
+                .map(plugin_grant_string)
+                .collect::<Result<atlas_plugin_host::GrantSet, _>>()?;
+            if pending.is_update {
+                platform
+                    .manager
+                    .approve_staged(pending.package.plugin_id(), grant_strings.clone())
+                    .map_err(plugin_error)?;
+                platform
+                    .manager
+                    .activate_staged(pending.package.plugin_id())
+                    .map_err(plugin_error)?;
+            } else {
+                platform
+                    .manager
+                    .install(pending.package.clone(), grant_strings.clone())
+                    .map_err(plugin_error)?;
+            }
+            let broker_grants = grant_strings
+                .iter()
+                .map(|grant| atlas_plugin_host::CapabilityGrant::parse(grant))
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(plugin_error)?;
+            platform
+                .broker
+                .register_manifest(pending.package.manifest(), broker_grants)
+                .map_err(plugin_error)?;
+            platform.stages.remove(&stage_id);
+            let event = PluginHostEvent {
+                kind: PluginHostEventKind::StatusChanged,
+                plugin_id: pending.package.plugin_id().into(),
+                command_id: None,
+                instance_id: None,
+                session_id: None,
+                request_id: Some(stage_id),
+                payload_json: serde_json::json!({
+                    "version": pending.package.manifest().version,
+                    "packageRoot": pending.package.root().to_hex(),
+                    "state": "active",
+                })
+                .to_string(),
+            };
+            (Arc::clone(&platform.callback), event)
+        };
+        callback.on_plugin_event(event);
+        Ok(())
+    }
+}
+
+pub fn plugin_platform_statuses() -> Result<Vec<PluginStatusRecord>, AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        return Ok(Vec::new());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        with_plugin_platform(|platform| {
+            platform
+                .manager
+                .list_statuses()
+                .map_err(plugin_error)
+                .map(|statuses| {
+                    statuses
+                        .into_iter()
+                        .map(|status| PluginStatusRecord {
+                            plugin_id: status.plugin_id,
+                            version: status.version,
+                            publisher: status.publisher,
+                            package_root: status.package_root.to_hex(),
+                            trust_tier: status.trust_tier,
+                            granted_capabilities: status.granted_capabilities,
+                            denied_capabilities: status.denied_capabilities,
+                            observing_update: status.observing_update,
+                        })
+                        .collect()
+                })
+        })
+    }
+}
+
+pub fn plugin_export_diagnostics(plugin_id: String) -> Result<PluginDiagnosticRecord, AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = plugin_id;
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        with_plugin_platform(|platform| {
+            let export = platform
+                .diagnostics
+                .export(&plugin_id)
+                .map_err(plugin_error)?;
+            Ok(PluginDiagnosticRecord {
+                plugin_id,
+                json: export.json,
+                event_count: export.event_count as u64,
+                encoded_bytes: export.encoded_bytes as u64,
+            })
+        })
+    }
+}
+
+pub fn plugin_start_command(
+    plugin_id: String,
+    command_id: String,
+    arguments_json: String,
+) -> Result<String, AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = (plugin_id, command_id, arguments_json);
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        let arguments: Vec<String> = serde_json::from_str(&arguments_json).map_err(plugin_error)?;
+        validate_plugin_arguments(&arguments)?;
+        let instance_id = secure_identifier("instance")?;
+        let (callback, events) = {
+            let mut guard = PLUGIN_PLATFORM
+                .lock()
+                .map_err(|_| AtlasError::LockPoisoned)?;
+            let platform = guard
+                .as_mut()
+                .ok_or_else(|| AtlasError::PluginError("Plugin platform is not started".into()))?;
+            let (_, messages) = platform
+                .supervisor
+                .start_command_and_collect(atlas_plugin_host::CommandInvocation {
+                    plugin_id: plugin_id.clone(),
+                    command_id: command_id.clone(),
+                    instance_id: instance_id.clone(),
+                    start: atlas_plugin_protocol::CommandStart {
+                        arguments,
+                        environment: Vec::new(),
+                    },
+                    restartable: true,
+                    background: false,
+                })
+                .map_err(plugin_error)?;
+            let events = protocol_messages_to_events(
+                platform,
+                &plugin_id,
+                &command_id,
+                &instance_id,
+                messages,
+            )?;
+            (Arc::clone(&platform.callback), events)
+        };
+        for event in events {
+            callback.on_plugin_event(event);
+        }
+        Ok(instance_id)
+    }
+}
+
+pub fn plugin_send_ui_event(
+    plugin_id: String,
+    instance_id: String,
+    event_json: String,
+) -> Result<(), AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = (plugin_id, instance_id, event_json);
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        let event: atlas_ui_schema::UiEvent =
+            serde_json::from_str(&event_json).map_err(plugin_error)?;
+        let (callback, events) = {
+            let mut guard = PLUGIN_PLATFORM
+                .lock()
+                .map_err(|_| AtlasError::LockPoisoned)?;
+            let platform = guard
+                .as_mut()
+                .ok_or_else(|| AtlasError::PluginError("Plugin platform is not started".into()))?;
+            let messages = platform
+                .supervisor
+                .send_ui_event(&plugin_id, &instance_id, event)
+                .map_err(plugin_error)?;
+            let events =
+                protocol_messages_to_events(platform, &plugin_id, "", &instance_id, messages)?;
+            (Arc::clone(&platform.callback), events)
+        };
+        for event in events {
+            callback.on_plugin_event(event);
+        }
+        Ok(())
+    }
+}
+
+pub fn plugin_cancel_command(plugin_id: String, instance_id: String) -> Result<(), AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = (plugin_id, instance_id);
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        let (callback, events) = {
+            let mut guard = PLUGIN_PLATFORM
+                .lock()
+                .map_err(|_| AtlasError::LockPoisoned)?;
+            let platform = guard
+                .as_mut()
+                .ok_or_else(|| AtlasError::PluginError("Plugin platform is not started".into()))?;
+            let messages = platform
+                .supervisor
+                .cancel_and_collect(&plugin_id, &instance_id)
+                .map_err(plugin_error)?;
+            let events =
+                protocol_messages_to_events(platform, &plugin_id, "", &instance_id, messages)?;
+            (Arc::clone(&platform.callback), events)
+        };
+        for event in events {
+            callback.on_plugin_event(event);
+        }
+        Ok(())
+    }
+}
+
+pub fn plugin_respond_to_host_request(
+    request_id: String,
+    response_json: String,
+) -> Result<(), AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = (request_id, response_json);
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        let value: serde_json::Value =
+            serde_json::from_str(&response_json).map_err(plugin_error)?;
+        let response = atlas_plugin_protocol::CapabilityResponse {
+            granted: value
+                .get("granted")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(true),
+            payload: serde_json::to_vec(value.get("payload").unwrap_or(&value))
+                .map_err(plugin_error)?,
+            error: value
+                .get("error")
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_owned),
+        };
+        let (callback, events) = with_plugin_platform(|platform| {
+            let pending = platform
+                .pending_host_requests
+                .remove(&request_id)
+                .ok_or_else(|| AtlasError::PluginError("Unknown host request".into()))?;
+            let messages = platform
+                .supervisor
+                .respond_to_capability(
+                    &pending.plugin_id,
+                    &pending.instance_id,
+                    &request_id,
+                    response,
+                )
+                .map_err(plugin_error)?;
+            let events = protocol_messages_to_events(
+                platform,
+                &pending.plugin_id,
+                &pending.command_id,
+                &pending.instance_id,
+                messages,
+            )?;
+            Ok((Arc::clone(&platform.callback), events))
+        })?;
+        for event in events {
+            callback.on_plugin_event(event);
+        }
+        Ok(())
+    }
+}
+
+pub fn plugin_stop(plugin_id: String) -> Result<(), AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = plugin_id;
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        with_plugin_platform(|platform| {
+            platform
+                .supervisor
+                .stop_plugin(&plugin_id)
+                .map_err(plugin_error)
+        })
+    }
+}
+
+pub fn plugin_rollback(plugin_id: String, clear_incompatible_data: bool) -> Result<(), AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = (plugin_id, clear_incompatible_data);
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        with_plugin_platform(|platform| {
+            if clear_incompatible_data {
+                platform
+                    .manager
+                    .rollback_with_data_clear(&plugin_id)
+                    .map(|_| ())
+                    .map_err(plugin_error)
+            } else {
+                atlas_plugin_host::PackageLifecycle::rollback(&platform.manager, &plugin_id)
+                    .map(|_| ())
+                    .map_err(plugin_error)
+            }
+        })
+    }
+}
+
+pub fn plugin_clear_data(plugin_id: String) -> Result<(), AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = plugin_id;
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        with_plugin_platform(|platform| {
+            platform
+                .manager
+                .clear_data(&plugin_id)
+                .map_err(plugin_error)
+        })
+    }
+}
+
+pub fn plugin_platform_uninstall(plugin_id: String) -> Result<(), AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = plugin_id;
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        with_plugin_platform(|platform| {
+            let identity = platform
+                .manager
+                .list_statuses()
+                .map_err(plugin_error)?
+                .into_iter()
+                .find(|status| status.plugin_id == plugin_id)
+                .map(|status| {
+                    atlas_plugin_host::PluginIdentity::new(&status.plugin_id, status.publisher)
+                });
+            atlas_plugin_host::PackageLifecycle::uninstall(&platform.manager, &plugin_id)
+                .map_err(plugin_error)?;
+            if let Some(identity) = identity {
+                platform.broker.remove_plugin(&identity);
+            }
+            Ok(())
+        })
+    }
+}
+
+pub fn plugin_report_observation_failure(plugin_id: String) -> Result<bool, AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = plugin_id;
+        return Ok(false);
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        with_plugin_platform(|platform| {
+            platform
+                .manager
+                .report_observation_failure(&plugin_id)
+                .map_err(plugin_error)
+        })
+    }
+}
+
+#[cfg(not(feature = "executable-plugins"))]
+fn executable_plugins_unavailable() -> AtlasError {
+    AtlasError::PluginError("Executable plugins are unavailable in this distribution".into())
+}
+
+#[cfg(feature = "executable-plugins")]
+fn plugin_error(error: impl std::fmt::Display) -> AtlasError {
+    AtlasError::PluginError(error.to_string())
+}
+
+#[cfg(feature = "executable-plugins")]
+fn with_plugin_platform<T>(
+    operation: impl FnOnce(&mut PluginPlatform) -> Result<T, AtlasError>,
+) -> Result<T, AtlasError> {
+    let mut guard = PLUGIN_PLATFORM
+        .lock()
+        .map_err(|_| AtlasError::LockPoisoned)?;
+    let platform = guard
+        .as_mut()
+        .ok_or_else(|| AtlasError::PluginError("Plugin platform is not started".into()))?;
+    operation(platform)
+}
+
+#[cfg(feature = "executable-plugins")]
+fn embedded_plugin_runner_path() -> Result<std::path::PathBuf, AtlasError> {
+    let executable = std::env::current_exe().map_err(plugin_error)?;
+    let executable_directory = executable.parent().ok_or_else(|| {
+        AtlasError::PluginError("Atlas executable has no parent directory".into())
+    })?;
+    let candidates = [
+        executable_directory.join("atlas-plugin-runner"),
+        executable_directory
+            .join("../Helpers")
+            .join("atlas-plugin-runner"),
+    ];
+    Ok(candidates
+        .iter()
+        .find(|candidate| candidate.is_file())
+        .cloned()
+        .unwrap_or_else(|| candidates[0].clone()))
+}
+
+#[cfg(feature = "executable-plugins")]
+fn secure_identifier(prefix: &str) -> Result<String, AtlasError> {
+    let mut random = [0_u8; 16];
+    getrandom::fill(&mut random).map_err(plugin_error)?;
+    Ok(format!(
+        "{prefix}-{}",
+        random
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>()
+    ))
+}
+
+#[cfg(feature = "executable-plugins")]
+fn plugin_grant_string(grant: &PluginCapabilityGrant) -> Result<String, AtlasError> {
+    let capability = grant.capability.trim();
+    if capability.is_empty() || capability.len() > 128 || capability.contains(':') {
+        return Err(AtlasError::PluginError(
+            "Plugin capability grant is invalid".into(),
+        ));
+    }
+    match grant.target.as_deref().map(str::trim) {
+        Some(target) if !target.is_empty() && target.len() <= 2048 && !target.contains('\0') => {
+            Ok(format!("{capability}:{target}"))
+        }
+        Some(_) => Err(AtlasError::PluginError(
+            "Plugin capability target is invalid".into(),
+        )),
+        None => Ok(capability.to_owned()),
+    }
+}
+
+#[cfg(feature = "executable-plugins")]
+fn validate_plugin_arguments(arguments: &[String]) -> Result<(), AtlasError> {
+    if arguments.len() > 128 || arguments.iter().any(|argument| argument.len() > 4096) {
+        return Err(AtlasError::PluginError(
+            "Plugin command arguments exceed their bounds".into(),
+        ));
+    }
+    Ok(())
+}
+
+#[cfg(feature = "executable-plugins")]
+fn protocol_messages_to_events(
+    platform: &mut PluginPlatform,
+    plugin_id: &str,
+    command_id: &str,
+    instance_id: &str,
+    messages: Vec<atlas_plugin_protocol::MessageKind>,
+) -> Result<Vec<PluginHostEvent>, AtlasError> {
+    let mut events = Vec::new();
+    for message in messages {
+        match message {
+            atlas_plugin_protocol::MessageKind::UiOpen(open) => {
+                events.push(plugin_runtime_event(
+                    PluginHostEventKind::UiOpen,
+                    plugin_id,
+                    command_id,
+                    instance_id,
+                    Some(instance_id.into()),
+                    None,
+                    serde_json::to_string(&serde_json::json!({
+                        "title": open.title,
+                        "root": open.root,
+                    }))
+                    .map_err(plugin_error)?,
+                ));
+            }
+            atlas_plugin_protocol::MessageKind::UiPatch(patch) => {
+                events.push(plugin_runtime_event(
+                    PluginHostEventKind::UiPatch,
+                    plugin_id,
+                    command_id,
+                    instance_id,
+                    Some(instance_id.into()),
+                    None,
+                    serde_json::to_string(&patch).map_err(plugin_error)?,
+                ));
+            }
+            atlas_plugin_protocol::MessageKind::UiClose => {
+                events.push(plugin_runtime_event(
+                    PluginHostEventKind::UiClose,
+                    plugin_id,
+                    command_id,
+                    instance_id,
+                    Some(instance_id.into()),
+                    None,
+                    "{}".into(),
+                ));
+            }
+            atlas_plugin_protocol::MessageKind::CapabilityRequest(request) => {
+                let status = platform
+                    .manager
+                    .list_statuses()
+                    .map_err(plugin_error)?
+                    .into_iter()
+                    .find(|status| status.plugin_id == plugin_id)
+                    .ok_or_else(|| {
+                        AtlasError::PluginError("Plugin status is unavailable".into())
+                    })?;
+                let identity = atlas_plugin_host::PluginIdentity::new(plugin_id, status.publisher);
+                let decision = platform.broker.authorize(&identity, &request);
+                if decision.is_allowed() {
+                    let request_id = secure_identifier("host-request")?;
+                    platform.pending_host_requests.insert(
+                        request_id.clone(),
+                        PendingHostRequest {
+                            plugin_id: plugin_id.into(),
+                            command_id: command_id.into(),
+                            instance_id: instance_id.into(),
+                        },
+                    );
+                    events.push(plugin_runtime_event(
+                        PluginHostEventKind::HostRequest,
+                        plugin_id,
+                        command_id,
+                        instance_id,
+                        None,
+                        Some(request_id),
+                        serde_json::json!({
+                            "capability": request.capability,
+                            "operation": request.operation,
+                            "resource": request.resource,
+                            "payload": request.payload,
+                        })
+                        .to_string(),
+                    ));
+                } else {
+                    events.push(plugin_runtime_event(
+                        PluginHostEventKind::Error,
+                        plugin_id,
+                        command_id,
+                        instance_id,
+                        None,
+                        None,
+                        serde_json::json!({
+                            "code": decision.code().unwrap_or("capability-denied"),
+                            "message": "Capability request was denied",
+                        })
+                        .to_string(),
+                    ));
+                }
+            }
+            atlas_plugin_protocol::MessageKind::Log(log) => {
+                platform
+                    .diagnostics
+                    .record(atlas_plugin_host::DiagnosticEvent {
+                        plugin_id: plugin_id.into(),
+                        category: atlas_plugin_host::DiagnosticCategory::Runtime,
+                        command_id: Some(command_id.into()),
+                        instance_id: Some(instance_id.into()),
+                        version: None,
+                        phase: log.target.clone(),
+                        duration_millis: None,
+                        error_code: None,
+                        metadata: std::collections::BTreeMap::from([(
+                            "level".into(),
+                            format!("{:?}", log.level).to_ascii_lowercase(),
+                        )]),
+                        payload: Some(atlas_plugin_host::DiagnosticPayload {
+                            kind: atlas_plugin_host::DiagnosticPayloadKind::Log,
+                            content: log.message,
+                        }),
+                    })
+                    .map_err(plugin_error)?;
+                events.push(plugin_runtime_event(
+                    PluginHostEventKind::Diagnostic,
+                    plugin_id,
+                    command_id,
+                    instance_id,
+                    None,
+                    None,
+                    serde_json::json!({ "category": "runtime", "target": log.target }).to_string(),
+                ));
+            }
+            atlas_plugin_protocol::MessageKind::Metric(metric) => {
+                platform
+                    .supervisor
+                    .record_metric(plugin_id, &metric)
+                    .map_err(plugin_error)?;
+            }
+            atlas_plugin_protocol::MessageKind::RuntimeError(failure) => {
+                let code = atlas_plugin_host::StableErrorCode::new(failure.code.clone()).ok();
+                platform
+                    .diagnostics
+                    .record(atlas_plugin_host::DiagnosticEvent {
+                        plugin_id: plugin_id.into(),
+                        category: atlas_plugin_host::DiagnosticCategory::Runtime,
+                        command_id: Some(command_id.into()),
+                        instance_id: Some(instance_id.into()),
+                        version: None,
+                        phase: "adapter".into(),
+                        duration_millis: None,
+                        error_code: code,
+                        metadata: std::collections::BTreeMap::from([(
+                            "recoverable".into(),
+                            failure.recoverable.to_string(),
+                        )]),
+                        payload: Some(atlas_plugin_host::DiagnosticPayload {
+                            kind: atlas_plugin_host::DiagnosticPayloadKind::Stack,
+                            content: failure.message,
+                        }),
+                    })
+                    .map_err(plugin_error)?;
+                events.push(plugin_runtime_event(
+                    PluginHostEventKind::Error,
+                    plugin_id,
+                    command_id,
+                    instance_id,
+                    None,
+                    None,
+                    serde_json::json!({
+                        "code": failure.code,
+                        "message": "Plugin runtime failed",
+                        "recoverable": failure.recoverable,
+                    })
+                    .to_string(),
+                ));
+            }
+            atlas_plugin_protocol::MessageKind::DispatchComplete
+            | atlas_plugin_protocol::MessageKind::Hello(_)
+            | atlas_plugin_protocol::MessageKind::HelloAck(_)
+            | atlas_plugin_protocol::MessageKind::Start(_)
+            | atlas_plugin_protocol::MessageKind::Cancel
+            | atlas_plugin_protocol::MessageKind::Shutdown
+            | atlas_plugin_protocol::MessageKind::Health
+            | atlas_plugin_protocol::MessageKind::UiEvent(_)
+            | atlas_plugin_protocol::MessageKind::CapabilityResponse(_) => {}
+        }
+    }
+    Ok(events)
+}
+
+#[cfg(feature = "executable-plugins")]
+#[allow(clippy::too_many_arguments)]
+fn plugin_runtime_event(
+    kind: PluginHostEventKind,
+    plugin_id: &str,
+    command_id: &str,
+    instance_id: &str,
+    session_id: Option<String>,
+    request_id: Option<String>,
+    payload_json: String,
+) -> PluginHostEvent {
+    PluginHostEvent {
+        kind,
+        plugin_id: plugin_id.into(),
+        command_id: (!command_id.is_empty()).then(|| command_id.into()),
+        instance_id: Some(instance_id.into()),
+        session_id,
+        request_id,
+        payload_json,
+    }
 }
 
 /// Starts real-time system monitoring.
@@ -765,6 +1716,100 @@ mod tests {
         assert!(preview.webview);
         assert!(preview.webview_bridge);
         assert_eq!(preview.exposed_tools, ["translate"]);
+    }
+
+    #[cfg(feature = "executable-plugins")]
+    #[test]
+    fn plugin_platform_install_emits_consent_before_activation() {
+        use std::io::Write;
+
+        let _guard = TEST_LOCK.lock().unwrap();
+        let directory = tempfile::tempdir().unwrap();
+        initialize_plugin_storage(
+            directory.path().to_string_lossy().into_owned(),
+            vec![0x61; 32],
+        )
+        .unwrap();
+        let recorded = Arc::new(Mutex::new(Vec::new()));
+        plugin_platform_start(Box::new(RecordingPluginCallback(Arc::clone(&recorded)))).unwrap();
+
+        let staged = plugin_stage_package(plugin_fixture_archive()).unwrap();
+        assert!(matches!(staged.state, PluginStageState::AwaitingConsent));
+        assert!(plugin_platform_statuses().unwrap().is_empty());
+        let events = recorded.lock().unwrap();
+        assert_eq!(events.len(), 1);
+        assert!(matches!(
+            events[0].kind,
+            PluginHostEventKind::ConsentRequired
+        ));
+        assert_eq!(
+            events[0].request_id.as_deref(),
+            Some(staged.stage_id.as_str())
+        );
+
+        fn plugin_fixture_archive() -> Vec<u8> {
+            let manifest = atlas_plugin_package::PluginManifestV2 {
+                manifest_version: 2,
+                id: "dev.example.ffi-platform".into(),
+                name: "FFI Platform".into(),
+                version: "1.0.0".into(),
+                publisher: "Example".into(),
+                runtime: atlas_plugin_package::RuntimeKind::Wasm,
+                entrypoint: "payload/main.wasm".into(),
+                storage_schema: 1,
+                capabilities: vec!["storage.kv".into()],
+                trust: None,
+            };
+            let mut files = std::collections::BTreeMap::from([
+                (
+                    "plugin.toml".to_string(),
+                    toml::to_string(&manifest).unwrap().into_bytes(),
+                ),
+                (
+                    "permissions.json".to_string(),
+                    serde_json::to_vec(&manifest.capabilities).unwrap(),
+                ),
+                ("payload/main.wasm".to_string(), b"fixture".to_vec()),
+            ]);
+            let records = files
+                .iter()
+                .map(|(path, bytes)| atlas_plugin_package::IntegrityFile {
+                    path: path.clone(),
+                    length: bytes.len() as u64,
+                    sha256: atlas_plugin_package::sha256_digest(bytes)
+                        .iter()
+                        .map(|byte| format!("{byte:02x}"))
+                        .collect(),
+                })
+                .collect();
+            files.insert(
+                "integrity.json".into(),
+                serde_json::to_vec(&atlas_plugin_package::IntegrityDocument::new(records).unwrap())
+                    .unwrap(),
+            );
+            let mut archive = std::io::Cursor::new(Vec::new());
+            {
+                let mut writer = zip::ZipWriter::new(&mut archive);
+                for (path, bytes) in files {
+                    writer
+                        .start_file(path, zip::write::SimpleFileOptions::default())
+                        .unwrap();
+                    writer.write_all(&bytes).unwrap();
+                }
+                writer.finish().unwrap();
+            }
+            archive.into_inner()
+        }
+    }
+
+    #[cfg(feature = "executable-plugins")]
+    struct RecordingPluginCallback(Arc<Mutex<Vec<PluginHostEvent>>>);
+
+    #[cfg(feature = "executable-plugins")]
+    impl PluginPlatformCallback for RecordingPluginCallback {
+        fn on_plugin_event(&self, event: PluginHostEvent) {
+            self.0.lock().unwrap().push(event);
+        }
     }
 }
 

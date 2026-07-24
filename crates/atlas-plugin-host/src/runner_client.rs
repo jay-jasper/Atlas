@@ -36,6 +36,9 @@ impl RunnerClient {
         let nonce_digest: [u8; 32] = Sha256::digest(nonce).into();
         let package_root = package.root().0;
         let plugin_id = package.plugin_id().to_owned();
+        let package_directory = package
+            .managed_directory()
+            .ok_or(RunnerError::UnmanagedPackage)?;
         let (stream, child_stream) = UnixStream::pair()?;
         stream.set_read_timeout(Some(HANDSHAKE_TIMEOUT))?;
         stream.set_write_timeout(Some(HANDSHAKE_TIMEOUT))?;
@@ -53,6 +56,8 @@ impl RunnerClient {
             .arg(&plugin_id)
             .arg("--package-root")
             .arg(hex_encode(&package_root))
+            .arg("--package-dir")
+            .arg(package_directory)
             .arg("--nonce-digest")
             .arg(hex_encode(&nonce_digest))
             .arg("--protocol-min")
@@ -199,4 +204,6 @@ pub enum RunnerError {
     Random(String),
     #[error("runner did not stop within its shutdown deadline")]
     ShutdownTimeout,
+    #[error("runner may only launch a package from the verified managed store")]
+    UnmanagedPackage,
 }

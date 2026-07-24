@@ -2,7 +2,10 @@ mod archive;
 mod integrity;
 mod trust;
 
-pub use archive::{verify_archive, verify_directory, PackageLimits, VerifiedFile, VerifiedPackage};
+pub use archive::{
+    verify_archive, verify_authenticated_directory, verify_directory, PackageLimits, VerifiedFile,
+    VerifiedPackage,
+};
 pub use integrity::{
     canonical_package_root, canonical_signature_payload, sha256_digest, IntegrityDocument,
     IntegrityFile, PackageRoot, SignatureDocument,

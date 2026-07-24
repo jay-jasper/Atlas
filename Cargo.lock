@@ -314,11 +314,19 @@ dependencies = [
  "atlas-ai",
  "atlas-core",
  "atlas-plugin-host",
+ "atlas-plugin-package",
+ "atlas-plugin-protocol",
+ "atlas-ui-schema",
+ "getrandom 0.3.4",
  "once_cell",
+ "serde_json",
+ "tempfile",
  "thiserror 2.0.19",
  "tokio",
  "tokio-util",
+ "toml 0.8.23",
  "uniffi",
+ "zip",
 ]
 
 [[package]]
@@ -412,6 +420,7 @@ version = "0.1.0"
 dependencies = [
  "atlas-plugin-host",
  "atlas-plugin-js",
+ "atlas-plugin-package",
  "atlas-plugin-protocol",
  "atlas-ui-schema",
  "hex",
@@ -421,7 +430,9 @@ dependencies = [
  "sha2",
  "tempfile",
  "thiserror 2.0.19",
+ "toml 0.8.23",
  "wat",
+ "zip",
 ]
 
 [[package]]

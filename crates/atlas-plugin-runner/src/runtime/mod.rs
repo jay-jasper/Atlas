@@ -6,7 +6,7 @@ pub use javascript::JavascriptAdapter;
 pub use mcp::McpAdapter;
 pub use wasm::WasmAdapter;
 
-use atlas_plugin_protocol::{CommandStart, MessageKind, UiOpen};
+use atlas_plugin_protocol::{CapabilityResponse, CommandStart, MessageKind, UiOpen};
 use atlas_ui_schema::{UiEvent, UiNode, UiPatch, UiSession};
 use serde::Deserialize;
 
@@ -15,6 +15,12 @@ pub const MAX_RUNTIME_OUTPUT_BYTES: usize = 256 * 1024;
 pub trait RuntimeAdapter {
     fn start(&mut self, command: CommandStart) -> Result<Vec<MessageKind>, RuntimeError>;
     fn event(&mut self, event: UiEvent) -> Result<Vec<MessageKind>, RuntimeError>;
+    fn capability_response(
+        &mut self,
+        _response: CapabilityResponse,
+    ) -> Result<Vec<MessageKind>, RuntimeError> {
+        Ok(Vec::new())
+    }
     fn cancel(&mut self, instance_id: &str) -> Result<(), RuntimeError>;
     fn health(&mut self) -> RuntimeHealth;
     fn shutdown(&mut self) -> Result<(), RuntimeError>;
@@ -37,6 +43,7 @@ impl RuntimeDriver {
         match message {
             MessageKind::Start(command) => self.adapter.start(command),
             MessageKind::UiEvent(event) => self.adapter.event(event),
+            MessageKind::CapabilityResponse(response) => self.adapter.capability_response(response),
             MessageKind::Cancel => {
                 self.adapter.cancel(instance_id)?;
                 Ok(vec![MessageKind::UiClose])

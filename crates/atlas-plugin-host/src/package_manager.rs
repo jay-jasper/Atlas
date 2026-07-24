@@ -34,6 +34,18 @@ pub struct InstallRecord {
     pub active: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ManagedPluginStatus {
+    pub plugin_id: String,
+    pub version: String,
+    pub publisher: String,
+    pub package_root: PackageRoot,
+    pub trust_tier: String,
+    pub granted_capabilities: Vec<String>,
+    pub denied_capabilities: Vec<String>,
+    pub observing_update: bool,
+}
+
 pub trait PackageActivator: Send + Sync {
     fn freeze_writes(&self, plugin_id: &str) -> Result<(), PackageManagerError>;
     fn activate(&self, package: Arc<VerifiedPackage>) -> Result<(), PackageManagerError>;
@@ -237,6 +249,54 @@ impl PluginPackageManager {
             .get(plugin_id)
             .map(|record| record.active)
             .ok_or_else(|| PackageManagerError::NotInstalled(plugin_id.into()))
+    }
+
+    pub fn list_statuses(&self) -> Result<Vec<ManagedPluginStatus>, PackageManagerError> {
+        let state = self.lock_state()?;
+        let mut statuses = state
+            .plugins
+            .values()
+            .map(|record| {
+                let version = version(record, record.active)?;
+                let package = package(&state, record.active)?;
+                let granted_capabilities = version.grants.iter().cloned().collect::<Vec<_>>();
+                let denied_capabilities = version
+                    .capabilities
+                    .difference(&version.grants)
+                    .cloned()
+                    .collect();
+                Ok(ManagedPluginStatus {
+                    plugin_id: record.identity.plugin_id.clone(),
+                    version: version.version.clone(),
+                    publisher: record.identity.publisher.clone(),
+                    package_root: record.active,
+                    trust_tier: match package.trust_tier() {
+                        atlas_plugin_package::TrustTier::Untrusted => "untrusted",
+                        atlas_plugin_package::TrustTier::Sideloaded => "sideloaded",
+                        atlas_plugin_package::TrustTier::Verified => "verified",
+                        atlas_plugin_package::TrustTier::HubReviewed => "hub-reviewed",
+                        atlas_plugin_package::TrustTier::DeveloperMode => "developer-mode",
+                    }
+                    .into(),
+                    granted_capabilities,
+                    denied_capabilities,
+                    observing_update: record.observation.is_some(),
+                })
+            })
+            .collect::<Result<Vec<_>, PackageManagerError>>()?;
+        statuses.sort_by(|left, right| left.plugin_id.cmp(&right.plugin_id));
+        Ok(statuses)
+    }
+
+    pub fn clear_data(&self, plugin_id: &str) -> Result<(), PackageManagerError> {
+        let identity = self
+            .lock_state()?
+            .plugins
+            .get(plugin_id)
+            .map(|record| record.identity.clone())
+            .ok_or_else(|| PackageManagerError::NotInstalled(plugin_id.into()))?;
+        self.storage.clear(&identity)?;
+        Ok(())
     }
 
     pub fn storage_schema(&self, plugin_id: &str) -> Result<u32, PackageManagerError> {

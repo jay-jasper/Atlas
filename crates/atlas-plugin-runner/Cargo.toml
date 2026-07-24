@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 atlas-plugin-host = { path = "../atlas-plugin-host" }
 atlas-plugin-js = { path = "../atlas-plugin-js" }
+atlas-plugin-package = { path = "../atlas-plugin-package" }
 atlas-plugin-protocol = { path = "../atlas-plugin-protocol" }
 atlas-ui-schema = { path = "../atlas-ui-schema" }
 libc = "0.2"
@@ -18,3 +19,5 @@ thiserror = "2"
 hex = "0.4"
 tempfile = "3"
 wat = "1"
+toml = "0.8"
+zip = { version = "2", default-features = false, features = ["deflate"] }

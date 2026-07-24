@@ -42,6 +42,70 @@ dictionary PluginInstallPreview {
     sequence<string> exposed_tools;
 };
 
+enum PluginStageState {
+    "AwaitingConsent",
+    "Ready",
+};
+
+dictionary PluginCapabilityGrant {
+    string capability;
+    string? target;
+};
+
+dictionary PluginStageResult {
+    string stage_id;
+    string plugin_id;
+    string name;
+    string version;
+    string publisher;
+    string package_root;
+    PluginStageState state;
+    sequence<string> requested_capabilities;
+};
+
+enum PluginHostEventKind {
+    "ConsentRequired",
+    "StatusChanged",
+    "UiOpen",
+    "UiPatch",
+    "UiClose",
+    "HostRequest",
+    "Diagnostic",
+    "Error",
+};
+
+dictionary PluginHostEvent {
+    PluginHostEventKind kind;
+    string plugin_id;
+    string? command_id;
+    string? instance_id;
+    string? session_id;
+    string? request_id;
+    string payload_json;
+};
+
+dictionary PluginStatusRecord {
+    string plugin_id;
+    string version;
+    string publisher;
+    string package_root;
+    string trust_tier;
+    sequence<string> granted_capabilities;
+    sequence<string> denied_capabilities;
+    boolean observing_update;
+};
+
+dictionary PluginDiagnosticRecord {
+    string plugin_id;
+    string json;
+    u64 event_count;
+    u64 encoded_bytes;
+};
+
+callback interface PluginPlatformCallback {
+    void on_plugin_event(PluginHostEvent event);
+};
+
 dictionary CpuCoreSnapshot {
     string name;
     float usage;
@@ -288,6 +352,48 @@ namespace atlas {
     /// Installs the Keychain-derived 256-bit plugin-storage key exactly once.
     [Throws=AtlasError]
     void initialize_plugin_storage(string root_path, sequence<u8> content_key);
+
+    [Throws=AtlasError]
+    void plugin_platform_start(PluginPlatformCallback callback);
+
+    [Throws=AtlasError]
+    PluginStageResult plugin_stage_package(sequence<u8> package_bytes);
+
+    [Throws=AtlasError]
+    void plugin_apply_grants(string stage_id, sequence<PluginCapabilityGrant> grants);
+
+    [Throws=AtlasError]
+    sequence<PluginStatusRecord> plugin_platform_statuses();
+
+    [Throws=AtlasError]
+    PluginDiagnosticRecord plugin_export_diagnostics(string plugin_id);
+
+    [Throws=AtlasError]
+    string plugin_start_command(string plugin_id, string command_id, string arguments_json);
+
+    [Throws=AtlasError]
+    void plugin_send_ui_event(string plugin_id, string instance_id, string event_json);
+
+    [Throws=AtlasError]
+    void plugin_cancel_command(string plugin_id, string instance_id);
+
+    [Throws=AtlasError]
+    void plugin_respond_to_host_request(string request_id, string response_json);
+
+    [Throws=AtlasError]
+    void plugin_stop(string plugin_id);
+
+    [Throws=AtlasError]
+    void plugin_rollback(string plugin_id, boolean clear_incompatible_data);
+
+    [Throws=AtlasError]
+    void plugin_clear_data(string plugin_id);
+
+    [Throws=AtlasError]
+    void plugin_platform_uninstall(string plugin_id);
+
+    [Throws=AtlasError]
+    boolean plugin_report_observation_failure(string plugin_id);
 
     [Throws=AtlasError]
     void start_monitoring(SystemMonitorCallback callback);

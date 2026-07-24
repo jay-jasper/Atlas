@@ -53,6 +53,7 @@ pub enum MessageKind {
     Log(DiagnosticEvent),
     Metric(ResourceMetric),
     RuntimeError(RuntimeFailure),
+    DispatchComplete,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

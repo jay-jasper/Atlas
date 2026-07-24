@@ -52,8 +52,8 @@ pub use manifest::{
     Capabilities, ManifestError, PluginManifest, PluginManifestV2, Runtime, RuntimeKind,
 };
 pub use package_manager::{
-    GrantSet, InstallRecord, PackageActivator, PackageLifecycle, PackageManagerError,
-    PluginPackageManager, StageState, StorageMigration,
+    GrantSet, InstallRecord, ManagedPluginStatus, PackageActivator, PackageLifecycle,
+    PackageManagerError, PluginPackageManager, StageState, StorageMigration,
 };
 pub use registry::{PluginRegistry, RegistryError};
 pub use runner_client::{RunnerClient, RunnerError};
