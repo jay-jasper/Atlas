@@ -12,7 +12,7 @@ pub use manifest::{normalize_manifest, CommandMode, NormalizedPlugin, RaycastPac
 pub use migrate::{migrate, MigrationResult};
 pub use report::{CompatibilityFinding, CompatibilityReport, CompatibilityStatus};
 
-use source::{analyze_source, SourceAnalysis};
+use source::{analyze_project, SourceAnalysis};
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
@@ -92,7 +92,7 @@ impl Builder {
         let mut report = normalized.report;
         for command in normalized.commands.values() {
             let entrypoint = resolve_entrypoint(source, &command.name)?;
-            match analyze_source(&std::fs::read_to_string(&entrypoint)?, &entrypoint) {
+            match analyze_project(&entrypoint, source) {
                 Ok(analysis) => report.findings.extend(analysis.compatibility),
                 Err(BuilderError::SourceDenied {
                     code,
@@ -123,8 +123,7 @@ impl Builder {
         let mut capabilities = BTreeSet::new();
         for command in normalized.commands.values() {
             let entrypoint = resolve_entrypoint(source, &command.name)?;
-            let analysis: SourceAnalysis =
-                analyze_source(&std::fs::read_to_string(&entrypoint)?, &entrypoint)?;
+            let analysis: SourceAnalysis = analyze_project(&entrypoint, source)?;
             if analysis
                 .compatibility
                 .iter()

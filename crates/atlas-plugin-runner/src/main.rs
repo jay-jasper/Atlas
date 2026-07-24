@@ -45,12 +45,19 @@ fn run() -> Result<(), String> {
         match result {
             Ok(messages) => {
                 for message in messages {
+                    let response_request_id = match &message {
+                        MessageKind::CapabilityRequest(request) => request
+                            .request_id
+                            .clone()
+                            .unwrap_or_else(|| envelope.request_id.clone()),
+                        _ => envelope.request_id.clone(),
+                    };
                     connection
                         .send(&Envelope::new(
                             &envelope.plugin_id,
                             &envelope.command_id,
                             &envelope.instance_id,
-                            &envelope.request_id,
+                            response_request_id,
                             message,
                         ))
                         .map_err(|error| error.to_string())?;
@@ -134,18 +141,27 @@ fn dispatch(
                     .environment
                     .push(("ATLAS_COMMAND_ID".into(), envelope.command_id.clone()));
             }
-            let output = driver.handle(&envelope.instance_id, message)?;
+            let output =
+                driver.handle_request(&envelope.instance_id, &envelope.request_id, message)?;
             instances.insert(envelope.instance_id.clone(), driver);
             Ok(output)
         }
         MessageKind::UiEvent(_) => instances
             .get_mut(&envelope.instance_id)
             .ok_or(RuntimeError::NotActive)?
-            .handle(&envelope.instance_id, envelope.message.clone()),
+            .handle_request(
+                &envelope.instance_id,
+                &envelope.request_id,
+                envelope.message.clone(),
+            ),
         MessageKind::CapabilityResponse(_) => instances
             .get_mut(&envelope.instance_id)
             .ok_or(RuntimeError::NotActive)?
-            .handle(&envelope.instance_id, envelope.message.clone()),
+            .handle_request(
+                &envelope.instance_id,
+                &envelope.request_id,
+                envelope.message.clone(),
+            ),
         MessageKind::Cancel => {
             let mut driver = instances
                 .remove(&envelope.instance_id)

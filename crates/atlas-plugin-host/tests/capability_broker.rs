@@ -22,6 +22,7 @@ fn manifest(capabilities: &[&str]) -> PluginManifestV2 {
 
 fn request(capability: &str, resource: Option<&str>) -> CapabilityRequest {
     CapabilityRequest {
+        request_id: None,
         capability: capability.into(),
         operation: "execute".into(),
         resource: resource.map(str::to_owned),

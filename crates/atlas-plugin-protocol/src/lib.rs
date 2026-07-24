@@ -85,6 +85,8 @@ pub struct UiOpen {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CapabilityRequest {
+    #[serde(default)]
+    pub request_id: Option<String>,
     pub capability: String,
     pub operation: String,
     pub resource: Option<String>,

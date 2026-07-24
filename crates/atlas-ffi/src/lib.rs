@@ -23,9 +23,6 @@ uniffi::include_scaffolding!("atlas");
 /// Global instance of the Atlas core to preserve state across FFI calls.
 static CORE: Lazy<Mutex<AtlasCore>> = Lazy::new(|| Mutex::new(AtlasCore::new()));
 #[cfg(feature = "executable-plugins")]
-static PLUGIN_HOST: Lazy<Mutex<atlas_plugin_host::PluginRuntimeHost>> =
-    Lazy::new(|| Mutex::new(atlas_plugin_host::PluginRuntimeHost::new()));
-#[cfg(feature = "executable-plugins")]
 static PLUGIN_STORAGE: OnceCell<Arc<atlas_plugin_host::PluginStorage>> = OnceCell::new();
 #[cfg(feature = "executable-plugins")]
 static PLUGIN_STORAGE_ROOT: OnceCell<std::path::PathBuf> = OnceCell::new();
@@ -203,23 +200,6 @@ struct PluginPlatform {
     trusted_keys: atlas_plugin_package::TrustedKeyStore,
     stages: std::collections::HashMap<String, PendingPluginStage>,
     pending_host_requests: std::collections::HashMap<String, PendingHostRequest>,
-}
-
-#[cfg(feature = "executable-plugins")]
-impl From<atlas_plugin_host::PluginRuntimeEntry> for PluginEntry {
-    fn from(entry: atlas_plugin_host::PluginRuntimeEntry) -> Self {
-        Self {
-            id: entry.id,
-            name: entry.name,
-            version: entry.version,
-            runtime: match entry.runtime {
-                atlas_plugin_host::RuntimeKind::Wasm => PluginRuntime::Wasm,
-                atlas_plugin_host::RuntimeKind::Mcp => PluginRuntime::Mcp,
-                atlas_plugin_host::RuntimeKind::Js => PluginRuntime::Js,
-            },
-            ui_json: entry.ui_json,
-        }
-    }
 }
 
 /// A snapshot of a single CPU core for FFI.
@@ -448,22 +428,8 @@ pub fn install_wasm_plugin(
     wasm_bytes: Vec<u8>,
     ui_json: String,
 ) -> Result<PluginEntry, AtlasError> {
-    #[cfg(not(feature = "executable-plugins"))]
-    {
-        let _ = (manifest_toml, wasm_bytes, ui_json);
-        Err(AtlasError::PluginError(
-            "Executable plugins are unavailable in this distribution".to_string(),
-        ))
-    }
-    #[cfg(feature = "executable-plugins")]
-    {
-        PLUGIN_HOST
-            .lock()
-            .map_err(|_| AtlasError::LockPoisoned)?
-            .install_wasm(&manifest_toml, &wasm_bytes, &ui_json)
-            .map(PluginEntry::from)
-            .map_err(|error| AtlasError::PluginError(error.to_string()))
-    }
+    let _ = (manifest_toml, wasm_bytes, ui_json);
+    Err(legacy_plugin_api_unavailable())
 }
 
 pub fn inspect_plugin_manifest(manifest_toml: String) -> Result<PluginInstallPreview, AtlasError> {
@@ -496,22 +462,8 @@ pub fn install_mcp_plugin(
     manifest_toml: String,
     ui_json: String,
 ) -> Result<PluginEntry, AtlasError> {
-    #[cfg(not(feature = "executable-plugins"))]
-    {
-        let _ = (manifest_toml, ui_json);
-        Err(AtlasError::PluginError(
-            "Executable plugins are unavailable in this distribution".to_string(),
-        ))
-    }
-    #[cfg(feature = "executable-plugins")]
-    {
-        PLUGIN_HOST
-            .lock()
-            .map_err(|_| AtlasError::LockPoisoned)?
-            .install_mcp(&manifest_toml, &ui_json)
-            .map(PluginEntry::from)
-            .map_err(|error| AtlasError::PluginError(error.to_string()))
-    }
+    let _ = (manifest_toml, ui_json);
+    Err(legacy_plugin_api_unavailable())
 }
 
 pub fn install_js_plugin(
@@ -519,72 +471,29 @@ pub fn install_js_plugin(
     source: String,
     ui_json: String,
 ) -> Result<PluginEntry, AtlasError> {
-    #[cfg(not(feature = "executable-plugins"))]
-    {
-        let _ = (manifest_toml, source, ui_json);
-        Err(AtlasError::PluginError(
-            "Executable plugins are unavailable in this distribution".to_string(),
-        ))
-    }
-    #[cfg(feature = "executable-plugins")]
-    {
-        PLUGIN_HOST
-            .lock()
-            .map_err(|_| AtlasError::LockPoisoned)?
-            .install_js(&manifest_toml, &source, &ui_json)
-            .map(PluginEntry::from)
-            .map_err(|error| AtlasError::PluginError(error.to_string()))
-    }
+    let _ = (manifest_toml, source, ui_json);
+    Err(legacy_plugin_api_unavailable())
 }
 
 pub fn list_plugins() -> Result<Vec<PluginEntry>, AtlasError> {
-    #[cfg(not(feature = "executable-plugins"))]
-    {
-        Ok(Vec::new())
-    }
-    #[cfg(feature = "executable-plugins")]
-    {
-        Ok(PLUGIN_HOST
-            .lock()
-            .map_err(|_| AtlasError::LockPoisoned)?
-            .list()
-            .into_iter()
-            .map(PluginEntry::from)
-            .collect())
-    }
+    Ok(Vec::new())
 }
 
 pub fn uninstall_plugin(id: String) -> Result<bool, AtlasError> {
-    #[cfg(not(feature = "executable-plugins"))]
-    {
-        let _ = id;
-        Ok(false)
-    }
-    #[cfg(feature = "executable-plugins")]
-    {
-        Ok(PLUGIN_HOST
-            .lock()
-            .map_err(|_| AtlasError::LockPoisoned)?
-            .uninstall(&id))
-    }
+    let _ = id;
+    Ok(false)
 }
 
 pub fn dispatch_plugin_event(id: String, event_json: String) -> Result<String, AtlasError> {
-    #[cfg(not(feature = "executable-plugins"))]
-    {
-        let _ = (id, event_json);
-        Err(AtlasError::PluginError(
-            "Executable plugins are unavailable in this distribution".to_string(),
-        ))
-    }
-    #[cfg(feature = "executable-plugins")]
-    {
-        PLUGIN_HOST
-            .lock()
-            .map_err(|_| AtlasError::LockPoisoned)?
-            .dispatch_event(&id, &event_json)
-            .map_err(|error| AtlasError::PluginError(error.to_string()))
-    }
+    let _ = (id, event_json);
+    Err(legacy_plugin_api_unavailable())
+}
+
+fn legacy_plugin_api_unavailable() -> AtlasError {
+    AtlasError::PluginError(
+        "Legacy in-process plugin execution is disabled; migrate or build an .atlasplugin package"
+            .into(),
+    )
 }
 
 pub fn initialize_plugin_storage(
@@ -1946,6 +1855,18 @@ mod tests {
 
         configure_entitlement(CoreEdition::Pro).unwrap();
         assert!(toggle_feature("window-manager".to_string(), true).unwrap());
+    }
+
+    #[test]
+    fn legacy_plugin_execution_is_disabled() {
+        let error = match install_js_plugin(String::new(), String::new(), String::new()) {
+            Ok(_) => panic!("legacy plugin unexpectedly installed"),
+            Err(error) => error,
+        };
+        assert!(error
+            .to_string()
+            .contains("Legacy in-process plugin execution is disabled"));
+        assert!(list_plugins().unwrap().is_empty());
     }
 
     #[cfg(feature = "executable-plugins")]

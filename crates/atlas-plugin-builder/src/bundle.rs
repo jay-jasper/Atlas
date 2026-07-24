@@ -116,14 +116,18 @@ import {{ render, dispatchUiEvent, installEnvironment, installHost, unloadRuntim
 const commands = {{ {command_map} }};
 let emissions = [];
 let responseListener;
-const bytes = value => Array.from(JSON.stringify(value ?? null), char => char.charCodeAt(0) & 255);
-const defaultResult = capability => capability === "network.https" ? {{ status: 200, headers: {{}}, body: "" }} : undefined;
+let pendingResponses = [];
+const responseResolvers = new Map();
+globalThis.__atlasHostReceive = response => {{
+  responseListener?.(response);
+  responseResolvers.get(response.requestId)?.();
+  responseResolvers.delete(response.requestId);
+}};
 const transport = {{
   subscribe(listener) {{ responseListener = listener; return () => {{ responseListener = undefined; }}; }},
   send(request) {{
-    const operation = request.capability.split(".").at(-1) ?? "perform";
-    emissions.push({{ type: "capability-request", capability: request.capability, operation, resource: request.payload?.input ?? request.payload?.key, payload: bytes(request.payload) }});
-    queueMicrotask(() => responseListener?.({{ protocolVersion: 1, requestId: request.requestId, result: defaultResult(request.capability) }}));
+    pendingResponses.push(new Promise(resolve => responseResolvers.set(request.requestId, resolve)));
+    globalThis.__atlasHostSend(JSON.stringify(request));
   }}
 }};
 const sink = {{
@@ -133,6 +137,15 @@ const sink = {{
   error(error) {{ emissions.push({{ type: "runtime-error", message: String(error?.message ?? error) }}); }}
 }};
 const drain = () => {{ const value = emissions; emissions = []; return value; }};
+const flush = async () => {{
+  while (pendingResponses.length > 0) {{
+    const batch = pendingResponses;
+    pendingResponses = [];
+    await Promise.all(batch);
+  }}
+  await Promise.resolve();
+  return drain();
+}};
 export default {{
   async start(context) {{
     const environment = Object.fromEntries(context.environment ?? []);
@@ -142,10 +155,9 @@ export default {{
     installEnvironment({{ commandName: environment.ATLAS_COMMAND_ID ?? "", extensionName: "", assetsPath: "", supportPath: "", isDevelopment: false, launchType: "userInitiated", ...environment }});
     if (selected.visual) render(React.createElement(Command, {{ arguments: context.arguments }}), sink);
     else await Command({{ arguments: context.arguments }});
-    await Promise.resolve();
-    return drain();
+    return await flush();
   }},
-  async onEvent(event) {{ dispatchUiEvent(event); await Promise.resolve(); return drain(); }},
+  async onEvent(event) {{ dispatchUiEvent(event); return await flush(); }},
   cancel() {{ unloadRuntime(); return drain(); }}
 }};
 "#

@@ -18,7 +18,7 @@ fn compatible_react_bundle_opens_ui_and_routes_capabilities() {
         fixture.path().join("src/main.tsx"),
         r#"import React from "react"; import { Clipboard, List } from "@raycast/api";
 export default function Command() {
-  void Clipboard.readText();
+  void Promise.allSettled([Clipboard.readText(), Clipboard.readText()]);
   return <List><List.Item id="one" title="One" /></List>;
 }"#,
     )
@@ -38,10 +38,38 @@ export default function Command() {
             environment: vec![("ATLAS_COMMAND_ID".into(), "main".into())],
         })
         .unwrap();
-    assert!(messages
+    let request_ids = messages
+        .iter()
+        .filter_map(|message| match message {
+            MessageKind::CapabilityRequest(request) if request.capability == "clipboard.read" => {
+                request.request_id.clone()
+            }
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(request_ids.len(), 2);
+    let pending = adapter
+        .capability_response(
+            &request_ids[0],
+            atlas_plugin_protocol::CapabilityResponse {
+                granted: true,
+                payload: b"null".to_vec(),
+                error: None,
+            },
+        )
+        .unwrap();
+    assert!(pending.is_empty());
+    let completed = adapter
+        .capability_response(
+            &request_ids[1],
+            atlas_plugin_protocol::CapabilityResponse {
+                granted: false,
+                payload: b"null".to_vec(),
+                error: Some("clipboard access denied".into()),
+            },
+        )
+        .unwrap();
+    assert!(completed
         .iter()
         .any(|message| matches!(message, MessageKind::UiOpen(_))));
-    assert!(messages
-        .iter()
-        .any(|message| matches!(message, MessageKind::CapabilityRequest(request) if request.capability == "clipboard.read")));
 }

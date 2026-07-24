@@ -111,18 +111,12 @@ struct PluginsPanel: View {
 
     private func choosePackage() {
         let panel = NSOpenPanel()
-        panel.canChooseDirectories = true
+        panel.canChooseDirectories = false
         panel.canChooseFiles = true
         panel.allowsMultipleSelection = false
         panel.prompt = "Install"
         if panel.runModal() == .OK, let url = panel.url {
-            var isDirectory: ObjCBool = false
-            FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory)
-            if isDirectory.boolValue {
-                service.requestInstall(at: url)
-            } else {
-                platform.stage(packageURL: url)
-            }
+            platform.stage(packageURL: url)
         }
     }
 }

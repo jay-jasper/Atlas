@@ -1,8 +1,9 @@
 use super::{RuntimeAdapter, RuntimeError, RuntimeHealth, UiOutputState};
 use crate::RunnerLimits;
-use atlas_plugin_js::{JsLimits, JsPlugin};
-use atlas_plugin_protocol::{CommandStart, MessageKind};
+use atlas_plugin_js::{JsCallStatus, JsLimits, JsPlugin};
+use atlas_plugin_protocol::{CapabilityRequest, CapabilityResponse, CommandStart, MessageKind};
 use atlas_ui_schema::UiEvent;
+use serde::Deserialize;
 use std::time::Duration;
 
 pub struct JavascriptAdapter {
@@ -37,12 +38,53 @@ impl JavascriptAdapter {
         function: &str,
         arguments: serde_json::Value,
     ) -> Result<Vec<MessageKind>, RuntimeError> {
-        let output = self
+        let status = self
             .plugin
-            .call(function, &arguments.to_string())
+            .call_status(function, &arguments.to_string())
             .map_err(|error| RuntimeError::Call(error.to_string()))?;
-        self.ui.decode(output.as_bytes())
+        self.decode_status(status)
     }
+
+    fn decode_status(&mut self, status: JsCallStatus) -> Result<Vec<MessageKind>, RuntimeError> {
+        match status {
+            JsCallStatus::Complete(output) => self.ui.decode(output.as_bytes()),
+            JsCallStatus::Pending => Ok(Vec::new()),
+            JsCallStatus::HostRequests(requests) => requests
+                .into_iter()
+                .map(|request| {
+                    let request: JsHostRequest = serde_json::from_str(&request)
+                        .map_err(|error| RuntimeError::Output(error.to_string()))?;
+                    let operation = request
+                        .capability
+                        .rsplit_once('.')
+                        .map_or("perform", |(_, operation)| operation)
+                        .to_owned();
+                    let resource = request
+                        .payload
+                        .get("input")
+                        .or_else(|| request.payload.get("key"))
+                        .and_then(serde_json::Value::as_str)
+                        .map(str::to_owned);
+                    Ok(MessageKind::CapabilityRequest(CapabilityRequest {
+                        request_id: Some(request.request_id),
+                        capability: request.capability,
+                        operation,
+                        resource,
+                        payload: serde_json::to_vec(&request.payload)
+                            .map_err(|error| RuntimeError::Output(error.to_string()))?,
+                    }))
+                })
+                .collect(),
+        }
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct JsHostRequest {
+    request_id: String,
+    capability: String,
+    payload: serde_json::Value,
 }
 
 impl RuntimeAdapter for JavascriptAdapter {
@@ -85,6 +127,39 @@ impl RuntimeAdapter for JavascriptAdapter {
             return Ok(Vec::new());
         }
         self.call("onEvent", serde_json::json!([event]))
+    }
+
+    fn capability_response(
+        &mut self,
+        request_id: &str,
+        response: CapabilityResponse,
+    ) -> Result<Vec<MessageKind>, RuntimeError> {
+        if !self.active {
+            return Err(RuntimeError::NotActive);
+        }
+        let payload = serde_json::from_slice::<serde_json::Value>(&response.payload)
+            .unwrap_or(serde_json::Value::Null);
+        let response = if response.granted {
+            serde_json::json!({
+                "protocolVersion": 1,
+                "requestId": request_id,
+                "result": payload,
+            })
+        } else {
+            serde_json::json!({
+                "protocolVersion": 1,
+                "requestId": request_id,
+                "error": {
+                    "code": "permission-denied",
+                    "message": response.error.unwrap_or_else(|| "Permission denied".into()),
+                },
+            })
+        };
+        let status = self
+            .plugin
+            .resume_host(&response.to_string())
+            .map_err(|error| RuntimeError::Call(error.to_string()))?;
+        self.decode_status(status)
     }
 
     fn cancel(&mut self, instance_id: &str) -> Result<(), RuntimeError> {

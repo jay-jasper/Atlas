@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use rquickjs::{CatchResultExt, Context, Runtime};
+use rquickjs::{CatchResultExt, Context, Function, Runtime};
 
 pub const DEFAULT_MEMORY_LIMIT: usize = 32 * 1024 * 1024;
 pub const DEFAULT_STACK_LIMIT: usize = 512 * 1024;
@@ -42,6 +42,13 @@ pub enum JsError {
     UnhandledRejection(String),
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum JsCallStatus {
+    Complete(String),
+    HostRequests(Vec<String>),
+    Pending,
+}
+
 /// Engine seam keeps the host independent from a particular JS implementation.
 pub trait JsEngine {
     fn eval(&mut self, source: &str) -> Result<(), JsError>;
@@ -58,6 +65,7 @@ pub struct QuickJsEngine {
     context: Context,
     deadline: Arc<Mutex<Instant>>,
     cpu_limit: Duration,
+    host_requests: Arc<Mutex<Vec<String>>>,
 }
 
 enum WorkerCommand {
@@ -68,7 +76,11 @@ enum WorkerCommand {
     Call {
         function: String,
         args_json: String,
-        reply: Sender<Result<String, JsError>>,
+        reply: Sender<Result<JsCallStatus, JsError>>,
+    },
+    ResumeHost {
+        response_json: String,
+        reply: Sender<Result<JsCallStatus, JsError>>,
     },
 }
 
@@ -115,7 +127,13 @@ impl JsPlugin {
                             args_json,
                             reply,
                         } => {
-                            let _ = reply.send(engine.call(&function, &args_json));
+                            let _ = reply.send(engine.call_status(&function, &args_json));
+                        }
+                        WorkerCommand::ResumeHost {
+                            response_json,
+                            reply,
+                        } => {
+                            let _ = reply.send(engine.resume_host(&response_json));
                         }
                     }
                 }
@@ -137,11 +155,29 @@ impl JsPlugin {
     }
 
     pub fn call(&self, function: &str, args_json: &str) -> Result<String, JsError> {
+        match self.call_status(function, args_json)? {
+            JsCallStatus::Complete(value) => Ok(value),
+            JsCallStatus::HostRequests(_) | JsCallStatus::Pending => Err(JsError::PromisePending),
+        }
+    }
+
+    pub fn call_status(&self, function: &str, args_json: &str) -> Result<JsCallStatus, JsError> {
         let (reply, response) = mpsc::channel();
         self.commands
             .send(WorkerCommand::Call {
                 function: function.to_owned(),
                 args_json: args_json.to_owned(),
+                reply,
+            })
+            .map_err(|_| JsError::WorkerStopped)?;
+        response.recv().map_err(|_| JsError::WorkerStopped)?
+    }
+
+    pub fn resume_host(&self, response_json: &str) -> Result<JsCallStatus, JsError> {
+        let (reply, response) = mpsc::channel();
+        self.commands
+            .send(WorkerCommand::ResumeHost {
+                response_json: response_json.to_owned(),
                 reply,
             })
             .map_err(|_| JsError::WorkerStopped)?;
@@ -160,11 +196,27 @@ impl QuickJsEngine {
             Instant::now() >= *interrupt_deadline.lock().expect("deadline lock poisoned")
         })));
         let context = Context::full(&runtime).map_err(runtime_error)?;
+        let host_requests = Arc::new(Mutex::new(Vec::new()));
+        let host_queue = Arc::clone(&host_requests);
+        context
+            .with(|ctx| {
+                ctx.globals().set(
+                    "__atlasHostSend",
+                    Function::new(ctx.clone(), move |request: String| {
+                        host_queue
+                            .lock()
+                            .expect("host request queue lock poisoned")
+                            .push(request);
+                    }),
+                )
+            })
+            .map_err(runtime_error)?;
         Ok(Self {
             runtime,
             context,
             deadline,
             cpu_limit: DEFAULT_CPU_LIMIT,
+            host_requests,
         })
     }
 
@@ -213,6 +265,27 @@ impl JsEngine for QuickJsEngine {
     }
 
     fn call(&mut self, function: &str, args_json: &str) -> Result<String, JsError> {
+        match self.call_status(function, args_json)? {
+            JsCallStatus::Complete(value) => Ok(value),
+            JsCallStatus::HostRequests(_) | JsCallStatus::Pending => Err(JsError::PromisePending),
+        }
+    }
+
+    fn set_memory_limit(&mut self, bytes: usize) {
+        self.runtime.set_memory_limit(bytes);
+    }
+
+    fn set_stack_limit(&mut self, bytes: usize) {
+        self.runtime.set_max_stack_size(bytes);
+    }
+
+    fn set_cpu_limit(&mut self, duration: Duration) {
+        self.cpu_limit = duration;
+    }
+}
+
+impl QuickJsEngine {
+    fn call_status(&mut self, function: &str, args_json: &str) -> Result<JsCallStatus, JsError> {
         self.reset_deadline();
         let deadline = Instant::now() + self.cpu_limit;
         let function = serde_json::to_string(function).expect("string serialization cannot fail");
@@ -247,21 +320,23 @@ impl JsEngine for QuickJsEngine {
         self.finish_call(deadline)
     }
 
-    fn set_memory_limit(&mut self, bytes: usize) {
-        self.runtime.set_memory_limit(bytes);
-    }
-
-    fn set_stack_limit(&mut self, bytes: usize) {
-        self.runtime.set_max_stack_size(bytes);
-    }
-
-    fn set_cpu_limit(&mut self, duration: Duration) {
-        self.cpu_limit = duration;
+    fn resume_host(&mut self, response_json: &str) -> Result<JsCallStatus, JsError> {
+        self.reset_deadline();
+        let response = serde_json::to_string(response_json)
+            .expect("response string serialization cannot fail");
+        self.context
+            .with(|ctx| {
+                ctx.eval::<(), _>(format!(
+                    "globalThis.__atlasHostReceive(JSON.parse({response}));"
+                ))
+            })
+            .map_err(runtime_error)?;
+        self.finish_call(Instant::now() + self.cpu_limit)
     }
 }
 
 impl QuickJsEngine {
-    fn finish_call(&mut self, deadline: Instant) -> Result<String, JsError> {
+    fn finish_call(&mut self, deadline: Instant) -> Result<JsCallStatus, JsError> {
         loop {
             if Instant::now() >= deadline {
                 return Err(JsError::Timeout);
@@ -273,6 +348,16 @@ impl QuickJsEngine {
                 if Instant::now() >= deadline {
                     return Err(JsError::Timeout);
                 }
+            }
+            let requests = {
+                let mut queue = self
+                    .host_requests
+                    .lock()
+                    .expect("host request queue lock poisoned");
+                std::mem::take(&mut *queue)
+            };
+            if !requests.is_empty() {
+                return Ok(JsCallStatus::HostRequests(requests));
             }
 
             let state = self
@@ -290,6 +375,7 @@ impl QuickJsEngine {
                     return serde_json::to_string(
                         state.get("value").unwrap_or(&serde_json::Value::Null),
                     )
+                    .map(JsCallStatus::Complete)
                     .map_err(|error| JsError::Runtime(error.to_string()));
                 }
                 return Err(JsError::UnhandledRejection(
@@ -310,7 +396,7 @@ impl QuickJsEngine {
                 return Err(JsError::UnhandledRejection(error.to_owned()));
             }
             if timer_state["pending"].as_u64() == Some(0) && !self.runtime.is_job_pending() {
-                return Err(JsError::PromisePending);
+                return Ok(JsCallStatus::Pending);
             }
             let delay = timer_state["nextDelay"].as_u64().unwrap_or(0).min(10);
             if delay > 0 {

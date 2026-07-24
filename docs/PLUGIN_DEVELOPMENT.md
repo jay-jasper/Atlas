@@ -38,8 +38,13 @@ cargo run -p atlas-plugin -- migrate ./extension --output ./atlas-extension
 
 Inspection infers the minimum capability upper bound and rejects Node builtins,
 native dependencies, lifecycle scripts, dynamic code/imports, DOM globals, and
-non-HTTPS network access. Build output is a deterministic integrity-protected
-archive consumed by the same P0 installer used by the app.
+non-HTTPS network access. Oxc parses and semantically binds every reachable
+relative import and re-export, so aliases and indirect capability use cannot
+bypass inspection. Build output is a deterministic integrity-protected archive
+consumed by the same P0 installer used by the app.
+
+Legacy directory install and dispatch symbols remain ABI-compatible but cannot
+execute in-process; migrate the source or build an `.atlasplugin` package.
 
 Migration never changes the Raycast source tree. It writes a new Atlas tree,
 rewrites only matrix-declared deterministic mappings, creates `plugin.toml`,

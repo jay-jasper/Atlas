@@ -19,6 +19,7 @@ pub trait RuntimeAdapter {
     fn event(&mut self, event: UiEvent) -> Result<Vec<MessageKind>, RuntimeError>;
     fn capability_response(
         &mut self,
+        _request_id: &str,
         _response: CapabilityResponse,
     ) -> Result<Vec<MessageKind>, RuntimeError> {
         Ok(Vec::new())
@@ -42,10 +43,21 @@ impl RuntimeDriver {
         instance_id: &str,
         message: MessageKind,
     ) -> Result<Vec<MessageKind>, RuntimeError> {
+        self.handle_request(instance_id, "", message)
+    }
+
+    pub fn handle_request(
+        &mut self,
+        instance_id: &str,
+        request_id: &str,
+        message: MessageKind,
+    ) -> Result<Vec<MessageKind>, RuntimeError> {
         match message {
             MessageKind::Start(command) => self.adapter.start(command),
             MessageKind::UiEvent(event) => self.adapter.event(event),
-            MessageKind::CapabilityResponse(response) => self.adapter.capability_response(response),
+            MessageKind::CapabilityResponse(response) => {
+                self.adapter.capability_response(request_id, response)
+            }
             MessageKind::Cancel => {
                 self.adapter.cancel(instance_id)?;
                 Ok(vec![MessageKind::UiClose])
@@ -162,11 +174,13 @@ impl UiOutputState {
                     messages.push(MessageKind::UiClose);
                 }
                 RuntimeEmission::CapabilityRequest {
+                    request_id,
                     capability,
                     operation,
                     resource,
                     payload,
                 } => messages.push(MessageKind::CapabilityRequest(CapabilityRequest {
+                    request_id,
                     capability,
                     operation,
                     resource,
@@ -196,6 +210,8 @@ enum RuntimeEmission {
     Close,
     #[serde(rename = "capability-request")]
     CapabilityRequest {
+        #[serde(default)]
+        request_id: Option<String>,
         capability: String,
         operation: String,
         resource: Option<String>,
