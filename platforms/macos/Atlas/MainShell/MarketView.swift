@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 /// 市场页:搜索 + 分类计数 chips + 已装插件卡片(MacTools 市场同构,本地语义)。
 struct MarketView: View {
     @ObservedObject var service: PluginsService
+    @StateObject private var platform = PluginPlatformService()
 
     @State private var query = ""
     @State private var selectedTrack: String?
@@ -35,6 +36,7 @@ struct MarketView: View {
                     Spacer()
                     Button {
                         service.refresh()
+                        platform.refreshStatuses()
                     } label: {
                         Label("刷新列表", systemImage: "arrow.clockwise")
                             .font(.callout)
@@ -71,7 +73,36 @@ struct MarketView: View {
                         .foregroundColor(.secondary)
                 }
 
-                if filtered.isEmpty {
+                if let error = platform.lastError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+
+                if let consent = platform.pendingConsent {
+                    PluginConsentView(service: platform, request: consent)
+                        .glassCard(padding: 10)
+                }
+
+                ForEach(platform.statuses, id: \.pluginId) { status in
+                    platformCard(status)
+                }
+
+                ForEach(platform.sessions.values.sorted { $0.id < $1.id }) { session in
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text(session.title).font(.headline)
+                            Spacer()
+                            Button("关闭") { platform.cancel(sessionID: session.id) }
+                        }
+                        DynamicPluginView(node: session.root) {
+                            platform.send($0, sessionID: session.id)
+                        }
+                    }
+                    .glassCard(padding: 10)
+                }
+
+                if filtered.isEmpty && platform.statuses.isEmpty {
                     VStack(spacing: 8) {
                         Image(systemName: "shippingbox")
                             .font(.system(size: 34))
@@ -162,14 +193,39 @@ struct MarketView: View {
         .glassCard(padding: 10)
     }
 
+    private func platformCard(_ status: PluginStatusRecord) -> some View {
+        HStack(spacing: 10) {
+            IconTile(systemImage: "puzzlepiece.extension", tint: .blue)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(status.pluginId).font(.system(size: 13, weight: .semibold))
+                Text("\(status.version) · \(status.trustTier)")
+                    .font(.caption2).foregroundColor(.secondary)
+            }
+            Spacer()
+            Button("运行") {
+                platform.startCommand(pluginID: status.pluginId, commandID: "main")
+            }
+            Button("卸载", role: .destructive) {
+                platform.uninstall(pluginID: status.pluginId)
+            }
+        }
+        .glassCard(padding: 10)
+    }
+
     private func choosePackage() {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
-        panel.canChooseFiles = false
+        panel.canChooseFiles = true
         panel.allowsMultipleSelection = false
         panel.prompt = "安装"
         if panel.runModal() == .OK, let url = panel.url {
-            service.requestInstall(at: url)
+            var isDirectory: ObjCBool = false
+            FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory)
+            if isDirectory.boolValue {
+                service.requestInstall(at: url)
+            } else {
+                platform.stage(packageURL: url)
+            }
         }
     }
 }
