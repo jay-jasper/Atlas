@@ -45,7 +45,7 @@ struct LauncherResultRow: View {
         HStack(spacing: 10) {
             LauncherIconView(icon: item.icon, size: style.iconSize, accent: accent)
 
-            VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
                 highlightedTitle
                     .font(.system(size: style.fontSize))
                     .lineLimit(1)
@@ -76,13 +76,11 @@ struct LauncherResultRow: View {
                     .background(Color.primary.opacity(0.08), in: Capsule())
             }
 
-            Text(item.category)
-                .font(.system(size: max(style.fontSize - 4, 9)))
-                .foregroundColor(Color(nsColor: .tertiaryLabelColor))
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(Color.secondary.opacity(0.1))
-                .clipShape(Capsule())
+            if item.category != "Files" {
+                Text(item.category == "App" ? "Application" : item.category)
+                    .font(.system(size: max(style.fontSize - 3, 10)))
+                    .foregroundColor(.secondary)
+            }
         }
         .padding(.horizontal, 14)
         .frame(height: style.rowHeight)

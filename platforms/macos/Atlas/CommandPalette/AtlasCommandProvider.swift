@@ -4,37 +4,27 @@ final class AtlasCommandProvider: CommandProviding {
     private let commands: [PaletteCommand]
 
     init(
-        onCaptureDesktop: @escaping () -> Void,
-        onCaptureArea: @escaping () -> Void,
-        onCaptureWindow: @escaping () -> Void,
+        onScreenshot: @escaping () -> Void,
+        onScreenRecording: @escaping () -> Void,
         onOpenSettings: @escaping () -> Void
     ) {
         commands = [
             PaletteCommand(
                 id: UUID(),
-                title: "Capture Desktop",
+                title: "Screenshot",
                 subtitle: nil,
-                icon: .sfSymbol("desktopcomputer"),
-                keywords: ["screenshot", "capture", "desktop", "截图", "截屏", "全屏", "桌面"],
-                action: .execute(onCaptureDesktop),
+                icon: .sfSymbol("viewfinder"),
+                keywords: ["screenshot", "capture", "area", "window", "fullscreen", "截图", "截屏", "全屏", "区域", "窗口"],
+                action: .execute(onScreenshot),
                 category: "Atlas"
             ),
             PaletteCommand(
                 id: UUID(),
-                title: "Capture Area",
+                title: "Screen Recording",
                 subtitle: nil,
-                icon: .sfSymbol("crop"),
-                keywords: ["screenshot", "capture", "area", "region", "截图", "截屏", "区域"],
-                action: .execute(onCaptureArea),
-                category: "Atlas"
-            ),
-            PaletteCommand(
-                id: UUID(),
-                title: "Capture Window",
-                subtitle: nil,
-                icon: .sfSymbol("macwindow"),
-                keywords: ["screenshot", "capture", "window", "截图", "截屏", "窗口"],
-                action: .push(.windowPicker),
+                icon: .sfSymbol("record.circle"),
+                keywords: ["record", "recording", "screen", "video", "录屏", "录像", "屏幕录制"],
+                action: .execute(onScreenRecording),
                 category: "Atlas"
             ),
             PaletteCommand(

@@ -461,9 +461,8 @@ final class CommandPaletteState: ObservableObject {
     }
 
     // Callbacks that redirect to ContentView's actual methods at runtime
-    private var onCaptureDesktop: (() -> Void)?
-    private var onCaptureArea: (() -> Void)?
-    private var onCaptureWindow: (() -> Void)?
+    private var onScreenshot: (() -> Void)?
+    private var onScreenRecording: (() -> Void)?
     private var onSaveCurrentWorkspace: (() -> Void)?
     private var onRestoreWorkspace: ((Workspace) -> Void)?
     private var isSystemUtilitiesEnabled: (() -> Bool)?
@@ -485,9 +484,8 @@ final class CommandPaletteState: ObservableObject {
         )
 
         let atlasProvider = AtlasCommandProvider(
-            onCaptureDesktop: { [weak self] in self?.onCaptureDesktop?() },
-            onCaptureArea: { [weak self] in self?.onCaptureArea?() },
-            onCaptureWindow: { [weak self] in self?.onCaptureWindow?() },
+            onScreenshot: { [weak self] in self?.onScreenshot?() },
+            onScreenRecording: { [weak self] in self?.onScreenRecording?() },
             onOpenSettings: {
                 AtlasServices.shared.openMainWindow?()
             }
@@ -556,6 +554,12 @@ final class CommandPaletteState: ObservableObject {
         let regexProvider = RegexTesterProvider()
         let timezoneProvider = TimezoneProvider()
         let emojiProvider = EmojiProvider()
+        let processInfo = ProcessInfo.processInfo
+        let isRunningTests = processInfo.environment["XCTestConfigurationFilePath"] != nil
+            || processInfo.arguments.contains("-NSTreatUnknownArgumentsAsOpen")
+        if !isRunningTests {
+            RaycastV2Search.startFileIndexIfNeeded()
+        }
         let fileSearchProvider = FileSearchProvider()
         let bookmarkProvider = BookmarkProvider()
         let shellScriptProvider = ShellScriptProvider()
@@ -616,6 +620,7 @@ final class CommandPaletteState: ObservableObject {
                 || provider is EmojiProvider
                 || provider is FileSearchProvider
                 || provider is ClipboardHistoryProvider
+                || provider is AppLauncherProvider
                 || provider is TranslateProvider
                 || provider is NotesProvider
                 || provider is CalendarEventsProvider
@@ -712,18 +717,16 @@ final class CommandPaletteState: ObservableObject {
     }
 
     func setActions(
-        onCaptureDesktop: @escaping () -> Void,
-        onCaptureArea: @escaping () -> Void,
-        onCaptureWindow: @escaping () -> Void,
+        onScreenshot: @escaping () -> Void,
+        onScreenRecording: @escaping () -> Void,
         isSystemUtilitiesEnabled: @escaping () -> Bool,
         onToggleKeepAwake: @escaping () -> Void,
         onTogglePresentationMode: @escaping () -> Void,
         onOpenHandMirror: @escaping () -> Void,
         onRefreshDisplays: @escaping () -> Void
     ) {
-        self.onCaptureDesktop = onCaptureDesktop
-        self.onCaptureArea = onCaptureArea
-        self.onCaptureWindow = onCaptureWindow
+        self.onScreenshot = onScreenshot
+        self.onScreenRecording = onScreenRecording
         self.isSystemUtilitiesEnabled = isSystemUtilitiesEnabled
         self.onToggleKeepAwake = onToggleKeepAwake
         self.onTogglePresentationMode = onTogglePresentationMode

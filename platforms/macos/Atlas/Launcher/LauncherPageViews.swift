@@ -64,6 +64,10 @@ struct LauncherPageView: View {
                 if items.indices.contains(nav.selectedIndex) { run(items[nav.selectedIndex]) }
                 return .handled
             }
+            .onChange(of: nav.selectedIndex) { index in
+                guard items.indices.contains(index) else { return }
+                proxy.scrollTo(index, anchor: .center)
+            }
         }
     }
 
@@ -105,14 +109,16 @@ struct LauncherPageView: View {
                 if items.indices.contains(nav.selectedIndex) { run(items[nav.selectedIndex]) }
                 return .handled
             }
+            .onChange(of: nav.selectedIndex) { index in
+                guard items.indices.contains(index) else { return }
+                proxy.scrollTo(index, anchor: .center)
+            }
         }
     }
 
     private func move(_ delta: Int, count: Int, proxy: ScrollViewProxy) {
-        let next = nav.selectedIndex + delta
-        guard next >= 0, next < count else { return }
-        nav.selectedIndex = next
-        proxy.scrollTo(next, anchor: .center)
+        nav.moveSelection(by: delta, itemCount: count)
+        proxy.scrollTo(nav.selectedIndex, anchor: .center)
     }
 
     private func run(_ item: LauncherItem) {

@@ -2,6 +2,7 @@
 **/*.rs.bk
 .antigravitycli/
 .DS_Store
+**/xcuserdata/
 
 # brainstorming visual-companion scratch
 .superpowers/

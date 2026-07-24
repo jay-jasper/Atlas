@@ -39,6 +39,7 @@ final class LauncherStyleTests: XCTestCase {
         defaults.set(Data("junk".utf8), forKey: "launcher.style")
         let store = LauncherStyleStore(defaults: defaults)
         XCTAssertEqual(store.style, .default)
+        XCTAssertEqual(store.style.maxVisibleRows, 10)
     }
 
     func testStorePersistsAcrossInstances() {
@@ -56,9 +57,20 @@ final class LauncherStyleTests: XCTestCase {
         store.style.fontSize = 19
         store.reset()
         XCTAssertEqual(store.style, .default)
+        XCTAssertEqual(store.style.maxVisibleRows, 10)
 
         let reloaded = LauncherStyleStore(defaults: defaults)
         XCTAssertEqual(reloaded.style, .default)
+    }
+
+    func testStoreMigratesOldDefaultVisibleRowsToTen() throws {
+        var legacyStyle = LauncherStyle.default
+        legacyStyle.maxVisibleRows = 8
+        defaults.set(try JSONEncoder().encode(legacyStyle), forKey: "launcher.style")
+
+        let store = LauncherStyleStore(defaults: defaults)
+
+        XCTAssertEqual(store.style.maxVisibleRows, 10)
     }
 
     func testSanitizedClampsOutOfRangeValues() {

@@ -28,6 +28,16 @@ final class LauncherMenuBarTests: XCTestCase {
         XCTAssertEqual(items[0].title, "Copy")
     }
 
+    func testQueryDrivenPrefixSurvivesSectionProcessing() {
+        let source = MenuBarItemSource(reader: StubReader(entries: entries), isTrusted: { true })
+        let items = LauncherSectionBuilder.process(
+            sources: [source],
+            query: "menu copy",
+            records: [:]
+        )
+        XCTAssertEqual(items.map(\.title), ["Copy"])
+    }
+
     func testEntryTitleJoinsPath() {
         let source = MenuBarItemSource(reader: StubReader(entries: entries), isTrusted: { true })
         let items = source.items(for: "sm export")

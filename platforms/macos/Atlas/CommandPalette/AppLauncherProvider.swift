@@ -93,22 +93,53 @@ final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
         apps = refreshedApps
     }
 
+    private func ensureApplicationsLoaded() {
+        guard let scanner, apps.isEmpty else { return }
+        refreshLock.lock()
+        defer { refreshLock.unlock() }
+        guard apps.isEmpty else { return }
+        apps = scanner.scanApplications()
+    }
+
     func results(for query: String) -> [PaletteCommand] {
         let q = query.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { return [] }
 
-        let scored = apps.compactMap { app -> (AppEntry, Int)? in
-            let score = max(
-                Self.fuzzyScore(query: q, in: app.name),
-                Self.fuzzyScore(query: q, in: app.displayName)
-            )
-            return score > 0 ? (app, score) : nil
-        }
+        // The initial scan is intentionally off-main-thread. If the first launcher
+        // query wins that race, finish the scan here (the coordinator calls us from
+        // its detached collection task) instead of returning an empty app section.
+        ensureApplicationsLoaded()
+        let appSnapshot = apps
 
-        return scored
-            .sorted { $0.1 > $1.1 }
-            .prefix(Self.maxResultsCount)
-            .map { entry, _ in
+        let appsByID = Dictionary(uniqueKeysWithValues: appSnapshot.map {
+            ($0.url.path, $0)
+        })
+        let documents = appSnapshot.map { app in
+            var keywords = [app.name]
+            if app.displayName != app.name {
+                keywords.append(app.displayName)
+            }
+            keywords.append(contentsOf: RaycastV2Search.searchAliases(for: app.name))
+            keywords.append(contentsOf: RaycastV2Search.searchAliases(for: app.displayName))
+            return SearchDocumentInput(
+                id: app.url.path,
+                namespace: "apps",
+                title: app.displayName,
+                subtitle: app.name == app.displayName ? "" : app.name,
+                keywords: keywords,
+                path: app.url.path,
+                kind: "application",
+                modifiedAt: 0
+            )
+        }
+        let ranked = RaycastV2Search.rank(
+            query: q,
+            documents: documents,
+            limit: Self.maxResultsCount
+        )
+
+        return ranked.compactMap { appsByID[$0.id] }
+            .map { entry in
                 PaletteCommand(
                     id: UUID(),
                     title: entry.displayName,
@@ -133,16 +164,38 @@ final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
         // Contains match: medium score
         if t.contains(q) { return containsMatchScore }
 
-        // Fuzzy: all query chars must appear in order in target
-        let qChars = Array(q)
-        let tChars = Array(t)
+        // Fuzzy matches stay within one app-name word. Allowing a match to jump
+        // between words makes unrelated queries such as "test" match
+        // "System Settings" ("SysTem SEtTings").
+        let words = t.split { !$0.isLetter && !$0.isNumber }.map(String.init)
+        let bestWordScore = words
+            .map { fuzzySubsequenceScore(query: q, candidate: $0) }
+            .max() ?? 0
+        if bestWordScore > 0 {
+            return bestWordScore
+        }
+
+        // Initials preserve the common multi-word shortcut ("ss" →
+        // "System Settings") without reintroducing arbitrary cross-word jumps.
+        let initials = String(words.compactMap(\.first))
+        guard initials.hasPrefix(q) else { return 0 }
+        return fuzzyMatchBaseScore + q.count * consecutiveMatchBonus
+    }
+
+    private static func fuzzySubsequenceScore(query: String, candidate: String) -> Int {
+        let qChars = Array(query)
+        let tChars = Array(candidate)
 
         var qi = 0
         var consecutiveBonus = 0
         var lastMatchIndex: Int? = nil
+        var firstMatchIndex: Int?
 
         for ti in 0..<tChars.count {
             if tChars[ti] == qChars[qi] {
+                if firstMatchIndex == nil {
+                    firstMatchIndex = ti
+                }
                 if let last = lastMatchIndex, last + 1 == ti {
                     consecutiveBonus += consecutiveMatchBonus
                 }
@@ -154,7 +207,12 @@ final class AppLauncherProvider: CommandProviding, @unchecked Sendable {
             }
         }
 
-        guard qi == qChars.count else { return 0 }
+        guard qi == qChars.count,
+              let firstMatchIndex,
+              let lastMatchIndex,
+              lastMatchIndex - firstMatchIndex + 1 <= qChars.count * 2 + 1 else {
+            return 0
+        }
         return fuzzyMatchBaseScore + consecutiveBonus
     }
 }

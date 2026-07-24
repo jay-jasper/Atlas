@@ -1,16 +1,55 @@
 import Foundation
 
-/// 子序列模糊匹配,算法移植自 fzf 的 FuzzyMatchV1
-/// (https://github.com/junegunn/fzf, MIT License, © Junegunn Choi):
-/// 前向找首个可行匹配区间,再回溯收紧起点,按 fzf 计分表打分并回传命中位置。
+/// fzf-style fuzzy matcher.
+///
+/// The scorer follows fzf's V2 shape: dynamic programming chooses the globally
+/// best alignment while boundary, camelCase and consecutive matches receive
+/// bonuses and gaps receive penalties. The implementation is intentionally
+/// self-contained so launcher search never shells out to `fzf`.
 enum FuzzyMatcher {
-    struct Result: Equatable {
+    struct Result: Equatable, Sendable {
         let score: Int
-        /// 命中字符在候选串(UTF-16 offset)上的位置,升序。
+        /// Matched Character offsets in the candidate, ascending.
         let positions: [Int]
     }
 
-    // fzf 计分表。
+    struct Pattern: Sendable {
+        let raw: String
+        let characters: [String]
+        let caseSensitive: Bool
+
+        init(_ raw: String) {
+            self.raw = raw
+            let usesCaseSensitiveMatching = raw.contains { $0.isUppercase }
+            caseSensitive = usesCaseSensitiveMatching
+            characters = raw.map {
+                usesCaseSensitiveMatching ? String($0) : String($0).lowercased()
+            }
+        }
+    }
+
+    struct PreparedCandidate: Sendable {
+        fileprivate let characters: [Character]
+        fileprivate let comparable: [String]
+        fileprivate let bonuses: [Int]
+
+        init(_ text: String) {
+            characters = Array(text)
+            comparable = characters.map { String($0).lowercased() }
+
+            var computed: [Int] = []
+            computed.reserveCapacity(characters.count)
+            var previous: CharClass = .nonWord
+            for character in characters {
+                let current = FuzzyMatcher.charClass(character)
+                computed.append(FuzzyMatcher.bonus(prev: previous, current: current))
+                previous = current
+            }
+            bonuses = computed
+        }
+    }
+
+    // fzf score constants.
     private static let scoreMatch = 16
     private static let scoreGapStart = -3
     private static let scoreGapExtension = -1
@@ -19,6 +58,7 @@ enum FuzzyMatcher {
     private static let bonusCamel123 = 7
     private static let bonusConsecutive = -(scoreGapStart + scoreGapExtension)
     private static let bonusFirstCharMultiplier = 2
+    private static let impossible = Int.min / 4
 
     private enum CharClass {
         case lower, upper, digit, nonWord
@@ -28,7 +68,7 @@ enum FuzzyMatcher {
         if scalar.isLowercase { return .lower }
         if scalar.isUppercase { return .upper }
         if scalar.isNumber { return .digit }
-        if scalar.isLetter { return .lower } // 中文等字母类字符按 word 处理
+        if scalar.isLetter { return .lower }
         return .nonWord
     }
 
@@ -46,82 +86,115 @@ enum FuzzyMatcher {
         return 0
     }
 
-    /// 全子序列命中返回分数+位置;任一查询字符未命中返回 nil。大小写不敏感。
+    /// Smart-case fuzzy match. Lowercase patterns ignore case; a pattern with
+    /// any uppercase character becomes case-sensitive.
     static func match(query: String, candidate: String) -> Result? {
-        guard !query.isEmpty else { return nil }
-        let pattern = Array(query.lowercased())
-        let chars = Array(candidate)
-        let lowered = Array(candidate.lowercased())
-        guard pattern.count <= lowered.count else { return nil }
+        match(pattern: Pattern(query), candidate: PreparedCandidate(candidate))
+    }
 
-        // 前向:找到最小结束位置。
-        var pidx = 0
-        var start = -1
-        var end = -1
-        for index in 0..<lowered.count {
-            if lowered[index] == pattern[pidx] {
-                if start < 0 { start = index }
-                pidx += 1
-                if pidx == pattern.count {
-                    end = index
-                    break
-                }
-            }
-        }
-        guard end >= 0 else { return nil }
+    static func match(pattern: Pattern, candidate: PreparedCandidate) -> Result? {
+        let needle = pattern.characters
+        let count = candidate.characters.count
+        guard !needle.isEmpty, needle.count <= count else { return nil }
 
-        // 回溯:从 end 往回收紧起点。
-        pidx = pattern.count - 1
-        var sidx = end
-        var backtrackStart = end
-        while sidx >= start {
-            if lowered[sidx] == pattern[pidx] {
-                backtrackStart = sidx
-                if pidx == 0 { break }
-                pidx -= 1
-            }
-            sidx -= 1
+        let haystack = pattern.caseSensitive
+            ? candidate.characters.map(String.init)
+            : candidate.comparable
+
+        var previous = Array(repeating: impossible, count: count)
+        var previousFirstBonus = Array(repeating: 0, count: count)
+        var parents = Array(
+            repeating: Array(repeating: -1, count: count),
+            count: needle.count
+        )
+
+        for index in 0..<count where haystack[index] == needle[0] {
+            let leadingGap = index == 0
+                ? 0
+                : scoreGapStart + (index - 1) * scoreGapExtension
+            let multiplier = index == 0 ? bonusFirstCharMultiplier : 1
+            previous[index] = scoreMatch
+                + candidate.bonuses[index] * multiplier
+                + leadingGap
+            previousFirstBonus[index] = candidate.bonuses[index]
         }
 
-        // 计分 + 收集位置(贪心:区间内按序匹配)。
-        var score = 0
-        var positions: [Int] = []
-        var inGap = false
-        var consecutive = 0
-        var firstBonus = 0
-        var qi = 0
-        var prevClass: CharClass = backtrackStart > 0 ? charClass(chars[backtrackStart - 1]) : .nonWord
+        if needle.count > 1 {
+            for patternIndex in 1..<needle.count {
+                var current = Array(repeating: impossible, count: count)
+                var currentFirstBonus = Array(repeating: 0, count: count)
+                var bestGapBase = impossible
+                var bestGapParent = -1
 
-        for index in backtrackStart...end {
-            let currentClass = charClass(chars[index])
-            if qi < pattern.count, lowered[index] == pattern[qi] {
-                positions.append(index)
-                score += scoreMatch
-                var currentBonus = bonus(prev: prevClass, current: currentClass)
-                if consecutive == 0 {
-                    firstBonus = currentBonus
-                } else {
-                    // 连续段沿用段首 boundary 加成(fzf 语义)。
-                    if currentBonus == bonusBoundary {
-                        firstBonus = currentBonus
+                for index in 0..<count {
+                    let gapCandidate = index - 2
+                    if gapCandidate >= 0, previous[gapCandidate] > impossible {
+                        let base = previous[gapCandidate] - scoreGapExtension * gapCandidate
+                        if base > bestGapBase {
+                            bestGapBase = base
+                            bestGapParent = gapCandidate
+                        }
                     }
-                    currentBonus = max(currentBonus, max(firstBonus, bonusConsecutive))
+
+                    guard haystack[index] == needle[patternIndex] else { continue }
+
+                    var bestScore = impossible
+                    var bestParent = -1
+                    var firstBonus = candidate.bonuses[index]
+
+                    if index > 0, previous[index - 1] > impossible {
+                        let inherited = previousFirstBonus[index - 1]
+                        let consecutiveBonus = max(
+                            candidate.bonuses[index],
+                            max(inherited, bonusConsecutive)
+                        )
+                        bestScore = previous[index - 1] + scoreMatch + consecutiveBonus
+                        bestParent = index - 1
+                        firstBonus = candidate.bonuses[index] == bonusBoundary
+                            ? candidate.bonuses[index]
+                            : inherited
+                    }
+
+                    if bestGapParent >= 0 {
+                        let gapScore = bestGapBase
+                            + scoreGapStart
+                            + scoreGapExtension * (index - 1)
+                            + scoreMatch
+                            + candidate.bonuses[index]
+                        if gapScore > bestScore {
+                            bestScore = gapScore
+                            bestParent = bestGapParent
+                            firstBonus = candidate.bonuses[index]
+                        }
+                    }
+
+                    current[index] = bestScore
+                    currentFirstBonus[index] = firstBonus
+                    parents[patternIndex][index] = bestParent
                 }
-                score += (index == positions.first && index == 0)
-                    ? currentBonus * bonusFirstCharMultiplier
-                    : currentBonus
-                inGap = false
-                consecutive += 1
-                qi += 1
-            } else {
-                score += inGap ? scoreGapExtension : scoreGapStart
-                inGap = true
-                consecutive = 0
-                firstBonus = 0
+
+                previous = current
+                previousFirstBonus = currentFirstBonus
             }
-            prevClass = currentClass
         }
-        guard qi == pattern.count else { return nil }
+
+        var end = -1
+        var score = impossible
+        for index in 0..<count where previous[index] > score {
+            score = previous[index]
+            end = index
+        }
+        guard end >= 0, score > impossible else { return nil }
+
+        var positions = Array(repeating: 0, count: needle.count)
+        var position = end
+        for patternIndex in stride(from: needle.count - 1, through: 0, by: -1) {
+            positions[patternIndex] = position
+            if patternIndex > 0 {
+                position = parents[patternIndex][position]
+                guard position >= 0 else { return nil }
+            }
+        }
         return Result(score: score, positions: positions)
     }
 }

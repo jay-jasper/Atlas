@@ -1,7 +1,7 @@
 # 启动台搜索升级设计(模糊/拼音/Frecency + 面板体验)
 
 日期:2026-07-22
-状态:已实现(2026-07-22。FuzzyMatcher 采用 fzf FuzzyMatchV1 移植;⌘↑/⌘↓ 跳分区与 ⌘1-9 在控制器键监听实现;慢源=文件搜索/菜单项)
+状态:已实现并于 2026-07-23 完成性能改造(FuzzyMatcher 升级为 fzf V2 风格动态规划;快源后台评分;慢源并发、可取消、增量发布)
 参考:vicinae / sol / rustcast 搜索与交互对标(功能面 Atlas 已覆盖,本轮只做搜索与体验)
 
 ## 目标
@@ -44,15 +44,16 @@ var searchMode: SourceSearchMode { get }        // 默认 .commandList
 var isSlow: Bool { get }                        // 默认 false;文件搜索/菜单项 = true
 ```
 
-- `.commandList`:面板打开时拉一次 `items(for: "")` 缓存,引擎统一模糊+拼音匹配(app、各命令 provider)。
+- `.commandList`:后台捕获候选，由有界预计算字段缓存统一执行模糊+拼音匹配(app、各命令 provider)。
 - `.queryDriven`:query 原样透传(计算器、单位换算、quicklinks、fallback、菜单项、文件搜索、emoji 关键词源)。
 
 ### 异步管线
 
 `LauncherSearchCoordinator`(MainActor ObservableObject):
 
-- 同步源:主线程直出。
-- `isSlow` 源:150ms 防抖 + 后台 Task;结果带 generation,过期(query 已变)直接丢弃;增量合并进对应分区。
+- 快源:provider 捕获与评分均在可取消后台任务执行，MainActor 只做状态快照与发布。
+- `isSlow` 源:150ms 防抖后并发执行;结果带 generation,过期(query 已变)直接丢弃;按完成顺序增量合并。
+- 文件源流式读取 `mdfind`，候选上限 512，取消时终止子进程。
 - `@Published var loadingSources: Set<String>`(行内 spinner);输入路径零阻塞。
 - `LauncherSectionBuilder` 改吃 ScoredItem(保留 分区/收藏/别名置顶/去重 规则,组内排序换总分)。
 

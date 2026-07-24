@@ -159,7 +159,7 @@ final class LauncherSectionBuilderTests: XCTestCase {
         XCTAssertEqual(sections.flatMap(\.items).map(\.id), ["Tools|Alpha"])
     }
 
-    func testSearchIsGloballyRankedSingleSection() {
+    func testSearchKeepsNonFileResultsInOneRankedSection() {
         let automator = makeItem(title: "Automator", category: "Applications")
         let sections = LauncherSectionBuilder.build(
             query: "a",
@@ -167,9 +167,75 @@ final class LauncherSectionBuilderTests: XCTestCase {
             favorites: [],
             records: [:]
         )
-        // 非空查询:一个「结果」区,跨分类合并。
         XCTAssertEqual(sections.count, 1)
         XCTAssertEqual(sections[0].id, .results("Results"))
         XCTAssertEqual(Set(sections[0].items.map(\.category)), ["Tools", "Applications"])
+    }
+
+    func testSearchSeparatesFilesAfterGeneralResults() {
+        let file = makeItem(title: "Atlas Notes.md", category: "Files")
+        let sections = LauncherSectionBuilder.build(
+            query: "atlas",
+            sources: [source([
+                makeItem(title: "Atlas Settings", category: "Atlas"),
+                file,
+            ])],
+            favorites: [],
+            records: [:]
+        )
+
+        XCTAssertEqual(sections.map(\.title), ["Results", "Files"])
+        XCTAssertEqual(sections[0].items.map(\.category), ["Atlas"])
+        XCTAssertEqual(sections[1].items.map(\.category), ["Files"])
+    }
+
+    func testSearchDeduplicatesSystemSettingsApplicationAndCommand() {
+        let application = makeItem(title: "系统设置", category: "App")
+        let command = makeItem(title: "系统设置", category: "系统设置")
+        let sections = LauncherSectionBuilder.build(
+            query: "系统",
+            sources: [source([command, application])],
+            favorites: [],
+            records: [:]
+        )
+
+        XCTAssertEqual(sections.flatMap(\.items).map(\.title), ["系统设置"])
+        XCTAssertEqual(sections.flatMap(\.items).first?.category, "App")
+    }
+
+    func testSystemSettingsRootRanksAheadOfFileMatches() {
+        let settings = CommandProviderAdapter(
+            provider: SystemSettingsProvider(openTarget: { _ in }),
+            sourceID: "system-settings"
+        )
+        let file = makeItem(title: "01-系统架构.md", category: "Files")
+
+        let sections = LauncherSectionBuilder.build(
+            query: "系统",
+            sources: [settings, source([file])],
+            favorites: [],
+            records: [:]
+        )
+
+        let titles = sections.flatMap(\.items).map(\.title)
+        XCTAssertTrue(["系统设置", "System Settings"].contains(titles.first))
+        XCTAssertTrue(titles.contains("01-系统架构.md"))
+    }
+
+    func testQueryDrivenSystemSettingsRejectsUnrelatedCrossWordFuzzyMatch() {
+        let settings = CommandProviderAdapter(
+            provider: SystemSettingsProvider(openTarget: { _ in }),
+            sourceID: "system-settings",
+            searchMode: .queryDriven
+        )
+
+        let sections = LauncherSectionBuilder.build(
+            query: "test",
+            sources: [settings],
+            favorites: [],
+            records: [:]
+        )
+
+        XCTAssertTrue(sections.isEmpty)
     }
 }

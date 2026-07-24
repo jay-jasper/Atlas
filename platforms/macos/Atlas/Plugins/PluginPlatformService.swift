@@ -217,6 +217,8 @@ final class PluginPlatformService: ObservableObject {
     ) {
         self.runtime = runtime
         self.capabilityRouter = capabilityRouter ?? PluginCapabilityRouter(adapters: [
+            PluginFeedbackAdapter(),
+            PluginPreferencesAdapter(),
             PluginFileAdapter(),
             PluginClipboardAdapter(),
             PluginNotificationAdapter(),
@@ -281,6 +283,7 @@ final class PluginPlatformService: ObservableObject {
     }
 
     func startCommand(pluginID: String, commandID: String, arguments: [String] = []) {
+        lastError = nil
         do {
             let data = try JSONEncoder().encode(arguments)
             _ = try runtime.startCommand(

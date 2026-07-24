@@ -1,4 +1,5 @@
 import Foundation
+import CoreServices
 
 protocol ApplicationScanning {
     func scanApplications() -> [AppEntry]
@@ -21,15 +22,18 @@ struct FileSystemApplicationScanner: ApplicationScanning {
     private let directories: [URL]
     private let extraApps: [String]
     private let fileManager: FileManager
+    private let metadataDisplayName: (URL) -> String?
 
     init(
         directories: [URL] = Self.defaultDirectories,
         extraAppPaths: [String] = Self.extraAppPaths,
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
+        metadataDisplayName: @escaping (URL) -> String? = Self.spotlightDisplayName
     ) {
         self.directories = directories
         self.extraApps = extraAppPaths
         self.fileManager = fileManager
+        self.metadataDisplayName = metadataDisplayName
     }
 
     func scanApplications() -> [AppEntry] {
@@ -44,29 +48,20 @@ struct FileSystemApplicationScanner: ApplicationScanning {
             }
 
             for url in contents where url.pathExtension == "app" {
-                // FileManager.displayName 返回随系统语言的本地化名(微信/访达…)。
-                var localized = fileManager.displayName(atPath: url.path)
-                if localized.hasSuffix(".app") {
-                    localized = String(localized.dropLast(4))
-                }
                 entries.append(AppEntry(
                     name: url.deletingPathExtension().lastPathComponent,
                     url: url,
-                    localizedName: localized
+                    localizedName: localizedName(for: url)
                 ))
             }
         }
 
         for path in extraApps where fileManager.fileExists(atPath: path) {
             let url = URL(fileURLWithPath: path)
-            var localized = fileManager.displayName(atPath: path)
-            if localized.hasSuffix(".app") {
-                localized = String(localized.dropLast(4))
-            }
             entries.append(AppEntry(
                 name: url.deletingPathExtension().lastPathComponent,
                 url: url,
-                localizedName: localized
+                localizedName: localizedName(for: url)
             ))
         }
 
@@ -78,5 +73,22 @@ struct FileSystemApplicationScanner: ApplicationScanning {
         }
 
         return uniqueEntries.sorted { $0.name < $1.name }
+    }
+
+    private func localizedName(for url: URL) -> String {
+        let rawName = metadataDisplayName(url) ?? fileManager.displayName(atPath: url.path)
+        return rawName.lowercased().hasSuffix(".app")
+            ? String(rawName.dropLast(4))
+            : rawName
+    }
+
+    static func spotlightDisplayName(for url: URL) -> String? {
+        guard let item = MDItemCreate(kCFAllocatorDefault, url.path as CFString),
+              let name = MDItemCopyAttribute(item, kMDItemDisplayName) as? String,
+              !name.isEmpty
+        else {
+            return nil
+        }
+        return name
     }
 }

@@ -71,6 +71,19 @@ final class ApplicationScannerTests: XCTestCase {
         XCTAssertTrue(FileSystemApplicationScanner.defaultDirectories.contains(userApplications))
     }
 
+    func testScannerUsesSpotlightLocalizedDisplayName() throws {
+        let appURL = try makeDirectory("System Information.app")
+        let scanner = FileSystemApplicationScanner(
+            directories: [root],
+            extraAppPaths: [],
+            metadataDisplayName: { url in
+                url == appURL ? "系统信息.app" : nil
+            }
+        )
+
+        XCTAssertEqual(scanner.scanApplications().first?.displayName, "系统信息")
+    }
+
     private func makeDirectory(_ name: String) throws -> URL {
         let url = root.appendingPathComponent(name, isDirectory: true)
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)

@@ -18,6 +18,16 @@ protocol LauncherItemSource {
     var isSlow: Bool { get }
 }
 
+/// Optional async path for sources that can provide real cooperative
+/// cancellation (Spotlight, Accessibility, network-backed providers).
+protocol AsyncLauncherItemSource {
+    func itemsAsync(for query: String) async -> [LauncherItem]
+}
+
+protocol AsyncCommandProviding {
+    func resultsAsync(for query: String) async -> [PaletteCommand]
+}
+
 extension LauncherItemSource {
     var searchMode: SourceSearchMode { .commandList }
     var isSlow: Bool { false }
@@ -117,7 +127,7 @@ struct CommandProviderAdapter: LauncherItemSource {
         provider.results(for: query).map { makeItem(from: $0) }
     }
 
-    private func makeItem(from command: PaletteCommand) -> LauncherItem {
+    fileprivate func makeItem(from command: PaletteCommand) -> LauncherItem {
         let isAnswer = command.category == "Calculator" || command.category == "Conversion"
         var actions = [primaryAction(for: command)]
 
@@ -190,4 +200,23 @@ struct CommandProviderAdapter: LauncherItemSource {
             return .dismiss
         }
     }
+}
+
+extension CommandProviderAdapter: AsyncLauncherItemSource {
+    func itemsAsync(for query: String) async -> [LauncherItem] {
+        if let asynchronous = provider as? AsyncCommandProviding {
+            return await asynchronous.resultsAsync(for: query).map { makeItem(from: $0) }
+        }
+
+        let provider = UnsafeSendable(value: provider)
+        return await Task.detached(priority: .userInitiated) {
+            provider.value.results(for: query)
+        }.value.map { makeItem(from: $0) }
+    }
+}
+
+/// Swift 5 compatibility wrapper used only at explicit background boundaries.
+/// Search results are immutable value snapshots before they return to MainActor.
+struct UnsafeSendable<Value>: @unchecked Sendable {
+    let value: Value
 }

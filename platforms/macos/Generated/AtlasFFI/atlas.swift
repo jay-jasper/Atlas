@@ -2245,6 +2245,214 @@ public func FfiConverterTypeProcessSnapshot_lower(_ value: ProcessSnapshot) -> R
 }
 
 
+public struct SearchDocumentInput: Equatable, Hashable {
+    public var id: String
+    public var namespace: String
+    public var title: String
+    public var subtitle: String
+    public var keywords: [String]
+    public var path: String
+    public var kind: String
+    public var modifiedAt: UInt64
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, namespace: String, title: String, subtitle: String, keywords: [String], path: String, kind: String, modifiedAt: UInt64) {
+        self.id = id
+        self.namespace = namespace
+        self.title = title
+        self.subtitle = subtitle
+        self.keywords = keywords
+        self.path = path
+        self.kind = kind
+        self.modifiedAt = modifiedAt
+    }
+
+
+}
+
+#if compiler(>=6)
+extension SearchDocumentInput: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeSearchDocumentInput: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SearchDocumentInput {
+        return
+            try SearchDocumentInput(
+                id: FfiConverterString.read(from: &buf),
+                namespace: FfiConverterString.read(from: &buf),
+                title: FfiConverterString.read(from: &buf),
+                subtitle: FfiConverterString.read(from: &buf),
+                keywords: FfiConverterSequenceString.read(from: &buf),
+                path: FfiConverterString.read(from: &buf),
+                kind: FfiConverterString.read(from: &buf),
+                modifiedAt: FfiConverterUInt64.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: SearchDocumentInput, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterString.write(value.namespace, into: &buf)
+        FfiConverterString.write(value.title, into: &buf)
+        FfiConverterString.write(value.subtitle, into: &buf)
+        FfiConverterSequenceString.write(value.keywords, into: &buf)
+        FfiConverterString.write(value.path, into: &buf)
+        FfiConverterString.write(value.kind, into: &buf)
+        FfiConverterUInt64.write(value.modifiedAt, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSearchDocumentInput_lift(_ buf: RustBuffer) throws -> SearchDocumentInput {
+    return try FfiConverterTypeSearchDocumentInput.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSearchDocumentInput_lower(_ value: SearchDocumentInput) -> RustBuffer {
+    return FfiConverterTypeSearchDocumentInput.lower(value)
+}
+
+
+public struct SearchIndexStatus: Equatable, Hashable {
+    public var phase: SearchIndexPhase
+    public var indexedCount: UInt64
+    public var lastError: String?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(phase: SearchIndexPhase, indexedCount: UInt64, lastError: String?) {
+        self.phase = phase
+        self.indexedCount = indexedCount
+        self.lastError = lastError
+    }
+
+
+}
+
+#if compiler(>=6)
+extension SearchIndexStatus: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeSearchIndexStatus: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SearchIndexStatus {
+        return
+            try SearchIndexStatus(
+                phase: FfiConverterTypeSearchIndexPhase.read(from: &buf),
+                indexedCount: FfiConverterUInt64.read(from: &buf),
+                lastError: FfiConverterOptionString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: SearchIndexStatus, into buf: inout [UInt8]) {
+        FfiConverterTypeSearchIndexPhase.write(value.phase, into: &buf)
+        FfiConverterUInt64.write(value.indexedCount, into: &buf)
+        FfiConverterOptionString.write(value.lastError, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSearchIndexStatus_lift(_ buf: RustBuffer) throws -> SearchIndexStatus {
+    return try FfiConverterTypeSearchIndexStatus.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSearchIndexStatus_lower(_ value: SearchIndexStatus) -> RustBuffer {
+    return FfiConverterTypeSearchIndexStatus.lower(value)
+}
+
+
+public struct SearchResultEntry: Equatable, Hashable {
+    public var id: String
+    public var namespace: String
+    public var title: String
+    public var subtitle: String
+    public var path: String
+    public var kind: String
+    public var score: Int64
+    public var titleHighlightOffsets: [UInt32]
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: String, namespace: String, title: String, subtitle: String, path: String, kind: String, score: Int64, titleHighlightOffsets: [UInt32]) {
+        self.id = id
+        self.namespace = namespace
+        self.title = title
+        self.subtitle = subtitle
+        self.path = path
+        self.kind = kind
+        self.score = score
+        self.titleHighlightOffsets = titleHighlightOffsets
+    }
+
+
+}
+
+#if compiler(>=6)
+extension SearchResultEntry: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeSearchResultEntry: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SearchResultEntry {
+        return
+            try SearchResultEntry(
+                id: FfiConverterString.read(from: &buf),
+                namespace: FfiConverterString.read(from: &buf),
+                title: FfiConverterString.read(from: &buf),
+                subtitle: FfiConverterString.read(from: &buf),
+                path: FfiConverterString.read(from: &buf),
+                kind: FfiConverterString.read(from: &buf),
+                score: FfiConverterInt64.read(from: &buf),
+                titleHighlightOffsets: FfiConverterSequenceUInt32.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: SearchResultEntry, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+        FfiConverterString.write(value.namespace, into: &buf)
+        FfiConverterString.write(value.title, into: &buf)
+        FfiConverterString.write(value.subtitle, into: &buf)
+        FfiConverterString.write(value.path, into: &buf)
+        FfiConverterString.write(value.kind, into: &buf)
+        FfiConverterInt64.write(value.score, into: &buf)
+        FfiConverterSequenceUInt32.write(value.titleHighlightOffsets, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSearchResultEntry_lift(_ buf: RustBuffer) throws -> SearchResultEntry {
+    return try FfiConverterTypeSearchResultEntry.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSearchResultEntry_lower(_ value: SearchResultEntry) -> RustBuffer {
+    return FfiConverterTypeSearchResultEntry.lower(value)
+}
+
+
 public struct SystemSnapshot: Equatable, Hashable {
     public var cpuUsage: Float
     public var memUsedBytes: UInt64
@@ -2605,6 +2813,8 @@ public enum AtlasError: Swift.Error, Equatable, Hashable, Foundation.LocalizedEr
 
     case AiError(message: String)
 
+    case SearchError(message: String)
+
 
 
 
@@ -2664,6 +2874,10 @@ public struct FfiConverterTypeAtlasError: FfiConverterRustBuffer {
             message: try FfiConverterString.read(from: &buf)
         )
 
+        case 9: return .SearchError(
+            message: try FfiConverterString.read(from: &buf)
+        )
+
 
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -2691,6 +2905,8 @@ public struct FfiConverterTypeAtlasError: FfiConverterRustBuffer {
             writeInt(&buf, Int32(7))
         case .AiError(_ /* message is ignored*/):
             writeInt(&buf, Int32(8))
+        case .SearchError(_ /* message is ignored*/):
+            writeInt(&buf, Int32(9))
 
 
         }
@@ -3165,6 +3381,92 @@ public func FfiConverterTypePluginStageState_lift(_ buf: RustBuffer) throws -> P
 #endif
 public func FfiConverterTypePluginStageState_lower(_ value: PluginStageState) -> RustBuffer {
     return FfiConverterTypePluginStageState.lower(value)
+}
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum SearchIndexPhase: Equatable, Hashable {
+
+    case idle
+    case loading
+    case scanning
+    case ready
+    case error
+
+
+
+}
+
+#if compiler(>=6)
+extension SearchIndexPhase: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeSearchIndexPhase: FfiConverterRustBuffer {
+    typealias SwiftType = SearchIndexPhase
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SearchIndexPhase {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        case 1: return .idle
+
+        case 2: return .loading
+
+        case 3: return .scanning
+
+        case 4: return .ready
+
+        case 5: return .error
+
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: SearchIndexPhase, into buf: inout [UInt8]) {
+        switch value {
+
+
+        case .idle:
+            writeInt(&buf, Int32(1))
+
+
+        case .loading:
+            writeInt(&buf, Int32(2))
+
+
+        case .scanning:
+            writeInt(&buf, Int32(3))
+
+
+        case .ready:
+            writeInt(&buf, Int32(4))
+
+
+        case .error:
+            writeInt(&buf, Int32(5))
+
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSearchIndexPhase_lift(_ buf: RustBuffer) throws -> SearchIndexPhase {
+    return try FfiConverterTypeSearchIndexPhase.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSearchIndexPhase_lower(_ value: SearchIndexPhase) -> RustBuffer {
+    return FfiConverterTypeSearchIndexPhase.lower(value)
 }
 
 
@@ -3768,6 +4070,31 @@ fileprivate struct FfiConverterSequenceUInt8: FfiConverterRustBuffer {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterSequenceUInt32: FfiConverterRustBuffer {
+    typealias SwiftType = [UInt32]
+
+    public static func write(_ value: [UInt32], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterUInt32.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [UInt32] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [UInt32]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterUInt32.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceString: FfiConverterRustBuffer {
     typealias SwiftType = [String]
 
@@ -4193,6 +4520,56 @@ fileprivate struct FfiConverterSequenceTypeProcessSnapshot: FfiConverterRustBuff
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterSequenceTypeSearchDocumentInput: FfiConverterRustBuffer {
+    typealias SwiftType = [SearchDocumentInput]
+
+    public static func write(_ value: [SearchDocumentInput], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeSearchDocumentInput.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [SearchDocumentInput] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [SearchDocumentInput]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeSearchDocumentInput.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceTypeSearchResultEntry: FfiConverterRustBuffer {
+    typealias SwiftType = [SearchResultEntry]
+
+    public static func write(_ value: [SearchResultEntry], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeSearchResultEntry.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [SearchResultEntry] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [SearchResultEntry]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeSearchResultEntry.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeTemperatureSnapshot: FfiConverterRustBuffer {
     typealias SwiftType = [TemperatureSnapshot]
 
@@ -4446,6 +4823,27 @@ public func evaluateExpression(input: String) -> String?  {
         FfiConverterString.lower(input),$0
     )
 })
+}
+/**
+ * Starts the persistent background file index and FSEvents watcher.
+ */
+public func fileIndexStart(roots: [String], cachePath: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_file_index_start(
+        FfiConverterSequenceString.lower(roots),
+        FfiConverterString.lower(cachePath),$0
+    )
+}
+}
+public func fileIndexStatus()throws  -> SearchIndexStatus  {
+    return try  FfiConverterTypeSearchIndexStatus_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_file_index_status($0
+    )
+})
+}
+public func fileIndexStop()throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_file_index_stop($0
+    )
+}
 }
 public func focusHistory()throws  -> [FocusSessionRecord]  {
     return try  FfiConverterSequenceTypeFocusSessionRecord.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
@@ -4786,6 +5184,40 @@ public func pluginStop(pluginId: String)throws   {try rustCallWithError(FfiConve
     )
 }
 }
+/**
+ * Searches the unified Rust catalog. Empty namespaces means all namespaces.
+ */
+public func searchQuery(query: String, limit: UInt32, namespaces: [String])throws  -> [SearchResultEntry]  {
+    return try  FfiConverterSequenceTypeSearchResultEntry.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_search_query(
+        FfiConverterString.lower(query),
+        FfiConverterUInt32.lower(limit),
+        FfiConverterSequenceString.lower(namespaces),$0
+    )
+})
+}
+/**
+ * Ranks a transient candidate set without mutating the persistent catalog.
+ */
+public func searchRankDocuments(query: String, documents: [SearchDocumentInput], limit: UInt32)throws  -> [SearchResultEntry]  {
+    return try  FfiConverterSequenceTypeSearchResultEntry.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_search_rank_documents(
+        FfiConverterString.lower(query),
+        FfiConverterSequenceTypeSearchDocumentInput.lower(documents),
+        FfiConverterUInt32.lower(limit),$0
+    )
+})
+}
+/**
+ * Replaces one non-file namespace in the unified local search catalog.
+ */
+public func searchReplaceNamespace(namespace: String, documents: [SearchDocumentInput])throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_search_replace_namespace(
+        FfiConverterString.lower(namespace),
+        FfiConverterSequenceTypeSearchDocumentInput.lower(documents),$0
+    )
+}
+}
 public func startMonitoring(callback: SystemMonitorCallback)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_start_monitoring(
         FfiConverterCallbackInterfaceSystemMonitorCallback_lower(callback),$0
@@ -4935,6 +5367,15 @@ private let initializationResult: InitializationResult = {
     if (uniffi_atlas_ffi_checksum_func_evaluate_expression() != 32376) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_atlas_ffi_checksum_func_file_index_start() != 25618) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_file_index_status() != 57986) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_file_index_stop() != 26312) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_atlas_ffi_checksum_func_focus_history() != 62091) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -5074,6 +5515,15 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_plugin_stop() != 32822) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_search_query() != 27131) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_search_rank_documents() != 39070) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_search_replace_namespace() != 29492) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_start_monitoring() != 53253) {

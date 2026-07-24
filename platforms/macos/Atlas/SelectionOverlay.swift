@@ -52,6 +52,15 @@ struct SelectionOverlay: View {
 
                 if let rect = selection {
                     selectionView(rect, bounds: geometry.size)
+                } else {
+                    Text("拖动选择录制区域 · Esc 取消")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(Color.black.opacity(0.72), in: Capsule())
+                        .position(x: geometry.size.width / 2, y: 52)
+                        .allowsHitTesting(false)
                 }
 
                 probeView(bounds: geometry.size)
@@ -124,14 +133,16 @@ struct SelectionOverlay: View {
             Button(action: cancel) {
                 Image(systemName: "xmark")
             }
-            .help("Cancel")
+            .buttonStyle(.bordered)
+            .help("取消")
 
             Button(action: { capture(rect) }) {
-                Image(systemName: "checkmark")
+                Label("开始录制", systemImage: "record.circle.fill")
             }
-            .help("Capture")
+            .buttonStyle(.borderedProminent)
+            .tint(.red)
+            .help("开始录制")
         }
-        .buttonStyle(.borderedProminent)
         .controlSize(.small)
         .padding(6)
         .background(.regularMaterial)
@@ -140,7 +151,8 @@ struct SelectionOverlay: View {
     }
 
     private func toolbarOffset(for rect: CGRect, bounds: CGSize) -> CGSize {
-        let x = min(max(8, rect.maxX - 88), max(8, bounds.width - 96))
+        let toolbarWidth: CGFloat = 142
+        let x = min(max(8, rect.maxX - toolbarWidth), max(8, bounds.width - toolbarWidth - 8))
         let preferredY = rect.maxY + 8
         let y = preferredY + 44 < bounds.height ? preferredY : max(8, rect.minY - 44)
         return CGSize(width: x, height: y)
@@ -336,6 +348,9 @@ struct SelectionOverlay: View {
                 by: SelectionGeometry.nudgeDelta(direction, isLargeStep: isLargeStep),
                 bounds: bounds
             )
+        case .selectFullScreen:
+            selection = CGRect(origin: .zero, size: bounds)
+            dragMode = nil
         case .cycleAspectLock:
             break // Only the Snipaste-style overlay supports ratio lock.
         }

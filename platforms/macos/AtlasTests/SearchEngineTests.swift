@@ -21,8 +21,16 @@ final class SearchEngineTests: XCTestCase {
         XCTAssertEqual(result.positions, [0, 8])
     }
 
-    func testCaseInsensitive() {
-        XCTAssertNotNil(FuzzyMatcher.match(query: "CAP", candidate: "capture"))
+    func testSmartCase() {
+        XCTAssertNotNil(FuzzyMatcher.match(query: "cap", candidate: "CAPTURE"))
+        XCTAssertNil(FuzzyMatcher.match(query: "CAP", candidate: "capture"))
+        XCTAssertNotNil(FuzzyMatcher.match(query: "CAP", candidate: "CAPTURE"))
+    }
+
+    func testV2ChoosesHigherScoringAlignment() {
+        let result = FuzzyMatcher.match(query: "ab", candidate: "xabc ab")!
+        XCTAssertEqual(result.positions, [5, 6],
+                       "V2 should choose the later word-boundary alignment, not the first greedy hit")
     }
 
     // MARK: Pinyin
@@ -67,9 +75,13 @@ final class SearchEngineTests: XCTestCase {
 
     // MARK: Engine
 
-    private func item(_ title: String, keywords: [String] = []) -> LauncherItem {
+    private func item(
+        _ title: String,
+        subtitle: String? = nil,
+        keywords: [String] = []
+    ) -> LauncherItem {
         LauncherItem(
-            id: "T|\(title)", title: title, icon: .sfSymbol("bolt"),
+            id: "T|\(title)", title: title, subtitle: subtitle, icon: .sfSymbol("bolt"),
             keywords: keywords, category: "T",
             actions: [LauncherAction(id: "run", title: "Run", systemImage: "return") { .dismiss }]
         )
@@ -108,5 +120,112 @@ final class SearchEngineTests: XCTestCase {
             items: [item("A"), item("B")], query: "", records: records, now: now
         )
         XCTAssertEqual(out.map(\.title), ["B", "A"])
+    }
+
+    func testMultiTermMayMatchAcrossFields() {
+        let items = [
+            item("Open", subtitle: "System Settings"),
+            item("Open Project", subtitle: "Workspace"),
+        ]
+        let out = LauncherSearchEngine.annotate(
+            items: items,
+            query: "open settings",
+            records: [:]
+        )
+        XCTAssertEqual(out.map(\.title), ["Open"])
+    }
+
+    func testCategoryTextIsNotSearchableThroughSubtitleOrKeywords() {
+        let settings = LauncherItem(
+            id: "System Settings|General",
+            title: "通用设置",
+            subtitle: "系统设置 · General",
+            icon: .sfSymbol("gearshape.2"),
+            keywords: ["通用", "General", "系统设置"],
+            category: "系统设置",
+            actions: []
+        )
+
+        XCTAssertTrue(
+            LauncherSearchEngine.annotate(
+                items: [settings],
+                query: "xitong",
+                records: [:]
+            ).isEmpty
+        )
+        XCTAssertEqual(
+            LauncherSearchEngine.annotate(
+                items: [settings],
+                query: "general",
+                records: [:]
+            ).map(\.title),
+            ["通用设置"]
+        )
+    }
+
+    func testExtendedPrefixSuffixExactExcludeAndOR() {
+        let items = [
+            item("Capture Area", subtitle: "PNG"),
+            item("Capture Window", subtitle: "JPG"),
+            item("Open Settings", subtitle: "System"),
+        ]
+
+        XCTAssertEqual(
+            LauncherSearchEngine.annotate(items: items, query: "^Capture !Window", records: [:])
+                .map(\.title),
+            ["Capture Area"]
+        )
+        XCTAssertEqual(
+            LauncherSearchEngine.annotate(items: items, query: "Area$", records: [:])
+                .map(\.title),
+            ["Capture Area"]
+        )
+        XCTAssertEqual(
+            LauncherSearchEngine.annotate(items: items, query: "'Settings", records: [:])
+                .map(\.title),
+            ["Open Settings"]
+        )
+        XCTAssertEqual(
+            Set(LauncherSearchEngine.annotate(items: items, query: "Area|Window", records: [:])
+                .map(\.title)),
+            Set(["Capture Area", "Capture Window"])
+        )
+    }
+
+    func testAliasIsSearchableAndTopKIsStable() {
+        let items = [item("First"), item("Second"), item("Third")]
+        let aliases = ["T|Second": "preferred"]
+        let aliasResult = LauncherSearchEngine.annotate(
+            items: items,
+            query: "preferred",
+            records: [:],
+            aliasLookup: { aliases[$0] }
+        )
+        XCTAssertEqual(aliasResult.map(\.title), ["Second"])
+
+        let top = LauncherSearchEngine.annotate(
+            items: items,
+            query: "",
+            records: [:],
+            limit: 2,
+            preservingIDs: ["T|Third"]
+        )
+        XCTAssertEqual(top.map(\.title), ["First", "Second", "Third"])
+    }
+
+    func testPreparedIndexSearchesFiveThousandCandidatesWithinBudget() {
+        let items = (0..<5_000).map {
+            item("Command \($0)", subtitle: "Utility action \($0)", keywords: ["tool", "action"])
+        }
+        let documents = LauncherSearchEngine.documents(for: items)
+        let started = Date()
+        let hits = LauncherSearchEngine.search(
+            documents: documents,
+            query: "cmd",
+            records: [:],
+            limit: 50
+        )
+        XCTAssertEqual(hits.count, 50)
+        XCTAssertLessThan(Date().timeIntervalSince(started), 1.0)
     }
 }

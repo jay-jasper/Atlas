@@ -179,6 +179,16 @@ final class RaycastFeatureTests: XCTestCase {
         XCTAssertTrue(prompt.hasSuffix("hi"))
     }
 
+    func testDictationProviderCanSearchOffMainActor() async {
+        let provider = UnsafeSendable(value: DictationProvider())
+        let commands = await Task.detached(priority: .userInitiated) {
+            provider.value.results(for: "dictation")
+        }.value
+
+        XCTAssertEqual(commands.count, 1)
+        XCTAssertTrue(commands.first?.keywords.contains("dictation") == true)
+    }
+
     // MARK: Focus service formatting
 
     func testFocusTimeFormat() {

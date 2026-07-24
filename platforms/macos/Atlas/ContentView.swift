@@ -1180,9 +1180,11 @@ struct ContentView: View {
             switch section {
             case .screenshot:
                 HStack(spacing: 6) {
-                    dashboardQuickAction("全屏", action: captureDesktop)
-                    dashboardQuickAction("区域", action: showSelectionWindow)
-                    dashboardQuickAction("窗口", action: showWindowSelection)
+                    dashboardQuickAction("截图", action: showSelectionWindow)
+                    dashboardQuickAction(
+                        screenRecordingService.isRecording ? "停止录屏" : "录屏",
+                        action: toggleScreenRecording
+                    )
                 }
             case .monitoring:
                 if let snapshot {
@@ -1591,7 +1593,7 @@ struct ContentView: View {
         if screenRecordingService.isRecording {
             screenRecordingService.stop()
         } else {
-            screenRecordingService.start()
+            startScreenRecordingSelection()
         }
     }
 
@@ -1711,9 +1713,8 @@ struct ContentView: View {
         hotkeyService.onAreaCapture = { [self] in showSelectionWindow() }
         hotkeyService.start()
         paletteState?.setActions(
-            onCaptureDesktop: { self.captureDesktop() },
-            onCaptureArea: { self.showSelectionWindow() },
-            onCaptureWindow: { self.showWindowSelection() },
+            onScreenshot: { self.showSelectionWindow() },
+            onScreenRecording: { self.toggleScreenRecording() },
             isSystemUtilitiesEnabled: { isFeatureEnabled(.systemUtilities) },
             onToggleKeepAwake: toggleKeepAwake,
             onTogglePresentationMode: togglePresentationMode,
@@ -2589,43 +2590,18 @@ struct ContentView: View {
         case .screenshot:
             if isFeatureEnabled(.screenshot), isSceneModuleVisible(.screenshot) {
                 ScreenshotPanel(
-                    capabilities: screenshotFeatureSettings.captureCapabilities,
-                    onCaptureDesktop: captureDesktop,
-                    onCaptureWindow: showWindowSelection,
-                    onCaptureArea: showSelectionWindow,
-                    onCaptureScrolling: startScrollingWindowCapture,
-                    onRecordGIF: startGIFRegionSelection,
                     isScreenRecording: screenRecordingService.isRecording,
-                    onToggleScreenRecording: toggleScreenRecording
+                    isGIFRecording: isRecordingGIF,
+                    onScreenshot: showSelectionWindow,
+                    onScrollingScreenshot: startScrollingWindowCapture,
+                    onToggleScreenRecording: toggleScreenRecording,
+                    onToggleGIFRecording: toggleGIFRecording
                 )
 
                 if let recordingError = screenRecordingService.errorMessage {
                     Text(recordingError)
                         .font(.caption)
                         .foregroundColor(.orange)
-                }
-
-                if isRecordingGIF {
-                    HStack {
-                        Label("Recording GIF", systemImage: "record.circle")
-                        Spacer()
-                        Button("Stop") {
-                            gifRecordingSession?.cancel()
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
-                }
-
-                if let lastGIFOutput, !isRecordingGIF {
-                    HStack {
-                        Label(lastGIFOutput.filename, systemImage: "photo.stack")
-                            .lineLimit(1)
-                        Spacer()
-                        Button("Copy GIF", action: copyLastGIFRecording)
-                            .buttonStyle(.bordered)
-                        Button("Save As", action: saveLastGIFRecording)
-                            .buttonStyle(.borderedProminent)
-                    }
                 }
 
                 Divider()
@@ -2977,7 +2953,28 @@ struct ContentView: View {
             return
         }
 
-        startRegionSelection(onSelect: captureSelection)
+        ScreenshotActions.captureRegion {
+            showStatus("Screen capture permission is required", kind: .error)
+        }
+    }
+
+    private func startScreenRecordingSelection() {
+        guard screenshotFeatureSettings.captureCapabilities.screenRecording else {
+            showStatus("Screen recording is disabled", kind: .error)
+            return
+        }
+        guard let screen = NSScreen.main ?? NSScreen.screens.first else {
+            showStatus("No display is available for recording", kind: .error)
+            return
+        }
+
+        let previewImageData = selectionPreviewImageData()
+        ScreenshotSelectionWindow.show(
+            previewImageData: previewImageData,
+            onCapture: { region in
+                screenRecordingService.start(region: region, screen: screen)
+            }
+        )
     }
 
     private func startRegionSelection(onSelect: @escaping (CGRect) -> Void) {
@@ -3099,34 +3096,6 @@ struct ContentView: View {
         }
     }
 
-    private func captureSelection(_ rect: CGRect) {
-        let scale = NSScreen.main?.backingScaleFactor ?? 1
-        let region = ScreenCaptureCoordinateMapper.pixelRegion(
-            fromSelectionRect: rect,
-            backingScaleFactor: scale
-        )
-
-        do {
-            let data = try AtlasBridge.captureRegion(
-                x: region.x,
-                y: region.y,
-                width: region.width,
-                height: region.height
-            )
-
-            guard let bitmap = NSBitmapImageRep(data: data) else {
-                showStatus("Captured region image could not be decoded", kind: .error)
-                return
-            }
-
-            let pixelRect = CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh)
-            setCapturedScreenshot(CapturedScreenshot(pngData: data, rect: pixelRect), source: "Area")
-            showStatus("Captured \(bitmap.pixelsWide)×\(bitmap.pixelsHigh) px")
-        } catch {
-            showStatus(error.localizedDescription, kind: .error)
-        }
-    }
-
     private func startGIFRegionSelection() {
         guard screenshotFeatureSettings.captureCapabilities.gifRecording else {
             showStatus("GIF recording is disabled", kind: .error)
@@ -3134,6 +3103,14 @@ struct ContentView: View {
         }
 
         startRegionSelection(onSelect: startGIFRecording)
+    }
+
+    private func toggleGIFRecording() {
+        if isRecordingGIF {
+            gifRecordingSession?.cancel()
+        } else {
+            startGIFRegionSelection()
+        }
     }
 
     private func startGIFRecording(in region: CGRect) {

@@ -6,53 +6,116 @@ struct LauncherSectionData: Identifiable {
     let items: [LauncherItem]
 }
 
+struct LauncherSourceSnapshot {
+    let sourceID: String
+    let searchMode: SourceSearchMode
+    let items: [LauncherItem]
+}
+
 enum LauncherSectionBuilder {
+    /// Calls providers and captures the candidate pool. This phase is kept
+    /// separate from scoring so the coordinator can execute both off MainActor
+    /// while taking the tiny alias snapshot between them.
+    static func collect(
+        sources: [LauncherItemSource],
+        query: String
+    ) -> [LauncherSourceSnapshot] {
+        let trimmed = query.trimmingCharacters(in: .whitespaces)
+        var snapshots: [LauncherSourceSnapshot] = []
+        snapshots.reserveCapacity(sources.count)
+        for source in sources {
+            if Task.isCancelled { return [] }
+            switch source.searchMode {
+            case .commandList:
+                var pool = source.items(for: "")
+                var seenIDs = Set(pool.map(\.id))
+                if !trimmed.isEmpty {
+                    for item in source.items(for: trimmed) where !seenIDs.contains(item.id) {
+                        pool.append(item)
+                        seenIDs.insert(item.id)
+                    }
+                }
+                snapshots.append(LauncherSourceSnapshot(
+                    sourceID: source.sourceID,
+                    searchMode: source.searchMode,
+                    items: pool
+                ))
+            case .queryDriven:
+                snapshots.append(LauncherSourceSnapshot(
+                    sourceID: source.sourceID,
+                    searchMode: source.searchMode,
+                    items: source.items(for: trimmed)
+                ))
+            }
+        }
+        return snapshots
+    }
+
+    static func process(
+        snapshots: [LauncherSourceSnapshot],
+        query: String,
+        records: [String: CommandUsageRecord],
+        now: Date = Date(),
+        aliasLookup: (String) -> String? = { _ in nil },
+        preservingIDs: Set<String> = []
+    ) -> [LauncherItem] {
+        let trimmed = query.trimmingCharacters(in: .whitespaces)
+        var items: [LauncherItem] = []
+        var commandItems: [LauncherItem] = []
+        for snapshot in snapshots {
+            if Task.isCancelled { return [] }
+            switch snapshot.searchMode {
+            case .commandList:
+                if trimmed.isEmpty {
+                    items.append(contentsOf: LauncherSearchEngine.annotate(
+                        items: snapshot.items,
+                        query: trimmed,
+                        records: records,
+                        now: now,
+                        aliasLookup: aliasLookup
+                    ))
+                } else {
+                    commandItems.append(contentsOf: snapshot.items)
+                }
+            case .queryDriven:
+                // Query-driven providers own their parsing semantics (for
+                // example `f foo`, `menu Save`, expressions and translation).
+                // Re-filtering with the raw launcher query creates false negatives.
+                items.append(contentsOf: snapshot.items)
+            }
+        }
+        if !trimmed.isEmpty {
+            items.append(contentsOf: LauncherSearchEngine.annotate(
+                items: commandItems,
+                query: trimmed,
+                records: records,
+                now: now,
+                aliasLookup: aliasLookup,
+                limit: 200,
+                preservingIDs: preservingIDs
+            ))
+        }
+        return items
+    }
+
     /// 按源模式产出条目:commandList 走引擎(模糊+拼音+frecency),
     /// queryDriven 原样传 query + 相关性兜底。
     static func process(
         sources: [LauncherItemSource],
         query: String,
         records: [String: CommandUsageRecord],
-        now: Date = Date()
+        now: Date = Date(),
+        aliasLookup: (String) -> String? = { _ in nil },
+        preservingIDs: Set<String> = []
     ) -> [LauncherItem] {
-        let trimmed = query.trimmingCharacters(in: .whitespaces)
-        var items: [LauncherItem] = []
-        for source in sources {
-            switch source.searchMode {
-            case .commandList:
-                // 候选 = 空查询全量 ∪ provider 自筛结果(部分 provider 空查询返回空,
-                // 只有喂 query 才吐候选;两路并集去重后交给引擎)。
-                var pool = source.items(for: "")
-                var seenIDs = Set(pool.map(\.id))
-                var providerMatched: [LauncherItem] = []
-                if !trimmed.isEmpty {
-                    providerMatched = source.items(for: trimmed)
-                    for item in providerMatched where !seenIDs.contains(item.id) {
-                        pool.append(item)
-                        seenIDs.insert(item.id)
-                    }
-                }
-                // 引擎统一裁决(子序列+拼音,比 provider 的 contains 更宽):
-                // provider 匹配过宽的条目在这里被正确剔除。
-                _ = providerMatched
-                let annotated = LauncherSearchEngine.annotate(
-                    items: pool,
-                    query: trimmed,
-                    records: records,
-                    now: now
-                )
-                items.append(contentsOf: annotated)
-            case .queryDriven:
-                var raw = source.items(for: trimmed)
-                if !trimmed.isEmpty {
-                    raw = raw.filter { item in
-                        item.isAnswer || item.acceptsArgument || Self.matches(item, query: trimmed)
-                    }
-                }
-                items.append(contentsOf: raw)
-            }
-        }
-        return items
+        process(
+            snapshots: collect(sources: sources, query: query),
+            query: query,
+            records: records,
+            now: now,
+            aliasLookup: aliasLookup,
+            preservingIDs: preservingIDs
+        )
     }
 
     static func build(
@@ -65,7 +128,12 @@ enum LauncherSectionBuilder {
         recentsLimit: Int = 5
     ) -> [LauncherSectionData] {
         assemble(
-            items: process(sources: sources, query: query, records: records),
+            items: process(
+                sources: sources,
+                query: query,
+                records: records,
+                preservingIDs: Set(favorites)
+            ),
             query: query,
             aliasLookup: { key in
                 (aliases as? AliasStore).flatMap { alias in
@@ -96,18 +164,32 @@ enum LauncherSectionBuilder {
         recentsLimit: Int = 5
     ) -> [LauncherSectionData] {
         let trimmed = query.trimmingCharacters(in: .whitespaces)
-        var allItems = items.map { item -> LauncherItem in
+        let allItems = items.map { item -> LauncherItem in
             var copy = item
             copy.aliasBadge = aliasLookup(item.id)
             return copy
         }
-        _ = allItems
 
         var sections: [LauncherSectionData] = []
         var seen = Set<String>()
+        var seenApplicationTitles = Set<String>()
+        let applicationCategories: Set<String> = ["App", "Application"]
+        let applicationLikeCategories = applicationCategories.union(["系统设置", "System Settings"])
+
+        func normalizedApplicationTitle(for item: LauncherItem) -> String? {
+            guard applicationLikeCategories.contains(item.category) else { return nil }
+            return item.title.folding(
+                options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive],
+                locale: .current
+            )
+        }
 
         func appendSection(_ id: LauncherSection, title: String, items: [LauncherItem]) {
-            let fresh = items.filter { seen.insert($0.id).inserted }
+            let fresh = items.filter { item in
+                guard seen.insert(item.id).inserted else { return false }
+                guard let normalizedTitle = normalizedApplicationTitle(for: item) else { return true }
+                return seenApplicationTitles.insert(normalizedTitle).inserted
+            }
             guard !fresh.isEmpty else { return }
             sections.append(LauncherSectionData(id: id, title: title, items: fresh))
         }
@@ -155,17 +237,29 @@ enum LauncherSectionBuilder {
                 appendSection(.results(category), title: category, items: categoryItems)
             }
         } else {
-            // 搜索:Raycast 式全局单列表,按综合分排序;分类只做行尾徽标。
+            // 搜索:先全局排序,再按 Raycast 的信息层级拆出 Files 分区。
             let ranked = allItems.filter { !$0.isAnswer }
                 .enumerated()
                 .sorted { lhs, rhs in
+                    let lhsTitle = normalizedApplicationTitle(for: lhs.element)
+                    let rhsTitle = normalizedApplicationTitle(for: rhs.element)
+                    if lhsTitle != nil, lhsTitle == rhsTitle {
+                        let lhsIsApplication = applicationCategories.contains(lhs.element.category)
+                        let rhsIsApplication = applicationCategories.contains(rhs.element.category)
+                        if lhsIsApplication != rhsIsApplication {
+                            return lhsIsApplication
+                        }
+                    }
                     if lhs.element.searchScore != rhs.element.searchScore {
                         return lhs.element.searchScore > rhs.element.searchScore
                     }
                     return lhs.offset < rhs.offset
                 }
                 .map(\.element)
-            appendSection(.results("Results"), title: "结果", items: ranked)
+            let files = ranked.filter { $0.category == "Files" }
+            let results = ranked.filter { $0.category != "Files" }
+            appendSection(.results("Results"), title: "Results", items: results)
+            appendSection(.results("Files"), title: "Files", items: files)
         }
 
         if !trimmed.isEmpty, !fallbackItems.isEmpty {

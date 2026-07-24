@@ -59,26 +59,54 @@ final class SystemSettingsProvider: CommandProviding {
         self.openTarget = openTarget
     }
 
-    private lazy var commands: [PaletteCommand] = Self.panes.map { pane in
+    private lazy var commands: [PaletteCommand] = {
         let isChineseUI = AppLanguage.current == .zh
-        let title = isChineseUI ? "\(pane.zh)设置" : "\(pane.en) Settings"
-        return PaletteCommand(
+        let root = PaletteCommand(
             id: UUID(),
-            title: title,
-            subtitle: isChineseUI ? "系统设置 · \(pane.en)" : "System Settings · \(pane.zh)",
+            title: isChineseUI ? "系统设置" : "System Settings",
+            subtitle: isChineseUI ? "打开 macOS 设置" : "Open macOS settings",
             icon: .sfSymbol("gearshape.2"),
-            keywords: [pane.zh, pane.en, "系统设置", "system settings", "设置", "偏好"],
-            action: .execute { [openTarget] in openTarget(pane.target) },
+            keywords: ["系统", "系统设置", "system", "settings", "system settings", "偏好设置"],
+            action: .execute { [openTarget] in openTarget("") },
             category: isChineseUI ? "系统设置" : "System Settings"
         )
-    }
+        let panes = Self.panes.map { pane in
+            let title = isChineseUI ? "\(pane.zh)设置" : "\(pane.en) Settings"
+            return PaletteCommand(
+                id: UUID(),
+                title: title,
+                subtitle: isChineseUI ? "系统设置 · \(pane.en)" : "System Settings · \(pane.zh)",
+                icon: .sfSymbol("gearshape.2"),
+                keywords: [pane.zh, pane.en, "设置", "偏好"],
+                action: .execute { [openTarget] in openTarget(pane.target) },
+                category: isChineseUI ? "系统设置" : "System Settings"
+            )
+        }
+        return [root] + panes
+    }()
 
     func results(for query: String) -> [PaletteCommand] {
         let q = query.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { return commands }
-        return commands.filter { cmd in
-            cmd.title.localizedCaseInsensitiveContains(q)
-                || cmd.keywords.contains { $0.localizedCaseInsensitiveContains(q) }
+        let byID = Dictionary(uniqueKeysWithValues: commands.map { ($0.id.uuidString, $0) })
+        let documents = commands.map { command in
+            var keywords = command.keywords
+            keywords.append(contentsOf: RaycastV2Search.searchAliases(for: command.title))
+            for keyword in command.keywords {
+                keywords.append(contentsOf: RaycastV2Search.searchAliases(for: keyword))
+            }
+            return SearchDocumentInput(
+                id: command.id.uuidString,
+                namespace: "system-settings",
+                title: command.title,
+                subtitle: "",
+                keywords: keywords,
+                path: "",
+                kind: "settings-pane",
+                modifiedAt: 0
+            )
         }
+        return RaycastV2Search.rank(query: q, documents: documents, limit: commands.count)
+            .compactMap { byID[$0.id] }
     }
 }

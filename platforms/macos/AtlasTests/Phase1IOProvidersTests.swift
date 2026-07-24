@@ -1,28 +1,14 @@
 import XCTest
 @testable import Atlas
 
-private final class StubRunner: SystemCommandRunning {
-    var output: String
-    init(output: String) { self.output = output }
-    func run(_ executable: String, arguments: [String]) throws -> SystemCommandResult {
-        SystemCommandResult(terminationStatus: 0, standardOutput: output, standardError: "")
-    }
-    func start(_ executable: String, arguments: [String]) throws -> SystemCommandProcess {
-        SpyShellProcess()
-    }
-}
-
-private final class SpyShellProcess: SystemCommandProcess {
-    var isRunning = false
-    func terminate() {}
-}
-
 @MainActor
 final class FileSearchProviderTests: XCTestCase {
-    func testParsesMdfindOutput() {
+    func testMapsIndexedPaths() {
         var opened: [String] = []
-        let runner = StubRunner(output: "/Users/x/a.txt\n/Users/x/b.txt\n")
-        let provider = FileSearchProvider(commandRunner: runner, open: { opened.append($0) })
+        let provider = FileSearchProvider(
+            open: { opened.append($0) },
+            syncSearch: { _, _ in ["/Users/x/a.txt", "/Users/x/b.txt"] }
+        )
         let results = provider.results(for: "f report")
         XCTAssertEqual(results.map(\.title), ["a.txt", "b.txt"])
         if case .execute(let run)? = results.first?.action { run() }
@@ -30,11 +16,15 @@ final class FileSearchProviderTests: XCTestCase {
     }
 
     func testShortTermReturnsEmpty() {
-        XCTAssertTrue(FileSearchProvider(commandRunner: StubRunner(output: "")).results(for: "f a").isEmpty)
+        let provider = FileSearchProvider(
+            syncSearch: { _, _ in ["/Users/x/ab-report.txt"] }
+        )
+        XCTAssertTrue(provider.results(for: "f a").isEmpty)
+        XCTAssertTrue(provider.results(for: "ab").isEmpty)
     }
 
     func testNonKeywordReturnsEmpty() {
-        XCTAssertTrue(FileSearchProvider(commandRunner: StubRunner(output: "")).results(for: "hello").isEmpty)
+        XCTAssertTrue(FileSearchProvider(syncSearch: { _, _ in [] }).results(for: "hello").isEmpty)
     }
 }
 

@@ -1,31 +1,52 @@
 import AppKit
 import Foundation
 
-/// Searches files by name via Spotlight (`mdfind`) — Raycast style: any query
-/// searches files directly, no prefix needed (legacy `f <name>` still works).
+/// Searches the Raycast-v2-style Rust file index directly, no prefix needed
+/// (legacy `f <name>` still works).
 /// Opens the file (or reveals in Finder with the secondary path) on selection.
-final class FileSearchProvider: CommandProviding {
-    private let commandRunner: SystemCommandRunning
+final class FileSearchProvider: CommandProviding, AsyncCommandProviding {
     private let open: (String) -> Void
+    private let syncSearch: (String, Int) -> [String]
+    private let asyncSearch: @Sendable (String, Int) async -> [String]
     private static let maxResults = 6
+    private static let maxIndexCandidates = 128
 
     init(
-        commandRunner: SystemCommandRunning = LiveSystemCommandRunner(),
-        open: @escaping (String) -> Void = { NSWorkspace.shared.open(URL(fileURLWithPath: $0)) }
+        open: @escaping (String) -> Void = { NSWorkspace.shared.open(URL(fileURLWithPath: $0)) },
+        syncSearch: ((String, Int) -> [String])? = nil,
+        asyncSearch: (@Sendable (String, Int) async -> [String])? = nil
     ) {
-        self.commandRunner = commandRunner
         self.open = open
+        self.syncSearch = syncSearch ?? { term, limit in
+            RaycastV2Search.searchFiles(query: term, limit: limit)
+        }
+        self.asyncSearch = asyncSearch ?? { term, limit in
+            await Task.detached(priority: .userInitiated) {
+                RaycastV2Search.searchFiles(query: term, limit: limit)
+            }.value
+        }
     }
 
     func results(for query: String) -> [PaletteCommand] {
-        var term = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        if term.lowercased().hasPrefix("f ") {
-            term = String(term.dropFirst(2)).trimmingCharacters(in: .whitespaces)
-        }
-        guard term.count >= 2 else { return [] }
+        let term = Self.term(from: query)
+        guard term.count >= 3 else { return [] }
 
-        let paths = Self.search(term: term, runner: commandRunner)
-        return Self.rank(paths: paths, term: term).prefix(Self.maxResults).map { path in
+        let paths = syncSearch(term, Self.maxIndexCandidates)
+        return makeCommands(paths: Self.rank(paths: paths, term: term), term: term)
+    }
+
+    func resultsAsync(for query: String) async -> [PaletteCommand] {
+        let term = Self.term(from: query)
+        guard term.count >= 3 else { return [] }
+
+        let paths = await asyncSearch(term, Self.maxIndexCandidates)
+        guard !Task.isCancelled else { return [] }
+        return makeCommands(paths: Self.rank(paths: paths, term: term), term: term)
+    }
+
+    private func makeCommands<S: Sequence>(paths: S, term: String) -> [PaletteCommand]
+    where S.Element == String {
+        paths.prefix(Self.maxResults).map { path in
             let url = URL(fileURLWithPath: path)
             return PaletteCommand(
                 id: UUID(),
@@ -39,18 +60,15 @@ final class FileSearchProvider: CommandProviding {
         }
     }
 
-    static func search(term: String, runner: SystemCommandRunning) -> [String] {
-        guard let result = try? runner.run(
-            "/usr/bin/mdfind",
-            arguments: ["-name", term]
-        ), result.succeeded else { return [] }
-        return result.standardOutput
-            .split(separator: "\n")
-            .map { String($0).trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
+    private static func term(from query: String) -> String {
+        var term = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        if term.lowercased().hasPrefix("f ") {
+            term = String(term.dropFirst(2)).trimmingCharacters(in: .whitespaces)
+        }
+        return term
     }
 
-    /// mdfind 输出无序;按文件名命中质量排:前缀 > 包含 > 其他,同级短名靠前。
+    /// 索引结果保持稳定二次排序:前缀 > 包含 > 其他,同级短名靠前。
     /// .app 交给应用搜索,这里剔除避免重复行。
     static func rank(paths: [String], term: String) -> [String] {
         let lowerTerm = term.lowercased()

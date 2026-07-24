@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 private final class LauncherPanel: NSPanel {
@@ -13,6 +14,13 @@ final class LauncherPanelController {
     private var keyMonitor: Any?
     private var flagsMonitor: Any?
     private var resizeObserver: NSObjectProtocol?
+    private var presentationObserver: AnyCancellable?
+    private var expandedPanelHeight: CGFloat = 560
+
+    private static let collapsedPanelHeight: CGFloat = 64
+    private static let minimumExpandedPanelHeight: CGFloat = 220
+    private static let maximumExpandedPanelHeight: CGFloat = 900
+    private static let expandedHeightPreferenceKey = "launcher.panel.expanded-height.v2"
 
     private let sources: [LauncherItemSource]
     private let usageRecorder: CommandUsageRecording
@@ -65,14 +73,22 @@ final class LauncherPanelController {
         self.styleStore = styleStore
         self.favorites = favorites
         self.automationRunner = automationRunner
+
+        presentationObserver = Publishers.CombineLatest(nav.$query, nav.$stack)
+            .map { query, stack in
+                stack.isEmpty && query.trimmingCharacters(in: .whitespaces).isEmpty
+            }
+            .removeDuplicates()
+            .sink { [weak self] isRootIdle in
+                self?.updatePanelPresentation(isRootIdle: isRootIdle)
+            }
     }
 
     deinit {
-        let monitors = [mouseMonitor, keyMonitor].compactMap { $0 }
-        if !monitors.isEmpty {
-            DispatchQueue.main.async {
-                monitors.forEach { NSEvent.removeMonitor($0) }
-            }
+        let monitors = [mouseMonitor, keyMonitor, flagsMonitor].compactMap { $0 }
+        monitors.forEach { NSEvent.removeMonitor($0) }
+        if let resizeObserver {
+            NotificationCenter.default.removeObserver(resizeObserver)
         }
     }
 
@@ -83,8 +99,7 @@ final class LauncherPanelController {
     // MARK: Visibility
 
     func toggle() {
-        // 以面板存在性判断:再次按热键必定关闭,不依赖 isVisible 的时序。
-        if panel != nil {
+        if panel?.isVisible == true {
             hide()
         } else {
             show()
@@ -92,74 +107,91 @@ final class LauncherPanelController {
     }
 
     func show() {
-        guard panel == nil else { return }
+        guard panel?.isVisible != true else { return }
         removeMonitors()
         nav.resetToRoot()
 
         let style = styleStore.style.sanitized()
         searchCoordinator.updateQuery("")
-        let rootView = LauncherRootView(
-            nav: nav,
-            styleStore: styleStore,
-            coordinator: searchCoordinator,
-            legacyViewBuilder: { [weak self] destination in
-                self?.legacyView(for: destination) ?? AnyView(Text("Unavailable").padding())
-            },
-            onOutcome: { [weak self] item, outcome in self?.handle(item: item, outcome: outcome) },
-            onDismiss: { [weak self] in
-                Task { @MainActor [weak self] in self?.hide() }
-            }
-        )
-
         let panelWidth = style.panelWidth
         let defaultHeight: CGFloat = 64 + CGFloat(style.maxVisibleRows) * style.rowHeight + 20 + 40 + 2
         // 上次拖拽保存的高度优先(夹在上下限内)。
-        let savedHeight = UserDefaults.standard.double(forKey: "launcher.panel.height")
-        let panelHeight = savedHeight > 0 ? min(max(savedHeight, 220), 900) : defaultHeight
-        // 顶对齐 + 尾部 Spacer:空闲态只渲染搜索条,面板剩余区域保持透明。
-        let hostingView = NSHostingView(rootView: VStack(spacing: 0) {
-            rootView
-            Spacer(minLength: 0)
-        })
-        hostingView.frame = CGRect(x: 0, y: 0, width: panelWidth, height: panelHeight)
+        let savedHeight = UserDefaults.standard.double(forKey: Self.expandedHeightPreferenceKey)
+        expandedPanelHeight = savedHeight > 0
+            ? min(max(savedHeight, Self.minimumExpandedPanelHeight), Self.maximumExpandedPanelHeight)
+            : defaultHeight
+        let panelHeight = Self.collapsedPanelHeight
 
-        let newPanel = LauncherPanel(
-            contentRect: CGRect(x: 0, y: 0, width: panelWidth, height: panelHeight),
-            styleMask: [.borderless, .nonactivatingPanel, .resizable],
-            backing: .buffered,
-            defer: false
-        )
-        // 可拖边缘调整大小,限制最小/最大。
-        newPanel.minSize = NSSize(width: 480, height: 220)
-        newPanel.maxSize = NSSize(width: 960, height: 900)
-        newPanel.level = .modalPanel
-        newPanel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        newPanel.backgroundColor = .clear
-        newPanel.isOpaque = false
-        newPanel.hasShadow = false
-        newPanel.contentView = hostingView
-        newPanel.isReleasedWhenClosed = false
+        let currentPanel: NSPanel
+        if let panel {
+            currentPanel = panel
+            currentPanel.setContentSize(NSSize(width: panelWidth, height: panelHeight))
+        } else {
+            let rootView = LauncherRootView(
+                nav: nav,
+                styleStore: styleStore,
+                coordinator: searchCoordinator,
+                legacyViewBuilder: { [weak self] destination in
+                    self?.legacyView(for: destination) ?? AnyView(Text("Unavailable").padding())
+                },
+                onOutcome: { [weak self] item, outcome in self?.handle(item: item, outcome: outcome) },
+                onDismiss: { [weak self] in
+                    Task { @MainActor [weak self] in self?.hide() }
+                }
+            )
 
-        position(newPanel, topOffsetRatio: style.topOffsetRatio)
-        newPanel.makeKeyAndOrderFront(nil)
-        newPanel.orderFrontRegardless()
-        panel = newPanel
+            let hostingView = NSHostingView(rootView: rootView)
+            hostingView.frame = CGRect(x: 0, y: 0, width: panelWidth, height: panelHeight)
 
-        resizeObserver = NotificationCenter.default.addObserver(
-            forName: NSWindow.didEndLiveResizeNotification,
-            object: newPanel,
-            queue: .main
-        ) { [weak self] notification in
-            Task { @MainActor [weak self] in
-                guard let self, let window = notification.object as? NSWindow else { return }
-                let size = window.frame.size
-                UserDefaults.standard.set(Double(size.height), forKey: "launcher.panel.height")
-                let clampedWidth = min(max(size.width, 480), 960)
-                if abs(self.styleStore.style.panelWidth - clampedWidth) > 1 {
-                    self.styleStore.style.panelWidth = clampedWidth
+            let newPanel = LauncherPanel(
+                contentRect: CGRect(x: 0, y: 0, width: panelWidth, height: panelHeight),
+                styleMask: [.borderless, .nonactivatingPanel, .resizable],
+                backing: .buffered,
+                defer: false
+            )
+            newPanel.minSize = NSSize(width: 480, height: Self.collapsedPanelHeight)
+            newPanel.maxSize = NSSize(width: 960, height: Self.collapsedPanelHeight)
+            newPanel.level = .modalPanel
+            newPanel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            newPanel.backgroundColor = .clear
+            newPanel.isOpaque = false
+            newPanel.hasShadow = false
+            newPanel.contentView = hostingView
+            newPanel.isReleasedWhenClosed = false
+            panel = newPanel
+            currentPanel = newPanel
+
+            resizeObserver = NotificationCenter.default.addObserver(
+                forName: NSWindow.didEndLiveResizeNotification,
+                object: newPanel,
+                queue: .main
+            ) { [weak self] notification in
+                Task { @MainActor [weak self] in
+                    guard let self, let window = notification.object as? NSWindow else { return }
+                    let size = window.frame.size
+                    if size.height > Self.collapsedPanelHeight + 1 {
+                        self.expandedPanelHeight = min(
+                            max(size.height, Self.minimumExpandedPanelHeight),
+                            Self.maximumExpandedPanelHeight
+                        )
+                        UserDefaults.standard.set(
+                            Double(self.expandedPanelHeight),
+                            forKey: Self.expandedHeightPreferenceKey
+                        )
+                    }
+                    let clampedWidth = min(max(size.width, 480), 960)
+                    if abs(self.styleStore.style.panelWidth - clampedWidth) > 1 {
+                        self.styleStore.style.panelWidth = clampedWidth
+                    }
                 }
             }
         }
+
+        position(currentPanel, topOffsetRatio: style.topOffsetRatio)
+        currentPanel.contentView?.layoutSubtreeIfNeeded()
+        currentPanel.displayIfNeeded()
+        currentPanel.orderFrontRegardless()
+        currentPanel.makeKey()
 
         installMonitors()
         flagsMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
@@ -173,13 +205,33 @@ final class LauncherPanelController {
         }
     }
 
-    func hide() {
-        if let resizeObserver {
-            NotificationCenter.default.removeObserver(resizeObserver)
+    private func updatePanelPresentation(isRootIdle: Bool) {
+        guard let panel else { return }
+
+        let targetHeight = isRootIdle ? Self.collapsedPanelHeight : expandedPanelHeight
+        panel.minSize = NSSize(
+            width: 480,
+            height: isRootIdle ? Self.collapsedPanelHeight : Self.minimumExpandedPanelHeight
+        )
+        panel.maxSize = NSSize(
+            width: 960,
+            height: isRootIdle ? Self.collapsedPanelHeight : Self.maximumExpandedPanelHeight
+        )
+
+        guard abs(panel.frame.height - targetHeight) > 0.5 else { return }
+
+        var frame = panel.frame
+        let topEdge = frame.maxY
+        frame.size.height = targetHeight
+        frame.origin.y = topEdge - targetHeight
+        if let screen = panel.screen ?? NSScreen.main {
+            frame.origin.y = max(frame.origin.y, screen.visibleFrame.minY)
         }
-        resizeObserver = nil
-        panel?.close()
-        panel = nil
+        panel.setFrame(frame, display: true, animate: panel.isVisible)
+    }
+
+    func hide() {
+        panel?.orderOut(nil)
         removeMonitors()
         nav.resetToRoot()
     }
@@ -197,10 +249,47 @@ final class LauncherPanelController {
         )
     }
 
-    private func selectedRootItem() -> LauncherItem? {
-        guard nav.stack.isEmpty else { return nil }
-        let flattened = searchCoordinator.sections.flatMap(\.items)
-        return flattened.indices.contains(nav.selectedIndex) ? flattened[nav.selectedIndex] : nil
+    private struct SelectionContext {
+        let items: [LauncherItem]
+        let verticalStep: Int
+        let supportsHorizontalNavigation: Bool
+    }
+
+    private func selectionContext() -> SelectionContext {
+        guard let page = nav.currentPage else {
+            return SelectionContext(
+                items: searchCoordinator.sections.flatMap(\.items),
+                verticalStep: 1,
+                supportsHorizontalNavigation: false
+            )
+        }
+
+        switch page {
+        case .list(_, let items):
+            return SelectionContext(
+                items: LauncherPageView.filter(items(), query: nav.query),
+                verticalStep: 1,
+                supportsHorizontalNavigation: false
+            )
+        case .grid(_, let columns, let items):
+            return SelectionContext(
+                items: LauncherPageView.filter(items(), query: nav.query),
+                verticalStep: max(columns, 1),
+                supportsHorizontalNavigation: true
+            )
+        case .detail, .legacy:
+            return SelectionContext(items: [], verticalStep: 1, supportsHorizontalNavigation: false)
+        }
+    }
+
+    private func selectedItem() -> LauncherItem? {
+        let items = selectionContext().items
+        return items.indices.contains(nav.selectedIndex) ? items[nav.selectedIndex] : nil
+    }
+
+    private func runSelectedItem() {
+        guard let item = selectedItem(), let primary = item.primaryAction else { return }
+        handle(item: item, outcome: primary.perform())
     }
 
     // MARK: Outcome handling
@@ -285,7 +374,8 @@ final class LauncherPanelController {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self, self.panel?.isVisible == true else { return event }
 
-            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            let flags = event.modifierFlags
+                .intersection([.command, .option, .control, .shift])
 
             // ⌘K toggles the action panel.
             if flags == .command, event.charactersIgnoringModifiers?.lowercased() == "k" {
@@ -316,16 +406,18 @@ final class LauncherPanelController {
 
             // PageDown(121)/PageUp(116):按可见行数翻页。
             if event.keyCode == 121 || event.keyCode == 116 {
-                let flattened = self.searchCoordinator.sections.flatMap(\.items)
-                guard !flattened.isEmpty else { return nil }
+                let context = self.selectionContext()
+                guard !context.items.isEmpty else { return nil }
                 let page = self.styleStore.style.sanitized().maxVisibleRows
                 let delta = event.keyCode == 121 ? page : -page
-                self.nav.selectedIndex = min(max(self.nav.selectedIndex + delta, 0), flattened.count - 1)
+                self.nav.moveSelection(by: delta, itemCount: context.items.count)
                 return nil
             }
 
             // ⌘↑ / ⌘↓:跳上/下一个分区首行。
-            if flags == .command, event.keyCode == 126 || event.keyCode == 125 {
+            if self.nav.stack.isEmpty,
+               flags == .command,
+               event.keyCode == 126 || event.keyCode == 125 {
                 let sections = self.searchCoordinator.sections
                 guard !sections.isEmpty else { return nil }
                 var starts: [Int] = []
@@ -349,28 +441,49 @@ final class LauncherPanelController {
 
             // ⌘↵ runs the second action of the selected root item.
             if flags == .command, event.keyCode == 36 || event.keyCode == 76 {
-                if let item = self.selectedRootItem(), item.actions.count > 1 {
+                if let item = self.selectedItem(), item.actions.count > 1 {
                     self.handle(item: item, outcome: item.actions[1].perform())
                 }
                 return nil
             }
 
-            // ⌃N / ⌃P → substitute down / up arrow events (vim-style navigation).
+            // ⌃N / ⌃P:vim-style navigation.
             if flags == .control, let char = event.charactersIgnoringModifiers?.lowercased(),
                char == "n" || char == "p" {
-                let keyCode: UInt16 = char == "n" ? 125 : 126
-                return NSEvent.keyEvent(
-                    with: .keyDown,
-                    location: event.locationInWindow,
-                    modifierFlags: [],
-                    timestamp: event.timestamp,
-                    windowNumber: event.windowNumber,
-                    context: nil,
-                    characters: "",
-                    charactersIgnoringModifiers: "",
-                    isARepeat: event.isARepeat,
-                    keyCode: keyCode
-                ) ?? event
+                let context = self.selectionContext()
+                let delta = char == "n" ? context.verticalStep : -context.verticalStep
+                self.nav.moveSelection(by: delta, itemCount: context.items.count)
+                return nil
+            }
+
+            // Search field keeps focus for typing; navigation is handled before
+            // NSTextField consumes arrow/return/escape events.
+            if flags.isEmpty, !self.nav.isActionPanelOpen {
+                let context = self.selectionContext()
+                switch event.keyCode {
+                case 126:
+                    self.nav.moveSelection(by: -context.verticalStep, itemCount: context.items.count)
+                    return nil
+                case 125:
+                    self.nav.moveSelection(by: context.verticalStep, itemCount: context.items.count)
+                    return nil
+                case 123 where context.supportsHorizontalNavigation:
+                    self.nav.moveSelection(by: -1, itemCount: context.items.count)
+                    return nil
+                case 124 where context.supportsHorizontalNavigation:
+                    self.nav.moveSelection(by: 1, itemCount: context.items.count)
+                    return nil
+                case 36, 76:
+                    self.runSelectedItem()
+                    return nil
+                case 53:
+                    if !self.nav.popOrSignalDismiss() {
+                        self.hide()
+                    }
+                    return nil
+                default:
+                    break
+                }
             }
 
             return event

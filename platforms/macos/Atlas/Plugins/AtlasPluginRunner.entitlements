@@ -12,6 +12,10 @@
     <false/>
     <key>com.apple.security.files.user-selected.read-write</key>
     <false/>
+    <key>com.apple.security.temporary-exception.files.home-relative-path.read-only</key>
+    <array>
+        <string>/Library/Application Support/Atlas/Plugins/</string>
+    </array>
     <key>com.apple.security.automation.apple-events</key>
     <false/>
     <key>com.apple.security.inherit</key>

@@ -24,6 +24,10 @@ final class LauncherStyleStore: ObservableObject {
             if migrated.panelWidth == 680 {
                 migrated.panelWidth = 560
             }
+            // 旧默认可见行数 8 迁移为新默认 10(手动调过其他值的不动)。
+            if migrated.maxVisibleRows == 8 {
+                migrated.maxVisibleRows = 10
+            }
             style = migrated
         } else {
             style = .default

@@ -58,6 +58,113 @@ final class PluginCapabilityRouter {
     }
 }
 
+@MainActor
+final class PluginFeedbackAdapter: PlatformCapabilityAdapter {
+    let capabilities: Set<String> = ["ui.alert", "ui.hud", "ui.toast"]
+    private let toastPresenter: PluginToastPresenter
+
+    init(toastPresenter: PluginToastPresenter? = nil) {
+        self.toastPresenter = toastPresenter ?? PluginToastPresenter()
+    }
+
+    func perform(pluginID _: String, request: PluginHostRequestPayload) async throws -> Any {
+        guard let payload = try JSONSerialization.jsonObject(with: Data(request.payload)) as? [String: Any],
+              let title = payload["title"] as? String
+        else {
+            throw PluginPlatformAdapterError.invalidPayload
+        }
+        switch request.capability {
+        case "ui.toast", "ui.hud":
+            toastPresenter.show(title: title, message: payload["message"] as? String)
+            return true
+        case "ui.alert":
+            let alert = NSAlert()
+            alert.messageText = title
+            alert.informativeText = payload["message"] as? String ?? ""
+            alert.addButton(withTitle: "OK")
+            alert.addButton(withTitle: "Cancel")
+            return alert.runModal() == .alertFirstButtonReturn
+        default:
+            throw PluginPlatformAdapterError.unsupportedOperation
+        }
+    }
+}
+
+@MainActor
+final class PluginToastPresenter {
+    private var panel: NSPanel?
+
+    func show(title: String, message: String?) {
+        panel?.orderOut(nil)
+
+        let width: CGFloat = 360
+        let height: CGFloat = message?.isEmpty == false ? 88 : 64
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: width, height: height),
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        panel.level = .floating
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = true
+        panel.ignoresMouseEvents = true
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+
+        let content = NSView(frame: panel.contentView?.bounds ?? .zero)
+        content.wantsLayer = true
+        content.layer?.backgroundColor = NSColor.windowBackgroundColor.withAlphaComponent(0.96).cgColor
+        content.layer?.cornerRadius = 16
+        content.layer?.borderWidth = 1
+        content.layer?.borderColor = NSColor.separatorColor.withAlphaComponent(0.5).cgColor
+
+        let titleLabel = NSTextField(labelWithString: title)
+        titleLabel.font = .boldSystemFont(ofSize: 15)
+        titleLabel.textColor = .labelColor
+        titleLabel.frame = NSRect(x: 20, y: height - 41, width: width - 40, height: 22)
+        content.addSubview(titleLabel)
+
+        if let message, !message.isEmpty {
+            let messageLabel = NSTextField(labelWithString: message)
+            messageLabel.font = .systemFont(ofSize: 13)
+            messageLabel.textColor = .secondaryLabelColor
+            messageLabel.frame = NSRect(x: 20, y: 17, width: width - 40, height: 20)
+            content.addSubview(messageLabel)
+        }
+
+        panel.contentView = content
+        if let screen = NSScreen.main ?? NSScreen.screens.first {
+            let frame = screen.visibleFrame
+            panel.setFrameOrigin(NSPoint(
+                x: frame.midX - width / 2,
+                y: frame.maxY - height - 36
+            ))
+        }
+        panel.orderFrontRegardless()
+        self.panel = panel
+
+        Task { @MainActor [weak self, weak panel] in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            guard let panel, self?.panel === panel else { return }
+            panel.orderOut(nil)
+            self?.panel = nil
+        }
+    }
+}
+
+@MainActor
+final class PluginPreferencesAdapter: PlatformCapabilityAdapter {
+    let capabilities: Set<String> = ["preferences.read"]
+
+    func perform(pluginID: String, request: PluginHostRequestPayload) async throws -> Any {
+        guard request.operation == "read" else {
+            throw PluginPlatformAdapterError.unsupportedOperation
+        }
+        return UserDefaults.standard.dictionary(forKey: "Atlas.PluginPreferences.\(pluginID)") ?? [:]
+    }
+}
+
 struct PluginContentKeyStore {
     private let keychain: any KeychainStoring
     private let account = "plugin-storage-content-key-v1"

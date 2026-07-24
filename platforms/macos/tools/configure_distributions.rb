@@ -60,6 +60,7 @@ runner_phase.shell_script = <<~'SCRIPT'
   set -euo pipefail
   REPOSITORY_ROOT="$(cd "${SRCROOT}/../.." && pwd)"
   RUNNER_DESTINATION="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Helpers/atlas-plugin-runner"
+  RUNNER_INFO_PLIST="${SRCROOT}/Atlas/Plugins/AtlasPluginRunner-Info.plist"
   if [[ "${CONFIGURATION}" != Direct* ]]; then
     rm -f "${RUNNER_DESTINATION}"
     exit 0
@@ -83,6 +84,7 @@ runner_phase.shell_script = <<~'SCRIPT'
       --manifest-path "${REPOSITORY_ROOT}/Cargo.toml" \
       --package atlas-plugin-runner \
       --target "${RUST_TARGET}" \
+      --config "target.${RUST_TARGET}.rustflags=[\"-C\", \"link-arg=-Wl,-sectcreate,__TEXT,__info_plist,${RUNNER_INFO_PLIST}\"]" \
       ${PROFILE_ARGUMENT}
     RUNNER_INPUTS+=("${REPOSITORY_ROOT}/target/${RUST_TARGET}/${PROFILE_DIRECTORY}/atlas-plugin-runner")
   done

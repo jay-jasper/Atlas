@@ -60,6 +60,24 @@ final class AppLauncherProviderTests: XCTestCase {
         XCTAssertEqual(results.first?.category, "App")
     }
 
+    func testFuzzyMatchDoesNotJumpAcrossUnrelatedWords() {
+        let provider = AppLauncherProvider(apps: [
+            AppEntry(name: "System Settings", url: url("System Settings")),
+        ])
+
+        XCTAssertTrue(provider.results(for: "test").isEmpty)
+        XCTAssertEqual(provider.results(for: "ss").first?.title, "System Settings")
+    }
+
+    func testSparseFuzzyMatchIsRejected() {
+        let provider = AppLauncherProvider(apps: [
+            AppEntry(name: "TablePlus", url: url("TablePlus")),
+        ])
+
+        XCTAssertTrue(provider.results(for: "tes").isEmpty)
+        XCTAssertEqual(provider.results(for: "tplus").first?.title, "TablePlus")
+    }
+
     // MARK: - Fuzzy score tests
 
     func testFuzzyScoreReturnsHigherScoreForConsecutiveMatch() {
@@ -111,5 +129,20 @@ extension AppLauncherProviderTests {
 
         if case .execute(let run) = byZh[0].action { run() }
         XCTAssertEqual(opened, "com.apple.BluetoothSettings")
+    }
+
+    func testSystemSettingsRootCommandDoesNotMatchEveryPaneByCategory() {
+        var opened: String?
+        let provider = SystemSettingsProvider(openTarget: { opened = $0 })
+
+        let byZh = provider.results(for: "系统")
+        XCTAssertEqual(byZh.count, 1)
+        XCTAssertTrue(["系统设置", "System Settings"].contains(byZh[0].title))
+
+        let byEn = provider.results(for: "system settings")
+        XCTAssertEqual(byEn.count, 1)
+
+        if case .execute(let run) = byZh[0].action { run() }
+        XCTAssertEqual(opened, "")
     }
 }

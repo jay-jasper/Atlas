@@ -71,6 +71,19 @@ final class PluginPlatformServiceTests: XCTestCase {
         XCTAssertTrue(runtime.lastEventJSON?.contains("action-invoked") == true)
     }
 
+    func testSuccessfulCommandClearsPreviousError() {
+        let service = PluginPlatformService(runtime: FakePluginPlatformRuntime())
+        service.receive(event(
+            kind: .error,
+            pluginID: "dev.example.one",
+            payload: #"{"message":"old failure"}"#
+        ))
+
+        service.startCommand(pluginID: "dev.example.one", commandID: "main")
+
+        XCTAssertNil(service.lastError)
+    }
+
     private func event(
         kind: PluginHostEventKind,
         pluginID: String,

@@ -171,37 +171,29 @@ final class DictationProvider: CommandProviding {
     func results(for query: String) -> [PaletteCommand] {
         let isChineseUI = AppLanguage.current == .zh
         let category = isChineseUI ? "听写" : "Dictation"
-        let isRecording = MainActor.assumeIsolated { DictationService.shared.isRecording }
-        let command: PaletteCommand
-        if isRecording {
-            command = PaletteCommand(
-                id: UUID(),
-                title: isChineseUI ? "停止听写并粘贴" : "Stop Dictation & Paste",
-                subtitle: nil,
-                icon: .sfSymbol("mic.slash"),
-                keywords: ["dictation", "听写", "语音", "tingxie"],
-                action: .execute {
-                    Task { @MainActor in DictationService.shared.pasteTranscript() }
-                },
-                category: category
-            )
-        } else {
-            command = PaletteCommand(
-                id: UUID(),
-                title: isChineseUI ? "开始听写" : "Start Dictation",
-                subtitle: isChineseUI ? "本地语音识别,停止后粘贴到前台" : "On-device speech; pastes on stop",
-                icon: .sfSymbol("mic"),
-                keywords: ["dictation", "听写", "语音输入", "tingxie", "yuyin"],
-                action: .execute {
-                    Task { @MainActor in
-                        DictationService.shared.requestPermissions { granted in
-                            if granted { DictationService.shared.start() }
+        let command = PaletteCommand(
+            id: UUID(),
+            title: isChineseUI ? "开始/停止听写" : "Start / Stop Dictation",
+            subtitle: isChineseUI ? "再次运行时停止并粘贴到前台" : "Run again to stop and paste",
+            icon: .sfSymbol("mic"),
+            keywords: [
+                "dictation", "start", "stop", "听写", "开始", "停止",
+                "语音输入", "tingxie", "yuyin",
+            ],
+            action: .execute {
+                Task { @MainActor in
+                    let service = DictationService.shared
+                    if service.isRecording {
+                        service.pasteTranscript()
+                    } else {
+                        service.requestPermissions { granted in
+                            if granted { service.start() }
                         }
                     }
-                },
-                category: category
-            )
-        }
+                }
+            },
+            category: category
+        )
         let q = query.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { return [command] }
         return [command].filter { cmd in

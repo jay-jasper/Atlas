@@ -52,4 +52,26 @@ final class LauncherNavigationModelTests: XCTestCase {
         XCTAssertTrue(nav.stack.isEmpty)
         XCTAssertEqual(nav.query, "")
     }
+
+    func testMoveSelectionClampsToAvailableItems() {
+        let nav = LauncherNavigationModel()
+
+        nav.moveSelection(by: 1, itemCount: 3)
+        XCTAssertEqual(nav.selectedIndex, 1)
+
+        nav.moveSelection(by: 10, itemCount: 3)
+        XCTAssertEqual(nav.selectedIndex, 2)
+
+        nav.moveSelection(by: -10, itemCount: 3)
+        XCTAssertEqual(nav.selectedIndex, 0)
+    }
+
+    func testMoveSelectionResetsWhenThereAreNoItems() {
+        let nav = LauncherNavigationModel()
+        nav.selectedIndex = 4
+
+        nav.moveSelection(by: 1, itemCount: 0)
+
+        XCTAssertEqual(nav.selectedIndex, 0)
+    }
 }

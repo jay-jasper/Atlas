@@ -73,8 +73,7 @@ final class AXMenuBarReader: MenuBarReading {
 
 /// Searches the frontmost app's menu bar items. Requires Accessibility permission;
 /// without it a single guidance item is returned.
-@MainActor
-final class MenuBarItemSource: LauncherItemSource {
+final class MenuBarItemSource: LauncherItemSource, AsyncLauncherItemSource {
     let sourceID = "menu-bar"
     let searchMode: SourceSearchMode = .queryDriven
     let isSlow = true
@@ -92,9 +91,7 @@ final class MenuBarItemSource: LauncherItemSource {
     }
 
     func items(for query: String) -> [LauncherItem] {
-        let lowered = query.lowercased()
-        guard let prefix = Self.prefixes.first(where: { lowered.hasPrefix($0) }) else { return [] }
-        let term = String(query.dropFirst(prefix.count)).trimmingCharacters(in: .whitespaces)
+        guard let term = searchTerm(query) else { return [] }
 
         guard isTrusted() else {
             return [permissionItem()]
@@ -104,7 +101,38 @@ final class MenuBarItemSource: LauncherItemSource {
             term.isEmpty || entry.path.contains { $0.localizedCaseInsensitiveContains(term) }
         }
 
-        return entries.prefix(30).map { entry in
+        return makeItems(entries)
+    }
+
+    func itemsAsync(for query: String) async -> [LauncherItem] {
+        guard let term = searchTerm(query) else { return [] }
+        guard isTrusted() else { return [permissionItem()] }
+
+        let reader = UnsafeSendable(value: reader)
+        let work = Task.detached(priority: .utility) {
+            reader.value.frontmostAppMenuItems().filter { entry in
+                if Task.isCancelled { return false }
+                return term.isEmpty
+                    || entry.path.contains { $0.localizedCaseInsensitiveContains(term) }
+            }
+        }
+        let entries = await withTaskCancellationHandler {
+            await work.value
+        } onCancel: {
+            work.cancel()
+        }
+        guard !Task.isCancelled else { return [] }
+        return makeItems(entries)
+    }
+
+    private func searchTerm(_ query: String) -> String? {
+        let lowered = query.lowercased()
+        guard let prefix = Self.prefixes.first(where: { lowered.hasPrefix($0) }) else { return nil }
+        return String(query.dropFirst(prefix.count)).trimmingCharacters(in: .whitespaces)
+    }
+
+    private func makeItems(_ entries: [MenuBarEntry]) -> [LauncherItem] {
+        entries.prefix(30).map { entry in
             let joined = entry.path.joined(separator: " › ")
             return LauncherItem(
                 id: "MenuBar|\(joined)",

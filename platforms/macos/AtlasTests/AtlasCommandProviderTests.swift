@@ -7,9 +7,8 @@ final class AtlasCommandProviderTests: XCTestCase {
 
     override func setUp() {
         provider = AtlasCommandProvider(
-            onCaptureDesktop: {},
-            onCaptureArea: {},
-            onCaptureWindow: {},
+            onScreenshot: {},
+            onScreenRecording: {},
             onOpenSettings: {}
         )
     }
@@ -23,9 +22,8 @@ final class AtlasCommandProviderTests: XCTestCase {
         let results = provider.results(for: "")
         XCTAssertFalse(results.isEmpty)
         // All core commands present
-        XCTAssertTrue(results.contains { $0.title == "Capture Desktop" })
-        XCTAssertTrue(results.contains { $0.title == "Capture Area" })
-        XCTAssertTrue(results.contains { $0.title == "Capture Window" })
+        XCTAssertTrue(results.contains { $0.title == "Screenshot" })
+        XCTAssertTrue(results.contains { $0.title == "Screen Recording" })
         XCTAssertTrue(results.contains { $0.title == "Screenshot Library" })
         XCTAssertTrue(results.contains { $0.title == "Port Lookup" })
         XCTAssertTrue(results.contains { $0.title == "Open Settings" })
@@ -62,16 +60,6 @@ final class AtlasCommandProviderTests: XCTestCase {
         XCTAssertTrue(results.allSatisfy { $0.category == "Atlas" })
     }
 
-    func testCaptureWindowActionIsPush() {
-        let results = provider.results(for: "Capture Window")
-        let cmd = results.first { $0.title == "Capture Window" }!
-        if case .push(let dest) = cmd.action {
-            XCTAssertEqual(dest, .windowPicker)
-        } else {
-            XCTFail("expected .push(.windowPicker)")
-        }
-    }
-
     func testScreenshotLibraryActionIsPush() {
         let cmd = provider.results(for: "").first { $0.title == "Screenshot Library" }!
         if case .push(let dest) = cmd.action {
@@ -90,15 +78,26 @@ final class AtlasCommandProviderTests: XCTestCase {
         }
     }
 
-    func testCaptureDesktopCallsCallback() {
+    func testScreenshotCallsCallback() {
         var called = false
         let p = AtlasCommandProvider(
-            onCaptureDesktop: { called = true },
-            onCaptureArea: {},
-            onCaptureWindow: {},
+            onScreenshot: { called = true },
+            onScreenRecording: {},
             onOpenSettings: {}
         )
-        let cmd = p.results(for: "").first { $0.title == "Capture Desktop" }!
+        let cmd = p.results(for: "").first { $0.title == "Screenshot" }!
+        if case .execute(let fn) = cmd.action { fn() }
+        XCTAssertTrue(called)
+    }
+
+    func testScreenRecordingCallsCallback() {
+        var called = false
+        let p = AtlasCommandProvider(
+            onScreenshot: {},
+            onScreenRecording: { called = true },
+            onOpenSettings: {}
+        )
+        let cmd = p.results(for: "").first { $0.title == "Screen Recording" }!
         if case .execute(let fn) = cmd.action { fn() }
         XCTAssertTrue(called)
     }

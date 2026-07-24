@@ -152,7 +152,7 @@ struct SnipasteCaptureOverlay: View {
                     loupe(geo.size)
                 }
                 if selection == nil {
-                    Text("拖动框选,或移到窗口上点击截取该窗口 · Esc 取消")
+                    Text("拖动框选，或点击窗口 · F 全屏 · Esc 取消")
                         .font(.system(size: 13, weight: .medium)).foregroundColor(.white)
                         .padding(.horizontal, 14).padding(.vertical, 8)
                         .background(Color.black.opacity(0.7), in: Capsule())
@@ -776,6 +776,10 @@ struct SnipasteCaptureOverlay: View {
         case let .nudge(direction, large):
             guard let sel = selection else { return }
             selection = SelectionGeometry.move(sel, by: SelectionGeometry.nudgeDelta(direction, isLargeStep: large), bounds: size)
+        case .selectFullScreen:
+            clearWindowCapture()
+            selection = CGRect(origin: .zero, size: size)
+            mode = .idle
         case .cycleAspectLock:
             let cycle: [CGFloat?] = [nil, 1, 4.0 / 3.0, 16.0 / 9.0]
             let currentIndex = cycle.firstIndex(where: { $0 == aspectLock }) ?? 0

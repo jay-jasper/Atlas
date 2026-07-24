@@ -1,74 +1,163 @@
 import SwiftUI
 
 struct ScreenshotPanel: View {
-    let capabilities: ScreenshotCaptureCapabilities
-    let onCaptureDesktop: () -> Void
-    let onCaptureWindow: () -> Void
-    let onCaptureArea: () -> Void
-    let onCaptureScrolling: () -> Void
-    let onRecordGIF: () -> Void
-    var isScreenRecording: Bool = false
-    var onToggleScreenRecording: (() -> Void)? = nil
+    let isScreenRecording: Bool
+    let isGIFRecording: Bool
+    let onScreenshot: () -> Void
+    let onScrollingScreenshot: () -> Void
+    let onToggleScreenRecording: () -> Void
+    let onToggleGIFRecording: () -> Void
 
     var body: some View {
-        Group {
-            Text("Screenshot").font(.subheadline).foregroundColor(.secondary)
-            HStack {
-                if capabilities.desktop {
-                    captureButton(for: .desktop, action: onCaptureDesktop, prominent: true)
-                }
-                if capabilities.window {
-                    captureButton(for: .window, action: onCaptureWindow, prominent: !capabilities.desktop)
-                }
-                if capabilities.area {
-                    captureButton(
-                        for: .area,
-                        action: onCaptureArea,
-                        prominent: !capabilities.desktop && !capabilities.window
-                    )
-                }
-                if capabilities.scrolling {
-                    Button(action: onCaptureScrolling) {
-                        Label("Scrolling", systemImage: "rectangle.stack.badge.plus")
-                    }
-                    .buttonStyle(.bordered)
-                }
-                if capabilities.gifRecording {
-                    Button(action: onRecordGIF) {
-                        Label("GIF", systemImage: "record.circle")
-                    }
-                    .buttonStyle(.bordered)
-                }
-                if capabilities.screenRecording, let onToggleScreenRecording {
-                    Button(action: onToggleScreenRecording) {
-                        Label(
-                            isScreenRecording ? "停止录屏" : "录屏",
-                            systemImage: isScreenRecording ? "stop.circle.fill" : "video"
-                        )
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(isScreenRecording ? .red : nil)
-                }
+        VStack(alignment: .leading, spacing: 10) {
+            Text("截图与录屏")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+
+            HStack(spacing: 10) {
+                coreAction(
+                    title: "截图",
+                    detail: "区域 · 窗口 · 全屏 · 滚动",
+                    systemImage: "viewfinder",
+                    tint: .accentColor,
+                    action: onScreenshot,
+                    modes: [
+                        CaptureModeAction(
+                            title: "智能截图",
+                            detail: "区域、窗口或全屏",
+                            systemImage: "viewfinder",
+                            action: onScreenshot
+                        ),
+                        CaptureModeAction(
+                            title: "滚动截图",
+                            detail: "选择窗口并自动拼接",
+                            systemImage: "rectangle.stack",
+                            action: onScrollingScreenshot
+                        ),
+                    ]
+                )
+
+                coreAction(
+                    title: isRecording ? "停止录屏" : "录屏",
+                    detail: recordingDetail,
+                    systemImage: isRecording ? "stop.fill" : "record.circle",
+                    tint: .red,
+                    action: toggleActiveRecording,
+                    modes: [
+                        CaptureModeAction(
+                            title: "视频录屏",
+                            detail: "录制为 MP4",
+                            systemImage: "video",
+                            action: onToggleScreenRecording
+                        ),
+                        CaptureModeAction(
+                            title: "GIF 录制",
+                            detail: "录制为循环动图",
+                            systemImage: "photo.on.rectangle.angled",
+                            action: onToggleGIFRecording
+                        ),
+                    ],
+                    disablesModes: isRecording
+                )
             }
         }
     }
 
-    @ViewBuilder
-    private func captureButton(
-        for mode: ScreenshotCaptureMode,
-        action: @escaping () -> Void,
-        prominent: Bool
-    ) -> some View {
-        if prominent {
-            Button(action: action) {
-                Label(mode.title, systemImage: mode.systemImage)
-            }
-            .buttonStyle(.borderedProminent)
+    private var isRecording: Bool {
+        isScreenRecording || isGIFRecording
+    }
+
+    private var recordingDetail: String {
+        if isGIFRecording {
+            return "GIF 正在录制"
+        }
+        if isScreenRecording {
+            return "视频正在录制"
+        }
+        return "视频 · GIF"
+    }
+
+    private func toggleActiveRecording() {
+        if isGIFRecording {
+            onToggleGIFRecording()
         } else {
-            Button(action: action) {
-                Label(mode.title, systemImage: mode.systemImage)
-            }
-            .buttonStyle(.bordered)
+            onToggleScreenRecording()
         }
     }
+
+    private func coreAction(
+        title: String,
+        detail: String,
+        systemImage: String,
+        tint: Color,
+        action: @escaping () -> Void,
+        modes: [CaptureModeAction],
+        disablesModes: Bool = false,
+    ) -> some View {
+        HStack(spacing: 0) {
+            Button(action: action) {
+                HStack(spacing: 10) {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(tint)
+                        .frame(width: 24)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(title)
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(detail)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+
+                    Spacer(minLength: 0)
+                }
+                .padding(.leading, 12)
+                .frame(maxWidth: .infinity, minHeight: 56)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            Menu {
+                ForEach(modes) { mode in
+                    Button(action: mode.action) {
+                        Label {
+                            VStack(alignment: .leading) {
+                                Text(mode.title)
+                                Text(mode.detail)
+                            }
+                        } icon: {
+                            Image(systemName: mode.systemImage)
+                        }
+                    }
+                }
+            } label: {
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 30, height: 56)
+                    .contentShape(Rectangle())
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .disabled(disablesModes)
+            .help(disablesModes ? "停止当前录制后可切换模式" : "选择模式")
+        }
+        .background(tint.opacity(0.09), in: RoundedRectangle(cornerRadius: 10))
+        .overlay {
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(tint.opacity(0.18), lineWidth: 1)
+        }
+    }
+}
+
+private struct CaptureModeAction: Identifiable {
+    let title: String
+    let detail: String
+    let systemImage: String
+    let action: () -> Void
+
+    var id: String { title }
 }

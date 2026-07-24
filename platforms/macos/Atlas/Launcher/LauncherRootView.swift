@@ -90,7 +90,11 @@ struct LauncherRootView: View {
                     footerBar(selected: selected)
                 }
             }
-            .fixedSize(horizontal: false, vertical: true)
+            .frame(
+                maxWidth: .infinity,
+                maxHeight: .infinity,
+                alignment: .top
+            )
 
             if nav.isActionPanelOpen, let selected, !selected.actions.isEmpty {
                 ActionPanelView(
@@ -162,6 +166,13 @@ struct LauncherRootView: View {
                     nav.selectedIndex = 0
                     coordinator.updateQuery(query)
                 }
+            ZStack {
+                if !coordinator.loadingSources.isEmpty {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+            }
+            .frame(width: 16, height: 16)
         }
         .padding(.horizontal, 16)
         .frame(height: 64)
@@ -171,104 +182,88 @@ struct LauncherRootView: View {
 
     @ViewBuilder
     private func rootList(rows: [FlatRow], selected: LauncherItem?) -> some View {
-        HStack(spacing: 0) {
-            ScrollViewReader { proxy in
-                ScrollView {
-                    // 普通 VStack + 稳定 row.id:LazyVStack 配合逐行 .id(index)
-                    // 会让 ForEach diff 残留旧行(IME 确认后列表不刷新的根因)。
-                    VStack(spacing: 0) {
-                        ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                            VStack(spacing: 0) {
-                                if let header = row.sectionTitle {
-                                    LauncherSectionHeader(title: header, fontSize: style.fontSize)
-                                }
-                                if row.isAnswer {
-                                    LauncherAnswerCard(
-                                        item: row.item,
-                                        isSelected: index == nav.selectedIndex,
-                                        style: style,
-                                        accent: accent
-                                    )
-                                    .onTapGesture { runPrimary(row.item) }
-                                } else {
-                                    LauncherResultRow(
-                                        item: row.item,
-                                        isSelected: index == nav.selectedIndex,
-                                        style: style,
-                                        accent: accent,
-                                        indexBadge: nav.showIndexBadges && index < 9 ? index + 1 : nil
-                                    )
-                                    .onTapGesture { runPrimary(row.item) }
-                                }
+        ScrollViewReader { proxy in
+            ScrollView {
+                // 普通 VStack + 稳定 row.id:LazyVStack 配合逐行 .id(index)
+                // 会让 ForEach diff 残留旧行(IME 确认后列表不刷新的根因)。
+                VStack(spacing: 0) {
+                    ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                        VStack(spacing: 0) {
+                            if let header = row.sectionTitle {
+                                LauncherSectionHeader(title: header, fontSize: style.fontSize)
                             }
-                            .id(row.id)
-                        }
-
-                        if !coordinator.loadingSources.isEmpty {
-                            HStack(spacing: 8) {
-                                ProgressView().controlSize(.small)
-                                Text("搜索中…")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                            if row.isAnswer {
+                                LauncherAnswerCard(
+                                    item: row.item,
+                                    isSelected: index == nav.selectedIndex,
+                                    style: style,
+                                    accent: accent
+                                )
+                                .onTapGesture { runPrimary(row.item) }
+                            } else {
+                                LauncherResultRow(
+                                    item: row.item,
+                                    isSelected: index == nav.selectedIndex,
+                                    style: style,
+                                    accent: accent,
+                                    indexBadge: nav.showIndexBadges && index < 9 ? index + 1 : nil
+                                )
+                                .onTapGesture { runPrimary(row.item) }
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
                         }
-
-                        if rows.isEmpty && coordinator.loadingSources.isEmpty {
-                            VStack(spacing: 8) {
-                                Image(systemName: "magnifyingglass")
-                                    .font(.system(size: 28))
-                                    .foregroundColor(.secondary)
-                                    .scaleEffect(emptyPulse ? 1.08 : 0.94)
-                                    .animation(
-                                        .easeInOut(duration: 1.2).repeatForever(autoreverses: true),
-                                        value: emptyPulse
-                                    )
-                                    .onAppear { emptyPulse = true }
-                                Text("没有匹配的结果")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 24)
-                        }
+                        .id(row.id)
                     }
-                    .padding(.vertical, 4)
-                }
-                .frame(maxHeight: CGFloat(style.maxVisibleRows) * style.rowHeight + 20)
-                .onKeyPressCompatible(.upArrow) {
-                    moveSelection(-1, rows: rows, proxy: proxy)
-                    return .handled
-                }
-                .onKeyPressCompatible(.downArrow) {
-                    moveSelection(1, rows: rows, proxy: proxy)
-                    return .handled
-                }
-                .onKeyPressCompatible(.return) {
-                    if let selected { runPrimary(selected) }
-                    return .handled
-                }
-                .onKeyPressCompatible(.tab) {
-                    if let selected { runPrimary(selected) }
-                    return .handled
-                }
-            }
-            .frame(maxWidth: .infinity)
 
-            if let detail = selected?.detail {
-                Divider()
-                LauncherDetailPane(detail: detail, style: style)
-                    .frame(width: 260)
+                    if rows.isEmpty && coordinator.loadingSources.isEmpty {
+                        VStack(spacing: 8) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 28))
+                                .foregroundColor(.secondary)
+                                .scaleEffect(emptyPulse ? 1.08 : 0.94)
+                                .animation(
+                                    .easeInOut(duration: 1.2).repeatForever(autoreverses: true),
+                                    value: emptyPulse
+                                )
+                                .onAppear { emptyPulse = true }
+                            Text("没有匹配的结果")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 24)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+            .frame(maxHeight: .infinity)
+            .onKeyPressCompatible(.upArrow) {
+                moveSelection(-1, rows: rows, proxy: proxy)
+                return .handled
+            }
+            .onKeyPressCompatible(.downArrow) {
+                moveSelection(1, rows: rows, proxy: proxy)
+                return .handled
+            }
+            .onKeyPressCompatible(.return) {
+                if let selected { runPrimary(selected) }
+                return .handled
+            }
+            .onKeyPressCompatible(.tab) {
+                if let selected { runPrimary(selected) }
+                return .handled
+            }
+            .onChange(of: nav.selectedIndex) { index in
+                guard rows.indices.contains(index) else { return }
+                proxy.scrollTo(rows[index].id, anchor: .center)
             }
         }
+        .frame(maxWidth: .infinity)
     }
 
     private func moveSelection(_ delta: Int, rows: [FlatRow], proxy: ScrollViewProxy) {
-        let next = nav.selectedIndex + delta
-        guard next >= 0, next < rows.count else { return }
-        nav.selectedIndex = next
-        proxy.scrollTo(rows[next].id, anchor: .center)
+        nav.moveSelection(by: delta, itemCount: rows.count)
+        guard rows.indices.contains(nav.selectedIndex) else { return }
+        proxy.scrollTo(rows[nav.selectedIndex].id, anchor: .center)
     }
 
     private func runPrimary(_ item: LauncherItem) {

@@ -35,6 +35,8 @@ static MONITOR_HANDLE: Lazy<Mutex<Option<JoinHandle<()>>>> = Lazy::new(|| Mutex:
 /// Global Tokio runtime for background tasks.
 static RUNTIME: Lazy<Runtime> =
     Lazy::new(|| Runtime::new().expect("Failed to create Tokio runtime"));
+static SEARCH_SERVICE: Lazy<atlas_core::search::SearchService> =
+    Lazy::new(atlas_core::search::SearchService::new);
 
 #[derive(Debug, Error)]
 pub enum AtlasError {
@@ -54,6 +56,8 @@ pub enum AtlasError {
     PluginError(String),
     #[error("AI error: {0}")]
     AiError(String),
+    #[error("Search error: {0}")]
+    SearchError(String),
 }
 
 /// Represents the state of a feature module for FFI.
@@ -185,6 +189,7 @@ struct PendingHostRequest {
     plugin_id: String,
     command_id: String,
     instance_id: String,
+    runner_request_id: String,
 }
 
 #[cfg(feature = "executable-plugins")]
@@ -274,6 +279,42 @@ pub struct PortProcessInfo {
     pub port: u16,
     pub pid: u32,
     pub process_name: String,
+}
+
+pub enum SearchIndexPhase {
+    Idle,
+    Loading,
+    Scanning,
+    Ready,
+    Error,
+}
+
+pub struct SearchDocumentInput {
+    pub id: String,
+    pub namespace: String,
+    pub title: String,
+    pub subtitle: String,
+    pub keywords: Vec<String>,
+    pub path: String,
+    pub kind: String,
+    pub modified_at: u64,
+}
+
+pub struct SearchResultEntry {
+    pub id: String,
+    pub namespace: String,
+    pub title: String,
+    pub subtitle: String,
+    pub path: String,
+    pub kind: String,
+    pub score: i64,
+    pub title_highlight_offsets: Vec<u32>,
+}
+
+pub struct SearchIndexStatus {
+    pub phase: SearchIndexPhase,
+    pub indexed_count: u64,
+    pub last_error: Option<String>,
 }
 
 /// Callback interface for receiving real-time system monitoring snapshots.
@@ -988,7 +1029,7 @@ pub fn plugin_respond_to_host_request(
                 .respond_to_capability(
                     &pending.plugin_id,
                     &pending.instance_id,
-                    &request_id,
+                    &pending.runner_request_id,
                     response,
                 )
                 .map_err(plugin_error)?;
@@ -1467,25 +1508,34 @@ fn protocol_messages_to_events(
                 ));
             }
             atlas_plugin_protocol::MessageKind::CapabilityRequest(request) => {
-                let status = platform
-                    .manager
-                    .list_statuses()
-                    .map_err(plugin_error)?
-                    .into_iter()
-                    .find(|status| status.plugin_id == plugin_id)
-                    .ok_or_else(|| {
-                        AtlasError::PluginError("Plugin status is unavailable".into())
-                    })?;
-                let identity = atlas_plugin_host::PluginIdentity::new(plugin_id, status.publisher);
-                let decision = platform.broker.authorize(&identity, &request);
-                if decision.is_allowed() {
+                let denial_code = if is_intrinsic_host_capability(&request.capability) {
+                    None
+                } else {
+                    let status = platform
+                        .manager
+                        .list_statuses()
+                        .map_err(plugin_error)?
+                        .into_iter()
+                        .find(|status| status.plugin_id == plugin_id)
+                        .ok_or_else(|| {
+                            AtlasError::PluginError("Plugin status is unavailable".into())
+                        })?;
+                    let identity =
+                        atlas_plugin_host::PluginIdentity::new(plugin_id, status.publisher);
+                    let decision = platform.broker.authorize(&identity, &request);
+                    (!decision.is_allowed())
+                        .then(|| decision.code().unwrap_or("capability-denied").to_owned())
+                };
+                if denial_code.is_none() {
                     let request_id = secure_identifier("host-request")?;
+                    let runner_request_id = runner_request_id(&request, &request_id);
                     platform.pending_host_requests.insert(
                         request_id.clone(),
                         PendingHostRequest {
                             plugin_id: plugin_id.into(),
                             command_id: command_id.into(),
                             instance_id: instance_id.into(),
+                            runner_request_id,
                         },
                     );
                     events.push(plugin_runtime_event(
@@ -1512,7 +1562,7 @@ fn protocol_messages_to_events(
                         None,
                         None,
                         serde_json::json!({
-                            "code": decision.code().unwrap_or("capability-denied"),
+                            "code": denial_code.unwrap_or_else(|| "capability-denied".into()),
                             "message": "Capability request was denied",
                         })
                         .to_string(),
@@ -1607,6 +1657,25 @@ fn protocol_messages_to_events(
         }
     }
     Ok(events)
+}
+
+#[cfg(feature = "executable-plugins")]
+fn is_intrinsic_host_capability(capability: &str) -> bool {
+    matches!(
+        capability,
+        "preferences.read" | "ui.alert" | "ui.hud" | "ui.toast"
+    )
+}
+
+#[cfg(feature = "executable-plugins")]
+fn runner_request_id(
+    request: &atlas_plugin_protocol::CapabilityRequest,
+    host_request_id: &str,
+) -> String {
+    request
+        .request_id
+        .clone()
+        .unwrap_or_else(|| host_request_id.to_owned())
 }
 
 #[cfg(feature = "executable-plugins")]
@@ -1756,12 +1825,149 @@ pub fn current_battery() -> Option<BatterySnapshot> {
         })
 }
 
+pub fn search_replace_namespace(
+    namespace: String,
+    documents: Vec<SearchDocumentInput>,
+) -> Result<(), AtlasError> {
+    let namespace = namespace.trim().to_string();
+    if namespace.is_empty() || namespace == "files" {
+        return Err(AtlasError::SearchError(
+            "namespace must be non-empty and cannot replace the file index".to_string(),
+        ));
+    }
+    let documents = documents
+        .into_iter()
+        .map(|document| atlas_core::search::SearchDocument {
+            id: document.id,
+            namespace: namespace.clone(),
+            title: document.title,
+            subtitle: document.subtitle,
+            keywords: document.keywords,
+            path: document.path,
+            kind: document.kind,
+            modified_at: document.modified_at,
+        })
+        .collect();
+    SEARCH_SERVICE
+        .replace_namespace(&namespace, documents)
+        .map_err(|error| AtlasError::SearchError(error.to_string()))
+}
+
+pub fn search_query(
+    query: String,
+    limit: u32,
+    namespaces: Vec<String>,
+) -> Result<Vec<SearchResultEntry>, AtlasError> {
+    SEARCH_SERVICE
+        .search(&query, limit.clamp(1, 200) as usize, &namespaces)
+        .map(|hits| {
+            hits.into_iter()
+                .map(|hit| SearchResultEntry {
+                    id: hit.document.id,
+                    namespace: hit.document.namespace,
+                    title: hit.document.title,
+                    subtitle: hit.document.subtitle,
+                    path: hit.document.path,
+                    kind: hit.document.kind,
+                    score: hit.score,
+                    title_highlight_offsets: hit.title_highlight_offsets,
+                })
+                .collect()
+        })
+        .map_err(|error| AtlasError::SearchError(error.to_string()))
+}
+
+pub fn search_rank_documents(
+    query: String,
+    documents: Vec<SearchDocumentInput>,
+    limit: u32,
+) -> Result<Vec<SearchResultEntry>, AtlasError> {
+    let documents = documents
+        .into_iter()
+        .map(|document| atlas_core::search::SearchDocument {
+            id: document.id,
+            namespace: document.namespace,
+            title: document.title,
+            subtitle: document.subtitle,
+            keywords: document.keywords,
+            path: document.path,
+            kind: document.kind,
+            modified_at: document.modified_at,
+        })
+        .collect();
+    atlas_core::search::rank_documents(documents, &query, limit.clamp(1, 50_000) as usize)
+        .map(|hits| {
+            hits.into_iter()
+                .map(|hit| SearchResultEntry {
+                    id: hit.document.id,
+                    namespace: hit.document.namespace,
+                    title: hit.document.title,
+                    subtitle: hit.document.subtitle,
+                    path: hit.document.path,
+                    kind: hit.document.kind,
+                    score: hit.score,
+                    title_highlight_offsets: hit.title_highlight_offsets,
+                })
+                .collect()
+        })
+        .map_err(|error| AtlasError::SearchError(error.to_string()))
+}
+
+pub fn file_index_start(roots: Vec<String>, cache_path: String) -> Result<(), AtlasError> {
+    SEARCH_SERVICE
+        .start_file_index(
+            roots.into_iter().map(std::path::PathBuf::from).collect(),
+            std::path::PathBuf::from(cache_path),
+        )
+        .map_err(|error| AtlasError::SearchError(error.to_string()))
+}
+
+pub fn file_index_stop() -> Result<(), AtlasError> {
+    SEARCH_SERVICE
+        .stop_file_index()
+        .map_err(|error| AtlasError::SearchError(error.to_string()))
+}
+
+pub fn file_index_status() -> Result<SearchIndexStatus, AtlasError> {
+    SEARCH_SERVICE
+        .file_status()
+        .map(|status| SearchIndexStatus {
+            phase: match status.phase {
+                atlas_core::search::FileIndexPhase::Idle => SearchIndexPhase::Idle,
+                atlas_core::search::FileIndexPhase::Loading => SearchIndexPhase::Loading,
+                atlas_core::search::FileIndexPhase::Scanning => SearchIndexPhase::Scanning,
+                atlas_core::search::FileIndexPhase::Ready => SearchIndexPhase::Ready,
+                atlas_core::search::FileIndexPhase::Error => SearchIndexPhase::Error,
+            },
+            indexed_count: status.indexed_count,
+            last_error: status.last_error,
+        })
+        .map_err(|error| AtlasError::SearchError(error.to_string()))
+}
+
 #[cfg(test)]
 #[allow(clippy::items_after_test_module)]
 mod tests {
     use super::*;
 
     static TEST_LOCK: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
+
+    #[cfg(feature = "executable-plugins")]
+    #[test]
+    fn intrinsic_host_capabilities_and_runtime_request_ids_are_preserved() {
+        assert!(is_intrinsic_host_capability("ui.toast"));
+        assert!(is_intrinsic_host_capability("preferences.read"));
+        assert!(!is_intrinsic_host_capability("clipboard.read"));
+
+        let request = atlas_plugin_protocol::CapabilityRequest {
+            request_id: Some("atlas-1".into()),
+            capability: "ui.toast".into(),
+            operation: "toast".into(),
+            resource: None,
+            payload: Vec::new(),
+        };
+        assert_eq!(runner_request_id(&request, "host-request-1"), "atlas-1");
+    }
 
     #[test]
     fn test_get_core_status() {

@@ -45,21 +45,8 @@ fn run() -> Result<(), String> {
         match result {
             Ok(messages) => {
                 for message in messages {
-                    let response_request_id = match &message {
-                        MessageKind::CapabilityRequest(request) => request
-                            .request_id
-                            .clone()
-                            .unwrap_or_else(|| envelope.request_id.clone()),
-                        _ => envelope.request_id.clone(),
-                    };
                     connection
-                        .send(&Envelope::new(
-                            &envelope.plugin_id,
-                            &envelope.command_id,
-                            &envelope.instance_id,
-                            response_request_id,
-                            message,
-                        ))
+                        .send(&response_envelope(&envelope, message))
                         .map_err(|error| error.to_string())?;
                 }
                 if matches!(
@@ -120,6 +107,16 @@ fn run() -> Result<(), String> {
             return Ok(());
         }
     }
+}
+
+fn response_envelope(request: &Envelope, message: MessageKind) -> Envelope {
+    Envelope::new(
+        &request.plugin_id,
+        &request.command_id,
+        &request.instance_id,
+        &request.request_id,
+        message,
+    )
 }
 
 fn dispatch(
@@ -355,4 +352,36 @@ fn parse_hex_32(value: &str, label: &str) -> Result<[u8; 32], String> {
             u8::from_str_radix(pair, 16).map_err(|_| format!("{label} is not valid hex"))?;
     }
     Ok(bytes)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use atlas_plugin_protocol::CapabilityRequest;
+
+    #[test]
+    fn response_envelope_preserves_dispatch_identity_for_capability_requests() {
+        let request = Envelope::new(
+            "dev.example.plugin",
+            "main",
+            "instance",
+            "start-instance",
+            MessageKind::Health,
+        );
+        let response = response_envelope(
+            &request,
+            MessageKind::CapabilityRequest(CapabilityRequest {
+                request_id: Some("runtime-capability-request".into()),
+                capability: "preferences.read".into(),
+                operation: "read".into(),
+                resource: None,
+                payload: Vec::new(),
+            }),
+        );
+
+        assert_eq!(response.plugin_id, request.plugin_id);
+        assert_eq!(response.command_id, request.command_id);
+        assert_eq!(response.instance_id, request.instance_id);
+        assert_eq!(response.request_id, request.request_id);
+    }
 }

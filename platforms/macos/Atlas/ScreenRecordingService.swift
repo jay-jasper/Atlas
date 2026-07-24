@@ -16,6 +16,34 @@ struct ScreenRecordingOptions: Equatable {
     }
 }
 
+enum ScreenRecordingGeometry {
+    static func sourceRect(selection: CGRect?, screenSize: CGSize) -> CGRect {
+        let bounds = CGRect(origin: .zero, size: screenSize)
+        guard let selection else { return bounds }
+        let clipped = selection.standardized.intersection(bounds).integral
+        guard clipped.width >= 2, clipped.height >= 2 else { return bounds }
+        return clipped
+    }
+
+    static func appKitGlobalRect(sourceRect: CGRect, screenFrame: CGRect) -> CGRect {
+        CGRect(
+            x: screenFrame.minX + sourceRect.minX,
+            y: screenFrame.maxY - sourceRect.maxY,
+            width: sourceRect.width,
+            height: sourceRect.height
+        )
+    }
+
+    static func evenPixelSize(sourceRect: CGRect, scale: CGFloat) -> (width: Int, height: Int) {
+        func even(_ value: CGFloat) -> Int {
+            let pixels = max(2, Int((value * scale).rounded(.down)))
+            return pixels.isMultiple(of: 2) ? pixels : pixels - 1
+        }
+
+        return (even(sourceRect.width), even(sourceRect.height))
+    }
+}
+
 // MARK: - Service
 
 /// Screen recording via ScreenCaptureKit → H.264/AAC MP4 (AVAssetWriter).
@@ -25,6 +53,7 @@ struct ScreenRecordingOptions: Equatable {
 final class ScreenRecordingService: ObservableObject {
     enum RecordingState: Equatable {
         case idle
+        case starting
         case recording(startedAt: Date)
         case finishing
     }
@@ -35,8 +64,7 @@ final class ScreenRecordingService: ObservableObject {
     @Published var options = ScreenRecordingOptions()
 
     var isRecording: Bool {
-        if case .recording = state { return true }
-        return false
+        state != .idle
     }
 
     /// External hook so the Recording Indicator module reflects screen state.
@@ -44,8 +72,24 @@ final class ScreenRecordingService: ObservableObject {
 
     private var engine: ScreenRecorderEngine?
     private var clickHighlighter: ClickHighlightOverlay?
+    private var recordingHUD: ScreenRecordingHUDPanel?
+    private var selectionBorder: ScreenRecordingBorderWindow?
+    private var elapsedTimer: Timer?
+    private var elapsedSeconds = 0
 
     func start() {
+        guard let screen = NSScreen.main ?? NSScreen.screens.first else {
+            errorMessage = "未找到可录制的显示器"
+            return
+        }
+        beginRecording(selection: nil, screen: screen)
+    }
+
+    func start(region: CGRect, screen: NSScreen) {
+        beginRecording(selection: region, screen: screen)
+    }
+
+    private func beginRecording(selection: CGRect?, screen: NSScreen) {
         guard case .idle = state else { return }
         guard CGPreflightScreenCaptureAccess() else {
             CGRequestScreenCaptureAccess()
@@ -54,8 +98,34 @@ final class ScreenRecordingService: ObservableObject {
         }
 
         errorMessage = nil
+        state = .starting
+        let sourceRect = ScreenRecordingGeometry.sourceRect(selection: selection, screenSize: screen.frame.size)
+        let globalRect = ScreenRecordingGeometry.appKitGlobalRect(
+            sourceRect: sourceRect,
+            screenFrame: screen.frame
+        )
+
+        let recordingHUD = ScreenRecordingHUDPanel()
+        recordingHUD.onStopRecording = { [weak self] in self?.stop() }
+        recordingHUD.show(relativeTo: globalRect, screen: screen)
+        self.recordingHUD = recordingHUD
+
+        let selectionBorder = ScreenRecordingBorderWindow(frame: globalRect)
+        selectionBorder.orderFrontRegardless()
+        self.selectionBorder = selectionBorder
+
+        let excludedWindowIDs = [
+            CGWindowID(recordingHUD.windowNumber),
+            CGWindowID(selectionBorder.windowNumber),
+        ]
         let outputURL = Self.defaultOutputURL()
-        let engine = ScreenRecorderEngine(options: options, outputURL: outputURL)
+        let engine = ScreenRecorderEngine(
+            options: options,
+            outputURL: outputURL,
+            screen: screen,
+            sourceRect: sourceRect,
+            excludedWindowIDs: excludedWindowIDs
+        )
         self.engine = engine
 
         if options.showsClickHighlights {
@@ -72,11 +142,14 @@ final class ScreenRecordingService: ObservableObject {
             do {
                 try await engine.start()
                 state = .recording(startedAt: Date())
+                startElapsedTimer()
                 onRecordingStateChanged?(true)
             } catch {
                 self.engine = nil
                 clickHighlighter?.stop()
                 clickHighlighter = nil
+                closeRecordingChrome()
+                state = .idle
                 errorMessage = "录屏启动失败：\(error.localizedDescription)"
             }
         }
@@ -85,6 +158,7 @@ final class ScreenRecordingService: ObservableObject {
     func stop() {
         guard case .recording = state, let engine else { return }
         state = .finishing
+        closeRecordingChrome()
         clickHighlighter?.stop()
         clickHighlighter = nil
 
@@ -102,6 +176,26 @@ final class ScreenRecordingService: ObservableObject {
         }
     }
 
+    private func startElapsedTimer() {
+        elapsedTimer?.invalidate()
+        elapsedSeconds = 0
+        recordingHUD?.update(elapsedSeconds: elapsedSeconds)
+        elapsedTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            elapsedSeconds += 1
+            recordingHUD?.update(elapsedSeconds: elapsedSeconds)
+        }
+    }
+
+    private func closeRecordingChrome() {
+        elapsedTimer?.invalidate()
+        elapsedTimer = nil
+        recordingHUD?.close()
+        recordingHUD = nil
+        selectionBorder?.close()
+        selectionBorder = nil
+    }
+
     static func defaultOutputURL(date: Date = Date()) -> URL {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH.mm.ss"
@@ -117,6 +211,9 @@ private final class ScreenRecorderEngine: NSObject, SCStreamOutput, SCStreamDele
     AVCaptureAudioDataOutputSampleBufferDelegate {
     private let options: ScreenRecordingOptions
     private let outputURL: URL
+    private let screen: NSScreen
+    private let sourceRect: CGRect
+    private let excludedWindowIDs: Set<CGWindowID>
 
     private var stream: SCStream?
     private var writer: AVAssetWriter?
@@ -128,21 +225,39 @@ private final class ScreenRecorderEngine: NSObject, SCStreamOutput, SCStreamDele
     private let writerQueue = DispatchQueue(label: "ai.atlas.recording.writer")
     private var sessionStarted = false
 
-    init(options: ScreenRecordingOptions, outputURL: URL) {
+    init(
+        options: ScreenRecordingOptions,
+        outputURL: URL,
+        screen: NSScreen,
+        sourceRect: CGRect,
+        excludedWindowIDs: [CGWindowID]
+    ) {
         self.options = options
         self.outputURL = outputURL
+        self.screen = screen
+        self.sourceRect = sourceRect
+        self.excludedWindowIDs = Set(excludedWindowIDs)
     }
 
     func start() async throws {
         let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
-        guard let display = content.displays.first else {
+        let screenID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")]
+            as? CGDirectDisplayID
+        guard let display = content.displays.first(where: { $0.displayID == screenID })
+            ?? content.displays.first else {
             throw NSError(domain: "atlas.recording", code: 1, userInfo: [NSLocalizedDescriptionKey: "未找到可录制的显示器"])
         }
 
-        let filter = SCContentFilter(display: display, excludingWindows: [])
+        let excludedWindows = content.windows.filter { excludedWindowIDs.contains($0.windowID) }
+        let filter = SCContentFilter(display: display, excludingWindows: excludedWindows)
         let configuration = SCStreamConfiguration()
-        configuration.width = display.width * 2
-        configuration.height = display.height * 2
+        let pixelSize = ScreenRecordingGeometry.evenPixelSize(
+            sourceRect: sourceRect,
+            scale: screen.backingScaleFactor
+        )
+        configuration.sourceRect = sourceRect
+        configuration.width = pixelSize.width
+        configuration.height = pixelSize.height
         configuration.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(options.frameRate))
         configuration.showsCursor = true
         configuration.capturesAudio = options.captureSystemAudio
@@ -298,6 +413,125 @@ private final class ScreenRecorderEngine: NSObject, SCStreamOutput, SCStreamDele
         writer.startSession(atSourceTime: time)
         sessionStarted = true
     }
+}
+
+// MARK: - Recording chrome
+
+@MainActor
+private final class ScreenRecordingHUDPanel: NSPanel {
+    var onStopRecording: (() -> Void)?
+
+    private let timeLabel = NSTextField(labelWithString: "00:00")
+    private let stopButton = NSButton()
+
+    init() {
+        super.init(
+            contentRect: NSRect(x: 0, y: 0, width: 126, height: 34),
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+
+        isOpaque = false
+        backgroundColor = .clear
+        hasShadow = true
+        hidesOnDeactivate = false
+        level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue + 2)
+        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        isMovableByWindowBackground = true
+
+        let container = NSVisualEffectView(frame: contentRect(forFrameRect: frame))
+        container.material = .hudWindow
+        container.blendingMode = .withinWindow
+        container.state = .active
+        container.wantsLayer = true
+        container.layer?.cornerRadius = 10
+        container.layer?.masksToBounds = true
+        contentView = container
+
+        let dot = NSTextField(labelWithString: "●")
+        dot.font = .systemFont(ofSize: 11, weight: .bold)
+        dot.textColor = .systemRed
+        dot.frame = NSRect(x: 12, y: 8, width: 12, height: 18)
+        container.addSubview(dot)
+
+        timeLabel.font = .monospacedDigitSystemFont(ofSize: 13, weight: .semibold)
+        timeLabel.textColor = .labelColor
+        timeLabel.alignment = .center
+        timeLabel.frame = NSRect(x: 28, y: 7, width: 52, height: 20)
+        container.addSubview(timeLabel)
+
+        stopButton.isBordered = false
+        stopButton.image = NSImage(
+            systemSymbolName: "stop.fill",
+            accessibilityDescription: "停止录屏"
+        )
+        stopButton.contentTintColor = .systemRed
+        stopButton.target = self
+        stopButton.action = #selector(stopRecording)
+        stopButton.toolTip = "停止录屏"
+        stopButton.frame = NSRect(x: 88, y: 5, width: 28, height: 24)
+        container.addSubview(stopButton)
+    }
+
+    override var canBecomeKey: Bool { false }
+
+    func show(relativeTo selectionRect: CGRect, screen: NSScreen) {
+        let gap: CGFloat = 8
+        let visibleFrame = screen.visibleFrame
+        var origin = CGPoint(
+            x: selectionRect.maxX - frame.width,
+            y: selectionRect.minY - frame.height - gap
+        )
+        if origin.y < visibleFrame.minY {
+            origin.y = selectionRect.maxY + gap
+        }
+        origin.x = min(max(origin.x, visibleFrame.minX + 4), visibleFrame.maxX - frame.width - 4)
+        origin.y = min(max(origin.y, visibleFrame.minY + 4), visibleFrame.maxY - frame.height - 4)
+        setFrameOrigin(origin)
+        orderFrontRegardless()
+    }
+
+    func update(elapsedSeconds: Int) {
+        timeLabel.stringValue = String(
+            format: "%02d:%02d",
+            elapsedSeconds / 60,
+            elapsedSeconds % 60
+        )
+    }
+
+    @objc private func stopRecording() {
+        onStopRecording?()
+    }
+}
+
+@MainActor
+private final class ScreenRecordingBorderWindow: NSWindow {
+    init(frame: CGRect) {
+        super.init(
+            contentRect: frame,
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+
+        isOpaque = false
+        backgroundColor = .clear
+        hasShadow = false
+        ignoresMouseEvents = true
+        hidesOnDeactivate = false
+        level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue + 1)
+        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+
+        let border = NSView(frame: CGRect(origin: .zero, size: frame.size))
+        border.wantsLayer = true
+        border.layer?.borderColor = NSColor.systemRed.cgColor
+        border.layer?.borderWidth = 2
+        border.layer?.cornerRadius = 3
+        contentView = border
+    }
+
+    override var canBecomeKey: Bool { false }
 }
 
 // MARK: - Click highlights

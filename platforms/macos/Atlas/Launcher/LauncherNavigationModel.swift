@@ -32,6 +32,14 @@ final class LauncherNavigationModel: ObservableObject {
         return true
     }
 
+    func moveSelection(by delta: Int, itemCount: Int) {
+        guard itemCount > 0 else {
+            selectedIndex = 0
+            return
+        }
+        selectedIndex = min(max(selectedIndex + delta, 0), itemCount - 1)
+    }
+
     func resetToRoot() {
         stack = []
         query = ""

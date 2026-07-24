@@ -4,6 +4,7 @@ pub mod features;
 pub mod focus;
 pub mod monitor;
 pub mod notes;
+pub mod search;
 pub mod transfer;
 #[cfg(feature = "dynamic-modules")]
 pub use atlas_module_loader::{ModuleManifest, ModuleRegistry};

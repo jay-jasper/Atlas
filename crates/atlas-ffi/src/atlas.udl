@@ -297,6 +297,42 @@ dictionary AiCommandEntry {
     boolean builtin;
 };
 
+enum SearchIndexPhase {
+    "Idle",
+    "Loading",
+    "Scanning",
+    "Ready",
+    "Error",
+};
+
+dictionary SearchDocumentInput {
+    string id;
+    string namespace;
+    string title;
+    string subtitle;
+    sequence<string> keywords;
+    string path;
+    string kind;
+    u64 modified_at;
+};
+
+dictionary SearchResultEntry {
+    string id;
+    string namespace;
+    string title;
+    string subtitle;
+    string path;
+    string kind;
+    i64 score;
+    sequence<u32> title_highlight_offsets;
+};
+
+dictionary SearchIndexStatus {
+    SearchIndexPhase phase;
+    u64 indexed_count;
+    string? last_error;
+};
+
 [Error]
 enum AtlasError {
     "LockPoisoned",
@@ -307,6 +343,7 @@ enum AtlasError {
     "EntitlementDenied",
     "PluginError",
     "AiError",
+    "SearchError",
 };
 
 /// The `atlas` namespace contains the core functions exposed to other languages.
@@ -538,4 +575,30 @@ namespace atlas {
     void ai_commands_delete(string id);
     /// Renders the final prompt for a command against the current selection.
     string ai_commands_render(string template, string selection);
+
+    /// Replaces one non-file namespace in the unified local search catalog.
+    [Throws=AtlasError]
+    void search_replace_namespace(string namespace, sequence<SearchDocumentInput> documents);
+
+    /// Searches the unified Rust catalog. Empty namespaces means all namespaces.
+    [Throws=AtlasError]
+    sequence<SearchResultEntry> search_query(string query, u32 limit, sequence<string> namespaces);
+
+    /// Ranks a transient candidate set without mutating the persistent catalog.
+    [Throws=AtlasError]
+    sequence<SearchResultEntry> search_rank_documents(
+        string query,
+        sequence<SearchDocumentInput> documents,
+        u32 limit
+    );
+
+    /// Starts the persistent background file index and FSEvents watcher.
+    [Throws=AtlasError]
+    void file_index_start(sequence<string> roots, string cache_path);
+
+    [Throws=AtlasError]
+    void file_index_stop();
+
+    [Throws=AtlasError]
+    SearchIndexStatus file_index_status();
 };

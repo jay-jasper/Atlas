@@ -458,6 +458,23 @@ RustBuffer uniffi_atlas_ffi_fn_func_dispatch_plugin_event(RustBuffer id, RustBuf
 RustBuffer uniffi_atlas_ffi_fn_func_evaluate_expression(RustBuffer input, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FILE_INDEX_START
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FILE_INDEX_START
+void uniffi_atlas_ffi_fn_func_file_index_start(RustBuffer roots, RustBuffer cache_path, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FILE_INDEX_STATUS
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FILE_INDEX_STATUS
+RustBuffer uniffi_atlas_ffi_fn_func_file_index_status(RustCallStatus *_Nonnull out_status
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FILE_INDEX_STOP
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FILE_INDEX_STOP
+void uniffi_atlas_ffi_fn_func_file_index_stop(RustCallStatus *_Nonnull out_status
+
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_HISTORY
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_FOCUS_HISTORY
 RustBuffer uniffi_atlas_ffi_fn_func_focus_history(RustCallStatus *_Nonnull out_status
@@ -702,6 +719,21 @@ RustBuffer uniffi_atlas_ffi_fn_func_plugin_start_command(RustBuffer plugin_id, R
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_PLUGIN_STOP
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_PLUGIN_STOP
 void uniffi_atlas_ffi_fn_func_plugin_stop(RustBuffer plugin_id, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_SEARCH_QUERY
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_SEARCH_QUERY
+RustBuffer uniffi_atlas_ffi_fn_func_search_query(RustBuffer query, uint32_t limit, RustBuffer namespaces, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_SEARCH_RANK_DOCUMENTS
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_SEARCH_RANK_DOCUMENTS
+RustBuffer uniffi_atlas_ffi_fn_func_search_rank_documents(RustBuffer query, RustBuffer documents, uint32_t limit, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_SEARCH_REPLACE_NAMESPACE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_SEARCH_REPLACE_NAMESPACE
+void uniffi_atlas_ffi_fn_func_search_replace_namespace(RustBuffer namespace, RustBuffer documents, RustCallStatus *_Nonnull out_status
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_START_MONITORING
@@ -1156,6 +1188,24 @@ uint16_t uniffi_atlas_ffi_checksum_func_evaluate_expression(void
 
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FILE_INDEX_START
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FILE_INDEX_START
+uint16_t uniffi_atlas_ffi_checksum_func_file_index_start(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FILE_INDEX_STATUS
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FILE_INDEX_STATUS
+uint16_t uniffi_atlas_ffi_checksum_func_file_index_status(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FILE_INDEX_STOP
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FILE_INDEX_STOP
+uint16_t uniffi_atlas_ffi_checksum_func_file_index_stop(void
+
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_HISTORY
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_FOCUS_HISTORY
 uint16_t uniffi_atlas_ffi_checksum_func_focus_history(void
@@ -1435,6 +1485,24 @@ uint16_t uniffi_atlas_ffi_checksum_func_plugin_start_command(void
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_PLUGIN_STOP
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_PLUGIN_STOP
 uint16_t uniffi_atlas_ffi_checksum_func_plugin_stop(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_SEARCH_QUERY
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_SEARCH_QUERY
+uint16_t uniffi_atlas_ffi_checksum_func_search_query(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_SEARCH_RANK_DOCUMENTS
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_SEARCH_RANK_DOCUMENTS
+uint16_t uniffi_atlas_ffi_checksum_func_search_rank_documents(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_SEARCH_REPLACE_NAMESPACE
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_SEARCH_REPLACE_NAMESPACE
+uint16_t uniffi_atlas_ffi_checksum_func_search_replace_namespace(void
 
 );
 #endif

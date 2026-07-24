@@ -5,6 +5,7 @@ enum SelectionKeyboardCommand {
     case cancel
     case capture
     case nudge(SelectionNudgeDirection, isLargeStep: Bool)
+    case selectFullScreen
     /// Cycle the aspect-ratio lock for new selections (free → 1:1 → 4:3 → 16:9).
     case cycleAspectLock
 }
@@ -52,6 +53,8 @@ final class KeyCaptureView: NSView {
             onCommand?(.nudge(.up, isLargeStep: isLargeStep))
         case 15: // R — ratio lock
             onCommand?(.cycleAspectLock)
+        case 3: // F — full screen
+            onCommand?(.selectFullScreen)
         default:
             super.keyDown(with: event)
         }
