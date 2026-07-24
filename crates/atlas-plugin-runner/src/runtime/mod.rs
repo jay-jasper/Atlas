@@ -6,7 +6,9 @@ pub use javascript::JavascriptAdapter;
 pub use mcp::McpAdapter;
 pub use wasm::WasmAdapter;
 
-use atlas_plugin_protocol::{CapabilityResponse, CommandStart, MessageKind, UiOpen};
+use atlas_plugin_protocol::{
+    CapabilityRequest, CapabilityResponse, CommandStart, MessageKind, UiOpen,
+};
 use atlas_ui_schema::{UiEvent, UiNode, UiPatch, UiSession};
 use serde::Deserialize;
 
@@ -159,6 +161,20 @@ impl UiOutputState {
                     }
                     messages.push(MessageKind::UiClose);
                 }
+                RuntimeEmission::CapabilityRequest {
+                    capability,
+                    operation,
+                    resource,
+                    payload,
+                } => messages.push(MessageKind::CapabilityRequest(CapabilityRequest {
+                    capability,
+                    operation,
+                    resource,
+                    payload,
+                })),
+                RuntimeEmission::RuntimeError { message } => {
+                    return Err(RuntimeError::Call(message));
+                }
             }
         }
         Ok(messages)
@@ -178,6 +194,15 @@ enum RuntimeEmission {
     Patch { patch: UiPatch },
     #[serde(rename = "ui-close")]
     Close,
+    #[serde(rename = "capability-request")]
+    CapabilityRequest {
+        capability: String,
+        operation: String,
+        resource: Option<String>,
+        payload: Vec<u8>,
+    },
+    #[serde(rename = "runtime-error")]
+    RuntimeError { message: String },
 }
 
 #[cfg(test)]

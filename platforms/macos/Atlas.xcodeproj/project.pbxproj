@@ -264,6 +264,7 @@
 		7A21CBAFA20D7F6DF3564028 /* GaugeQuadWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8A35CDB1AFD268060C5B34 /* GaugeQuadWidget.swift */; };
 		7A31DCC60F7643A6380909C9 /* AIEngineStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 295ACF762E0AD9777351354C /* AIEngineStore.swift */; };
 		7A66546723530A837B4B9D15 /* ScrollSmoothingPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8FE8BD2953E1E6936808BD /* ScrollSmoothingPanel.swift */; };
+		7B00DFA0EE4B9B4504160BFB /* RaycastPluginRuntimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F63AFF96BE4D0A0F209645A6 /* RaycastPluginRuntimeTests.swift */; };
 		7B7FC9A88BFFF32EC0FA82E3 /* EditionModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05514ABA150C37E63A8A33C5 /* EditionModelsTests.swift */; };
 		7B8B1390B8DFC133ADC00876 /* LocalAILoadMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A39066934E56F1EC377485F /* LocalAILoadMonitorTests.swift */; };
 		7BA813F12451249AABFE514A /* ProviderIcon-mistral.svg in Resources */ = {isa = PBXBuildFile; fileRef = CC2AFFFB81BA067C53C848E3 /* ProviderIcon-mistral.svg */; };
@@ -1304,6 +1305,7 @@
 		F3D2E82F9F923CB8BCD4501C /* PluginsService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PluginsService.swift; sourceTree = "<group>"; };
 		F4625ECD9F485DCEB7008580 /* NoiseGateTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NoiseGateTests.swift; sourceTree = "<group>"; };
 		F517CFAB11D9A661E2C4671F /* LoremIpsumProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LoremIpsumProvider.swift; sourceTree = "<group>"; };
+		F63AFF96BE4D0A0F209645A6 /* RaycastPluginRuntimeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RaycastPluginRuntimeTests.swift; sourceTree = "<group>"; };
 		F66CCD7C584D2A42D51A0FFB /* ProviderIcon-litellm.svg */ = {isa = PBXFileReference; includeInIndex = 1; path = "ProviderIcon-litellm.svg"; sourceTree = "<group>"; };
 		F7086CC0E3369BACBE71D148 /* AppLeftoverFinderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppLeftoverFinderTests.swift; sourceTree = "<group>"; };
 		F77721B36D8CD43443C372D2 /* AudioMeterService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AudioMeterService.swift; sourceTree = "<group>"; };
@@ -2193,6 +2195,7 @@
 				8A180A58694BC64C3CE37E69 /* DynamicPluginViewTests.swift */,
 				B18F4854D43F2080FA7CFCA8 /* PluginSandboxTests.swift */,
 				4D8394CB0CCEE16903C9657F /* PluginDiagnosticsTests.swift */,
+				F63AFF96BE4D0A0F209645A6 /* RaycastPluginRuntimeTests.swift */,
 			);
 			path = AtlasTests;
 			sourceTree = "<group>";
@@ -3390,6 +3393,7 @@
 				E4A2FA1E2FAF5A87BA1BF61D /* DynamicPluginViewTests.swift in Sources */,
 				36788A944D9775FA3F03A3EB /* PluginSandboxTests.swift in Sources */,
 				D9D9A96D35B2ED6EBC349136 /* PluginDiagnosticsTests.swift in Sources */,
+				7B00DFA0EE4B9B4504160BFB /* RaycastPluginRuntimeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

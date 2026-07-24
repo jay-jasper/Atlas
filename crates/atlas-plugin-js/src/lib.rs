@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use rquickjs::{Context, Runtime};
+use rquickjs::{CatchResultExt, Context, Runtime};
 
 pub const DEFAULT_MEMORY_LIMIT: usize = 32 * 1024 * 1024;
 pub const DEFAULT_STACK_LIMIT: usize = 512 * 1024;
@@ -196,9 +196,11 @@ impl JsEngine for QuickJsEngine {
         } else {
             format!("{source}\nglobalThis.__atlasPlugin = globalThis.atlasPlugin;")
         };
-        self.context
-            .with(|ctx| ctx.eval::<(), _>(normalized))
-            .map_err(runtime_error)?;
+        self.context.with(|ctx| {
+            ctx.eval::<(), _>(normalized)
+                .catch(&ctx)
+                .map_err(|error| JsError::Runtime(error.to_string()))
+        })?;
         let present = self
             .context
             .with(|ctx| ctx.eval::<bool, _>("typeof globalThis.__atlasPlugin === 'object'"))
@@ -320,6 +322,13 @@ impl QuickJsEngine {
 
 const TIMER_BOOTSTRAP: &str = r#"
 if (!globalThis.__atlasTimers) {
+    globalThis.global = globalThis;
+    globalThis.console ??= {
+        log() {}, info() {}, warn() {}, error() {}, debug() {}, trace() {}
+    };
+    globalThis.performance ??= { now: () => Date.now(), measure() {}, mark() {}, clearMarks() {}, clearMeasures() {} };
+    globalThis.queueMicrotask ??= callback => Promise.resolve().then(callback);
+    globalThis.IS_REACT_ACT_ENVIRONMENT = true;
     globalThis.__atlasTimers = new Map();
     globalThis.__atlasTimerId = 0;
     globalThis.__atlasUnhandled = [];
@@ -335,6 +344,8 @@ if (!globalThis.__atlasTimers) {
         return id;
     };
     globalThis.clearTimeout = id => globalThis.__atlasTimers.delete(id);
+    globalThis.setImmediate = callback => globalThis.setTimeout(callback, 0);
+    globalThis.clearImmediate = id => globalThis.clearTimeout(id);
     globalThis.__atlasPumpTimers = () => {
         const now = Date.now();
         for (const [id, timer] of [...globalThis.__atlasTimers]) {

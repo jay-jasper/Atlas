@@ -13,7 +13,7 @@ pub struct PackageInput<'a> {
     pub publisher: &'a str,
     pub entrypoint: &'a str,
     pub capabilities: &'a BTreeSet<String>,
-    pub bundle: Vec<u8>,
+    pub bundles: Vec<(String, Vec<u8>)>,
     pub source_map: Option<Vec<u8>>,
 }
 
@@ -39,7 +39,9 @@ pub fn create_package(input: PackageInput<'_>) -> Result<Vec<u8>, BuilderError> 
         "permissions.json".to_string(),
         serde_json::to_vec(&manifest.capabilities)?,
     );
-    files.insert(input.entrypoint.to_string(), input.bundle);
+    for (path, bundle) in input.bundles {
+        files.insert(path, bundle);
+    }
     if let Some(source_map) = input.source_map {
         files.insert(format!("{}.map", input.entrypoint), source_map);
     }

@@ -128,7 +128,13 @@ fn dispatch(
                 return Err(RuntimeError::AlreadyStarted);
             }
             let mut driver = factory.create()?;
-            let output = driver.handle(&envelope.instance_id, envelope.message.clone())?;
+            let mut message = envelope.message.clone();
+            if let MessageKind::Start(start) = &mut message {
+                start
+                    .environment
+                    .push(("ATLAS_COMMAND_ID".into(), envelope.command_id.clone()));
+            }
+            let output = driver.handle(&envelope.instance_id, message)?;
             instances.insert(envelope.instance_id.clone(), driver);
             Ok(output)
         }

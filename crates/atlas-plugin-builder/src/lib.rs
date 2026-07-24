@@ -119,24 +119,32 @@ impl Builder {
         let package: RaycastPackageJson =
             serde_json::from_slice(&std::fs::read(source.join("package.json"))?)?;
         let normalized = normalize_manifest(&package)?;
-        let command = normalized
-            .commands
-            .values()
-            .next()
-            .ok_or_else(|| BuilderError::Manifest("command required".into()))?;
-        let entrypoint = resolve_entrypoint(source, &command.name)?;
-        let analysis: SourceAnalysis =
-            analyze_source(&std::fs::read_to_string(&entrypoint)?, &entrypoint)?;
-        if analysis
-            .compatibility
-            .iter()
-            .any(|finding| finding.status == CompatibilityStatus::Unsupported)
-        {
-            return Err(BuilderError::Analysis(
-                "unsupported APIs are present".into(),
-            ));
+        let mut commands = Vec::new();
+        let mut capabilities = BTreeSet::new();
+        for command in normalized.commands.values() {
+            let entrypoint = resolve_entrypoint(source, &command.name)?;
+            let analysis: SourceAnalysis =
+                analyze_source(&std::fs::read_to_string(&entrypoint)?, &entrypoint)?;
+            if analysis
+                .compatibility
+                .iter()
+                .any(|finding| finding.status == CompatibilityStatus::Unsupported)
+            {
+                return Err(BuilderError::Analysis(
+                    "unsupported APIs are present".into(),
+                ));
+            }
+            capabilities.extend(analysis.capabilities);
+            commands.push((command.name.clone(), entrypoint, command.mode));
         }
-        let temporary = std::env::temp_dir().join(format!(
+        let workspace = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .ancestors()
+            .find(|candidate| {
+                candidate.join("Cargo.toml").is_file()
+                    && candidate.join("pnpm-workspace.yaml").is_file()
+            })
+            .unwrap_or_else(|| Path::new(env!("CARGO_MANIFEST_DIR")));
+        let temporary = workspace.join("target/atlas-plugin-build").join(format!(
             "atlas-plugin-build-{}-{}",
             std::process::id(),
             normalized.id
@@ -145,26 +153,38 @@ impl Builder {
             std::fs::remove_dir_all(&temporary)?;
         }
         std::fs::create_dir_all(&temporary)?;
-        let output = temporary.join(format!("{}.js", command.name));
-        bundle::bundle(&entrypoint, &output, &self.options)?;
+        let output = temporary.join("dispatcher.js");
+        bundle::bundle(&commands, &output, &self.options)?;
         let source_map = std::fs::read(format!("{}.map", output.display())).ok();
-        let archive_entry = format!("bundle/{}.js", command.name);
+        let bundle_bytes = std::fs::read(&output)?;
+        let bundles = commands
+            .iter()
+            .map(|(name, _, _)| (format!("bundle/{name}.js"), bundle_bytes.clone()))
+            .collect::<Vec<_>>();
+        let archive_entry = bundles
+            .first()
+            .map(|(path, _)| path.clone())
+            .ok_or_else(|| BuilderError::Manifest("command required".into()))?;
         let bytes = package::create_package(package::PackageInput {
             id: &normalized.id,
             name: &normalized.name,
             version: &normalized.version,
             publisher: &normalized.publisher,
             entrypoint: &archive_entry,
-            capabilities: &analysis.capabilities,
-            bundle: std::fs::read(&output)?,
+            capabilities: &capabilities,
+            bundles,
             source_map,
         })?;
         let mut files = BTreeSet::from([
             "plugin.toml".into(),
             "permissions.json".into(),
             "integrity.json".into(),
-            archive_entry.clone(),
         ]);
+        files.extend(
+            commands
+                .iter()
+                .map(|(name, _, _)| format!("bundle/{name}.js")),
+        );
         if std::fs::metadata(format!("{}.map", output.display())).is_ok() {
             files.insert(format!("{archive_entry}.map"));
         }

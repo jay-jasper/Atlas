@@ -506,6 +506,7 @@ dependencies = [
 name = "atlas-plugin-runner"
 version = "0.1.0"
 dependencies = [
+ "atlas-plugin-builder",
  "atlas-plugin-host",
  "atlas-plugin-js",
  "atlas-plugin-package",
