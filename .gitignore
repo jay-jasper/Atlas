@@ -8,3 +8,4 @@
 
 # isolated Codex worktrees
 .worktrees/
+.cache/raycast-corpus/

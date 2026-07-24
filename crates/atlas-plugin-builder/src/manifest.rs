@@ -79,13 +79,29 @@ pub fn normalize_manifest(source: &RaycastPackageJson) -> Result<NormalizedPlugi
             "extension identity and commands are required".into(),
         ));
     }
-    let version = source
-        .version
-        .as_deref()
-        .filter(|version| !version.contains('*') && !version.contains("latest"))
-        .ok_or_else(|| BuilderError::Manifest("extension version must be pinned".into()))?;
-    validate_preferences(&source.preferences)?;
     let mut report = CompatibilityReport::default();
+    let version = match source.version.as_deref() {
+        Some(version) if !version.contains('*') && !version.contains("latest") => version,
+        Some(_) => {
+            return Err(BuilderError::Manifest(
+                "extension version must be pinned".into(),
+            ))
+        }
+        None => {
+            report.findings.push(CompatibilityFinding {
+                code: "version-derived-from-corpus-pin".into(),
+                status: CompatibilityStatus::Adapted,
+                message: "Atlas derives a stable version from the pinned source revision".into(),
+                file: None,
+                line: None,
+                column: None,
+                raycast_symbol: None,
+                atlas_alternative: Some("immutable corpus commit".into()),
+            });
+            "0.0.0+raycast"
+        }
+    };
+    validate_preferences(&source.preferences)?;
     let mut commands = BTreeMap::new();
     for command in &source.commands {
         validate_preferences(&command.preferences)?;

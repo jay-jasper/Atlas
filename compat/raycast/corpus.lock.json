@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/raycast/extensions.git",
+  "commit": "3c2253073b1f9c944e5373f47f13faf1c9522230",
+  "license": {
+    "spdx": "MIT",
+    "evidence": "https://github.com/raycast/extensions/blob/3c2253073b1f9c944e5373f47f13faf1c9522230/LICENSE"
+  },
+  "extensions": [
+    {"name":"0x0","path":"extensions/0x0","modes":["view"],"expectedBuild":false,"expectedFlow":null,"exclusionReason":"imports the Node path builtin"},
+    {"name":"1-click-confetti","path":"extensions/1-click-confetti","modes":["menu-bar","no-view"],"expectedBuild":true,"expectedFlow":"menu-action"},
+    {"name":"affine-raycast","path":"extensions/affine-raycast","modes":["view","no-view"],"expectedBuild":true,"expectedFlow":"view-list"},
+    {"name":"1loc","path":"extensions/1loc","modes":["view"],"expectedBuild":true,"expectedFlow":"view-search"},
+    {"name":"1password","path":"extensions/1password","modes":["view","no-view"],"expectedBuild":false,"expectedFlow":null,"exclusionReason":"imports a prohibited Node builtin"},
+    {"name":"2fa-directory","path":"extensions/2fa-directory","modes":["view"],"expectedBuild":true,"expectedFlow":"view-list"},
+    {"name":"2fas-authenticator","path":"extensions/2fas-authenticator","modes":["view"],"expectedBuild":true,"expectedFlow":"view-list"},
+    {"name":"40-questions","path":"extensions/40-questions","modes":["view","no-view"],"expectedBuild":true,"expectedFlow":"view-action"},
+    {"name":"42-api","path":"extensions/42-api","modes":["view","menu-bar"],"expectedBuild":false,"expectedFlow":null,"exclusionReason":"imports a prohibited Node builtin"},
+    {"name":"5devs","path":"extensions/5devs","modes":["view"],"expectedBuild":true,"expectedFlow":"view-list"},
+    {"name":"8-divide","path":"extensions/8-divide","modes":["view"],"expectedBuild":true,"expectedFlow":"view-list"},
+    {"name":"8ball","path":"extensions/8ball","modes":["no-view"],"expectedBuild":true,"expectedFlow":"no-view-complete"},
+    {"name":"Bilibili","path":"extensions/Bilibili","modes":["view","no-view"],"expectedBuild":false,"expectedFlow":null,"exclusionReason":"imports a prohibited Node builtin"},
+    {"name":"CodeBlocks","path":"extensions/CodeBlocks","modes":["view"],"expectedBuild":true,"expectedFlow":"view-list"},
+    {"name":"Splitwise","path":"extensions/Splitwise","modes":["view"],"expectedBuild":true,"expectedFlow":"view-form"},
+    {"name":"aave-search","path":"extensions/aave-search","modes":["view"],"expectedBuild":true,"expectedFlow":"view-search"},
+    {"name":"ableton-live","path":"extensions/ableton-live","modes":["view"],"expectedBuild":true,"expectedFlow":"view-action"},
+    {"name":"agent-client-protocol","path":"extensions/agent-client-protocol","modes":["view"],"expectedBuild":true,"expectedFlow":"view-form"},
+    {"name":"ai-agency","path":"extensions/ai-agency","modes":["view","no-view"],"expectedBuild":true,"expectedFlow":"view-action"},
+    {"name":"ai-by-vercel","path":"extensions/ai-by-vercel","modes":["view"],"expectedBuild":true,"expectedFlow":"view-list"},
+    {"name":"active-mississaugua","path":"extensions/active-mississaugua","modes":["view"],"expectedBuild":true,"expectedFlow":"view-search"},
+    {"name":"ai-code-namer","path":"extensions/ai-code-namer","modes":["view"],"expectedBuild":true,"expectedFlow":"view-form"},
+    {"name":"adguard-home","path":"extensions/adguard-home","modes":["view"],"expectedBuild":true,"expectedFlow":null},
+    {"name":"adhan-time","path":"extensions/adhan-time","modes":["view","menu-bar","background"],"expectedBuild":false,"expectedFlow":null,"exclusionReason":"imports a prohibited Node builtin"},
+    {"name":"ai-gen","path":"extensions/ai-gen","modes":["view"],"expectedBuild":true,"expectedFlow":null},
+    {"name":"adonisjs-documentation","path":"extensions/adonisjs-documentation","modes":["view"],"expectedBuild":true,"expectedFlow":null},
+    {"name":"advanced-replace","path":"extensions/advanced-replace","modes":["view","no-view"],"expectedBuild":true,"expectedFlow":null},
+    {"name":"advanced-speech-to-text","path":"extensions/advanced-speech-to-text","modes":["view"],"expectedBuild":false,"expectedFlow":null,"exclusionReason":"requires native audio dependency"},
+    {"name":"advice-slip","path":"extensions/advice-slip","modes":["view"],"expectedBuild":true,"expectedFlow":null},
+    {"name":"aegis","path":"extensions/aegis","modes":["view"],"expectedBuild":true,"expectedFlow":null}
+  ]
+}
