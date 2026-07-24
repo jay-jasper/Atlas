@@ -417,6 +417,12 @@ namespace atlas {
     boolean plugin_revoke_developer_grant(string plugin_id);
 
     [Throws=AtlasError]
+    string plugin_source_inspect(string source_path);
+
+    [Throws=AtlasError]
+    string plugin_source_build(string source_path, string output_path);
+
+    [Throws=AtlasError]
     void start_monitoring(SystemMonitorCallback callback);
     
     [Throws=AtlasError]

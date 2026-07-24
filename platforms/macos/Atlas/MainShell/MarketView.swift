@@ -8,6 +8,7 @@ struct MarketView: View {
 
     @State private var query = ""
     @State private var selectedTrack: String?
+    @State private var sourceImportStatus: String?
 
     private var tracks: [(name: String, count: Int)] {
         Dictionary(grouping: service.plugins, by: \.track)
@@ -48,6 +49,14 @@ struct MarketView: View {
                             .font(.callout)
                     }
                     .buttonStyle(.borderedProminent)
+                    #if !ATLAS_STORE
+                    Button {
+                        chooseSource()
+                    } label: {
+                        Label("导入 Raycast 源码…", systemImage: "hammer")
+                            .font(.callout)
+                    }
+                    #endif
                 }
 
                 HStack(spacing: 6) {
@@ -77,6 +86,11 @@ struct MarketView: View {
                     Text(error)
                         .font(.caption)
                         .foregroundColor(.red)
+                }
+                if let sourceImportStatus {
+                    Text(sourceImportStatus)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
 
                 Toggle(
@@ -239,4 +253,25 @@ struct MarketView: View {
             }
         }
     }
+
+    #if !ATLAS_STORE
+    private func chooseSource() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = false
+        panel.prompt = "检查并构建"
+        guard panel.runModal() == .OK, let source = panel.url else { return }
+        let importer = PluginSourceImporter(builder: RustPluginSourceBuilder())
+        Task {
+            do {
+                sourceImportStatus = try await importer.inspect(source)
+                let package = try await importer.build(source)
+                platform.stage(packageURL: package)
+            } catch {
+                sourceImportStatus = error.localizedDescription
+            }
+        }
+    }
+    #endif
 }

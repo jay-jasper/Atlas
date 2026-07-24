@@ -157,7 +157,8 @@ fn workspace_root(path: &Path) -> Option<PathBuf> {
         .find(|candidate| candidate.join("pnpm-workspace.yaml").is_file())
         .map(Path::to_path_buf)
         .or_else(|| {
-            Path::new(env!("CARGO_MANIFEST_DIR"))
+            std::env::current_dir()
+                .ok()?
                 .ancestors()
                 .find(|candidate| candidate.join("pnpm-workspace.yaml").is_file())
                 .map(Path::to_path_buf)

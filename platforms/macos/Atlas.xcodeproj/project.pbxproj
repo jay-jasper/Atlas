@@ -386,6 +386,7 @@
 		8C96563545556F7431A57ACD /* RaycastClients.swift in Sources */ = {isa = PBXBuildFile; fileRef = 780251AB6BA6ACB22A4D8C74 /* RaycastClients.swift */; };
 		8D0FFFF365D97EEB88E53BE2 /* WindowManagementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4C5CBAE9FE37D7DC6578B52 /* WindowManagementService.swift */; };
 		8D7A5C6B1B499FBEA700E592 /* BrowserRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4402AC346AC617CA53A5677D /* BrowserRouterTests.swift */; };
+		8E40B2CF475FCC5C94A73082 /* PluginImportBoundaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D9DA99F633EFEBFE591605 /* PluginImportBoundaryTests.swift */; };
 		8E58ADA6407A806641CD1428 /* SoundFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1358C89A52C1529335E38C52 /* SoundFeedback.swift */; };
 		8F510BE227DCF2EB881AC68F /* ScratchpadSummaryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D7D807FB5DEF648E4581B1 /* ScratchpadSummaryService.swift */; };
 		8FFE9CA06C75C50BF107F747 /* LauncherPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C095D3CD8DF2FE3DE4C110EF /* LauncherPanelController.swift */; };
@@ -599,6 +600,7 @@
 		E87B6C533370DF95AC470BBC /* TokenBarCommandProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B7331557AC1DD1412B270B /* TokenBarCommandProviderTests.swift */; };
 		E8B7D0340311E60AA168F092 /* TOTPModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCA4D8F5DB95B41DD7BB0377 /* TOTPModels.swift */; };
 		E96E95270D8D26350964C057 /* ProviderIcon-elevenlabs.svg in Resources */ = {isa = PBXBuildFile; fileRef = F3C710F700B0921542A0B847 /* ProviderIcon-elevenlabs.svg */; };
+		E9A27BFCD3DF41013868A584 /* PluginSourceImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7311D17323D0681AB0B68B9B /* PluginSourceImporter.swift */; };
 		EA7254635CA23D12E555690B /* AIKeyVaultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F6DD0865D0D82DE59E571CA /* AIKeyVaultTests.swift */; };
 		EB9E4F02F902EC6085DA0985 /* MenuPanelRowMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64208111A5ACF7FC263CF313 /* MenuPanelRowMappingTests.swift */; };
 		EBAA2A38043834BAD8878D1D /* WebWallpaperService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AFF786F679A9F63B08D7F4E /* WebWallpaperService.swift */; };
@@ -906,6 +908,7 @@
 		729B106765888142D564D0A6 /* WorkspaceModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspaceModels.swift; sourceTree = "<group>"; };
 		72C56605DB4C3C90DFF0D60C /* ScrollSmoothingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScrollSmoothingTests.swift; sourceTree = "<group>"; };
 		7301BC51016D353A64E1B205 /* QuicklinkStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuicklinkStore.swift; sourceTree = "<group>"; };
+		7311D17323D0681AB0B68B9B /* PluginSourceImporter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PluginSourceImporter.swift; sourceTree = "<group>"; };
 		7411DC2C854395645637C445 /* WorkspaceProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkspaceProviderTests.swift; sourceTree = "<group>"; };
 		7450E7D6EA7C9AF2DD6CD8DF /* RSSPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RSSPanel.swift; sourceTree = "<group>"; };
 		74A4917760DC5A6DA8BF67C2 /* AppLauncherProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppLauncherProviderTests.swift; sourceTree = "<group>"; };
@@ -1207,6 +1210,7 @@
 		C8448F0FAE3374591FAE7016 /* ChapterService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChapterService.swift; sourceTree = "<group>"; };
 		C866A92167096F1F80CE277A /* ProviderIcon-doubao.svg */ = {isa = PBXFileReference; includeInIndex = 1; path = "ProviderIcon-doubao.svg"; sourceTree = "<group>"; };
 		C8B4BF9214C3CDB862B539BF /* NetworkWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NetworkWidget.swift; sourceTree = "<group>"; };
+		C8D9DA99F633EFEBFE591605 /* PluginImportBoundaryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PluginImportBoundaryTests.swift; sourceTree = "<group>"; };
 		C8E1258F84049593DD3E09AF /* AppLanguage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppLanguage.swift; sourceTree = "<group>"; };
 		C900F364E10A1A2AD41B3B85 /* SkillCommandProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SkillCommandProviderTests.swift; sourceTree = "<group>"; };
 		C90578AAE91F6B7494193C17 /* QuickMenuPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuickMenuPanel.swift; sourceTree = "<group>"; };
@@ -2196,6 +2200,7 @@
 				B18F4854D43F2080FA7CFCA8 /* PluginSandboxTests.swift */,
 				4D8394CB0CCEE16903C9657F /* PluginDiagnosticsTests.swift */,
 				F63AFF96BE4D0A0F209645A6 /* RaycastPluginRuntimeTests.swift */,
+				C8D9DA99F633EFEBFE591605 /* PluginImportBoundaryTests.swift */,
 			);
 			path = AtlasTests;
 			sourceTree = "<group>";
@@ -2482,6 +2487,7 @@
 				87C78C6AE5B9FAA007CA88E0 /* PluginPlatformService.swift */,
 				2ADDCC22AE06361C0D43F25C /* DeveloperModeSettings.swift */,
 				1B0782DF052A2AD99C1F58EB /* PluginDiagnosticsView.swift */,
+				7311D17323D0681AB0B68B9B /* PluginSourceImporter.swift */,
 			);
 			name = Plugins;
 			path = Plugins;
@@ -3208,6 +3214,7 @@
 				7513BD7B04B3983545AA463B /* PluginPlatformService.swift in Sources */,
 				49C2FD54FA919A0C1770A81E /* DeveloperModeSettings.swift in Sources */,
 				EC67B6FDC41F33ABE8B9D05C /* PluginDiagnosticsView.swift in Sources */,
+				E9A27BFCD3DF41013868A584 /* PluginSourceImporter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3394,6 +3401,7 @@
 				36788A944D9775FA3F03A3EB /* PluginSandboxTests.swift in Sources */,
 				D9D9A96D35B2ED6EBC349136 /* PluginDiagnosticsTests.swift in Sources */,
 				7B00DFA0EE4B9B4504160BFB /* RaycastPluginRuntimeTests.swift in Sources */,
+				8E40B2CF475FCC5C94A73082 /* PluginImportBoundaryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

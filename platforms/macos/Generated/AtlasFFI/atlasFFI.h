@@ -679,6 +679,16 @@ void uniffi_atlas_ffi_fn_func_plugin_send_ui_event(RustBuffer plugin_id, RustBuf
 void uniffi_atlas_ffi_fn_func_plugin_set_developer_mode(int8_t enabled, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_PLUGIN_SOURCE_BUILD
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_PLUGIN_SOURCE_BUILD
+RustBuffer uniffi_atlas_ffi_fn_func_plugin_source_build(RustBuffer source_path, RustBuffer output_path, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_PLUGIN_SOURCE_INSPECT
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_PLUGIN_SOURCE_INSPECT
+RustBuffer uniffi_atlas_ffi_fn_func_plugin_source_inspect(RustBuffer source_path, RustCallStatus *_Nonnull out_status
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_PLUGIN_STAGE_PACKAGE
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_FN_FUNC_PLUGIN_STAGE_PACKAGE
 RustBuffer uniffi_atlas_ffi_fn_func_plugin_stage_package(RustBuffer package_bytes, RustCallStatus *_Nonnull out_status
@@ -1395,6 +1405,18 @@ uint16_t uniffi_atlas_ffi_checksum_func_plugin_send_ui_event(void
 #ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_PLUGIN_SET_DEVELOPER_MODE
 #define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_PLUGIN_SET_DEVELOPER_MODE
 uint16_t uniffi_atlas_ffi_checksum_func_plugin_set_developer_mode(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_PLUGIN_SOURCE_BUILD
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_PLUGIN_SOURCE_BUILD
+uint16_t uniffi_atlas_ffi_checksum_func_plugin_source_build(void
+
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_PLUGIN_SOURCE_INSPECT
+#define UNIFFI_FFIDEF_UNIFFI_ATLAS_FFI_CHECKSUM_FUNC_PLUGIN_SOURCE_INSPECT
+uint16_t uniffi_atlas_ffi_checksum_func_plugin_source_inspect(void
 
 );
 #endif

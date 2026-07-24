@@ -4749,6 +4749,21 @@ public func pluginSetDeveloperMode(enabled: Bool)throws   {try rustCallWithError
     )
 }
 }
+public func pluginSourceBuild(sourcePath: String, outputPath: String)throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_source_build(
+        FfiConverterString.lower(sourcePath),
+        FfiConverterString.lower(outputPath),$0
+    )
+})
+}
+public func pluginSourceInspect(sourcePath: String)throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_source_inspect(
+        FfiConverterString.lower(sourcePath),$0
+    )
+})
+}
 public func pluginStagePackage(packageBytes: [UInt8])throws  -> PluginStageResult  {
     return try  FfiConverterTypePluginStageResult_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_plugin_stage_package(
@@ -5044,6 +5059,12 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_plugin_set_developer_mode() != 42985) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_source_build() != 48110) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_source_inspect() != 22777) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_plugin_stage_package() != 57540) {

@@ -1394,6 +1394,37 @@ pub fn plugin_revoke_developer_grant(plugin_id: String) -> Result<bool, AtlasErr
     }
 }
 
+pub fn plugin_source_inspect(source_path: String) -> Result<String, AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = source_path;
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        let report = atlas_plugin_builder::Builder::default()
+            .inspect(std::path::Path::new(&source_path))
+            .map_err(plugin_error)?;
+        serde_json::to_string_pretty(&report).map_err(plugin_error)
+    }
+}
+
+pub fn plugin_source_build(source_path: String, output_path: String) -> Result<String, AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = (source_path, output_path);
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        let artifact = atlas_plugin_builder::Builder::default()
+            .build(std::path::Path::new(&source_path))
+            .map_err(plugin_error)?;
+        std::fs::write(&output_path, artifact.bytes()).map_err(plugin_error)?;
+        Ok(output_path)
+    }
+}
+
 #[cfg(not(feature = "executable-plugins"))]
 fn executable_plugins_unavailable() -> AtlasError {
     AtlasError::PluginError("Executable plugins are unavailable in this distribution".into())

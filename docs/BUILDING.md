@@ -11,3 +11,16 @@ All commits must pass Rust format, strict Clippy, workspace tests, and both macO
 Run `scripts/audit_dependencies.sh` for RustSec scanning. Its two explicit exceptions are Linux-only XCap build dependencies that are not compiled into either macOS architecture; the macOS dependency graph currently completes with no advisories or maintenance warnings.
 
 Install `cargo-fuzz` with nightly Rust to build the package, protocol, and UI patch fuzz targets under each crate's `fuzz/` directory. Run `ATLAS_PLUGIN_SOAK_SECONDS=300 ./scripts/test_plugin_soak.sh` before a release; scheduled CI uses a dedicated macOS runner for the 24-hour gate.
+
+Install the locked JavaScript workspace before Rust plugin-builder tests:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm test && pnpm typecheck && pnpm build
+cargo test -p atlas-plugin-builder -p atlas-plugin-runner
+./scripts/test_raycast_compat.sh
+```
+
+The compatibility gate performs a sparse checkout of the immutable official
+MIT corpus under ignored `.cache/raycast-corpus`; no upstream source is
+committed.

@@ -37,3 +37,10 @@ Plugin release gates include hostile-package tests and a deterministic soak:
 cargo test -p atlas-plugin-host --test malicious_plugins
 ATLAS_PLUGIN_SOAK_SECONDS=300 ./scripts/test_plugin_soak.sh
 ```
+
+Atlas Direct includes a compatibility toolchain for public Raycast extensions:
+canonical `@atlas/api`, semantic `@raycast/api` adapters, static capability
+analysis, deterministic packaging, non-destructive migration, and a pinned
+30-extension release corpus. See
+[plugin development](docs/PLUGIN_DEVELOPMENT.md) and
+[Raycast compatibility](docs/RAYCAST_COMPATIBILITY.md).

@@ -6,6 +6,7 @@ edition = "2021"
 [features]
 default = ["executable-plugins", "dynamic-modules"]
 executable-plugins = [
+    "dep:atlas-plugin-builder",
     "dep:atlas-plugin-host",
     "dep:atlas-plugin-package",
     "dep:atlas-plugin-protocol",
@@ -18,6 +19,7 @@ atlas-ai = { path = "../atlas-ai" }
 atlas-core = { path = "../atlas-core", default-features = false }
 tokio-util = "0.7"
 atlas-plugin-host = { path = "../atlas-plugin-host", optional = true }
+atlas-plugin-builder = { path = "../atlas-plugin-builder", optional = true }
 atlas-plugin-package = { path = "../atlas-plugin-package", optional = true }
 atlas-plugin-protocol = { path = "../atlas-plugin-protocol", optional = true }
 atlas-ui-schema = { path = "../atlas-ui-schema", optional = true }

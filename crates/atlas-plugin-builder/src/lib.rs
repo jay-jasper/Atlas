@@ -137,13 +137,14 @@ impl Builder {
             capabilities.extend(analysis.capabilities);
             commands.push((command.name.clone(), entrypoint, command.mode));
         }
-        let workspace = Path::new(env!("CARGO_MANIFEST_DIR"))
+        let current = std::env::current_dir()?;
+        let workspace = current
             .ancestors()
             .find(|candidate| {
                 candidate.join("Cargo.toml").is_file()
                     && candidate.join("pnpm-workspace.yaml").is_file()
             })
-            .unwrap_or_else(|| Path::new(env!("CARGO_MANIFEST_DIR")));
+            .unwrap_or(current.as_path());
         let temporary = workspace.join("target/atlas-plugin-build").join(format!(
             "atlas-plugin-build-{}-{}",
             std::process::id(),
