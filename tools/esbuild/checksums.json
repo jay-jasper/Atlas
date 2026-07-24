@@ -1,0 +1,5 @@
+{
+  "version": "0.28.1",
+  "source": "pnpm-lock.yaml",
+  "policy": "The exact esbuild package version and registry integrity are locked by pnpm-lock.yaml; the builder rejects any other executable version."
+}
