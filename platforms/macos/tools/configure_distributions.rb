@@ -39,9 +39,16 @@ end
 
 app.build_configurations.each do |configuration|
   library = configuration.name.start_with?("Store ") ? "atlas_ffi_store" : "atlas_ffi"
+  variant = configuration.name.start_with?("Store ") ? "store" : "direct"
   configuration.build_settings["INFOPLIST_KEY_LSUIElement"] = "YES"
   configuration.build_settings["ENABLE_HARDENED_RUNTIME"] = "YES"
   configuration.build_settings["ENABLE_USER_SCRIPT_SANDBOXING"] = "NO"
+  configuration.build_settings["ATLAS_FFI_LIBRARY_NAME"] = library
+  configuration.build_settings["ATLAS_FFI_VARIANT"] = variant
+  configuration.build_settings["LIBRARY_SEARCH_PATHS"] = [
+    "$(inherited)",
+    "$(TARGET_TEMP_DIR)/AtlasFFI",
+  ]
   if configuration.name.include?("Release")
     configuration.build_settings["CODE_SIGN_INJECT_BASE_ENTITLEMENTS"] = "NO"
   end
@@ -52,12 +59,29 @@ app.build_configurations.each do |configuration|
   ]
 end
 
+ffi_phase = app.shell_script_build_phases.find { |phase| phase.name == "Build Rust FFI" }
+ffi_phase ||= app.new_shell_script_build_phase("Build Rust FFI")
+ffi_phase.shell_path = "/bin/bash"
+ffi_phase.always_out_of_date = "1"
+ffi_phase.shell_script = <<~'SCRIPT'
+  set -euo pipefail
+  REPOSITORY_ROOT="$(cd "${SRCROOT}/../.." && pwd)"
+  FFI_DESTINATION="${TARGET_TEMP_DIR}/AtlasFFI/lib${ATLAS_FFI_LIBRARY_NAME}.a"
+  "${REPOSITORY_ROOT}/scripts/build_uniffi_static.sh" \
+    "${ATLAS_FFI_VARIANT}" \
+    "${FFI_DESTINATION}" \
+    ${ARCHS}
+SCRIPT
+app.build_phases.delete(ffi_phase)
+app.build_phases.unshift(ffi_phase)
+
 runner_phase = app.shell_script_build_phases.find { |phase| phase.name == "Build Plugin Runner" }
 runner_phase ||= app.new_shell_script_build_phase("Build Plugin Runner")
 runner_phase.shell_path = "/bin/bash"
 runner_phase.always_out_of_date = "1"
 runner_phase.shell_script = <<~'SCRIPT'
   set -euo pipefail
+  export PATH="${HOME}/.cargo/bin:/opt/homebrew/bin:/usr/local/bin:${PATH}"
   REPOSITORY_ROOT="$(cd "${SRCROOT}/../.." && pwd)"
   RUNNER_DESTINATION="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Helpers/atlas-plugin-runner"
   RUNNER_INFO_PLIST="${SRCROOT}/Atlas/Plugins/AtlasPluginRunner-Info.plist"
@@ -118,6 +142,10 @@ obsolete_view&.remove_from_project
 app.frameworks_build_phase.files.each do |build_file|
   build_file.remove_from_project if build_file.file_ref&.path == "libatlas_ffi.a"
 end
+
+project.files
+  .select { |file| ["libatlas_ffi.a", "libatlas_ffi_store.a"].include?(file.path) }
+  .each(&:remove_from_project)
 
 project.save
 puts "Configured Store and Direct distributions"
