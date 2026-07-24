@@ -119,7 +119,7 @@ pub struct PluginPackageManager {
     migration: Arc<dyn StorageMigration>,
     clock: Arc<dyn Clock>,
     package_limits: PackageLimits,
-    trusted_keys: TrustedKeyStore,
+    trusted_keys: Mutex<TrustedKeyStore>,
     operation_lock: Mutex<()>,
     state: Mutex<ManagerState>,
 }
@@ -220,7 +220,7 @@ impl PluginPackageManager {
             migration,
             clock,
             package_limits,
-            trusted_keys,
+            trusted_keys: Mutex::new(trusted_keys),
             operation_lock: Mutex::new(()),
             state: Mutex::new(ManagerState::default()),
         };
@@ -243,12 +243,120 @@ impl PluginPackageManager {
             .clone())
     }
 
+    pub fn set_developer_mode(&self, enabled: bool) -> Result<(), PackageManagerError> {
+        self.trusted_keys
+            .lock()
+            .map_err(|_| PackageManagerError::LockPoisoned)?
+            .set_developer_mode(enabled);
+        Ok(())
+    }
+
     pub fn active_root(&self, plugin_id: &str) -> Result<PackageRoot, PackageManagerError> {
         self.lock_state()?
             .plugins
             .get(plugin_id)
             .map(|record| record.active)
             .ok_or_else(|| PackageManagerError::NotInstalled(plugin_id.into()))
+    }
+
+    pub fn restore_active(
+        &self,
+        include_developer_packages: bool,
+    ) -> Result<Vec<(Arc<VerifiedPackage>, GrantSet)>, PackageManagerError> {
+        self.restore_matching(|package| {
+            include_developer_packages
+                || package.trust_tier() != atlas_plugin_package::TrustTier::DeveloperMode
+        })
+    }
+
+    pub fn restore_developer_active(
+        &self,
+    ) -> Result<Vec<(Arc<VerifiedPackage>, GrantSet)>, PackageManagerError> {
+        self.restore_matching(|package| {
+            package.trust_tier() == atlas_plugin_package::TrustTier::DeveloperMode
+        })
+    }
+
+    fn restore_matching(
+        &self,
+        include: impl Fn(&VerifiedPackage) -> bool,
+    ) -> Result<Vec<(Arc<VerifiedPackage>, GrantSet)>, PackageManagerError> {
+        let active = {
+            let state = self.lock_state()?;
+            state
+                .plugins
+                .values()
+                .filter_map(|record| {
+                    let package = state
+                        .packages
+                        .get(&record.active)
+                        .cloned()
+                        .ok_or(PackageManagerError::ManagedIntegrity);
+                    let package = match package {
+                        Ok(package) => package,
+                        Err(error) => return Some(Err(error)),
+                    };
+                    if !include(&package) {
+                        return None;
+                    }
+                    let grants = match record
+                        .versions
+                        .iter()
+                        .find(|version| version.root == record.active)
+                        .map(|version| version.grants.clone())
+                        .ok_or(PackageManagerError::ManagedIntegrity)
+                    {
+                        Ok(grants) => grants,
+                        Err(error) => return Some(Err(error)),
+                    };
+                    Some(Ok((package, grants)))
+                })
+                .collect::<Result<Vec<_>, PackageManagerError>>()?
+        };
+        for (package, _) in &active {
+            self.activator.activate(Arc::clone(package))?;
+        }
+        Ok(active)
+    }
+
+    pub fn restart_active(&self, plugin_id: &str) -> Result<(), PackageManagerError> {
+        let root = self.active_root(plugin_id)?;
+        self.activator.stop(plugin_id);
+        self.activator.activate(self.package(root)?)
+    }
+
+    pub fn replace_grants(
+        &self,
+        plugin_id: &str,
+        grants: GrantSet,
+    ) -> Result<Arc<VerifiedPackage>, PackageManagerError> {
+        let package = {
+            let mut state = self.lock_state()?;
+            let active_root = state
+                .plugins
+                .get(plugin_id)
+                .map(|record| record.active)
+                .ok_or_else(|| PackageManagerError::NotInstalled(plugin_id.into()))?;
+            let package = state
+                .packages
+                .get(&active_root)
+                .cloned()
+                .ok_or(PackageManagerError::ManagedIntegrity)?;
+            validate_grants(package.manifest().capabilities.iter(), &grants)?;
+            let record = state
+                .plugins
+                .get_mut(plugin_id)
+                .expect("plugin record was checked");
+            let version = record
+                .versions
+                .iter_mut()
+                .find(|version| version.root == active_root)
+                .ok_or(PackageManagerError::ManagedIntegrity)?;
+            version.grants = grants;
+            package
+        };
+        self.persist_plugin_record(plugin_id)?;
+        Ok(package)
     }
 
     pub fn list_statuses(&self) -> Result<Vec<ManagedPluginStatus>, PackageManagerError> {
@@ -671,10 +779,14 @@ impl PluginPackageManager {
                 return Err(PackageManagerError::UnknownPackage);
             }
         }
+        let trusted_keys = self
+            .trusted_keys
+            .lock()
+            .map_err(|_| PackageManagerError::LockPoisoned)?;
         let verified = verify_directory(
             &self.package_path(root),
             &self.package_limits,
-            &self.trusted_keys,
+            &trusted_keys,
         )
         .map_err(|_| PackageManagerError::ManagedIntegrity)?;
         if verified.root() != root {
@@ -774,12 +886,16 @@ impl PluginPackageManager {
                     "active pointer has no matching version record".into(),
                 ));
             }
+            let trusted_keys = self
+                .trusted_keys
+                .lock()
+                .map_err(|_| PackageManagerError::LockPoisoned)?;
             let mut loaded_packages = Vec::new();
             for version in &persisted.versions {
                 let package = verify_directory(
                     &self.package_path(version.root),
                     &self.package_limits,
-                    &self.trusted_keys,
+                    &trusted_keys,
                 )
                 .map_err(|_| PackageManagerError::ManagedIntegrity)?;
                 if package.root() != version.root
@@ -881,11 +997,15 @@ impl PackageLifecycle for PluginPackageManager {
         }
         self.persist_package(&package)?;
         let root = package.root();
+        let trusted_keys = self
+            .trusted_keys
+            .lock()
+            .map_err(|_| PackageManagerError::LockPoisoned)?;
         let managed_package = Arc::new(
             verify_directory(
                 &self.package_path(root),
                 &self.package_limits,
-                &self.trusted_keys,
+                &trusted_keys,
             )
             .map_err(|_| PackageManagerError::ManagedIntegrity)?,
         );

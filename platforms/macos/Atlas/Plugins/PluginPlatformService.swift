@@ -11,9 +11,21 @@ protocol PluginPlatformRuntime: Sendable {
     func cancel(pluginID: String, instanceID: String) throws
     func respond(requestID: String, responseJSON: String) throws
     func stop(pluginID: String) throws
+    func restart(pluginID: String) throws
+    func resetCommandBreaker(pluginID: String, commandID: String) throws
+    func replaceGrants(pluginID: String, grants: [PluginCapabilityGrant]) throws
     func rollback(pluginID: String, clearData: Bool) throws
     func clearData(pluginID: String) throws
     func uninstall(pluginID: String) throws
+    func developerModeEnabled() throws -> Bool
+    func setDeveloperMode(enabled: Bool) throws
+    func saveDeveloperGrant(
+        pluginID: String,
+        selectedPaths: [String],
+        allowDirectNetwork: Bool,
+        approvedCommandsJSON: String
+    ) throws
+    func revokeDeveloperGrant(pluginID: String) throws -> Bool
 }
 
 struct LivePluginPlatformRuntime: PluginPlatformRuntime {
@@ -76,6 +88,18 @@ struct LivePluginPlatformRuntime: PluginPlatformRuntime {
         try Atlas.pluginStop(pluginId: pluginID)
     }
 
+    func restart(pluginID: String) throws {
+        try Atlas.pluginRestart(pluginId: pluginID)
+    }
+
+    func resetCommandBreaker(pluginID: String, commandID: String) throws {
+        try Atlas.pluginResetCommandBreaker(pluginId: pluginID, commandId: commandID)
+    }
+
+    func replaceGrants(pluginID: String, grants: [PluginCapabilityGrant]) throws {
+        try Atlas.pluginReplaceGrants(pluginId: pluginID, grants: grants)
+    }
+
     func rollback(pluginID: String, clearData: Bool) throws {
         try Atlas.pluginRollback(pluginId: pluginID, clearIncompatibleData: clearData)
     }
@@ -86,6 +110,32 @@ struct LivePluginPlatformRuntime: PluginPlatformRuntime {
 
     func uninstall(pluginID: String) throws {
         try Atlas.pluginPlatformUninstall(pluginId: pluginID)
+    }
+
+    func developerModeEnabled() throws -> Bool {
+        try Atlas.pluginDeveloperModeEnabled()
+    }
+
+    func setDeveloperMode(enabled: Bool) throws {
+        try Atlas.pluginSetDeveloperMode(enabled: enabled)
+    }
+
+    func saveDeveloperGrant(
+        pluginID: String,
+        selectedPaths: [String],
+        allowDirectNetwork: Bool,
+        approvedCommandsJSON: String
+    ) throws {
+        try Atlas.pluginSaveDeveloperGrant(
+            pluginId: pluginID,
+            selectedPaths: selectedPaths,
+            allowDirectNetwork: allowDirectNetwork,
+            approvedCommandsJson: approvedCommandsJSON
+        )
+    }
+
+    func revokeDeveloperGrant(pluginID: String) throws -> Bool {
+        try Atlas.pluginRevokeDeveloperGrant(pluginId: pluginID)
     }
 }
 
@@ -153,6 +203,7 @@ final class PluginPlatformService: ObservableObject {
     @Published private(set) var sessions: [String: PluginSessionModel] = [:]
     @Published private(set) var pendingConsent: PluginConsentRequest?
     @Published private(set) var statuses: [PluginStatusRecord] = []
+    @Published private(set) var developerModeEnabled = false
     @Published private(set) var lastError: String?
 
     private let runtime: any PluginPlatformRuntime
@@ -184,6 +235,7 @@ final class PluginPlatformService: ObservableObject {
         self.callback = callback
         do {
             try runtime.start(callback: callback)
+            developerModeEnabled = try runtime.developerModeEnabled()
             refreshStatuses()
         } catch {
             self.callback = nil
@@ -267,6 +319,55 @@ final class PluginPlatformService: ObservableObject {
         do {
             try runtime.uninstall(pluginID: pluginID)
             sessions = sessions.filter { $0.value.pluginID != pluginID }
+            refreshStatuses()
+        } catch {
+            lastError = error.localizedDescription
+        }
+    }
+
+    func stop(pluginID: String) {
+        performRecovery { try runtime.stop(pluginID: pluginID) }
+    }
+
+    func restart(pluginID: String) {
+        performRecovery { try runtime.restart(pluginID: pluginID) }
+    }
+
+    func resetCommandBreaker(pluginID: String, commandID: String) {
+        performRecovery {
+            try runtime.resetCommandBreaker(pluginID: pluginID, commandID: commandID)
+        }
+    }
+
+    func replaceGrants(pluginID: String, grants: [PluginCapabilityGrant]) {
+        performRecovery {
+            try runtime.replaceGrants(pluginID: pluginID, grants: grants)
+        }
+    }
+
+    func rollback(pluginID: String, clearData: Bool = false) {
+        performRecovery {
+            try runtime.rollback(pluginID: pluginID, clearData: clearData)
+        }
+    }
+
+    func clearData(pluginID: String) {
+        performRecovery { try runtime.clearData(pluginID: pluginID) }
+    }
+
+    func diagnostics(pluginID: String) -> PluginDiagnosticRecord? {
+        do {
+            return try runtime.diagnostics(pluginID: pluginID)
+        } catch {
+            lastError = error.localizedDescription
+            return nil
+        }
+    }
+
+    func setDeveloperMode(enabled: Bool) {
+        do {
+            try runtime.setDeveloperMode(enabled: enabled)
+            developerModeEnabled = enabled
             refreshStatuses()
         } catch {
             lastError = error.localizedDescription
@@ -362,5 +463,14 @@ final class PluginPlatformService: ObservableObject {
 
     private func decode<T: Decodable>(_ type: T.Type, _ json: String) throws -> T {
         try JSONDecoder().decode(type, from: Data(json.utf8))
+    }
+
+    private func performRecovery(_ operation: () throws -> Void) {
+        do {
+            try operation()
+            refreshStatuses()
+        } catch {
+            lastError = error.localizedDescription
+        }
     }
 }

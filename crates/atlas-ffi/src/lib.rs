@@ -197,6 +197,8 @@ struct PluginPlatform {
     manager: atlas_plugin_host::PluginPackageManager,
     broker: atlas_plugin_host::CapabilityBroker,
     diagnostics: atlas_plugin_host::DiagnosticStore,
+    developer_mode: Arc<atlas_plugin_host::DeveloperModeController>,
+    developer_grants: Arc<atlas_plugin_host::DeveloperGrantStore>,
     package_limits: atlas_plugin_package::PackageLimits,
     trusted_keys: atlas_plugin_package::TrustedKeyStore,
     stages: std::collections::HashMap<String, PendingPluginStage>,
@@ -657,23 +659,48 @@ pub fn plugin_platform_start(callback: Box<dyn PluginPlatformCallback>) -> Resul
             Arc::clone(&clock),
         ));
         let activator: Arc<dyn atlas_plugin_host::PackageActivator> = supervisor.clone();
-        let manager = atlas_plugin_host::PluginPackageManager::new(
+        let mut manager_keys = atlas_plugin_package::TrustedKeyStore::new();
+        manager_keys.set_developer_mode(true);
+        let manager = atlas_plugin_host::PluginPackageManager::new_with_verification(
             storage_root.join("managed-platform"),
             Arc::clone(&storage),
             activator,
             Arc::new(atlas_plugin_host::package_manager::MetadataStorageMigration),
             Arc::clone(&clock),
+            atlas_plugin_package::PackageLimits::default(),
+            manager_keys,
         )
         .map_err(plugin_error)?;
+        let mut broker = atlas_plugin_host::CapabilityBroker::new();
+        for (package, grants) in manager.restore_active(false).map_err(plugin_error)? {
+            let grants = grants
+                .iter()
+                .map(|grant| atlas_plugin_host::CapabilityGrant::parse(grant))
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(plugin_error)?;
+            broker
+                .register_manifest(package.manifest(), grants)
+                .map_err(plugin_error)?;
+        }
+        let developer_grants = Arc::new(atlas_plugin_host::DeveloperGrantStore::new(Arc::clone(
+            &storage,
+        )));
+        let terminator: Arc<dyn atlas_plugin_host::DeveloperRunnerTerminator> = supervisor.clone();
+        let developer_mode = Arc::new(atlas_plugin_host::DeveloperModeController::new(
+            Arc::clone(&developer_grants),
+            terminator,
+        ));
         *platform = Some(PluginPlatform {
             callback: Arc::from(callback),
             supervisor,
             manager,
-            broker: atlas_plugin_host::CapabilityBroker::new(),
+            broker,
             diagnostics: atlas_plugin_host::DiagnosticStore::new(
                 atlas_plugin_host::DiagnosticPolicy::default(),
                 clock,
             ),
+            developer_mode,
+            developer_grants,
             package_limits: atlas_plugin_package::PackageLimits::default(),
             trusted_keys: atlas_plugin_package::TrustedKeyStore::new(),
             stages: std::collections::HashMap::new(),
@@ -815,6 +842,14 @@ pub fn plugin_apply_grants(
                 .broker
                 .register_manifest(pending.package.manifest(), broker_grants)
                 .map_err(plugin_error)?;
+            if pending.package.trust_tier() == atlas_plugin_package::TrustTier::DeveloperMode
+                && pending.package.manifest().runtime == atlas_plugin_package::RuntimeKind::Mcp
+            {
+                platform
+                    .developer_mode
+                    .register_unsigned_mcp(pending.package.plugin_id())
+                    .map_err(plugin_error)?;
+            }
             platform.stages.remove(&stage_id);
             let event = PluginHostEvent {
                 kind: PluginHostEventKind::StatusChanged,
@@ -1081,6 +1116,76 @@ pub fn plugin_stop(plugin_id: String) -> Result<(), AtlasError> {
     }
 }
 
+pub fn plugin_restart(plugin_id: String) -> Result<(), AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = plugin_id;
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        with_plugin_platform(|platform| {
+            platform
+                .manager
+                .restart_active(&plugin_id)
+                .map_err(plugin_error)
+        })
+    }
+}
+
+pub fn plugin_reset_command_breaker(
+    plugin_id: String,
+    command_id: String,
+) -> Result<(), AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = (plugin_id, command_id);
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        with_plugin_platform(|platform| {
+            platform
+                .supervisor
+                .reset_command_breaker(&plugin_id, &command_id);
+            Ok(())
+        })
+    }
+}
+
+pub fn plugin_replace_grants(
+    plugin_id: String,
+    grants: Vec<PluginCapabilityGrant>,
+) -> Result<(), AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = (plugin_id, grants);
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        with_plugin_platform(|platform| {
+            let grants = grants
+                .iter()
+                .map(plugin_grant_string)
+                .collect::<Result<atlas_plugin_host::GrantSet, _>>()?;
+            let package = platform
+                .manager
+                .replace_grants(&plugin_id, grants.clone())
+                .map_err(plugin_error)?;
+            let broker_grants = grants
+                .iter()
+                .map(|grant| atlas_plugin_host::CapabilityGrant::parse(grant))
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(plugin_error)?;
+            platform
+                .broker
+                .register_manifest(package.manifest(), broker_grants)
+                .map_err(plugin_error)
+        })
+    }
+}
+
 pub fn plugin_rollback(plugin_id: String, clear_incompatible_data: bool) -> Result<(), AtlasError> {
     #[cfg(not(feature = "executable-plugins"))]
     {
@@ -1162,6 +1267,128 @@ pub fn plugin_report_observation_failure(plugin_id: String) -> Result<bool, Atla
             platform
                 .manager
                 .report_observation_failure(&plugin_id)
+                .map_err(plugin_error)
+        })
+    }
+}
+
+pub fn plugin_developer_mode_enabled() -> Result<bool, AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        return Ok(false);
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        with_plugin_platform(|platform| Ok(platform.developer_mode.is_enabled()))
+    }
+}
+
+pub fn plugin_set_developer_mode(enabled: bool) -> Result<(), AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = enabled;
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        with_plugin_platform(|platform| {
+            platform.trusted_keys.set_developer_mode(enabled);
+            platform
+                .manager
+                .set_developer_mode(enabled)
+                .map_err(plugin_error)?;
+            if enabled {
+                platform.developer_mode.enable();
+                for (package, grants) in platform
+                    .manager
+                    .restore_developer_active()
+                    .map_err(plugin_error)?
+                {
+                    let broker_grants = grants
+                        .iter()
+                        .map(|grant| atlas_plugin_host::CapabilityGrant::parse(grant))
+                        .collect::<Result<Vec<_>, _>>()
+                        .map_err(plugin_error)?;
+                    platform
+                        .broker
+                        .register_manifest(package.manifest(), broker_grants)
+                        .map_err(plugin_error)?;
+                    if package.manifest().runtime == atlas_plugin_package::RuntimeKind::Mcp {
+                        platform
+                            .developer_mode
+                            .register_unsigned_mcp(package.plugin_id())
+                            .map_err(plugin_error)?;
+                    }
+                }
+            } else {
+                platform.developer_mode.disable().map_err(plugin_error)?;
+                for status in platform
+                    .manager
+                    .list_statuses()
+                    .map_err(plugin_error)?
+                    .into_iter()
+                    .filter(|status| status.trust_tier == "developer-mode")
+                {
+                    let _ = platform.supervisor.stop_plugin(&status.plugin_id);
+                    platform
+                        .broker
+                        .remove_plugin(&atlas_plugin_host::PluginIdentity::new(
+                            &status.plugin_id,
+                            status.publisher,
+                        ));
+                }
+            }
+            Ok(())
+        })
+    }
+}
+
+pub fn plugin_save_developer_grant(
+    plugin_id: String,
+    selected_paths: Vec<String>,
+    allow_direct_network: bool,
+    approved_commands_json: String,
+) -> Result<(), AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = (
+            plugin_id,
+            selected_paths,
+            allow_direct_network,
+            approved_commands_json,
+        );
+        return Err(executable_plugins_unavailable());
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        let approved_commands: Vec<atlas_plugin_host::ApprovedCommand> =
+            serde_json::from_str(&approved_commands_json).map_err(plugin_error)?;
+        with_plugin_platform(|platform| {
+            platform
+                .developer_grants
+                .save(atlas_plugin_host::DeveloperGrant {
+                    plugin_id,
+                    selected_paths: selected_paths.into_iter().map(Into::into).collect(),
+                    allow_direct_network,
+                    approved_commands,
+                })
+                .map_err(plugin_error)
+        })
+    }
+}
+
+pub fn plugin_revoke_developer_grant(plugin_id: String) -> Result<bool, AtlasError> {
+    #[cfg(not(feature = "executable-plugins"))]
+    {
+        let _ = plugin_id;
+        return Ok(false);
+    }
+    #[cfg(feature = "executable-plugins")]
+    {
+        with_plugin_platform(|platform| {
+            platform
+                .developer_grants
+                .revoke(&plugin_id)
                 .map_err(plugin_error)
         })
     }

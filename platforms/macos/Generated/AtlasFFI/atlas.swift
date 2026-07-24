@@ -4647,6 +4647,12 @@ public func pluginClearData(pluginId: String)throws   {try rustCallWithError(Ffi
     )
 }
 }
+public func pluginDeveloperModeEnabled()throws  -> Bool  {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_developer_mode_enabled($0
+    )
+})
+}
 public func pluginExportDiagnostics(pluginId: String)throws  -> PluginDiagnosticRecord  {
     return try  FfiConverterTypePluginDiagnosticRecord_lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_plugin_export_diagnostics(
@@ -4672,12 +4678,26 @@ public func pluginPlatformUninstall(pluginId: String)throws   {try rustCallWithE
     )
 }
 }
+public func pluginReplaceGrants(pluginId: String, grants: [PluginCapabilityGrant])throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_replace_grants(
+        FfiConverterString.lower(pluginId),
+        FfiConverterSequenceTypePluginCapabilityGrant.lower(grants),$0
+    )
+}
+}
 public func pluginReportObservationFailure(pluginId: String)throws  -> Bool  {
     return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_plugin_report_observation_failure(
         FfiConverterString.lower(pluginId),$0
     )
 })
+}
+public func pluginResetCommandBreaker(pluginId: String, commandId: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_reset_command_breaker(
+        FfiConverterString.lower(pluginId),
+        FfiConverterString.lower(commandId),$0
+    )
+}
 }
 public func pluginRespondToHostRequest(requestId: String, responseJson: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_plugin_respond_to_host_request(
@@ -4686,10 +4706,32 @@ public func pluginRespondToHostRequest(requestId: String, responseJson: String)t
     )
 }
 }
+public func pluginRestart(pluginId: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_restart(
+        FfiConverterString.lower(pluginId),$0
+    )
+}
+}
+public func pluginRevokeDeveloperGrant(pluginId: String)throws  -> Bool  {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_revoke_developer_grant(
+        FfiConverterString.lower(pluginId),$0
+    )
+})
+}
 public func pluginRollback(pluginId: String, clearIncompatibleData: Bool)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
     uniffi_atlas_ffi_fn_func_plugin_rollback(
         FfiConverterString.lower(pluginId),
         FfiConverterBool.lower(clearIncompatibleData),$0
+    )
+}
+}
+public func pluginSaveDeveloperGrant(pluginId: String, selectedPaths: [String], allowDirectNetwork: Bool, approvedCommandsJson: String)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_save_developer_grant(
+        FfiConverterString.lower(pluginId),
+        FfiConverterSequenceString.lower(selectedPaths),
+        FfiConverterBool.lower(allowDirectNetwork),
+        FfiConverterString.lower(approvedCommandsJson),$0
     )
 }
 }
@@ -4698,6 +4740,12 @@ public func pluginSendUiEvent(pluginId: String, instanceId: String, eventJson: S
         FfiConverterString.lower(pluginId),
         FfiConverterString.lower(instanceId),
         FfiConverterString.lower(eventJson),$0
+    )
+}
+}
+public func pluginSetDeveloperMode(enabled: Bool)throws   {try rustCallWithError(FfiConverterTypeAtlasError_lift) {
+    uniffi_atlas_ffi_fn_func_plugin_set_developer_mode(
+        FfiConverterBool.lower(enabled),$0
     )
 }
 }
@@ -4953,6 +5001,9 @@ private let initializationResult: InitializationResult = {
     if (uniffi_atlas_ffi_checksum_func_plugin_clear_data() != 56031) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_atlas_ffi_checksum_func_plugin_developer_mode_enabled() != 15728) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_atlas_ffi_checksum_func_plugin_export_diagnostics() != 12264) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -4965,16 +5016,34 @@ private let initializationResult: InitializationResult = {
     if (uniffi_atlas_ffi_checksum_func_plugin_platform_uninstall() != 38576) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_atlas_ffi_checksum_func_plugin_replace_grants() != 37797) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_atlas_ffi_checksum_func_plugin_report_observation_failure() != 10681) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_reset_command_breaker() != 49754) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_plugin_respond_to_host_request() != 56535) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_atlas_ffi_checksum_func_plugin_restart() != 45080) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_revoke_developer_grant() != 63293) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_atlas_ffi_checksum_func_plugin_rollback() != 54393) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_atlas_ffi_checksum_func_plugin_save_developer_grant() != 5685) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_atlas_ffi_checksum_func_plugin_send_ui_event() != 57830) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_atlas_ffi_checksum_func_plugin_set_developer_mode() != 42985) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_atlas_ffi_checksum_func_plugin_stage_package() != 57540) {

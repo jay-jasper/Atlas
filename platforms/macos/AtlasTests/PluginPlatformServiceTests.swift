@@ -113,9 +113,21 @@ private final class FakePluginPlatformRuntime: PluginPlatformRuntime, @unchecked
     func cancel(pluginID: String, instanceID: String) throws {}
     func respond(requestID: String, responseJSON: String) throws {}
     func stop(pluginID: String) throws {}
+    func restart(pluginID: String) throws {}
+    func resetCommandBreaker(pluginID: String, commandID: String) throws {}
+    func replaceGrants(pluginID: String, grants: [PluginCapabilityGrant]) throws {}
     func rollback(pluginID: String, clearData: Bool) throws {}
     func clearData(pluginID: String) throws {}
     func uninstall(pluginID: String) throws {}
+    func developerModeEnabled() throws -> Bool { false }
+    func setDeveloperMode(enabled: Bool) throws {}
+    func saveDeveloperGrant(
+        pluginID: String,
+        selectedPaths: [String],
+        allowDirectNetwork: Bool,
+        approvedCommandsJSON: String
+    ) throws {}
+    func revokeDeveloperGrant(pluginID: String) throws -> Bool { false }
 
     enum TestError: Error { case unsupported }
 }

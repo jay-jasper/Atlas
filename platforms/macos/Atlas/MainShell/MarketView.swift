@@ -79,6 +79,15 @@ struct MarketView: View {
                         .foregroundColor(.red)
                 }
 
+                Toggle(
+                    "Developer mode",
+                    isOn: Binding(
+                        get: { platform.developerModeEnabled },
+                        set: { platform.setDeveloperMode(enabled: $0) }
+                    )
+                )
+                .help("Unsigned MCP plugins run only with isolated developer authorization.")
+
                 if let consent = platform.pendingConsent {
                     PluginConsentView(service: platform, request: consent)
                         .glassCard(padding: 10)
@@ -194,19 +203,21 @@ struct MarketView: View {
     }
 
     private func platformCard(_ status: PluginStatusRecord) -> some View {
-        HStack(spacing: 10) {
-            IconTile(systemImage: "puzzlepiece.extension", tint: .blue)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(status.pluginId).font(.system(size: 13, weight: .semibold))
-                Text("\(status.version) · \(status.trustTier)")
-                    .font(.caption2).foregroundColor(.secondary)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                IconTile(systemImage: "puzzlepiece.extension", tint: .blue)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(status.pluginId).font(.system(size: 13, weight: .semibold))
+                    Text("\(status.version) · \(status.trustTier)")
+                        .font(.caption2).foregroundColor(.secondary)
+                }
+                Spacer()
+                Button("运行") {
+                    platform.startCommand(pluginID: status.pluginId, commandID: "main")
+                }
             }
-            Spacer()
-            Button("运行") {
-                platform.startCommand(pluginID: status.pluginId, commandID: "main")
-            }
-            Button("卸载", role: .destructive) {
-                platform.uninstall(pluginID: status.pluginId)
+            DisclosureGroup("Diagnostics and recovery") {
+                PluginDiagnosticsView(service: platform, status: status)
             }
         }
         .glassCard(padding: 10)

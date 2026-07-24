@@ -384,6 +384,15 @@ namespace atlas {
     void plugin_stop(string plugin_id);
 
     [Throws=AtlasError]
+    void plugin_restart(string plugin_id);
+
+    [Throws=AtlasError]
+    void plugin_reset_command_breaker(string plugin_id, string command_id);
+
+    [Throws=AtlasError]
+    void plugin_replace_grants(string plugin_id, sequence<PluginCapabilityGrant> grants);
+
+    [Throws=AtlasError]
     void plugin_rollback(string plugin_id, boolean clear_incompatible_data);
 
     [Throws=AtlasError]
@@ -394,6 +403,18 @@ namespace atlas {
 
     [Throws=AtlasError]
     boolean plugin_report_observation_failure(string plugin_id);
+
+    [Throws=AtlasError]
+    boolean plugin_developer_mode_enabled();
+
+    [Throws=AtlasError]
+    void plugin_set_developer_mode(boolean enabled);
+
+    [Throws=AtlasError]
+    void plugin_save_developer_grant(string plugin_id, sequence<string> selected_paths, boolean allow_direct_network, string approved_commands_json);
+
+    [Throws=AtlasError]
+    boolean plugin_revoke_developer_grant(string plugin_id);
 
     [Throws=AtlasError]
     void start_monitoring(SystemMonitorCallback callback);
