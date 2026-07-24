@@ -7,6 +7,7 @@ use crate::{
 use ed25519_dalek::{Signature, Verifier};
 use std::collections::{BTreeMap, HashSet};
 use std::io::{Read, Seek};
+use std::path::Path;
 use unicode_normalization::UnicodeNormalization;
 
 const MANIFEST_PATH: &str = "plugin.toml";
@@ -139,6 +140,74 @@ pub fn verify_archive<R: Read + Seek>(
         files.insert(path, bytes);
     }
 
+    verify_files(files, trusted_keys)
+}
+
+pub fn verify_directory(
+    directory: &Path,
+    limits: &PackageLimits,
+    trusted_keys: &TrustedKeyStore,
+) -> Result<VerifiedPackage, PackageError> {
+    let mut files = BTreeMap::new();
+    let mut expanded_bytes = 0_u64;
+    for entry in walkdir::WalkDir::new(directory).follow_links(false) {
+        let entry = entry.map_err(|error| PackageError::Archive(error.to_string()))?;
+        if entry.file_type().is_symlink() {
+            return Err(PackageError::Link(
+                entry.path().to_string_lossy().into_owned(),
+            ));
+        }
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        if files.len() >= limits.max_files {
+            return Err(PackageError::TooManyFiles);
+        }
+        let relative = entry
+            .path()
+            .strip_prefix(directory)
+            .map_err(|error| PackageError::Archive(error.to_string()))?;
+        let raw_path = relative
+            .to_str()
+            .ok_or_else(|| {
+                PackageError::InvalidPathEncoding(relative.to_string_lossy().into_owned())
+            })?
+            .replace('\\', "/");
+        let path = normalize_path(&raw_path)?;
+        if path != raw_path {
+            return Err(PackageError::UnsafePath(raw_path));
+        }
+        let size = entry
+            .metadata()
+            .map_err(|error| PackageError::Archive(error.to_string()))?
+            .len();
+        if size > limits.max_file_bytes {
+            return Err(PackageError::FileSizeLimit { path, size });
+        }
+        expanded_bytes = expanded_bytes
+            .checked_add(size)
+            .ok_or(PackageError::ExpandedSizeLimit)?;
+        if expanded_bytes > limits.max_expanded_bytes {
+            return Err(PackageError::ExpandedSizeLimit);
+        }
+        let bytes = std::fs::read(entry.path())
+            .map_err(|error| PackageError::Archive(error.to_string()))?;
+        if bytes.len() as u64 != size {
+            return Err(PackageError::Archive(format!(
+                "file `{path}` changed size while reading"
+            )));
+        }
+        if files.insert(path.clone(), bytes).is_some() {
+            return Err(PackageError::DuplicatePath(path));
+        }
+    }
+    verify_files(files, trusted_keys)
+}
+
+fn verify_files(
+    files: BTreeMap<String, Vec<u8>>,
+    trusted_keys: &TrustedKeyStore,
+) -> Result<VerifiedPackage, PackageError> {
     let manifest_bytes = required(&files, MANIFEST_PATH)?;
     let manifest: PluginManifestV2 = toml::from_str(
         std::str::from_utf8(manifest_bytes)
@@ -286,6 +355,11 @@ fn validate_manifest(manifest: &PluginManifestV2) -> Result<(), PackageError> {
             "unsupported manifest version {}",
             manifest.manifest_version
         )));
+    }
+    if manifest.storage_schema == 0 {
+        return Err(PackageError::Manifest(
+            "storage_schema must be at least 1".into(),
+        ));
     }
     for (label, value) in [
         ("id", manifest.id.as_str()),

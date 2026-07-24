@@ -2,7 +2,7 @@ mod archive;
 mod integrity;
 mod trust;
 
-pub use archive::{verify_archive, PackageLimits, VerifiedFile, VerifiedPackage};
+pub use archive::{verify_archive, verify_directory, PackageLimits, VerifiedFile, VerifiedPackage};
 pub use integrity::{
     canonical_package_root, canonical_signature_payload, sha256_digest, IntegrityDocument,
     IntegrityFile, PackageRoot, SignatureDocument,
@@ -21,6 +21,8 @@ pub struct PluginManifestV2 {
     pub publisher: String,
     pub runtime: RuntimeKind,
     pub entrypoint: String,
+    #[serde(default = "storage_schema_version")]
+    pub storage_schema: u32,
     #[serde(default)]
     pub capabilities: Vec<String>,
     #[serde(default)]
@@ -29,6 +31,10 @@ pub struct PluginManifestV2 {
 
 const fn manifest_version() -> u16 {
     2
+}
+
+const fn storage_schema_version() -> u32 {
+    1
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

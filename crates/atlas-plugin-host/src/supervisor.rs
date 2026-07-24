@@ -171,6 +171,8 @@ pub enum SupervisorError {
     LockPoisoned,
     #[error("interrupted write has unknown outcome and cannot be replayed")]
     OutcomeUnknown,
+    #[error("plugin writes are frozen for package migration")]
+    WritesFrozen,
 }
 
 struct RunnerGeneration {
@@ -196,6 +198,7 @@ struct PluginState {
     retiring: Vec<RunnerGeneration>,
     commands: HashMap<String, CommandState>,
     resident: bool,
+    writes_frozen: bool,
     disabled: bool,
     startup_failures: u8,
 }
@@ -410,9 +413,19 @@ impl PluginSupervisor {
         plugin_id: &str,
         instance_id: &str,
     ) -> Result<(), SupervisorError> {
-        self.with_command_mut(plugin_id, instance_id, |command| {
-            command.incomplete_write = true;
-        })
+        let state = self
+            .plugin_state(plugin_id)?
+            .ok_or_else(|| SupervisorError::PluginNotActive(plugin_id.into()))?;
+        let mut state = state.lock().map_err(|_| SupervisorError::LockPoisoned)?;
+        if state.writes_frozen {
+            return Err(SupervisorError::WritesFrozen);
+        }
+        let command = state
+            .commands
+            .get_mut(instance_id)
+            .ok_or_else(|| SupervisorError::CommandNotFound(instance_id.into()))?;
+        command.incomplete_write = true;
+        Ok(())
     }
 
     pub fn mark_write_finished(
@@ -621,6 +634,24 @@ impl PluginSupervisor {
             .lock()
             .map_err(|_| SupervisorError::LockPoisoned)?
             .resident = resident;
+        Ok(())
+    }
+
+    pub fn freeze_writes(&self, plugin_id: &str) -> Result<(), SupervisorError> {
+        let state = self.plugin_state_or_insert(plugin_id)?;
+        state
+            .lock()
+            .map_err(|_| SupervisorError::LockPoisoned)?
+            .writes_frozen = true;
+        Ok(())
+    }
+
+    pub fn unfreeze_writes(&self, plugin_id: &str) -> Result<(), SupervisorError> {
+        let state = self.plugin_state_or_insert(plugin_id)?;
+        state
+            .lock()
+            .map_err(|_| SupervisorError::LockPoisoned)?
+            .writes_frozen = false;
         Ok(())
     }
 

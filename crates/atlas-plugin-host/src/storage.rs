@@ -86,6 +86,15 @@ impl PluginStorage {
         Ok(removed)
     }
 
+    pub fn clear(&self, identity: &PluginIdentity) -> Result<(), StorageError> {
+        let _guard = self.lock()?;
+        match fs::remove_file(self.namespace_path(identity)) {
+            Ok(()) => Ok(()),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+            Err(error) => Err(error.into()),
+        }
+    }
+
     pub fn begin(&self, identity: &PluginIdentity) -> Result<StorageTransaction<'_>, StorageError> {
         let guard = self.lock()?;
         let namespace = self.read_namespace(identity)?;
@@ -335,7 +344,7 @@ impl StorageTransaction<'_> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StorageSnapshot {
     identity_digest: [u8; 32],
     ciphertext: Option<Vec<u8>>,

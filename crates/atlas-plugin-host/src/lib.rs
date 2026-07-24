@@ -23,6 +23,7 @@ pub mod lua;
 pub mod manifest;
 pub mod mcp;
 pub mod mcp_transport;
+pub mod package_manager;
 pub mod registry;
 pub mod runner_client;
 pub mod runtime;
@@ -39,6 +40,10 @@ pub use capabilities::{CapabilityError, CapabilityGuard};
 pub use limits::{LimitError, LimitTracker, RuntimeLimits, RESOURCE_POLICY_VERSION};
 pub use manifest::{
     Capabilities, ManifestError, PluginManifest, PluginManifestV2, Runtime, RuntimeKind,
+};
+pub use package_manager::{
+    GrantSet, InstallRecord, PackageActivator, PackageLifecycle, PackageManagerError,
+    PluginPackageManager, StageState, StorageMigration,
 };
 pub use registry::{PluginRegistry, RegistryError};
 pub use runner_client::{RunnerClient, RunnerError};

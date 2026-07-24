@@ -14,6 +14,7 @@ fn manifest(capabilities: &[&str]) -> PluginManifestV2 {
         publisher: "Example Developer".into(),
         runtime: RuntimeKind::Wasm,
         entrypoint: "payload/main.wasm".into(),
+        storage_schema: 1,
         capabilities: capabilities.iter().map(|value| (*value).into()).collect(),
         trust: None,
     }

@@ -48,6 +48,7 @@ fn manifest(
             RuntimeKind::Mcp => "payload/server",
         }
         .into(),
+        storage_schema: 1,
         capabilities: capabilities.iter().map(|value| (*value).into()).collect(),
         trust,
     }

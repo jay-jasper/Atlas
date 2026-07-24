@@ -13,6 +13,7 @@ thiserror = "2"
 toml = "0.8"
 unicode-normalization = "0.1"
 zip = { version = "2", default-features = false, features = ["deflate"] }
+walkdir = "2"
 
 [dev-dependencies]
 tempfile = "3"

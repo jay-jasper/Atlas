@@ -240,6 +240,28 @@ fn twenty_plugins_launch_without_a_global_dispatch_lock() {
     }
 }
 
+#[test]
+fn package_migration_freezes_new_writes_until_activation_finishes() {
+    let launcher = Arc::new(FakeLauncher::new());
+    let supervisor = PluginSupervisor::new(launcher, Arc::new(TestClock::default()));
+    supervisor
+        .activate_generation(package("dev.example.freeze", "1.0.0"))
+        .unwrap();
+    supervisor
+        .start_command(invocation("dev.example.freeze", "writer", false))
+        .unwrap();
+
+    supervisor.freeze_writes("dev.example.freeze").unwrap();
+    assert!(matches!(
+        supervisor.mark_write_started("dev.example.freeze", "writer"),
+        Err(SupervisorError::WritesFrozen)
+    ));
+    supervisor.unfreeze_writes("dev.example.freeze").unwrap();
+    supervisor
+        .mark_write_started("dev.example.freeze", "writer")
+        .unwrap();
+}
+
 fn package(plugin_id: &str, version: &str) -> Arc<VerifiedPackage> {
     let manifest = PluginManifestV2 {
         manifest_version: 2,
@@ -249,6 +271,7 @@ fn package(plugin_id: &str, version: &str) -> Arc<VerifiedPackage> {
         publisher: "Example".into(),
         runtime: RuntimeKind::Wasm,
         entrypoint: "payload/main.wasm".into(),
+        storage_schema: 1,
         capabilities: vec![],
         trust: None,
     };
