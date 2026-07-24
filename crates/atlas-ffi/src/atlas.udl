@@ -87,12 +87,14 @@ dictionary PluginHostEvent {
 dictionary PluginStatusRecord {
     string plugin_id;
     string version;
+    u64 updated_at_unix_seconds;
     string publisher;
     string package_root;
     string trust_tier;
     sequence<string> granted_capabilities;
     sequence<string> denied_capabilities;
     boolean observing_update;
+    string catalog_json;
 };
 
 dictionary PluginDiagnosticRecord {

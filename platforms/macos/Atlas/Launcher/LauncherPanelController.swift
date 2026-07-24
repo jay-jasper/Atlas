@@ -277,6 +277,12 @@ final class LauncherPanelController {
                 verticalStep: max(columns, 1),
                 supportsHorizontalNavigation: true
             )
+        case .pluginStore(_, let store):
+            return SelectionContext(
+                items: store.launcherItems(matching: nav.query),
+                verticalStep: 1,
+                supportsHorizontalNavigation: false
+            )
         case .detail, .legacy:
             return SelectionContext(items: [], verticalStep: 1, supportsHorizontalNavigation: false)
         }

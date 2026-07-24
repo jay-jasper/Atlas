@@ -120,7 +120,7 @@ impl Builder {
             serde_json::from_slice(&std::fs::read(source.join("package.json"))?)?;
         let normalized = normalize_manifest(&package)?;
         let mut commands = Vec::new();
-        let mut capabilities = BTreeSet::new();
+        let mut capabilities = normalized.capabilities.clone();
         for command in normalized.commands.values() {
             let entrypoint = resolve_entrypoint(source, &command.name)?;
             let analysis: SourceAnalysis = analyze_project(&entrypoint, source)?;
@@ -133,7 +133,9 @@ impl Builder {
                     "unsupported APIs are present".into(),
                 ));
             }
-            capabilities.extend(analysis.capabilities);
+            capabilities.extend(analysis.capabilities.into_iter().filter(|capability| {
+                !is_webview_only_domain(capability, &normalized.capabilities)
+            }));
             commands.push((command.name.clone(), entrypoint, command.mode));
         }
         let current = std::env::current_dir()?;
@@ -165,6 +167,7 @@ impl Builder {
             .first()
             .map(|(path, _)| path.clone())
             .ok_or_else(|| BuilderError::Manifest("command required".into()))?;
+        let catalog = normalized.catalog();
         let bytes = package::create_package(package::PackageInput {
             id: &normalized.id,
             name: &normalized.name,
@@ -172,12 +175,14 @@ impl Builder {
             publisher: &normalized.publisher,
             entrypoint: &archive_entry,
             capabilities: &capabilities,
+            catalog: &catalog,
             bundles,
             source_map,
         })?;
         let mut files = BTreeSet::from([
             "plugin.toml".into(),
             "permissions.json".into(),
+            "catalog.json".into(),
             "integrity.json".into(),
         ]);
         files.extend(
@@ -197,10 +202,27 @@ impl Builder {
     }
 }
 
+fn is_webview_only_domain(capability: &str, declared: &BTreeSet<String>) -> bool {
+    let Some(host) = capability.strip_prefix("network.https:") else {
+        return false;
+    };
+    let webview_declared = declared
+        .iter()
+        .filter_map(|grant| grant.strip_prefix("ui.webview:"))
+        .any(|allowed| host == allowed || host.ends_with(&format!(".{allowed}")));
+    let network_declared = declared
+        .iter()
+        .filter_map(|grant| grant.strip_prefix("network.https:"))
+        .any(|allowed| host == allowed || host.ends_with(&format!(".{allowed}")));
+    webview_declared && !network_declared
+}
+
 fn resolve_entrypoint(source: &Path, command: &str) -> Result<PathBuf, BuilderError> {
     ["tsx", "ts", "jsx", "js"]
         .into_iter()
         .map(|extension| source.join("src").join(format!("{command}.{extension}")))
         .find(|path| path.is_file())
+        .map(|path| path.canonicalize())
+        .transpose()?
         .ok_or_else(|| BuilderError::Manifest(format!("missing entrypoint src/{command}.tsx")))
 }

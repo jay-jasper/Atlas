@@ -3,7 +3,7 @@ import type { ReactElement } from "react";
 export type UiNodeKind =
   | "vstack" | "hstack" | "section" | "list" | "list-item" | "detail"
   | "form" | "action-panel" | "action" | "navigation" | "spacer" | "text"
-  | "image" | "code" | "progress" | "button" | "text-field" | "toggle" | "slider";
+  | "image" | "web-view" | "code" | "progress" | "button" | "text-field" | "toggle" | "slider";
 
 export interface UiNode {
   kind: UiNodeKind;

@@ -14,4 +14,5 @@ export * from "./components/Detail.js";
 export * from "./components/Form.js";
 export * from "./components/ActionPanel.js";
 export * from "./components/MenuBarExtra.js";
+export * from "./components/WebView.js";
 export * from "./components/primitives.js";

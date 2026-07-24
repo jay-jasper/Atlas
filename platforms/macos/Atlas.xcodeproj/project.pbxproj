@@ -20,6 +20,7 @@
 		03C6C92641A451444B85C540 /* LauncherSectionBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC382F89FF074E8874F46890 /* LauncherSectionBuilderTests.swift */; };
 		040D736E59FDB0BAC19716A2 /* TextExpansionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B71563E0BF0B7DF25698C8C /* TextExpansionEngine.swift */; };
 		053DD2F5BB0CBB8028537DCD /* SnippetExpansionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ECC5D48A9797EE0014E6E4C /* SnippetExpansionService.swift */; };
+		05CA0F88856251F7CA5DDD94 /* PluginStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EE3BCAAF15A5455295D09DA /* PluginStoreTests.swift */; };
 		067EF3A35193B3AB2206002B /* WorkspaceModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA8F6938F5D0755BE9AC383 /* WorkspaceModelsTests.swift */; };
 		06B86DAEF0196F955D91867D /* Phase1ProvidersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F5E6CC62BF91B392AEA527 /* Phase1ProvidersTests.swift */; };
 		06D1A004D9AD482F0C2F412E /* RecordingTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88CBD52E6E389E284552F69D /* RecordingTimeline.swift */; };
@@ -276,6 +277,7 @@
 		7F71267C962727483D1C6681 /* SkillPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A059410C2A9AEA0A2B33267 /* SkillPanel.swift */; };
 		7FF82D75C0E538487DF65C53 /* TOTPTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7204F89F824E918275D8673 /* TOTPTests.swift */; };
 		808A6B4EB63DDA13F9EB362C /* CommandUsageStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 314B642DBE2B0B6CA4276880 /* CommandUsageStoreTests.swift */; };
+		81029ECD510EA89F7F99D980 /* PluginStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 241293E2186343871F2C0B8F /* PluginStore.swift */; };
 		8110C085B15D7D20983831AE /* ProviderIcon-vertexai.svg in Resources */ = {isa = PBXBuildFile; fileRef = FEB7595FF19D9E556FF31A28 /* ProviderIcon-vertexai.svg */; };
 		813C29A119C87B1974A5469E /* ProxyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 673D3F40DC3DF98FBE3C565C /* ProxyTests.swift */; };
 		815328920EA34A4F104A5409 /* AtlasPaletteScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE4AC85F37B2116C5AC2A8A8 /* AtlasPaletteScreen.swift */; };
@@ -737,6 +739,7 @@
 		22A44260F6FC0C2D4643BD94 /* ScratchpadSummaryServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ScratchpadSummaryServiceTests.swift; path = ScratchpadSummaryServiceTests.swift; sourceTree = "<group>"; };
 		22D92B79173885B97F04FE5D /* PluginsPanel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PluginsPanel.swift; sourceTree = "<group>"; };
 		235B33D76035119B9C0C8391 /* LauncherAdapterTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LauncherAdapterTests.swift; sourceTree = "<group>"; };
+		241293E2186343871F2C0B8F /* PluginStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PluginStore.swift; sourceTree = "<group>"; };
 		24CBC7B224EC0A0BB1539D46 /* WindowSwitcherTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WindowSwitcherTests.swift; sourceTree = "<group>"; };
 		24E25FECF18A7F3CCDE9A68E /* WindowGridPanelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WindowGridPanelTests.swift; sourceTree = "<group>"; };
 		252F2FD5229D5621736092CD /* PrivacyPulseReporterTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrivacyPulseReporterTests.swift; sourceTree = "<group>"; };
@@ -793,6 +796,7 @@
 		3DFF4B37A27DDA79EE5C6E21 /* ShellTabTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShellTabTests.swift; sourceTree = "<group>"; };
 		3E712287847C2334A1C1A926 /* TOTPGenerator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TOTPGenerator.swift; sourceTree = "<group>"; };
 		3ED3D965FF832561E003F97F /* TranscriptionService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TranscriptionService.swift; sourceTree = "<group>"; };
+		3EE3BCAAF15A5455295D09DA /* PluginStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PluginStoreTests.swift; sourceTree = "<group>"; };
 		3F03CDAED822D75EC1A1F518 /* LunarCalendar.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LunarCalendar.swift; sourceTree = "<group>"; };
 		3FA1FBC43960A6D118919AD7 /* SubtitleDocumentTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubtitleDocumentTests.swift; sourceTree = "<group>"; };
 		3FF19B7C6244F59198F88AA2 /* TokenBarConfigurationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenBarConfigurationTests.swift; sourceTree = "<group>"; };
@@ -2200,6 +2204,7 @@
 				4D8394CB0CCEE16903C9657F /* PluginDiagnosticsTests.swift */,
 				F63AFF96BE4D0A0F209645A6 /* RaycastPluginRuntimeTests.swift */,
 				C8D9DA99F633EFEBFE591605 /* PluginImportBoundaryTests.swift */,
+				3EE3BCAAF15A5455295D09DA /* PluginStoreTests.swift */,
 			);
 			path = AtlasTests;
 			sourceTree = "<group>";
@@ -2359,6 +2364,7 @@
 				BA2395B1D3CC4A1D4FC7F3D5 /* MenuBarItemSource.swift */,
 				D892E17D71DE168EF3A07ED9 /* LauncherBackgroundView.swift */,
 				371543CD036117307A90D780 /* Search */,
+				241293E2186343871F2C0B8F /* PluginStore.swift */,
 			);
 			name = Launcher;
 			path = Launcher;
@@ -3233,6 +3239,7 @@
 				49C2FD54FA919A0C1770A81E /* DeveloperModeSettings.swift in Sources */,
 				EC67B6FDC41F33ABE8B9D05C /* PluginDiagnosticsView.swift in Sources */,
 				E9A27BFCD3DF41013868A584 /* PluginSourceImporter.swift in Sources */,
+				81029ECD510EA89F7F99D980 /* PluginStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3420,6 +3427,7 @@
 				D9D9A96D35B2ED6EBC349136 /* PluginDiagnosticsTests.swift in Sources */,
 				7B00DFA0EE4B9B4504160BFB /* RaycastPluginRuntimeTests.swift in Sources */,
 				8E40B2CF475FCC5C94A73082 /* PluginImportBoundaryTests.swift in Sources */,
+				05CA0F88856251F7CA5DDD94 /* PluginStoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { createAtlasRoot, type UiNode, type UiPatch } from "../src/index.js";
 
@@ -32,6 +32,37 @@ describe("Atlas React renderer", () => {
     expect(action).toHaveBeenCalledOnce();
     expect(sink.closed).toBe(true);
   });
+
+  it("publishes state changes caused by a UI event", () => {
+    function Switcher() {
+      const [url, setUrl] = useState("https://chatgpt.com/");
+      return (
+        <vstack id="root">
+          <button id="gemini" action="gemini" onAction={() => setUrl("https://gemini.google.com/")} />
+          <atlas-web-view
+            id="browser"
+            url={url}
+            allowed_hosts={["chatgpt.com", "google.com"]}
+          />
+        </vstack>
+      );
+    }
+    const sink = new Sink();
+    const root = createAtlasRoot(sink);
+    root.render(<Switcher />);
+    root.dispatch({ kind: "button-click", action: "gemini" });
+
+    expect(sink.patches).toEqual([{
+      kind: "replace-node",
+      id: "browser",
+      node: {
+        kind: "web-view",
+        id: "browser",
+        url: "https://gemini.google.com/",
+        allowed_hosts: ["chatgpt.com", "google.com"],
+      },
+    }]);
+  });
 });
 
 declare module "react" {
@@ -39,6 +70,8 @@ declare module "react" {
     interface IntrinsicElements {
       text: Record<string, unknown>;
       button: Record<string, unknown>;
+      vstack: Record<string, unknown>;
+      "atlas-web-view": Record<string, unknown>;
     }
   }
 }

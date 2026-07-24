@@ -1,0 +1,102 @@
+{
+  "name": "com.atlas.ai-web-hub",
+  "title": "AI Web Hub",
+  "description": "Switch between the official ChatGPT, Grok, and Gemini web apps.",
+  "aliases": [
+    "ai hub",
+    "ai web",
+    "chatgpt",
+    "gpt",
+    "grok",
+    "gemini",
+    "大模型",
+    "AI 助手",
+    "人工智能"
+  ],
+  "localizations": {
+    "zh-Hans": {
+      "title": "AI 网页助手",
+      "description": "在一个独立窗口中快速切换 ChatGPT、Grok 和 Gemini 官方网页版。",
+      "aliases": ["AI助手", "网页AI", "聊天机器人", "大模型助手"]
+    },
+    "zh-Hant": {
+      "title": "AI 網頁助手",
+      "description": "在獨立視窗中快速切換 ChatGPT、Grok 和 Gemini 官方網頁版。",
+      "aliases": ["AI助手", "網頁AI", "聊天機器人"]
+    }
+  },
+  "version": "1.2.0",
+  "author": "Atlas",
+  "capabilities": [
+    "ui.webview:chatgpt.com",
+    "ui.webview:openai.com",
+    "ui.webview:grok.com",
+    "ui.webview:x.ai",
+    "ui.webview:x.com",
+    "ui.webview:twitter.com",
+    "ui.webview:google.com"
+  ],
+  "commands": [
+    {
+      "name": "chatgpt",
+      "title": "Open ChatGPT",
+      "description": "Open the official ChatGPT web app",
+      "aliases": ["chat gpt", "gpt", "openai"],
+      "localizations": {
+        "zh-Hans": {
+          "title": "打开 ChatGPT 网页",
+          "description": "在独立插件窗口中打开 ChatGPT 官方网页版。",
+          "aliases": ["打开GPT", "GPT网页", "ChatGPT助手"]
+        },
+        "zh-Hant": {
+          "title": "開啟 ChatGPT 網頁",
+          "description": "在獨立插件視窗中開啟 ChatGPT 官方網頁版。",
+          "aliases": ["開啟GPT", "GPT網頁", "ChatGPT助手"]
+        }
+      },
+      "mode": "view"
+    },
+    {
+      "name": "grok",
+      "title": "Open Grok",
+      "description": "Open the official Grok web app",
+      "aliases": ["x ai", "xai", "grok ai"],
+      "localizations": {
+        "zh-Hans": {
+          "title": "打开 Grok 网页",
+          "description": "在独立插件窗口中打开 Grok 官方网页版。",
+          "aliases": ["打开Grok", "Grok网页", "X人工智能"]
+        },
+        "zh-Hant": {
+          "title": "開啟 Grok 網頁",
+          "description": "在獨立插件視窗中開啟 Grok 官方網頁版。",
+          "aliases": ["開啟Grok", "Grok網頁", "X人工智慧"]
+        }
+      },
+      "mode": "view"
+    },
+    {
+      "name": "gemini",
+      "title": "Open Gemini",
+      "description": "Open the official Google Gemini web app",
+      "aliases": ["google ai", "bard", "gemini ai"],
+      "localizations": {
+        "zh-Hans": {
+          "title": "打开 Gemini 网页",
+          "description": "在独立插件窗口中打开 Google Gemini 官方网页版。",
+          "aliases": ["打开Gemini", "谷歌AI", "Gemini网页"]
+        },
+        "zh-Hant": {
+          "title": "開啟 Gemini 網頁",
+          "description": "在獨立插件視窗中開啟 Google Gemini 官方網頁版。",
+          "aliases": ["開啟Gemini", "Google AI", "Gemini網頁"]
+        }
+      },
+      "mode": "view"
+    }
+  ],
+  "dependencies": {
+    "@atlas/api": "workspace:*",
+    "react": "19.2.4"
+  }
+}

@@ -84,6 +84,76 @@ final class PluginPlatformServiceTests: XCTestCase {
         XCTAssertNil(service.lastError)
     }
 
+    func testPluginCommandsResolveLocaleAndMatchAliases() throws {
+        let runtime = FakePluginPlatformRuntime()
+        runtime.statusRecords = [
+            PluginStatusRecord(
+                pluginId: "dev.example.ai",
+                version: "1.0.0",
+                updatedAtUnixSeconds: 1_721_779_200,
+                publisher: "Example",
+                packageRoot: "abc",
+                trustTier: "sideloaded",
+                grantedCapabilities: [],
+                deniedCapabilities: [],
+                observingUpdate: false,
+                catalogJson: """
+                {
+                  "title":"AI Web Hub",
+                  "description":"Default description",
+                  "aliases":["chatgpt"],
+                  "localizations":{
+                    "zh-Hans":{
+                      "title":"AI 网页助手",
+                      "description":"中文描述",
+                      "aliases":["大模型助手"]
+                    }
+                  },
+                  "commands":[{
+                    "id":"main",
+                    "title":"Open",
+                    "description":"Launch",
+                    "aliases":["grok"],
+                    "localizations":{
+                      "zh-Hans":{
+                        "title":"打开 AI",
+                        "description":"启动插件",
+                        "aliases":["切换AI"]
+                      }
+                    }
+                  }]
+                }
+                """
+            ),
+        ]
+        let service = PluginPlatformService(runtime: runtime)
+        let provider = PluginCommandProvider(service: service, preferredLanguages: { ["zh-Hans-CN"] })
+        let status = try XCTUnwrap(runtime.statusRecords.first)
+
+        let localized = try XCTUnwrap(provider.results(for: "大模型").first)
+        XCTAssertEqual(localized.title, "打开 AI")
+        XCTAssertEqual(localized.subtitle, "启动插件")
+        XCTAssertEqual(
+            status.resolvedCatalog(preferredLanguages: ["zh-Hans-CN"]).title,
+            "AI 网页助手"
+        )
+        XCTAssertTrue(status.matchesCatalogQuery("中文描述", preferredLanguages: ["zh-Hans-CN"]))
+        XCTAssertTrue(status.matchesCatalogQuery("大模型助手", preferredLanguages: ["en-US"]))
+        XCTAssertFalse(provider.results(for: "切换AI").isEmpty)
+        let crossLanguageProvider = PluginCommandProvider(
+            service: service,
+            preferredLanguages: { ["en-US"] }
+        )
+        XCTAssertFalse(crossLanguageProvider.results(for: "切换AI").isEmpty)
+
+        guard case .execute(let action) = localized.action else {
+            return XCTFail("expected executable plugin command")
+        }
+        action()
+        XCTAssertEqual(runtime.lastStartedPluginID, "dev.example.ai")
+        XCTAssertEqual(runtime.lastStartedCommandID, "main")
+    }
+
     private func event(
         kind: PluginHostEventKind,
         pluginID: String,
@@ -109,13 +179,20 @@ private final class FakePluginPlatformRuntime: PluginPlatformRuntime, @unchecked
     var lastEventPluginID: String?
     var lastEventInstanceID: String?
     var lastEventJSON: String?
+    var statusRecords: [PluginStatusRecord] = []
+    var lastStartedPluginID: String?
+    var lastStartedCommandID: String?
 
     func start(callback: any PluginPlatformCallback) throws { self.callback = callback }
     func stage(package: Data) throws -> PluginStageResult { throw TestError.unsupported }
     func apply(stageID: String, grants: [PluginCapabilityGrant]) throws {}
-    func statuses() throws -> [PluginStatusRecord] { [] }
+    func statuses() throws -> [PluginStatusRecord] { statusRecords }
     func diagnostics(pluginID: String) throws -> PluginDiagnosticRecord { throw TestError.unsupported }
-    func startCommand(pluginID: String, commandID: String, argumentsJSON: String) throws -> String { "instance" }
+    func startCommand(pluginID: String, commandID: String, argumentsJSON: String) throws -> String {
+        lastStartedPluginID = pluginID
+        lastStartedCommandID = commandID
+        return "instance"
+    }
 
     func sendEvent(pluginID: String, instanceID: String, eventJSON: String) throws {
         lastEventPluginID = pluginID

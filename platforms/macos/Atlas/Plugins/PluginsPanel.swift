@@ -41,7 +41,7 @@ struct PluginsPanel: View {
                     }
                     Spacer()
                     Button("Run") {
-                        platform.startCommand(pluginID: status.pluginId, commandID: "main")
+                        platform.startDefaultCommand(pluginID: status.pluginId)
                     }
                     Button(role: .destructive) {
                         platform.uninstall(pluginID: status.pluginId)
@@ -50,21 +50,6 @@ struct PluginsPanel: View {
                     }
                     .buttonStyle(.plain)
                 }
-            }
-
-            ForEach(platform.sessions.values.sorted { $0.id < $1.id }) { session in
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text(session.title).font(.headline)
-                        Spacer()
-                        Button("Close") { platform.cancel(sessionID: session.id) }
-                    }
-                    DynamicPluginView(node: session.root) {
-                        platform.send($0, sessionID: session.id)
-                    }
-                }
-                .padding(8)
-                .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 6))
             }
 
             if service.plugins.isEmpty {

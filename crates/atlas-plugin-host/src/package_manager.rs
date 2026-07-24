@@ -38,12 +38,14 @@ pub struct InstallRecord {
 pub struct ManagedPluginStatus {
     pub plugin_id: String,
     pub version: String,
+    pub updated_at_unix_seconds: u64,
     pub publisher: String,
     pub package_root: PackageRoot,
     pub trust_tier: String,
     pub granted_capabilities: Vec<String>,
     pub denied_capabilities: Vec<String>,
     pub observing_update: bool,
+    pub catalog_json: String,
 }
 
 pub trait PackageActivator: Send + Sync {
@@ -367,6 +369,16 @@ impl PluginPackageManager {
             .map(|record| {
                 let version = version(record, record.active)?;
                 let package = package(&state, record.active)?;
+                let updated_at_unix_seconds = fs::metadata(self.package_path(record.active))
+                    .ok()
+                    .and_then(|metadata| metadata.modified().ok())
+                    .and_then(|modified| {
+                        modified
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .ok()
+                            .map(|duration| duration.as_secs())
+                    })
+                    .unwrap_or_default();
                 let granted_capabilities = version.grants.iter().cloned().collect::<Vec<_>>();
                 let denied_capabilities = version
                     .capabilities
@@ -376,6 +388,7 @@ impl PluginPackageManager {
                 Ok(ManagedPluginStatus {
                     plugin_id: record.identity.plugin_id.clone(),
                     version: version.version.clone(),
+                    updated_at_unix_seconds,
                     publisher: record.identity.publisher.clone(),
                     package_root: record.active,
                     trust_tier: match package.trust_tier() {
@@ -389,6 +402,8 @@ impl PluginPackageManager {
                     granted_capabilities,
                     denied_capabilities,
                     observing_update: record.observation.is_some(),
+                    catalog_json: serde_json::to_string(package.catalog())
+                        .expect("plugin catalog serialization is infallible"),
                 })
             })
             .collect::<Result<Vec<_>, PackageManagerError>>()?;

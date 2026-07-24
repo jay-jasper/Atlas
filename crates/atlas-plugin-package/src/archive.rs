@@ -1,8 +1,8 @@
 use crate::integrity::hex_encode;
 use crate::{
     canonical_package_root, canonical_signature_payload, sha256_digest, IntegrityDocument,
-    PackageError, PackageRoot, PluginManifestV2, RuntimeKind, SignatureDocument, TrustTier,
-    TrustedKeyStore,
+    PackageError, PackageRoot, PluginCatalog, PluginManifestV2, RuntimeKind, SignatureDocument,
+    TrustTier, TrustedKeyStore,
 };
 use ed25519_dalek::{Signature, Verifier};
 use std::collections::{BTreeMap, HashSet};
@@ -11,6 +11,7 @@ use std::path::Path;
 use unicode_normalization::UnicodeNormalization;
 
 const MANIFEST_PATH: &str = "plugin.toml";
+const CATALOG_PATH: &str = "catalog.json";
 const PERMISSIONS_PATH: &str = "permissions.json";
 const INTEGRITY_PATH: &str = "integrity.json";
 const SIGNATURE_PATH: &str = "signature.json";
@@ -60,6 +61,7 @@ impl VerifiedFile {
 pub struct VerifiedPackage {
     root: PackageRoot,
     manifest: PluginManifestV2,
+    catalog: PluginCatalog,
     trust: TrustTier,
     files: Vec<VerifiedFile>,
     managed_directory: Option<std::path::PathBuf>,
@@ -72,6 +74,10 @@ impl VerifiedPackage {
 
     pub fn manifest(&self) -> &PluginManifestV2 {
         &self.manifest
+    }
+
+    pub fn catalog(&self) -> &PluginCatalog {
+        &self.catalog
     }
 
     pub fn plugin_id(&self) -> &str {
@@ -167,7 +173,7 @@ pub fn verify_authenticated_directory(
     expected_plugin_id: &str,
 ) -> Result<VerifiedPackage, PackageError> {
     let files = read_directory_files(directory, limits)?;
-    let (manifest, root) = validate_package_files(&files)?;
+    let (manifest, catalog, root) = validate_package_files(&files)?;
     if root != expected_root {
         return Err(PackageError::RootMismatch);
     }
@@ -180,6 +186,7 @@ pub fn verify_authenticated_directory(
     build_verified(
         files,
         manifest,
+        catalog,
         root,
         trust,
         Some(
@@ -255,15 +262,15 @@ fn verify_files(
     trusted_keys: &TrustedKeyStore,
     managed_directory: Option<std::path::PathBuf>,
 ) -> Result<VerifiedPackage, PackageError> {
-    let (manifest, root) = validate_package_files(&files)?;
+    let (manifest, catalog, root) = validate_package_files(&files)?;
     let trust = verify_trust(&files, root, &manifest, trusted_keys)?;
     validate_runtime_trust(manifest.runtime, trust)?;
-    build_verified(files, manifest, root, trust, managed_directory)
+    build_verified(files, manifest, catalog, root, trust, managed_directory)
 }
 
 fn validate_package_files(
     files: &BTreeMap<String, Vec<u8>>,
-) -> Result<(PluginManifestV2, PackageRoot), PackageError> {
+) -> Result<(PluginManifestV2, PluginCatalog, PackageRoot), PackageError> {
     let manifest_bytes = required(files, MANIFEST_PATH)?;
     let manifest: PluginManifestV2 = toml::from_str(
         std::str::from_utf8(manifest_bytes)
@@ -271,6 +278,15 @@ fn validate_package_files(
     )
     .map_err(|error| PackageError::Manifest(error.to_string()))?;
     validate_manifest(&manifest)?;
+    let catalog = files
+        .get(CATALOG_PATH)
+        .map(|bytes| {
+            serde_json::from_slice::<PluginCatalog>(bytes)
+                .map_err(|error| PackageError::Catalog(error.to_string()))
+        })
+        .transpose()?
+        .unwrap_or_default();
+    validate_catalog(&catalog)?;
 
     let integrity: IntegrityDocument = serde_json::from_slice(required(files, INTEGRITY_PATH)?)
         .map_err(|error| PackageError::Integrity(error.to_string()))?;
@@ -286,12 +302,13 @@ fn validate_package_files(
         return Err(PackageError::MissingEntrypoint(manifest.entrypoint.clone()));
     }
 
-    Ok((manifest, root))
+    Ok((manifest, catalog, root))
 }
 
 fn build_verified(
     files: BTreeMap<String, Vec<u8>>,
     manifest: PluginManifestV2,
+    catalog: PluginCatalog,
     root: PackageRoot,
     trust: TrustTier,
     managed_directory: Option<std::path::PathBuf>,
@@ -307,10 +324,83 @@ fn build_verified(
     Ok(VerifiedPackage {
         root,
         manifest,
+        catalog,
         trust,
         files: verified_files,
         managed_directory,
     })
+}
+
+fn validate_catalog(catalog: &PluginCatalog) -> Result<(), PackageError> {
+    if catalog.title.len() > 512
+        || catalog.description.len() > 8_192
+        || catalog.aliases.len() > 128
+        || catalog.localizations.len() > 64
+        || catalog.commands.len() > 256
+    {
+        return Err(PackageError::Catalog(
+            "catalog exceeds metadata limits".into(),
+        ));
+    }
+    validate_aliases(&catalog.aliases)?;
+    for (locale, localization) in &catalog.localizations {
+        if locale.is_empty()
+            || locale.len() > 64
+            || localization
+                .title
+                .as_ref()
+                .is_some_and(|value| value.len() > 512)
+            || localization
+                .description
+                .as_ref()
+                .is_some_and(|value| value.len() > 8_192)
+        {
+            return Err(PackageError::Catalog("invalid localized metadata".into()));
+        }
+        validate_aliases(&localization.aliases)?;
+    }
+    for command in &catalog.commands {
+        if command.id.is_empty()
+            || command.id.len() > 256
+            || command.title.is_empty()
+            || command.title.len() > 512
+            || command.description.len() > 8_192
+            || command.localizations.len() > 64
+        {
+            return Err(PackageError::Catalog("invalid command metadata".into()));
+        }
+        validate_aliases(&command.aliases)?;
+        for (locale, localization) in &command.localizations {
+            if locale.is_empty()
+                || locale.len() > 64
+                || localization
+                    .title
+                    .as_ref()
+                    .is_some_and(|value| value.len() > 512)
+                || localization
+                    .description
+                    .as_ref()
+                    .is_some_and(|value| value.len() > 8_192)
+            {
+                return Err(PackageError::Catalog(
+                    "invalid localized command metadata".into(),
+                ));
+            }
+            validate_aliases(&localization.aliases)?;
+        }
+    }
+    Ok(())
+}
+
+fn validate_aliases(aliases: &[String]) -> Result<(), PackageError> {
+    if aliases.len() > 128
+        || aliases
+            .iter()
+            .any(|alias| alias.is_empty() || alias.len() > 256 || alias.contains('\0'))
+    {
+        return Err(PackageError::Catalog("invalid aliases".into()));
+    }
+    Ok(())
 }
 
 fn normalize_path(raw: &str) -> Result<String, PackageError> {

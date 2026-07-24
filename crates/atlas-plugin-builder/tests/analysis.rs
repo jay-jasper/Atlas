@@ -10,6 +10,9 @@ fn infers_capabilities_domains_and_rejects_node_io() {
     assert!(report.capabilities.contains("clipboard.read"));
     assert_eq!(report.api_usage[0].symbol, "Clipboard");
     assert!(report.domains.contains("api.example.com"));
+    assert!(report
+        .capabilities
+        .contains("network.https:api.example.com"));
     let error =
         analyze_source(r#"import fs from "node:fs";"#, Path::new("src/main.ts")).unwrap_err();
     assert_eq!(error.code(), "node-builtin-denied");

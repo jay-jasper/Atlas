@@ -63,6 +63,22 @@ export function createAtlasRoot(sink: UiSink): AtlasRoot {
   let current: UiNode | undefined;
   let closed = false;
 
+  const publish = () => {
+    const activeRenderer = renderer;
+    if (!activeRenderer) throw new Error("React renderer failed to initialize");
+    const json = activeRenderer.toJSON();
+    if (!json || Array.isArray(json) || typeof json === "string") {
+      throw new Error("Atlas plugins must render exactly one root node");
+    }
+    const next = jsonToUiNode(json);
+    if (!current) sink.open(next);
+    else {
+      const patches = diff(current, next);
+      if (patches.length > 0) sink.patch(patches);
+    }
+    current = next;
+  };
+
   return {
     render(element) {
       if (closed) throw new Error("Atlas root is unmounted");
@@ -71,19 +87,7 @@ export function createAtlasRoot(sink: UiSink): AtlasRoot {
           if (renderer) renderer.update(element);
           else renderer = create(element);
         });
-        const activeRenderer = renderer;
-        if (!activeRenderer) throw new Error("React renderer failed to initialize");
-        const json = activeRenderer.toJSON();
-        if (!json || Array.isArray(json) || typeof json === "string") {
-          throw new Error("Atlas plugins must render exactly one root node");
-        }
-        const next = jsonToUiNode(json);
-        if (!current) sink.open(next);
-        else {
-          const patches = diff(current, next);
-          if (patches.length > 0) sink.patch(patches);
-        }
-        current = next;
+        publish();
       } catch (cause) {
         const error = cause instanceof Error ? cause : new Error(String(cause));
         sink.error?.(error);
@@ -95,6 +99,7 @@ export function createAtlasRoot(sink: UiSink): AtlasRoot {
       const handler = findHandler(renderer.root, event);
       if (!handler) throw new Error(`No handler registered for ${JSON.stringify(event)}`);
       act(handler);
+      publish();
     },
     snapshot: () => current,
     unmount() {

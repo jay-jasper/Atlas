@@ -11,6 +11,7 @@
 .DS_Store
 **/xcuserdata/
 .code-review-graph/
+.codegraph/
 .tmp/
 
 # brainstorming visual-companion scratch

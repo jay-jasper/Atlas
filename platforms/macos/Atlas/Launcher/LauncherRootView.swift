@@ -158,7 +158,7 @@ struct LauncherRootView: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
             }
-            TextField(nav.stack.isEmpty ? "Search Atlas…" : "Filter…", text: $nav.query)
+            TextField(searchPlaceholder, text: $nav.query)
                 .textFieldStyle(.plain)
                 .font(.system(size: style.fontSize + 3))
                 .focused($isSearchFocused)
@@ -277,9 +277,20 @@ struct LauncherRootView: View {
         case .list(_, let items), .grid(_, _, let items):
             let filtered = LauncherPageView.filter(items(), query: nav.query)
             return filtered.indices.contains(nav.selectedIndex) ? filtered[nav.selectedIndex] : nil
+        case .pluginStore(_, let store):
+            let filtered = store.launcherItems(matching: nav.query)
+            return filtered.indices.contains(nav.selectedIndex) ? filtered[nav.selectedIndex] : nil
         case .detail, .legacy:
             return nil
         }
+    }
+
+    private var searchPlaceholder: String {
+        guard let page = nav.currentPage else { return "Search Atlas…" }
+        if case .pluginStore = page {
+            return loc("在商店中搜索扩展…", "Search Store for Extensions…")
+        }
+        return "Filter…"
     }
 
     // MARK: Footer

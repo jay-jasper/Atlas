@@ -92,6 +92,10 @@ pub enum UiNode {
         id: NodeId,
         title: String,
         action: NodeId,
+        #[serde(default)]
+        icon: Option<String>,
+        #[serde(default)]
+        selected: Option<bool>,
     },
     Navigation {
         #[serde(default)]
@@ -112,6 +116,17 @@ pub enum UiNode {
         #[serde(default)]
         id: NodeId,
         url: String,
+    },
+    WebView {
+        #[serde(default)]
+        id: NodeId,
+        url: String,
+        #[serde(default)]
+        allowed_hosts: Vec<String>,
+        #[serde(default)]
+        profile: String,
+        #[serde(default)]
+        persistent: bool,
     },
     Code {
         #[serde(default)]
@@ -182,6 +197,7 @@ impl UiNode {
             | Self::Spacer { id }
             | Self::Text { id, .. }
             | Self::Image { id, .. }
+            | Self::WebView { id, .. }
             | Self::Code { id, .. }
             | Self::Progress { id, .. }
             | Self::Button { id, .. }
@@ -280,6 +296,7 @@ impl UiNode {
             | Self::Spacer { id }
             | Self::Text { id, .. }
             | Self::Image { id, .. }
+            | Self::WebView { id, .. }
             | Self::Code { id, .. }
             | Self::Progress { id, .. }
             | Self::Button { id, .. }
@@ -471,6 +488,12 @@ pub enum UiError {
     CannotRemoveRoot,
     #[error("image source `{0}` is not allowed")]
     InvalidImageSource(String),
+    #[error("WebView URL `{0}` must be an absolute HTTPS URL without credentials")]
+    InvalidWebViewUrl(String),
+    #[error("WebView host `{0}` is not covered by its allowlist")]
+    InvalidWebViewHost(String),
+    #[error("WebView has more than the configured {0} allowed hosts")]
+    WebViewHostsLimit(usize),
     #[error("progress value must be between 0 and 1, got {0}")]
     InvalidProgress(f64),
     #[error("slider range is invalid: min {min} >= max {max}")]
@@ -522,6 +545,38 @@ mod tests {
             .validate(),
             Err(UiError::InvalidSliderRange { min: 1.0, max: 1.0 })
         );
+        assert!(matches!(
+            UiNode::WebView {
+                id: NodeId::from("browser"),
+                url: "http://chatgpt.com/".into(),
+                allowed_hosts: vec!["chatgpt.com".into()],
+                profile: "chatgpt".into(),
+                persistent: true,
+            }
+            .validate(),
+            Err(UiError::InvalidWebViewUrl(_))
+        ));
+        assert_eq!(
+            UiNode::WebView {
+                id: NodeId::from("browser"),
+                url: "https://evil.example/".into(),
+                allowed_hosts: vec!["chatgpt.com".into()],
+                profile: "chatgpt".into(),
+                persistent: true,
+            }
+            .validate(),
+            Err(UiError::InvalidWebViewHost("evil.example".into()))
+        );
+    }
+
+    #[test]
+    fn parses_scoped_webview() {
+        let node = UiNode::parse(
+            r#"{"kind":"web-view","id":"browser","url":"https://chatgpt.com/","allowed_hosts":["chatgpt.com"],"profile":"chatgpt","persistent":true}"#,
+        )
+        .unwrap();
+        assert_eq!(node.id(), &NodeId::from("browser"));
+        assert_eq!(UiNode::parse(&node.to_json()).unwrap(), node);
     }
 
     #[test]

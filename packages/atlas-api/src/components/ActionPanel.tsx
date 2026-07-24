@@ -1,6 +1,13 @@
 import React, { type ReactNode } from "react";
 import type { KeyboardShortcut } from "./primitives.js";
-export const Action = (props: { id?: string; title: string; onAction?(): void; shortcut?: KeyboardShortcut; icon?: string }) => {
+export const Action = (props: {
+  id?: string;
+  title: string;
+  onAction?(): void;
+  shortcut?: KeyboardShortcut;
+  icon?: string;
+  selected?: boolean;
+}) => {
   const id = props.id ?? `action-${props.title.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}`;
   return <atlas-action {...props} id={id} action={id} />;
 };

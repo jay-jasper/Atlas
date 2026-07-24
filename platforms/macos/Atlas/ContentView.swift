@@ -678,9 +678,7 @@ struct ContentView: View {
     @StateObject private var nowPlayingService = NowPlayingService()
     @StateObject private var liveCaptionService = LiveCaptionService()
     @StateObject private var pluginsService = PluginsService()
-    @StateObject private var pluginPlatformService = PluginPlatformService(
-        startImmediately: DistributionPolicy.allowsExecutablePlugins
-    )
+    @StateObject private var pluginPlatformService: PluginPlatformService
     @StateObject private var notchService = NotchService()
     @StateObject private var transcriptionService = TranscriptionService()
     @StateObject private var recordingEditorService = RecordingEditorService()
@@ -760,6 +758,7 @@ struct ContentView: View {
             eventStore: PrivacyPulseAccessLogger()
         ),
         privacyAccessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger(),
+        pluginPlatformService: PluginPlatformService? = nil,
         shellMode: ShellModeModel = ShellModeModel()
     ) {
         let keepAwakeService = KeepAwakeService()
@@ -772,6 +771,11 @@ struct ContentView: View {
         self.paletteState = paletteState
         self.privacyPulseService = privacyPulseService
         self.privacyAccessLogger = privacyAccessLogger
+        _pluginPlatformService = StateObject(
+            wrappedValue: pluginPlatformService ?? PluginPlatformService(
+                startImmediately: DistributionPolicy.allowsExecutablePlugins
+            )
+        )
         self.hotkeyService = GlobalHotkeyService(accessLogger: privacyAccessLogger)
         self.shellMode = shellMode
     }

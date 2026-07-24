@@ -86,8 +86,8 @@ fn rejects_grant_that_exceeds_manifest_upper_bound() {
 }
 
 #[test]
-fn identity_tool_and_reserved_webview_are_enforced() {
-    let manifest = manifest(&["mcp.tools:create_issue", "ui.webview"]);
+fn identity_tool_and_scoped_webview_are_enforced() {
+    let manifest = manifest(&["mcp.tools:create_issue", "ui.webview:chatgpt.com"]);
     let identity = PluginIdentity::from_manifest(&manifest);
     let broker = CapabilityBroker::for_manifest(
         &manifest,
@@ -96,7 +96,10 @@ fn identity_tool_and_reserved_webview_are_enforced() {
                 CapabilityId::McpTools,
                 CapabilityTarget::Tool("create_issue".into()),
             ),
-            CapabilityGrant::new(CapabilityId::UiWebview, CapabilityTarget::Any),
+            CapabilityGrant::new(
+                CapabilityId::UiWebview,
+                CapabilityTarget::Host("chatgpt.com".into()),
+            ),
         ],
     )
     .unwrap();
@@ -107,11 +110,35 @@ fn identity_tool_and_reserved_webview_are_enforced() {
     assert!(!broker
         .authorize(&identity, &request("mcp.tools", Some("delete_repo")))
         .is_allowed());
+    assert!(broker
+        .authorize(
+            &identity,
+            &request("ui.webview", Some("https://chatgpt.com/"))
+        )
+        .is_allowed());
+    assert!(broker
+        .authorize(
+            &identity,
+            &request("ui.webview", Some("https://auth.chatgpt.com/login"))
+        )
+        .is_allowed());
     assert_eq!(
         broker
-            .authorize(&identity, &request("ui.webview", None))
+            .authorize(
+                &identity,
+                &request("ui.webview", Some("https://evil.example/"))
+            )
             .code(),
-        Some("reserved")
+        Some("target-out-of-scope")
+    );
+    assert_eq!(
+        broker
+            .authorize(
+                &identity,
+                &request("ui.webview", Some("http://chatgpt.com/"))
+            )
+            .code(),
+        Some("target-policy-denied")
     );
 
     let wrong_identity = PluginIdentity::new("dev.example.clock", "Other Publisher");

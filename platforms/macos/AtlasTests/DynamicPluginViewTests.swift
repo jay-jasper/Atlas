@@ -38,6 +38,24 @@ final class DynamicPluginViewTests: XCTestCase {
         XCTAssertEqual(node, original)
     }
 
+    func testDecodesScopedPersistentWebView() throws {
+        let node = try decode("""
+        {
+          "kind":"web-view",
+          "id":"assistant",
+          "url":"https://chatgpt.com/",
+          "allowed_hosts":["chatgpt.com","openai.com"],
+          "profile":"chatgpt",
+          "persistent":true
+        }
+        """)
+
+        XCTAssertEqual(node.kind, .webView)
+        XCTAssertEqual(node.allowedHosts, ["chatgpt.com", "openai.com"])
+        XCTAssertEqual(node.profile, "chatgpt")
+        XCTAssertTrue(node.persistent)
+    }
+
     func testPatchPreservesStableNodeIdentity() throws {
         var node = try decode("""
         {"kind":"vstack","id":"root","children":[
@@ -54,6 +72,53 @@ final class DynamicPluginViewTests: XCTestCase {
 
         XCTAssertEqual(node.children.map(\.id), ["status", "query"])
         XCTAssertEqual(node.children[0].value, .string("new"))
+    }
+
+    func testWebNavigationPolicyRestrictsTopLevelNavigationToAllowedHosts() throws {
+        let allowedHosts: Set<String> = ["chatgpt.com", "openai.com"]
+
+        XCTAssertTrue(PluginWebNavigationPolicy.permits(
+            try XCTUnwrap(URL(string: "https://chatgpt.com/")),
+            allowedHosts: allowedHosts,
+            isMainFrame: true
+        ))
+        XCTAssertTrue(PluginWebNavigationPolicy.permits(
+            try XCTUnwrap(URL(string: "https://auth.openai.com/")),
+            allowedHosts: allowedHosts,
+            isMainFrame: true
+        ))
+        XCTAssertFalse(PluginWebNavigationPolicy.permits(
+            try XCTUnwrap(URL(string: "https://example.com/")),
+            allowedHosts: allowedHosts,
+            isMainFrame: true
+        ))
+        XCTAssertFalse(PluginWebNavigationPolicy.permits(
+            try XCTUnwrap(URL(string: "data:text/html,blocked")),
+            allowedHosts: allowedHosts,
+            isMainFrame: true
+        ))
+    }
+
+    func testWebNavigationPolicyAllowsSafeProviderSubframes() throws {
+        let allowedHosts: Set<String> = ["chatgpt.com"]
+
+        for rawURL in [
+            "https://challenges.cloudflare.com/widget",
+            "about:srcdoc",
+            "blob:https://chatgpt.com/8f7a5c6f",
+            "data:text/html,embedded"
+        ] {
+            XCTAssertTrue(PluginWebNavigationPolicy.permits(
+                try XCTUnwrap(URL(string: rawURL)),
+                allowedHosts: allowedHosts,
+                isMainFrame: false
+            ), rawURL)
+        }
+        XCTAssertFalse(PluginWebNavigationPolicy.permits(
+            try XCTUnwrap(URL(string: "file:///tmp/private")),
+            allowedHosts: allowedHosts,
+            isMainFrame: false
+        ))
     }
 
     private func decode(_ json: String) throws -> DynamicPluginNode {

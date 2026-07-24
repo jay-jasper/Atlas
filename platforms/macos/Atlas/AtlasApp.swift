@@ -18,6 +18,7 @@ final class AtlasServices {
     let windowManager: AccessibilityWindowManager
     let windowPermissionChecker = AccessibilityPermissionChecker()
     let privacyPulseService: PrivacyPulseService
+    let pluginPlatformService: PluginPlatformService
     let paletteState: CommandPaletteState
     let shellMode = ShellModeModel()
     /// Single hosting controller that migrates between the popover and the main
@@ -37,7 +38,15 @@ final class AtlasServices {
         )
         AtlasBridge.captureService = AtlasCaptureService.logging(base: .live, accessLogger: logger)
         AtlasBridge.windowCaptureProvider = LoggingWindowCaptureProvider(accessLogger: logger)
-        paletteState = CommandPaletteState(windowManager: sharedWindowManager, accessLogger: logger)
+        let pluginPlatform = PluginPlatformService(
+            startImmediately: DistributionPolicy.allowsExecutablePlugins
+        )
+        pluginPlatformService = pluginPlatform
+        paletteState = CommandPaletteState(
+            windowManager: sharedWindowManager,
+            accessLogger: logger,
+            pluginPlatformService: pluginPlatform
+        )
     }
 
     func makeContentView() -> ContentView {
@@ -47,6 +56,7 @@ final class AtlasServices {
             paletteState: paletteState,
             privacyPulseService: privacyPulseService,
             privacyAccessLogger: privacyAccessLogger,
+            pluginPlatformService: pluginPlatformService,
             shellMode: shellMode
         )
     }
@@ -437,6 +447,7 @@ final class CommandPaletteState: ObservableObject {
     let launcherCommandHotkeys = CommandHotkeyStore()
     let launcherQuicklinks = QuicklinkStore()
     let launcherFallbacks = FallbackStore()
+    let mockPluginStore = MockPluginStore()
     @Published private(set) var commandHotkeyConflicts: [String: String] = [:]
     private var registeredCommandHotkeys: [String: HotkeyConfig] = [:]
     private var commandHotkeyObservation: AnyCancellable?
@@ -473,7 +484,8 @@ final class CommandPaletteState: ObservableObject {
 
     init(
         windowManager: WindowManaging = AccessibilityWindowManager(),
-        accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger()
+        accessLogger: PrivacyPulseAccessLogging = NoopPrivacyPulseAccessLogger(),
+        pluginPlatformService: PluginPlatformService? = nil
     ) {
         self.windowManager = windowManager
         self.hotkeyService = GlobalHotkeyService(accessLogger: accessLogger)
@@ -572,6 +584,7 @@ final class CommandPaletteState: ObservableObject {
         let dictationProvider = DictationProvider()
         let systemCommandsProvider = SystemCommandsProvider()
         let calendarEventsProvider = CalendarEventsProvider()
+        let pluginCommandProvider = pluginPlatformService.map { PluginCommandProvider(service: $0) }
 
         let providers: [CommandProviding] = [
             calculatorProvider,
@@ -611,7 +624,7 @@ final class CommandPaletteState: ObservableObject {
             dictationProvider,
             systemCommandsProvider,
             calendarEventsProvider,
-        ]
+        ] + (pluginCommandProvider.map { [$0 as CommandProviding] } ?? [])
 
         var sources: [LauncherItemSource] = providers.map { provider in
             // 查询驱动源:query 语义在 provider 内部(计算器表达式、emoji 关键词、
@@ -635,6 +648,7 @@ final class CommandPaletteState: ObservableObject {
             launcherQuicklinks.makeItems(query: query)
         })
         sources.append(EmojiGridSource())
+        sources.append(PluginStoreSource(store: mockPluginStore))
         sources.append(MenuBarItemSource())
 
         self.controller = LauncherPanelController(

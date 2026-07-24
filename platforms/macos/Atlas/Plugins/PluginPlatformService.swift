@@ -1,4 +1,6 @@
+import AppKit
 import Foundation
+import SwiftUI
 
 protocol PluginPlatformRuntime: Sendable {
     func start(callback: any PluginPlatformCallback) throws
@@ -198,6 +200,250 @@ private final class PluginPlatformCallbackBridge: PluginPlatformCallback, @unche
     }
 }
 
+struct PluginCatalogLocalization: Decodable, Equatable {
+    let title: String?
+    let description: String?
+    let aliases: [String]
+
+    private enum CodingKeys: String, CodingKey {
+        case title, description, aliases
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        title = try values.decodeIfPresent(String.self, forKey: .title)
+        description = try values.decodeIfPresent(String.self, forKey: .description)
+        aliases = try values.decodeIfPresent([String].self, forKey: .aliases) ?? []
+    }
+}
+
+struct PluginCatalogCommand: Decodable, Equatable {
+    let id: String
+    let title: String
+    let description: String
+    let aliases: [String]
+    let localizations: [String: PluginCatalogLocalization]
+
+    func localized(preferredLanguages: [String]) -> PluginResolvedCommand {
+        let localization = localizations.bestMatch(for: preferredLanguages)
+        return PluginResolvedCommand(
+            id: id,
+            title: localization?.title ?? title,
+            description: localization?.description ?? description,
+            aliases: aliases + localizations.values.flatMap(\.aliases)
+        )
+    }
+}
+
+struct PluginCatalogPayload: Decodable, Equatable {
+    let title: String
+    let description: String
+    let aliases: [String]
+    let localizations: [String: PluginCatalogLocalization]
+    let commands: [PluginCatalogCommand]
+
+    private enum CodingKeys: String, CodingKey {
+        case title, description, aliases, localizations, commands
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        title = try values.decodeIfPresent(String.self, forKey: .title) ?? ""
+        description = try values.decodeIfPresent(String.self, forKey: .description) ?? ""
+        aliases = try values.decodeIfPresent([String].self, forKey: .aliases) ?? []
+        localizations =
+            try values.decodeIfPresent([String: PluginCatalogLocalization].self, forKey: .localizations) ?? [:]
+        commands = try values.decodeIfPresent([PluginCatalogCommand].self, forKey: .commands) ?? []
+    }
+
+    func localized(preferredLanguages: [String] = Locale.preferredLanguages) -> PluginResolvedCatalog {
+        let localization = localizations.bestMatch(for: preferredLanguages)
+        return PluginResolvedCatalog(
+            title: localization?.title ?? title,
+            description: localization?.description ?? description,
+            aliases: aliases + localizations.values.flatMap(\.aliases),
+            commands: commands.map { $0.localized(preferredLanguages: preferredLanguages) }
+        )
+    }
+}
+
+struct PluginResolvedCommand: Equatable {
+    let id: String
+    let title: String
+    let description: String
+    let aliases: [String]
+}
+
+struct PluginResolvedCatalog: Equatable {
+    let title: String
+    let description: String
+    let aliases: [String]
+    let commands: [PluginResolvedCommand]
+}
+
+extension PluginStatusRecord {
+    func resolvedCatalog(
+        preferredLanguages: [String] = Locale.preferredLanguages
+    ) -> PluginResolvedCatalog {
+        let decoded = try? JSONDecoder().decode(
+            PluginCatalogPayload.self,
+            from: Data(catalogJson.utf8)
+        )
+        return decoded?.localized(preferredLanguages: preferredLanguages)
+            ?? PluginResolvedCatalog(
+                title: pluginId,
+                description: "",
+                aliases: [],
+                commands: []
+            )
+    }
+
+    func matchesCatalogQuery(
+        _ query: String,
+        preferredLanguages: [String] = Locale.preferredLanguages
+    ) -> Bool {
+        let normalized = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty else { return true }
+        let catalog = resolvedCatalog(preferredLanguages: preferredLanguages)
+        return ([catalog.title, catalog.description, pluginId, version] + catalog.aliases)
+            .contains { $0.localizedCaseInsensitiveContains(normalized) }
+    }
+}
+
+private extension Dictionary where Key == String, Value == PluginCatalogLocalization {
+    func bestMatch(for preferredLanguages: [String]) -> PluginCatalogLocalization? {
+        let normalized = Dictionary(uniqueKeysWithValues: map { key, value in
+            (key.replacingOccurrences(of: "_", with: "-").lowercased(), value)
+        })
+        for language in preferredLanguages {
+            let candidate = language.replacingOccurrences(of: "_", with: "-").lowercased()
+            if let exact = normalized[candidate] {
+                return exact
+            }
+            let base = candidate.split(separator: "-").first.map(String.init) ?? candidate
+            if let baseMatch = normalized[base] {
+                return baseMatch
+            }
+            if let regional = normalized.first(where: { $0.key.hasPrefix("\(base)-") })?.value {
+                return regional
+            }
+        }
+        return nil
+    }
+}
+
+@MainActor
+final class PluginCommandProvider: @preconcurrency CommandProviding {
+    private unowned let service: PluginPlatformService
+    private let preferredLanguages: () -> [String]
+
+    init(
+        service: PluginPlatformService,
+        preferredLanguages: @escaping () -> [String] = { Locale.preferredLanguages }
+    ) {
+        self.service = service
+        self.preferredLanguages = preferredLanguages
+    }
+
+    func results(for query: String) -> [PaletteCommand] {
+        let preferredLanguages = preferredLanguages()
+        let commands = service.statuses.flatMap { status -> [PaletteCommand] in
+            let catalog = status.resolvedCatalog(preferredLanguages: preferredLanguages)
+            let pluginTitle = catalog.title.nilIfEmpty ?? status.pluginId
+            let pluginDescription = catalog.description
+            let pluginAliases = catalog.aliases
+            let entries = catalog.commands.isEmpty == false
+                ? catalog.commands
+                : [PluginResolvedCommand(id: "main", title: pluginTitle, description: pluginDescription, aliases: [])]
+            return entries.map { command in
+                PaletteCommand(
+                    id: UUID(),
+                    title: command.title,
+                    subtitle: command.description.nilIfEmpty ?? pluginDescription.nilIfEmpty ?? pluginTitle,
+                    icon: .sfSymbol("puzzlepiece.extension"),
+                    keywords: Array(Set(
+                        pluginAliases
+                            + command.aliases
+                            + [status.pluginId, command.id, pluginTitle, "plugin", "插件"]
+                    )),
+                    action: .execute { [weak service] in
+                        service?.startCommand(pluginID: status.pluginId, commandID: command.id)
+                    },
+                    category: pluginTitle
+                )
+            }
+        }
+        let normalizedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalizedQuery.isEmpty else { return commands }
+        return commands.filter {
+            $0.title.localizedCaseInsensitiveContains(normalizedQuery)
+                || ($0.subtitle?.localizedCaseInsensitiveContains(normalizedQuery) == true)
+                || $0.keywords.contains { $0.localizedCaseInsensitiveContains(normalizedQuery) }
+        }
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? {
+        isEmpty ? nil : self
+    }
+}
+
+private struct PluginSessionWindowView: View {
+    @ObservedObject var service: PluginPlatformService
+    let sessionID: String
+
+    var body: some View {
+        Group {
+            if let session = service.sessions[sessionID] {
+                DynamicPluginView(node: session.root, pluginID: session.pluginID) {
+                    service.send($0, sessionID: session.id)
+                }
+                .id(session.revision)
+                .padding(12)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ProgressView()
+            }
+        }
+        .frame(minWidth: 720, minHeight: 520)
+    }
+}
+
+@MainActor
+private final class PluginSessionWindowController: NSWindowController, NSWindowDelegate {
+    private weak var service: PluginPlatformService?
+    private let sessionID: String
+
+    init(service: PluginPlatformService, sessionID: String, title: String) {
+        self.service = service
+        self.sessionID = sessionID
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 1100, height: 760),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = title
+        window.minSize = NSSize(width: 720, height: 520)
+        window.isReleasedWhenClosed = false
+        window.contentViewController = NSHostingController(
+            rootView: PluginSessionWindowView(service: service, sessionID: sessionID)
+        )
+        super.init(window: window)
+        window.delegate = self
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        service?.sessionWindowDidClose(sessionID: sessionID)
+    }
+}
+
 @MainActor
 final class PluginPlatformService: ObservableObject {
     @Published private(set) var sessions: [String: PluginSessionModel] = [:]
@@ -208,14 +454,19 @@ final class PluginPlatformService: ObservableObject {
 
     private let runtime: any PluginPlatformRuntime
     private let capabilityRouter: PluginCapabilityRouter
+    private let presentsSessionWindows: Bool
     private var callback: PluginPlatformCallbackBridge?
+    private var sessionWindows: [String: PluginSessionWindowController] = [:]
 
     init(
         runtime: any PluginPlatformRuntime = LivePluginPlatformRuntime(),
         capabilityRouter: PluginCapabilityRouter? = nil,
-        startImmediately: Bool = true
+        startImmediately: Bool = true,
+        presentsSessionWindows: Bool? = nil
     ) {
         self.runtime = runtime
+        let runningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        self.presentsSessionWindows = presentsSessionWindows ?? !runningTests
         self.capabilityRouter = capabilityRouter ?? PluginCapabilityRouter(adapters: [
             PluginFeedbackAdapter(),
             PluginPreferencesAdapter(),
@@ -296,6 +547,21 @@ final class PluginPlatformService: ObservableObject {
         }
     }
 
+    func startDefaultCommand(pluginID: String) {
+        let commandID = statuses
+            .first(where: { $0.pluginId == pluginID })
+            .flatMap {
+                try? JSONDecoder().decode(
+                    PluginCatalogPayload.self,
+                    from: Data($0.catalogJson.utf8)
+                )
+            }?
+            .commands
+            .first?
+            .id ?? "main"
+        startCommand(pluginID: pluginID, commandID: commandID)
+    }
+
     func send(_ event: DynamicPluginUIEvent, sessionID: String) {
         guard let session = sessions[sessionID] else { return }
         do {
@@ -321,6 +587,9 @@ final class PluginPlatformService: ObservableObject {
     func uninstall(pluginID: String) {
         do {
             try runtime.uninstall(pluginID: pluginID)
+            for session in sessions.values where session.pluginID == pluginID {
+                closeSessionWindow(sessionID: session.id)
+            }
             sessions = sessions.filter { $0.value.pluginID != pluginID }
             refreshStatuses()
         } catch {
@@ -413,6 +682,7 @@ final class PluginPlatformService: ObservableObject {
                     title: payload.title,
                     root: payload.root
                 )
+                presentSessionWindow(sessionID: sessionID)
             case .uiPatch:
                 guard let sessionID = event.sessionId,
                       var session = sessions[sessionID],
@@ -427,6 +697,7 @@ final class PluginPlatformService: ObservableObject {
                       sessions[sessionID]?.pluginID == event.pluginId
                 else { return }
                 sessions.removeValue(forKey: sessionID)
+                closeSessionWindow(sessionID: sessionID)
             case .hostRequest:
                 guard let requestID = event.requestId else { return }
                 let request = try decode(PluginHostRequestPayload.self, event.payloadJson)
@@ -475,5 +746,35 @@ final class PluginPlatformService: ObservableObject {
         } catch {
             lastError = error.localizedDescription
         }
+    }
+
+    fileprivate func sessionWindowDidClose(sessionID: String) {
+        sessionWindows.removeValue(forKey: sessionID)
+        guard let session = sessions.removeValue(forKey: sessionID) else { return }
+        do {
+            try runtime.cancel(pluginID: session.pluginID, instanceID: session.instanceID)
+        } catch {
+            lastError = error.localizedDescription
+        }
+    }
+
+    private func presentSessionWindow(sessionID: String) {
+        guard presentsSessionWindows, let session = sessions[sessionID] else { return }
+        let controller = sessionWindows[sessionID] ?? PluginSessionWindowController(
+            service: self,
+            sessionID: sessionID,
+            title: session.title
+        )
+        sessionWindows[sessionID] = controller
+        NSApp.activate(ignoringOtherApps: true)
+        controller.showWindow(nil)
+        controller.window?.center()
+        controller.window?.makeKeyAndOrderFront(nil)
+    }
+
+    private func closeSessionWindow(sessionID: String) {
+        guard let controller = sessionWindows.removeValue(forKey: sessionID) else { return }
+        controller.window?.delegate = nil
+        controller.close()
     }
 }

@@ -163,8 +163,11 @@ impl AstAnalyzer<'_> {
                 })
                 .collect::<String>();
             if !host.is_empty() && host.contains('.') {
-                self.output.domains.insert(host.to_ascii_lowercase());
-                self.output.capabilities.insert("network.https".into());
+                let host = host.to_ascii_lowercase();
+                self.output.domains.insert(host.clone());
+                self.output
+                    .capabilities
+                    .insert(format!("network.https:{host}"));
             }
             remaining = &remaining[host_start..];
         }

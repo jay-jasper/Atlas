@@ -1,4 +1,6 @@
+import AppKit
 import SwiftUI
+import WebKit
 
 struct DynamicPluginNode: Decodable, Equatable, Identifiable {
     enum Kind: String, Decodable {
@@ -7,6 +9,7 @@ struct DynamicPluginNode: Decodable, Equatable, Identifiable {
         case detail, form
         case actionPanel = "action-panel"
         case action, navigation, spacer, text, image, code, progress, button
+        case webView = "web-view"
         case textField = "text-field"
         case toggle, slider
     }
@@ -17,9 +20,14 @@ struct DynamicPluginNode: Decodable, Equatable, Identifiable {
     var subtitle: String?
     var value: JSONValue?
     var url: String?
+    var allowedHosts: [String]
+    var profile: String?
+    var persistent: Bool
     var language: String?
     var label: String?
     var action: String?
+    var icon: String?
+    var selected: Bool?
     var placeholder: String?
     var minimum: Double?
     var maximum: Double?
@@ -28,7 +36,9 @@ struct DynamicPluginNode: Decodable, Equatable, Identifiable {
     var children: [DynamicPluginNode]
 
     private enum CodingKeys: String, CodingKey {
-        case kind, id, title, subtitle, value, url, language, label, action, placeholder
+        case kind, id, title, subtitle, value, url, language, label, action, icon, selected, placeholder
+        case allowedHosts = "allowed_hosts"
+        case profile, persistent
         case minimum = "min"
         case maximum = "max"
         case markdown, metadata, children
@@ -42,9 +52,14 @@ struct DynamicPluginNode: Decodable, Equatable, Identifiable {
         subtitle = try values.decodeIfPresent(String.self, forKey: .subtitle)
         value = try values.decodeIfPresent(JSONValue.self, forKey: .value)
         url = try values.decodeIfPresent(String.self, forKey: .url)
+        allowedHosts = try values.decodeIfPresent([String].self, forKey: .allowedHosts) ?? []
+        profile = try values.decodeIfPresent(String.self, forKey: .profile)
+        persistent = try values.decodeIfPresent(Bool.self, forKey: .persistent) ?? false
         language = try values.decodeIfPresent(String.self, forKey: .language)
         label = try values.decodeIfPresent(String.self, forKey: .label)
         action = try values.decodeIfPresent(String.self, forKey: .action)
+        icon = try values.decodeIfPresent(String.self, forKey: .icon)
+        selected = try values.decodeIfPresent(Bool.self, forKey: .selected)
         placeholder = try values.decodeIfPresent(String.self, forKey: .placeholder)
         minimum = try values.decodeIfPresent(Double.self, forKey: .minimum)
         maximum = try values.decodeIfPresent(Double.self, forKey: .maximum)
@@ -198,6 +213,7 @@ extension DynamicPluginNode {
 
 struct DynamicPluginView: View {
     let node: DynamicPluginNode
+    let pluginID: String
     let send: (DynamicPluginUIEvent) -> Void
 
     var body: some View {
@@ -228,8 +244,31 @@ struct DynamicPluginView: View {
                 }
             }
         case .action:
-            Button(node.title ?? "Action") {
-                send(.action(id: node.id, action: node.action ?? node.id))
+            if let selected = node.selected {
+                Button {
+                    send(.action(id: node.id, action: node.action ?? node.id))
+                } label: {
+                    HStack(spacing: 6) {
+                        if let icon = node.icon {
+                            Image(systemName: icon)
+                        }
+                        Text(node.title ?? "Action")
+                            .font(.system(size: 13, weight: selected ? .semibold : .medium))
+                    }
+                    .padding(.horizontal, 13)
+                    .frame(height: 32)
+                    .foregroundStyle(selected ? Color.white : Color.primary)
+                    .background(
+                        selected ? Color.accentColor : Color.primary.opacity(0.07),
+                        in: Capsule()
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(selected ? .isSelected : [])
+            } else {
+                Button(node.title ?? "Action") {
+                    send(.action(id: node.id, action: node.action ?? node.id))
+                }
             }
         case .navigation:
             DisclosureGroup(node.title ?? "") { VStack(alignment: .leading) { childViews } }
@@ -240,6 +279,19 @@ struct DynamicPluginView: View {
         case .image:
             if let url = node.url.flatMap(URL.init(string:)) {
                 AsyncImage(url: url) { image in image.resizable().scaledToFit() } placeholder: { ProgressView() }
+            }
+        case .webView:
+            if let url = node.url.flatMap(URL.init(string:)) {
+                PluginRemoteWebView(
+                    initialURL: url,
+                    allowedHosts: node.allowedHosts,
+                    scope: pluginID,
+                    profile: node.profile ?? "default",
+                    persistent: node.persistent
+                )
+            } else {
+                Label("Invalid WebView URL", systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.red)
             }
         case .code:
             Text(node.value?.string ?? "").font(.system(.body, design: .monospaced)).textSelection(.enabled)
@@ -270,8 +322,241 @@ struct DynamicPluginView: View {
     @ViewBuilder
     private var childViews: some View {
         ForEach(node.children) { child in
-            DynamicPluginView(node: child, send: send)
+            DynamicPluginView(node: child, pluginID: pluginID, send: send)
         }
+    }
+}
+
+private final class PluginWebViewModel: ObservableObject {
+    @Published var currentURL: URL?
+    @Published var blockedURL: URL?
+    @Published var canGoBack = false
+    @Published var canGoForward = false
+    weak var webView: WKWebView?
+
+    func refreshState(from webView: WKWebView) {
+        self.webView = webView
+        currentURL = webView.url
+        canGoBack = webView.canGoBack
+        canGoForward = webView.canGoForward
+    }
+}
+
+private struct PluginRemoteWebView: View {
+    let initialURL: URL
+    let allowedHosts: [String]
+    let scope: String
+    let profile: String
+    let persistent: Bool
+    @StateObject private var model = PluginWebViewModel()
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 8) {
+                Button { model.webView?.goBack() } label: {
+                    Image(systemName: "chevron.left")
+                }
+                .disabled(!model.canGoBack)
+                Button { model.webView?.goForward() } label: {
+                    Image(systemName: "chevron.right")
+                }
+                .disabled(!model.canGoForward)
+                Button { model.webView?.reload() } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                Spacer()
+            }
+            .buttonStyle(.borderless)
+            .padding(.horizontal, 10)
+            .frame(height: 32)
+            .background(Color.primary.opacity(0.035))
+
+            RestrictedPluginWebView(
+                initialURL: initialURL,
+                allowedHosts: allowedHosts,
+                scope: scope,
+                profile: profile,
+                persistent: persistent,
+                model: model
+            )
+            .id("\(scope):\(profile):\(persistent)")
+
+            if model.blockedURL != nil {
+                HStack {
+                    Label("This page was blocked by the plugin security policy", systemImage: "hand.raised.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    Spacer()
+                }
+                .padding(8)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(.quaternary))
+        .frame(minHeight: 500, idealHeight: 620)
+    }
+}
+
+enum PluginWebNavigationPolicy {
+    static func permits(_ url: URL, allowedHosts: Set<String>, isMainFrame: Bool) -> Bool {
+        let scheme = url.scheme?.lowercased()
+        if scheme == "about" {
+            return url.absoluteString == "about:blank" || url.absoluteString == "about:srcdoc"
+        }
+        if !isMainFrame {
+            return scheme == "https" || scheme == "blob" || scheme == "data"
+        }
+        guard scheme == "https", let host = url.host?.lowercased() else {
+            return false
+        }
+        return allowedHosts.contains { allowed in
+            host == allowed || host.hasSuffix(".\(allowed)")
+        }
+    }
+}
+
+private struct RestrictedPluginWebView: NSViewRepresentable {
+    let initialURL: URL
+    let allowedHosts: [String]
+    let scope: String
+    let profile: String
+    let persistent: Bool
+    @ObservedObject var model: PluginWebViewModel
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(model: model, allowedHosts: allowedHosts)
+    }
+
+    func makeNSView(context: Context) -> WKWebView {
+        let configuration = WKWebViewConfiguration()
+        configuration.websiteDataStore = PluginWebViewDataStores.store(
+            scope: scope,
+            profile: profile,
+            persistent: persistent
+        )
+        configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.navigationDelegate = context.coordinator
+        webView.uiDelegate = context.coordinator
+        model.webView = webView
+        webView.load(URLRequest(url: initialURL))
+        return webView
+    }
+
+    func updateNSView(_ webView: WKWebView, context: Context) {
+        context.coordinator.allowedHosts = Set(allowedHosts.map(Self.normalizeHost))
+        model.webView = webView
+        if webView.url != initialURL {
+            webView.load(URLRequest(url: initialURL))
+        }
+    }
+
+    static func dismantleNSView(_ webView: WKWebView, coordinator: Coordinator) {
+        webView.stopLoading()
+        webView.navigationDelegate = nil
+        webView.uiDelegate = nil
+        if coordinator.model.webView === webView {
+            coordinator.model.webView = nil
+        }
+    }
+
+    private static func normalizeHost(_ host: String) -> String {
+        host.trimmingCharacters(in: CharacterSet(charactersIn: "."))
+            .lowercased()
+    }
+
+    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+        let model: PluginWebViewModel
+        var allowedHosts: Set<String>
+
+        init(model: PluginWebViewModel, allowedHosts: [String]) {
+            self.model = model
+            self.allowedHosts = Set(allowedHosts.map(RestrictedPluginWebView.normalizeHost))
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            decidePolicyFor navigationAction: WKNavigationAction,
+            decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+        ) {
+            let isMainFrame = navigationAction.targetFrame?.isMainFrame ?? true
+            guard let url = navigationAction.request.url,
+                  PluginWebNavigationPolicy.permits(
+                    url,
+                    allowedHosts: allowedHosts,
+                    isMainFrame: isMainFrame
+                  ) else {
+                if isMainFrame {
+                    model.blockedURL = navigationAction.request.url
+                }
+                decisionHandler(.cancel)
+                return
+            }
+            if isMainFrame {
+                model.blockedURL = nil
+            }
+            if navigationAction.targetFrame == nil {
+                webView.load(navigationAction.request)
+                decisionHandler(.cancel)
+                return
+            }
+            decisionHandler(.allow)
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            createWebViewWith configuration: WKWebViewConfiguration,
+            for navigationAction: WKNavigationAction,
+            windowFeatures: WKWindowFeatures
+        ) -> WKWebView? {
+            if let url = navigationAction.request.url,
+               PluginWebNavigationPolicy.permits(
+                url,
+                allowedHosts: allowedHosts,
+                isMainFrame: true
+               ) {
+                webView.load(navigationAction.request)
+            } else {
+                model.blockedURL = navigationAction.request.url
+            }
+            return nil
+        }
+
+        func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+            model.blockedURL = nil
+            model.refreshState(from: webView)
+        }
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            model.refreshState(from: webView)
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            didFail navigation: WKNavigation!,
+            withError error: Error
+        ) {
+            model.refreshState(from: webView)
+        }
+    }
+}
+
+private enum PluginWebViewDataStores {
+    static func store(scope: String, profile: String, persistent: Bool) -> WKWebsiteDataStore {
+        guard persistent else { return .nonPersistent() }
+        if #available(macOS 14.0, *) {
+            let key = "Atlas.PluginWebViewStore.\(scope).\(profile)"
+            let identifier: UUID
+            if let stored = UserDefaults.standard.string(forKey: key),
+               let existing = UUID(uuidString: stored) {
+                identifier = existing
+            } else {
+                identifier = UUID()
+                UserDefaults.standard.set(identifier.uuidString, forKey: key)
+            }
+            return WKWebsiteDataStore(forIdentifier: identifier)
+        }
+        return .nonPersistent()
     }
 }
 

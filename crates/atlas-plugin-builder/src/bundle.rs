@@ -59,6 +59,10 @@ pub fn bundle(
             "--alias:react={}",
             workspace.join("node_modules/react").display()
         ))
+        .arg(format!(
+            "--alias:@atlas/api={}",
+            workspace.join("packages/atlas-api/dist/index.js").display()
+        ))
         .arg(format!("--target={}", options.target))
         .arg(format!(
             "--alias:@raycast/api={}",
@@ -165,7 +169,13 @@ export default {{
 }
 
 fn workspace_root(path: &Path) -> Option<PathBuf> {
-    path.ancestors()
+    let absolute = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        std::env::current_dir().ok()?.join(path)
+    };
+    absolute
+        .ancestors()
         .find(|candidate| candidate.join("pnpm-workspace.yaml").is_file())
         .map(Path::to_path_buf)
         .or_else(|| {

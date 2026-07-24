@@ -1,6 +1,6 @@
 use crate::BuilderError;
 use atlas_plugin_package::{
-    sha256_digest, IntegrityDocument, IntegrityFile, PluginManifestV2, RuntimeKind,
+    sha256_digest, IntegrityDocument, IntegrityFile, PluginCatalog, PluginManifestV2, RuntimeKind,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::{Cursor, Write};
@@ -13,6 +13,7 @@ pub struct PackageInput<'a> {
     pub publisher: &'a str,
     pub entrypoint: &'a str,
     pub capabilities: &'a BTreeSet<String>,
+    pub catalog: &'a PluginCatalog,
     pub bundles: Vec<(String, Vec<u8>)>,
     pub source_map: Option<Vec<u8>>,
 }
@@ -38,6 +39,10 @@ pub fn create_package(input: PackageInput<'_>) -> Result<Vec<u8>, BuilderError> 
     files.insert(
         "permissions.json".to_string(),
         serde_json::to_vec(&manifest.capabilities)?,
+    );
+    files.insert(
+        "catalog.json".to_string(),
+        serde_json::to_vec(input.catalog)?,
     );
     for (path, bundle) in input.bundles {
         files.insert(path, bundle);

@@ -94,6 +94,7 @@ struct LauncherDetail {
 enum LauncherPage {
     case list(title: String, items: () -> [LauncherItem])
     case grid(title: String, columns: Int, items: () -> [LauncherItem])
+    case pluginStore(title: String, store: MockPluginStore)
     case detail(title: String, detail: LauncherDetail)
     case legacy(PaletteDestination)
 }

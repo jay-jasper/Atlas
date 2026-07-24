@@ -24,6 +24,14 @@ struct LauncherPageView: View {
             listBody(Self.filter(items(), query: nav.query))
         case .grid(_, let columns, let items):
             gridBody(Self.filter(items(), query: nav.query), columns: columns)
+        case .pluginStore(_, let store):
+            PluginStorePageView(
+                store: store,
+                nav: nav,
+                style: style,
+                accent: accent,
+                onOutcome: onOutcome
+            )
         case .detail(_, let detail):
             LauncherDetailPane(detail: detail, style: style)
         case .legacy(let destination):

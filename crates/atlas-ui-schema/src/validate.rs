@@ -1,5 +1,8 @@
 use crate::{NodeId, UiError, UiLimits, UiNode, UiPatch};
 use std::collections::HashSet;
+use url::{Host, Url};
+
+const MAX_WEBVIEW_HOSTS: usize = 64;
 
 pub fn validate_tree(root: &UiNode, limits: &UiLimits) -> Result<(), UiError> {
     let encoded =
@@ -88,6 +91,12 @@ fn validate_node(
                 return Err(UiError::InvalidImageSource(url.clone()));
             }
         }
+        UiNode::WebView {
+            url,
+            allowed_hosts,
+            profile,
+            ..
+        } => validate_webview(url, allowed_hosts, profile, limits)?,
         UiNode::Code {
             language, value, ..
         } => {
@@ -260,4 +269,45 @@ fn is_allowed_image_source(value: &str) -> bool {
     value.starts_with("https://")
         || value.starts_with("data:image/")
         || value.starts_with("atlas://")
+}
+
+fn validate_webview(
+    value: &str,
+    allowed_hosts: &[String],
+    profile: &str,
+    limits: &UiLimits,
+) -> Result<(), UiError> {
+    validate_string(value, limits)?;
+    validate_string(profile, limits)?;
+    if allowed_hosts.len() > MAX_WEBVIEW_HOSTS {
+        return Err(UiError::WebViewHostsLimit(MAX_WEBVIEW_HOSTS));
+    }
+    let url = Url::parse(value).map_err(|_| UiError::InvalidWebViewUrl(value.to_owned()))?;
+    if url.scheme() != "https"
+        || !url.username().is_empty()
+        || url.password().is_some()
+        || url.host_str().is_none()
+    {
+        return Err(UiError::InvalidWebViewUrl(value.to_owned()));
+    }
+    let requested = normalize_webview_host(url.host_str().expect("host checked"), value)?;
+    let mut normalized = Vec::with_capacity(allowed_hosts.len());
+    for host in allowed_hosts {
+        validate_string(host, limits)?;
+        normalized.push(normalize_webview_host(host, value)?);
+    }
+    if !normalized
+        .iter()
+        .any(|allowed| requested == *allowed || requested.ends_with(&format!(".{allowed}")))
+    {
+        return Err(UiError::InvalidWebViewHost(requested));
+    }
+    Ok(())
+}
+
+fn normalize_webview_host(host: &str, source: &str) -> Result<String, UiError> {
+    let normalized = host.trim().trim_end_matches('.').to_ascii_lowercase();
+    Host::parse(&normalized)
+        .map(|host| host.to_string())
+        .map_err(|_| UiError::InvalidWebViewUrl(source.to_owned()))
 }

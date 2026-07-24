@@ -162,12 +162,14 @@ pub trait PluginPlatformCallback: Send + Sync {
 pub struct PluginStatusRecord {
     pub plugin_id: String,
     pub version: String,
+    pub updated_at_unix_seconds: u64,
     pub publisher: String,
     pub package_root: String,
     pub trust_tier: String,
     pub granted_capabilities: Vec<String>,
     pub denied_capabilities: Vec<String>,
     pub observing_update: bool,
+    pub catalog_json: String,
 }
 
 pub struct PluginDiagnosticRecord {
@@ -840,12 +842,14 @@ pub fn plugin_platform_statuses() -> Result<Vec<PluginStatusRecord>, AtlasError>
                         .map(|status| PluginStatusRecord {
                             plugin_id: status.plugin_id,
                             version: status.version,
+                            updated_at_unix_seconds: status.updated_at_unix_seconds,
                             publisher: status.publisher,
                             package_root: status.package_root.to_hex(),
                             trust_tier: status.trust_tier,
                             granted_capabilities: status.granted_capabilities,
                             denied_capabilities: status.denied_capabilities,
                             observing_update: status.observing_update,
+                            catalog_json: status.catalog_json,
                         })
                         .collect()
                 })
@@ -1460,6 +1464,79 @@ fn validate_plugin_arguments(arguments: &[String]) -> Result<(), AtlasError> {
 }
 
 #[cfg(feature = "executable-plugins")]
+fn authorize_webview_tree(
+    platform: &PluginPlatform,
+    plugin_id: &str,
+    node: &atlas_ui_schema::UiNode,
+) -> Result<(), AtlasError> {
+    let mut urls = Vec::new();
+    collect_webview_urls(node, &mut urls);
+    if urls.is_empty() {
+        return Ok(());
+    }
+    let status = platform
+        .manager
+        .list_statuses()
+        .map_err(plugin_error)?
+        .into_iter()
+        .find(|status| status.plugin_id == plugin_id)
+        .ok_or_else(|| AtlasError::PluginError("Plugin status is unavailable".into()))?;
+    let identity = atlas_plugin_host::PluginIdentity::new(plugin_id, status.publisher);
+    for url in urls {
+        let request = atlas_plugin_protocol::CapabilityRequest {
+            request_id: None,
+            capability: "ui.webview".into(),
+            operation: "navigate".into(),
+            resource: Some(url.to_owned()),
+            payload: Vec::new(),
+        };
+        let decision = platform.broker.authorize(&identity, &request);
+        if !decision.is_allowed() {
+            return Err(AtlasError::PluginError(format!(
+                "WebView navigation denied ({})",
+                decision.code().unwrap_or("capability-denied")
+            )));
+        }
+    }
+    Ok(())
+}
+
+#[cfg(feature = "executable-plugins")]
+fn authorize_webview_patch(
+    platform: &PluginPlatform,
+    plugin_id: &str,
+    patch: &atlas_ui_schema::UiPatch,
+) -> Result<(), AtlasError> {
+    match patch {
+        atlas_ui_schema::UiPatch::ReplaceRoot { node }
+        | atlas_ui_schema::UiPatch::ReplaceNode { node, .. } => {
+            authorize_webview_tree(platform, plugin_id, node)
+        }
+        atlas_ui_schema::UiPatch::AppendChildren { children, .. } => {
+            for child in children {
+                authorize_webview_tree(platform, plugin_id, child)?;
+            }
+            Ok(())
+        }
+        _ => Ok(()),
+    }
+}
+
+#[cfg(feature = "executable-plugins")]
+fn collect_webview_urls<'a>(node: &'a atlas_ui_schema::UiNode, output: &mut Vec<&'a str>) {
+    if let atlas_ui_schema::UiNode::WebView {
+        url, allowed_hosts, ..
+    } = node
+    {
+        output.push(url);
+        output.extend(allowed_hosts.iter().map(String::as_str));
+    }
+    for child in node.children() {
+        collect_webview_urls(child, output);
+    }
+}
+
+#[cfg(feature = "executable-plugins")]
 fn protocol_messages_to_events(
     platform: &mut PluginPlatform,
     plugin_id: &str,
@@ -1471,6 +1548,7 @@ fn protocol_messages_to_events(
     for message in messages {
         match message {
             atlas_plugin_protocol::MessageKind::UiOpen(open) => {
+                authorize_webview_tree(platform, plugin_id, &open.root)?;
                 events.push(plugin_runtime_event(
                     PluginHostEventKind::UiOpen,
                     plugin_id,
@@ -1486,6 +1564,7 @@ fn protocol_messages_to_events(
                 ));
             }
             atlas_plugin_protocol::MessageKind::UiPatch(patch) => {
+                authorize_webview_patch(platform, plugin_id, &patch)?;
                 events.push(plugin_runtime_event(
                     PluginHostEventKind::UiPatch,
                     plugin_id,

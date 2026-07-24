@@ -23,6 +23,15 @@ struct MarketView: View {
         }
     }
 
+    private var filteredPlatformStatuses: [PluginStatusRecord] {
+        guard selectedTrack == nil else { return [] }
+        return platform.statuses.filter { $0.matchesCatalogQuery(query) }
+    }
+
+    private var installedPluginCount: Int {
+        service.plugins.count + platform.statuses.count
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
@@ -62,7 +71,7 @@ struct MarketView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
-                    TextField("搜索插件名称", text: $query)
+                    TextField("搜索插件名称、别名或描述", text: $query)
                         .textFieldStyle(.plain)
                 }
                 .padding(.horizontal, 10)
@@ -70,7 +79,7 @@ struct MarketView: View {
                 .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
 
                 HStack(spacing: 6) {
-                    trackChip(nil, label: "全部", count: service.plugins.count)
+                    trackChip(nil, label: "全部", count: installedPluginCount)
                     ForEach(tracks, id: \.name) { track in
                         trackChip(track.name, label: track.name.uppercased(), count: track.count)
                     }
@@ -107,25 +116,11 @@ struct MarketView: View {
                         .glassCard(padding: 10)
                 }
 
-                ForEach(platform.statuses, id: \.pluginId) { status in
+                ForEach(filteredPlatformStatuses, id: \.pluginId) { status in
                     platformCard(status)
                 }
 
-                ForEach(platform.sessions.values.sorted { $0.id < $1.id }) { session in
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text(session.title).font(.headline)
-                            Spacer()
-                            Button("关闭") { platform.cancel(sessionID: session.id) }
-                        }
-                        DynamicPluginView(node: session.root) {
-                            platform.send($0, sessionID: session.id)
-                        }
-                    }
-                    .glassCard(padding: 10)
-                }
-
-                if filtered.isEmpty && platform.statuses.isEmpty {
+                if filtered.isEmpty && filteredPlatformStatuses.isEmpty {
                     VStack(spacing: 8) {
                         Image(systemName: "shippingbox")
                             .font(.system(size: 34))
@@ -217,17 +212,28 @@ struct MarketView: View {
     }
 
     private func platformCard(_ status: PluginStatusRecord) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        let catalog = status.resolvedCatalog()
+        return VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 10) {
                 IconTile(systemImage: "puzzlepiece.extension", tint: .blue)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(status.pluginId).font(.system(size: 13, weight: .semibold))
-                    Text("\(status.version) · \(status.trustTier)")
-                        .font(.caption2).foregroundColor(.secondary)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(catalog.title.isEmpty ? status.pluginId : catalog.title)
+                        .font(.system(size: 13, weight: .semibold))
+                    Text(catalog.description.isEmpty ? "暂无描述" : catalog.description)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                    HStack(spacing: 5) {
+                        Text("版本 \(status.version)")
+                        Text("·")
+                        Text("更新于 \(updatedAtText(status.updatedAtUnixSeconds))")
+                    }
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
                 }
                 Spacer()
                 Button("运行") {
-                    platform.startCommand(pluginID: status.pluginId, commandID: "main")
+                    platform.startDefaultCommand(pluginID: status.pluginId)
                 }
             }
             DisclosureGroup("Diagnostics and recovery") {
@@ -235,6 +241,12 @@ struct MarketView: View {
             }
         }
         .glassCard(padding: 10)
+    }
+
+    private func updatedAtText(_ unixSeconds: UInt64) -> String {
+        guard unixSeconds > 0 else { return "未知" }
+        return Date(timeIntervalSince1970: TimeInterval(unixSeconds))
+            .formatted(date: .abbreviated, time: .shortened)
     }
 
     private func choosePackage() {

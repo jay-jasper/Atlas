@@ -2056,24 +2056,28 @@ public func FfiConverterTypePluginStageResult_lower(_ value: PluginStageResult) 
 public struct PluginStatusRecord: Equatable, Hashable {
     public var pluginId: String
     public var version: String
+    public var updatedAtUnixSeconds: UInt64
     public var publisher: String
     public var packageRoot: String
     public var trustTier: String
     public var grantedCapabilities: [String]
     public var deniedCapabilities: [String]
     public var observingUpdate: Bool
+    public var catalogJson: String
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(pluginId: String, version: String, publisher: String, packageRoot: String, trustTier: String, grantedCapabilities: [String], deniedCapabilities: [String], observingUpdate: Bool) {
+    public init(pluginId: String, version: String, updatedAtUnixSeconds: UInt64, publisher: String, packageRoot: String, trustTier: String, grantedCapabilities: [String], deniedCapabilities: [String], observingUpdate: Bool, catalogJson: String) {
         self.pluginId = pluginId
         self.version = version
+        self.updatedAtUnixSeconds = updatedAtUnixSeconds
         self.publisher = publisher
         self.packageRoot = packageRoot
         self.trustTier = trustTier
         self.grantedCapabilities = grantedCapabilities
         self.deniedCapabilities = deniedCapabilities
         self.observingUpdate = observingUpdate
+        self.catalogJson = catalogJson
     }
 
 
@@ -2092,24 +2096,28 @@ public struct FfiConverterTypePluginStatusRecord: FfiConverterRustBuffer {
             try PluginStatusRecord(
                 pluginId: FfiConverterString.read(from: &buf),
                 version: FfiConverterString.read(from: &buf),
+                updatedAtUnixSeconds: FfiConverterUInt64.read(from: &buf),
                 publisher: FfiConverterString.read(from: &buf),
                 packageRoot: FfiConverterString.read(from: &buf),
                 trustTier: FfiConverterString.read(from: &buf),
                 grantedCapabilities: FfiConverterSequenceString.read(from: &buf),
                 deniedCapabilities: FfiConverterSequenceString.read(from: &buf),
-                observingUpdate: FfiConverterBool.read(from: &buf)
+                observingUpdate: FfiConverterBool.read(from: &buf),
+                catalogJson: FfiConverterString.read(from: &buf)
         )
     }
 
     public static func write(_ value: PluginStatusRecord, into buf: inout [UInt8]) {
         FfiConverterString.write(value.pluginId, into: &buf)
         FfiConverterString.write(value.version, into: &buf)
+        FfiConverterUInt64.write(value.updatedAtUnixSeconds, into: &buf)
         FfiConverterString.write(value.publisher, into: &buf)
         FfiConverterString.write(value.packageRoot, into: &buf)
         FfiConverterString.write(value.trustTier, into: &buf)
         FfiConverterSequenceString.write(value.grantedCapabilities, into: &buf)
         FfiConverterSequenceString.write(value.deniedCapabilities, into: &buf)
         FfiConverterBool.write(value.observingUpdate, into: &buf)
+        FfiConverterString.write(value.catalogJson, into: &buf)
     }
 }
 

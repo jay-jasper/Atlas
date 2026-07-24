@@ -13,6 +13,46 @@ pub use integrity::{
 pub use trust::{TrustTier, TrustedKeyStore};
 
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PluginCatalog {
+    #[serde(default)]
+    pub title: String,
+    #[serde(default)]
+    pub description: String,
+    #[serde(default)]
+    pub aliases: Vec<String>,
+    #[serde(default)]
+    pub localizations: BTreeMap<String, PluginLocalization>,
+    #[serde(default)]
+    pub commands: Vec<PluginCommandCatalog>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PluginLocalization {
+    #[serde(default)]
+    pub title: Option<String>,
+    #[serde(default)]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub aliases: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PluginCommandCatalog {
+    pub id: String,
+    pub title: String,
+    #[serde(default)]
+    pub description: String,
+    #[serde(default)]
+    pub aliases: Vec<String>,
+    #[serde(default)]
+    pub localizations: BTreeMap<String, PluginLocalization>,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PluginManifestV2 {
@@ -80,6 +120,8 @@ pub enum PackageError {
     RootMismatch,
     #[error("invalid plugin manifest: {0}")]
     Manifest(String),
+    #[error("invalid plugin catalog: {0}")]
+    Catalog(String),
     #[error("invalid integrity document: {0}")]
     Integrity(String),
     #[error("invalid signature document: {0}")]

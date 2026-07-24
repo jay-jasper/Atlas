@@ -255,10 +255,6 @@ impl CapabilityBroker {
                 format!("unknown capability `{}`", request.capability),
             );
         };
-        if capability == CapabilityId::UiWebview {
-            return BrokerDecision::denied("reserved", "WebView is reserved and denied in P0");
-        }
-
         let Some(policy) = self.policies.get(identity) else {
             return BrokerDecision::denied("unknown-identity", "plugin identity is not registered");
         };
@@ -313,8 +309,8 @@ fn parse_declared_target(
     target: Option<&str>,
 ) -> Result<CapabilityTarget, BrokerError> {
     match capability {
-        CapabilityId::NetworkHttps => target
-            .ok_or_else(|| BrokerError::new("missing-target", "network capability needs a host"))
+        CapabilityId::NetworkHttps | CapabilityId::UiWebview => target
+            .ok_or_else(|| BrokerError::new("missing-target", "capability needs a host"))
             .and_then(normalize_host)
             .map(CapabilityTarget::Host),
         CapabilityId::McpTools => required_target(target, "tool").map(CapabilityTarget::Tool),
@@ -344,10 +340,9 @@ fn request_target(
     resource: Option<&str>,
 ) -> Result<CapabilityTarget, BrokerError> {
     match capability {
-        CapabilityId::NetworkHttps => {
-            let resource = resource.ok_or_else(|| {
-                BrokerError::new("missing-target", "network request is missing its host")
-            })?;
+        CapabilityId::NetworkHttps | CapabilityId::UiWebview => {
+            let resource = resource
+                .ok_or_else(|| BrokerError::new("missing-target", "request is missing its host"))?;
             normalize_https_resource(resource).map(CapabilityTarget::Host)
         }
         CapabilityId::McpTools => required_target(resource, "tool").map(CapabilityTarget::Tool),
