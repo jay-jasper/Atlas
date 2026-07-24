@@ -14,6 +14,7 @@ enum DistributionChannel: String {
 }
 
 enum DistributionPolicy {
+    static let allowsExecutablePluginsForStore = false
     static var allowsExecutablePlugins: Bool { DistributionChannel.current == .direct }
     static var allowsPrivilegedOperations: Bool { DistributionChannel.current == .direct }
     static var allowsExternalUpdater: Bool { DistributionChannel.current == .direct }

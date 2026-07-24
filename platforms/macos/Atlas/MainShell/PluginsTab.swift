@@ -42,7 +42,9 @@ struct PluginsTab: View {
                 sidebarRow(.dashboard, title: loc("仪表盘", "Dashboard"), icon: "square.grid.2x2")
                 sidebarRow(.menuPanel, title: loc("功能面板", "Panel Widgets"), icon: "slider.horizontal.3")
                 sidebarRow(.commands, title: loc("命令", "Commands"), icon: "keyboard")
+                #if !ATLAS_STORE
                 sidebarRow(.market, title: loc("市场", "Market"), icon: "shippingbox")
+                #endif
 
                 if !toolEntries.isEmpty {
                     sidebarHeader(loc("工具设置", "Tool Settings"))
@@ -99,7 +101,13 @@ struct PluginsTab: View {
         case .commands:
             commandsView()
         case .market:
+            #if ATLAS_STORE
+            Text(loc("App Store 版本不支持可执行插件。", "Executable plugins are unavailable in the App Store build."))
+                .foregroundStyle(.secondary)
+                .padding()
+            #else
             marketView()
+            #endif
         case .tool(let tag):
             toolView(tag)
         }

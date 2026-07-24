@@ -18,6 +18,17 @@ protocol PluginPlatformRuntime: Sendable {
 
 struct LivePluginPlatformRuntime: PluginPlatformRuntime {
     func start(callback: any PluginPlatformCallback) throws {
+        let root = try FileManager.default.url(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        ).appendingPathComponent("Atlas/Plugins", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        try Atlas.initializePluginStorage(
+            rootPath: root.path,
+            contentKey: PluginContentKeyStore().loadOrCreate()
+        )
         try Atlas.pluginPlatformStart(callback: callback)
     }
 
@@ -154,7 +165,12 @@ final class PluginPlatformService: ObservableObject {
         startImmediately: Bool = true
     ) {
         self.runtime = runtime
-        self.capabilityRouter = capabilityRouter ?? PluginCapabilityRouter()
+        self.capabilityRouter = capabilityRouter ?? PluginCapabilityRouter(adapters: [
+            PluginFileAdapter(),
+            PluginClipboardAdapter(),
+            PluginNotificationAdapter(),
+            PluginApplicationAdapter(),
+        ])
         if startImmediately {
             start()
         }
@@ -311,7 +327,10 @@ final class PluginPlatformService: ObservableObject {
                 guard let requestID = event.requestId else { return }
                 let request = try decode(PluginHostRequestPayload.self, event.payloadJson)
                 Task {
-                    let response = await capabilityRouter.perform(request)
+                    let response = await capabilityRouter.perform(
+                        pluginID: event.pluginId,
+                        request: request
+                    )
                     do {
                         try runtime.respond(requestID: requestID, responseJSON: response)
                     } catch {

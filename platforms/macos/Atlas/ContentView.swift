@@ -678,6 +678,9 @@ struct ContentView: View {
     @StateObject private var nowPlayingService = NowPlayingService()
     @StateObject private var liveCaptionService = LiveCaptionService()
     @StateObject private var pluginsService = PluginsService()
+    @StateObject private var pluginPlatformService = PluginPlatformService(
+        startImmediately: DistributionPolicy.allowsExecutablePlugins
+    )
     @StateObject private var notchService = NotchService()
     @StateObject private var transcriptionService = TranscriptionService()
     @StateObject private var recordingEditorService = RecordingEditorService()
@@ -894,7 +897,12 @@ struct ContentView: View {
                         }
                     ))
                 },
-                marketView: { AnyView(MarketView(service: self.pluginsService)) },
+                marketView: {
+                    AnyView(MarketView(
+                        service: self.pluginsService,
+                        platform: self.pluginPlatformService
+                    ))
+                },
                 toolView: { tag in AnyView(self.pluginsToolPage(tag)) }
             )
         } else {
@@ -2928,8 +2936,8 @@ struct ContentView: View {
                 Divider()
             }
         case .plugins:
-            if isFeatureEnabled(.plugins) {
-                PluginsPanel(service: pluginsService)
+            if isFeatureEnabled(.plugins), DistributionPolicy.allowsExecutablePlugins {
+                PluginsPanel(service: pluginsService, platform: pluginPlatformService)
                 Divider()
             }
         case .notch:

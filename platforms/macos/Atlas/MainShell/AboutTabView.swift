@@ -90,6 +90,9 @@ struct AboutTabView: View {
     }
 
     private func checkForUpdates() {
+        #if ATLAS_STORE
+        updateState = .idle
+        #else
         updateState = .checking
         Task {
             do {
@@ -104,5 +107,6 @@ struct AboutTabView: View {
                 updateState = .failed
             }
         }
+        #endif
     }
 }

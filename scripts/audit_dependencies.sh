@@ -11,3 +11,21 @@ cargo audit \
   --target-arch x86_64 \
   --ignore RUSTSEC-2026-0194 \
   --ignore RUSTSEC-2026-0195
+
+if cargo tree -p atlas-ffi --no-default-features | grep -Eq 'atlas-plugin-(host|runner|js|package)'; then
+  echo "Store FFI dependency graph includes executable plugin crates" >&2
+  exit 1
+fi
+
+RUNNER_ENTITLEMENTS="platforms/macos/Atlas/Plugins/AtlasPluginRunner.entitlements"
+test "$(/usr/libexec/PlistBuddy -c 'Print :com.apple.security.app-sandbox' "$RUNNER_ENTITLEMENTS")" = true
+for entitlement in \
+  com.apple.security.network.client \
+  com.apple.security.network.server \
+  com.apple.security.files.user-selected.read-only \
+  com.apple.security.files.user-selected.read-write \
+  com.apple.security.automation.apple-events \
+  com.apple.security.inherit
+do
+  test "$(/usr/libexec/PlistBuddy -c "Print :$entitlement" "$RUNNER_ENTITLEMENTS")" = false
+done

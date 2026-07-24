@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 /// 市场页:搜索 + 分类计数 chips + 已装插件卡片(MacTools 市场同构,本地语义)。
 struct MarketView: View {
     @ObservedObject var service: PluginsService
-    @StateObject private var platform = PluginPlatformService()
+    @ObservedObject var platform: PluginPlatformService
 
     @State private var query = ""
     @State private var selectedTrack: String?

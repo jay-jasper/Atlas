@@ -3,7 +3,7 @@ import SwiftUI
 
 struct PluginsPanel: View {
     @ObservedObject var service: PluginsService
-    @StateObject private var platform = PluginPlatformService()
+    @ObservedObject var platform: PluginPlatformService
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {

@@ -20,6 +20,8 @@ esac
 
 ARCHIVE="$ROOT_DIR/build/Atlas-$CHANNEL.xcarchive"
 EXPORT_PATH="$ROOT_DIR/build/export-$CHANNEL"
+"$ROOT_DIR/scripts/generate_uniffi_swift.sh"
+ruby "$ROOT_DIR/platforms/macos/tools/configure_distributions.rb"
 mkdir -p "$ROOT_DIR/build"
 rm -rf "$ARCHIVE" "$EXPORT_PATH"
 xcodebuild archive \
@@ -27,6 +29,22 @@ xcodebuild archive \
   -scheme "$SCHEME" \
   -archivePath "$ARCHIVE" \
   -destination "generic/platform=macOS"
+
+APP_PATH="$ARCHIVE/Products/Applications/Atlas.app"
+RUNNER_PATH="$APP_PATH/Contents/Helpers/atlas-plugin-runner"
+if [[ "$CHANNEL" == "direct" ]]; then
+  test -x "$RUNNER_PATH"
+  /usr/bin/codesign --verify --strict "$RUNNER_PATH"
+  /usr/bin/codesign -d --entitlements :- "$RUNNER_PATH" 2>&1 \
+    | /usr/bin/plutil -extract com.apple.security.app-sandbox raw - \
+    | grep -qx true
+else
+  test ! -e "$RUNNER_PATH"
+  if /usr/bin/nm -gj "$APP_PATH/Contents/MacOS/Atlas" | grep -Eq 'wasmtime|quickjs|atlas_plugin_runner'; then
+    echo "Store binary contains executable plugin runtime symbols" >&2
+    exit 1
+  fi
+fi
 
 xcodebuild -exportArchive \
   -archivePath "$ARCHIVE" \
