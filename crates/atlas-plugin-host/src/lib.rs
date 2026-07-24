@@ -15,6 +15,8 @@
 
 pub mod broker;
 pub mod capabilities;
+pub mod developer_mode;
+pub mod diagnostics;
 pub mod dist;
 pub mod hub;
 pub mod limits;
@@ -37,6 +39,14 @@ pub use broker::{
     PluginIdentity,
 };
 pub use capabilities::{CapabilityError, CapabilityGuard};
+pub use developer_mode::{
+    ApprovedCommand, DeveloperGrant, DeveloperGrantStore, DeveloperModeController,
+    DeveloperModeError, DeveloperRunnerTerminator,
+};
+pub use diagnostics::{
+    DiagnosticCategory, DiagnosticEvent, DiagnosticExport, DiagnosticPayload,
+    DiagnosticPayloadKind, DiagnosticPolicy, DiagnosticStore, DiagnosticsError, StableErrorCode,
+};
 pub use limits::{LimitError, LimitTracker, RuntimeLimits, RESOURCE_POLICY_VERSION};
 pub use manifest::{
     Capabilities, ManifestError, PluginManifest, PluginManifestV2, Runtime, RuntimeKind,
