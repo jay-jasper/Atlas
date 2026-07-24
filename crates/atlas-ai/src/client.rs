@@ -119,10 +119,7 @@ pub async fn send_streaming(
         }
     };
 
-    let mut request = client
-        .post(&url)
-        .bearer_auth(&req.api_key)
-        .json(&body);
+    let mut request = client.post(&url).bearer_auth(&req.api_key).json(&body);
     for header in &req.extra_headers {
         request = request.header(&header.name, &header.value);
     }

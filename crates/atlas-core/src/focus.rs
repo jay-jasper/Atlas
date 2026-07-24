@@ -113,7 +113,10 @@ impl FocusStore {
     }
 
     pub fn start_at(&self, config: FocusConfig, now: u64) -> Result<FocusState, FocusError> {
-        if matches!(self.state_at(now)?, FocusState::Running { .. } | FocusState::Paused { .. }) {
+        if matches!(
+            self.state_at(now)?,
+            FocusState::Running { .. } | FocusState::Paused { .. }
+        ) {
             return Err(FocusError::AlreadyRunning);
         }
         let state = FocusState::Running {

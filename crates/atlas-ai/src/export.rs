@@ -9,7 +9,7 @@ pub fn export_markdown(session: &ChatSession) -> String {
             ChatRole::User => "## User",
             ChatRole::Assistant => "## Assistant",
         };
-        out.push_str("\n");
+        out.push('\n');
         out.push_str(heading);
         out.push_str("\n\n");
         out.push_str(&message.text);

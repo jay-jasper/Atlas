@@ -2,8 +2,13 @@ name: CI
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
+  pull_request:
+  schedule:
+    - cron: "0 2 * * 0"
 
 permissions:
   contents: read
@@ -21,6 +26,7 @@ jobs:
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - run: cargo test --workspace --locked
+      - run: ATLAS_PLUGIN_SOAK_SECONDS=300 ./scripts/test_plugin_soak.sh
       - run: cargo install cargo-audit --locked
       - run: ./scripts/audit_dependencies.sh
 
@@ -49,3 +55,24 @@ jobs:
       - run: ./scripts/generate_uniffi_swift.sh
       - run: xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme "Atlas Direct" -configuration "Direct Release" -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO
       - run: xcodebuild build -project platforms/macos/Atlas.xcodeproj -scheme "Atlas Store" -configuration "Store Release" -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO
+
+  fuzz-build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo install cargo-fuzz --locked
+      - run: cd crates/atlas-plugin-package/fuzz && cargo fuzz build
+      - run: cd crates/atlas-plugin-protocol/fuzz && cargo fuzz build
+      - run: cd crates/atlas-ui-schema/fuzz && cargo fuzz build
+
+  plugin-soak-24h:
+    if: github.event_name == 'schedule'
+    runs-on: [self-hosted, macOS, atlas-soak]
+    timeout-minutes: 1500
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: ATLAS_PLUGIN_SOAK_SECONDS=86400 ./scripts/test_plugin_soak.sh

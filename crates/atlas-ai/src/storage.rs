@@ -63,11 +63,8 @@ impl AiStore {
     }
 
     pub fn delete_preset(&self, id: &str) -> Result<(), AiError> {
-        let presets: Vec<PromptPreset> = self
-            .presets()?
-            .into_iter()
-            .filter(|p| p.id != id)
-            .collect();
+        let presets: Vec<PromptPreset> =
+            self.presets()?.into_iter().filter(|p| p.id != id).collect();
         self.write_json(&self.root.join("presets.json"), &presets)
     }
 
@@ -91,7 +88,7 @@ impl AiStore {
                 });
             }
         }
-        summaries.sort_by(|a, b| b.created_at_ms.cmp(&a.created_at_ms));
+        summaries.sort_by_key(|summary| std::cmp::Reverse(summary.created_at_ms));
         Ok(summaries)
     }
 

@@ -1,0 +1,22 @@
+[package]
+name = "atlas-ui-schema-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+atlas-ui-schema = { path = ".." }
+libfuzzer-sys = "0.4"
+serde_json = "1"
+
+[[bin]]
+name = "patch"
+path = "fuzz_targets/patch.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]

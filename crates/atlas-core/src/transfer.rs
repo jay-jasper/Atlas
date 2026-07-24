@@ -53,7 +53,10 @@ fn now_secs() -> u64 {
 }
 
 /// 打包到 dest_path(覆盖写)。
-pub fn export(payloads: &[TransferPayload], dest_path: &Path) -> Result<TransferManifest, TransferError> {
+pub fn export(
+    payloads: &[TransferPayload],
+    dest_path: &Path,
+) -> Result<TransferManifest, TransferError> {
     let manifest = TransferManifest {
         version: TRANSFER_FORMAT_VERSION,
         exported_at: now_secs(),
@@ -143,11 +146,7 @@ mod tests {
         assert_eq!(inspected.kinds.len(), 2);
 
         // 只勾选 notes:snippets 不回来;未知 kind 忽略。
-        let imported = import(
-            &path,
-            &["notes".to_string(), "unknown".to_string()],
-        )
-        .unwrap();
+        let imported = import(&path, &["notes".to_string(), "unknown".to_string()]).unwrap();
         assert_eq!(imported.len(), 1);
         assert_eq!(imported[0].kind, "notes");
         assert!(imported[0].json.contains("笔记"));

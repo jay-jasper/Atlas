@@ -155,7 +155,11 @@ pub fn detect_clis(search_dirs: &[String]) -> Vec<DetectedCli> {
             .map(|out| {
                 let stdout = String::from_utf8_lossy(&out.stdout);
                 let stderr = String::from_utf8_lossy(&out.stderr);
-                parse_version(if stdout.trim().is_empty() { &stderr } else { &stdout })
+                parse_version(if stdout.trim().is_empty() {
+                    &stderr
+                } else {
+                    &stdout
+                })
             })
             .unwrap_or_default();
 
@@ -221,7 +225,12 @@ pub async fn run_prompt_via_cli(
     let is_claude = kind_id == "claude-code";
     match kind_id {
         "claude-code" => {
-            command.arg("-p").arg(&prompt).arg("--output-format").arg("stream-json").arg("--verbose");
+            command
+                .arg("-p")
+                .arg(&prompt)
+                .arg("--output-format")
+                .arg("stream-json")
+                .arg("--verbose");
             if let Some(model) = &model {
                 command.arg("--model").arg(model);
             }
@@ -245,7 +254,11 @@ pub async fn run_prompt_via_cli(
             }
         }
         "aider" => {
-            command.arg("--message").arg(&prompt).arg("--no-git").arg("--yes-always");
+            command
+                .arg("--message")
+                .arg(&prompt)
+                .arg("--no-git")
+                .arg("--yes-always");
             if let Some(model) = &model {
                 command.arg("--model").arg(model);
             }
@@ -262,7 +275,10 @@ pub async fn run_prompt_via_cli(
             return;
         }
     }
-    command.stdout(Stdio::piped()).stderr(Stdio::piped()).stdin(Stdio::null());
+    command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .stdin(Stdio::null());
 
     let mut child = match command.spawn() {
         Ok(child) => child,
@@ -353,8 +369,12 @@ mod tests {
         let delta = r#"{"type":"content_block_delta","delta":{"type":"text_delta","text":"Hel"}}"#;
         assert_eq!(claude_stream_delta(delta), Some("Hel".to_string()));
 
-        let assistant = r#"{"type":"assistant","message":{"content":[{"type":"text","text":"full answer"}]}}"#;
-        assert_eq!(claude_stream_delta(assistant), Some("full answer".to_string()));
+        let assistant =
+            r#"{"type":"assistant","message":{"content":[{"type":"text","text":"full answer"}]}}"#;
+        assert_eq!(
+            claude_stream_delta(assistant),
+            Some("full answer".to_string())
+        );
 
         let result = r#"{"type":"result","result":"final"}"#;
         assert_eq!(claude_stream_delta(result), Some("final".to_string()));

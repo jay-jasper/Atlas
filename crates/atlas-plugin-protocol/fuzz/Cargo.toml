@@ -1,0 +1,21 @@
+[package]
+name = "atlas-plugin-protocol-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+atlas-plugin-protocol = { path = ".." }
+libfuzzer-sys = "0.4"
+
+[[bin]]
+name = "frame"
+path = "fuzz_targets/frame.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]

@@ -23,7 +23,17 @@ xcodebuild test -project platforms/macos/Atlas.xcodeproj -scheme "Atlas Store" -
 - The legacy embedded Lua bridge is isolated behind the Rust `lua` feature and is excluded from production FFI builds unless explicitly requested.
 - Hub-downloaded plugin packages and update manifests are verified with Ed25519 and SHA-256.
 - Local plugin installs require explicit capability approval; a changed manifest invalidates the saved approval.
+- Executable plugins run in authenticated per-plugin Runner processes and render only validated declarative UI; packages are immutable, content-addressed, and reverified on every activation.
+- Capability grants are target-scoped and may be revoked independently. External files use opaque security-scoped bookmark handles rather than paths.
+- The App Store build contains neither the Runner helper nor executable plugin runtime dependencies.
 - Scratchpad and clipboard history payloads are encrypted with AES-GCM; the content key is stored in macOS Keychain.
 - Clipboard history excludes common secrets, OTPs, and Luhn-valid payment-card numbers and expires after seven days by default.
 
 See [docs/BUILDING.md](docs/BUILDING.md), [docs/PRIVACY.md](docs/PRIVACY.md), and [docs/RELEASING.md](docs/RELEASING.md).
+
+Plugin release gates include hostile-package tests and a deterministic soak:
+
+```bash
+cargo test -p atlas-plugin-host --test malicious_plugins
+ATLAS_PLUGIN_SOAK_SECONDS=300 ./scripts/test_plugin_soak.sh
+```

@@ -12,8 +12,8 @@ pub mod sse;
 pub mod storage;
 
 pub use cli::{detect_clis, run_prompt_via_cli, DetectedCli};
-pub use commands::{render_prompt, AiCommand, AiCommandOutput, AiCommandStore};
 pub use client::{build_body, send_streaming, SendRequest, StreamSink};
+pub use commands::{render_prompt, AiCommand, AiCommandOutput, AiCommandStore};
 pub use export::export_markdown;
 pub use models::*;
 pub use sse::{SseEvent, SseParser};
